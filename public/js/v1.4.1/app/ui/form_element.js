@@ -15,7 +15,7 @@ define([
      * @param data
      * @returns {*}
      */
-    let formatCategoryTypeResultData  = (data) => {
+    let formatCategoryTypeResultData  = data => {
         if(data.loading) return data.text;
         if(data.placeholder) return data.placeholder;
 
@@ -80,6 +80,52 @@ define([
                 maximumSelectionLength: 5
             })
         );
+    };
+
+    /**
+     * init a sselect element as "select2"  for "status" selection
+     * @param options
+     * @returns {*}
+     */
+    $.fn.initStatusSelect = function(options){
+
+        let config = {
+            minimumResultsForSearch: -1,
+            width: '100%',
+            iconClass: 'fa-circle'
+        };
+
+        config = $.extend({}, config, options);
+
+        let formatStatusSelectionData = state => {
+            let markup = '<span>';
+            markup += '<i class="fas ' + config.iconClass + ' ' + state.class + '"></i>&nbsp;&nbsp;&nbsp;' + state.text;
+            markup += '</span>';
+
+            return $(markup);
+        };
+
+        let formatStatusResultData = data => {
+            if(data.loading) return data.text;
+            if(data.placeholder) return data.placeholder;
+
+            let markup = '<div class="clearfix">';
+            markup += '<div class="col-xs-2 text-center">';
+            markup += '<i class="fas ' + config.iconClass + ' ' + data.class + '"></i>';
+            markup += '</div>';
+            markup += '<div class="col-xs-10">' + data.text + '</div>';
+            markup += '</div>';
+
+            return $(markup);
+        };
+
+        config.templateSelection = formatStatusSelectionData;
+        config.templateResult = formatStatusResultData;
+
+        return this.each(function(){
+            let selectElement = $(this);
+            selectElement.select2(config);
+        });
     };
 
     /**
@@ -304,7 +350,6 @@ define([
                 // after init finish
             });
         });
-
     };
 
     /**

@@ -242,14 +242,16 @@ define([
         let structureStatusData = Util.getObjVal(Init, 'structureStatus');
         let structureTypeData = Util.getObjVal(Init, 'structureStatus');
 
+        let statusData = Object.keys(structureStatusData).map((k) => {
+            let data = structureStatusData[k];
+            data.selected = data.id === Util.getObjVal(structureData, 'status.id');
+            return data;
+        });
+
         let data = {
             id: config.structureDialogId,
             structureData: structureData,
-            structureStatus: Object.keys(structureStatusData).map((k) => {
-                let data = structureStatusData[k];
-                data.selected = data.id === Util.getObjVal(structureData, 'status.id');
-                return data;
-            }),
+            structureStatus: statusData,
             statusSelectId: config.statusSelectId,
             typeSelectId: config.typeSelectId,
             corporationSelectId: config.corporationSelectId,
@@ -264,7 +266,7 @@ define([
             let structureDialog = bootbox.dialog({
                 title: 'Structure',
                 message: content,
-                show: true,
+                show: false,
                 buttons: {
                     close: {
                         label: 'cancel',
@@ -304,9 +306,11 @@ define([
                 }
             });
 
-            structureDialog.on('shown.bs.modal', function(e) {
+            structureDialog.on('show.bs.modal', function(e) {
+                let modalContent = $('#' + config.structureDialogId);
+
                 // init type select live search
-                let selectElementType = $(this).find('#' + config.typeSelectId);
+                let selectElementType = modalContent.find('#' + config.typeSelectId);
                 selectElementType.initUniverseTypeSelect({
                     categoryIds: [65],
                     maxSelectionLength: 1,
@@ -314,19 +318,20 @@ define([
                 });
 
                 // init corporation select live search
-                let selectElementCorporation = $(this).find('#' + config.corporationSelectId);
+                let selectElementCorporation = modalContent.find('#' + config.corporationSelectId);
                 selectElementCorporation.initUniverseSearch({
                     categoryNames: ['corporation'],
                     maxSelectionLength: 1
                 });
 
-                $(this).find('#' + config.statusSelectId).select2({
-                    minimumResultsForSearch: -1
+                // init status select2
+                modalContent.find('#' + config.statusSelectId).initStatusSelect({
+                    data: statusData
                 });
 
                 // init character counter
-                let textarea = $(this).find('#' + config.descriptionTextareaId);
-                let charCounter = $(this).find('.' + config.descriptionTextareaCharCounter);
+                let textarea = modalContent.find('#' + config.descriptionTextareaId);
+                let charCounter = modalContent.find('.' + config.descriptionTextareaCharCounter);
                 Util.updateCounter(textarea, charCounter, maxDescriptionLength);
 
                 textarea.on('keyup', function(){
@@ -334,9 +339,11 @@ define([
                 });
 
                 // set form validator (after select2 init finish)
-                $(this).find('form').initFormValidation();
+                modalContent.find('form').initFormValidation();
             });
 
+            // show dialog
+            structureDialog.modal('show');
         });
     };
 

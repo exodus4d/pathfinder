@@ -34,12 +34,8 @@ class System extends Controller\AccessController {
             $mapData = (array)$postData['mapData'];
             $systemModel = null;
 
-            if( isset($systemData['statusId']) ){
-                if( (int)$systemData['statusId'] <= 0){
-                    unset($systemData['statusId']);
-                }else{
-                    $systemData['statusId'] = (int)$systemData['statusId'];
-                }
+            if( (int)$systemData['statusId'] <= 0 ){
+                unset($systemData['statusId']);
             }
 
             if( isset($systemData['id']) ){
@@ -72,7 +68,7 @@ class System extends Controller\AccessController {
 
             if( !is_null($systemModel) ){
                 // set/update system custom data
-                $systemModel->copyfrom($systemData, ['locked', 'rallyUpdated', 'position', 'description']);
+                $systemModel->copyfrom($systemData, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
 
                 if($systemModel->save($activeCharacter)){
                     // get data from "fresh" model (e.g. some relational data has changed: "statusId")

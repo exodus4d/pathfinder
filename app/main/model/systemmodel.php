@@ -74,6 +74,7 @@ class SystemModel extends AbstractMapTrackingModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
+            'validate' => true,
             'activity-log' => true
         ],
         'locked' => [
@@ -142,9 +143,9 @@ class SystemModel extends AbstractMapTrackingModel {
                 $systemData->type               = $this->typeId->getData();
             }
 
-            $systemData->status                 = (object) [];
-            $systemData->status->id             = is_object($this->statusId) ? $this->statusId->id : 1;
-            $systemData->status->name           = is_object($this->statusId) ? $this->statusId->name : 'unknown';
+            if(is_object($this->statusId)){
+                $systemData->status             = $this->statusId->getData();
+            }
 
             $systemData->locked                 = $this->locked;
             $systemData->rallyUpdated           = strtotime($this->rallyUpdated);
@@ -238,6 +239,22 @@ class SystemModel extends AbstractMapTrackingModel {
         $valid = true;
         // check if static system data exists for systemId = $val
         if( !(bool)(new Universe())->getSystemData($val) ){
+            $valid = false;
+            $this->throwValidationException($key, 'Validation failed: "' . $key . '" = "' . $val . '"');
+        }
+
+        return $valid;
+    }
+
+    /**
+     * @param string $key
+     * @param int $val
+     * @return bool
+     * @throws \Exception\ValidationException
+     */
+    protected function validate_statusId(string $key, int $val): bool {
+        $valid = true;
+        if( !$this->rel('statusId')::getStatusById($val) ){
             $valid = false;
             $this->throwValidationException($key, 'Validation failed: "' . $key . '" = "' . $val . '"');
         }

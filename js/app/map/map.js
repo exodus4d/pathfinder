@@ -58,6 +58,7 @@ define([
         // dialogs
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
+        systemDialogStatusSelectId: 'pf-system-dialog-status-select',   // id for "status" select
 
         // system security classes
         systemSec: 'pf-system-sec'
@@ -1378,21 +1379,13 @@ define([
      * @param map
      * @param options
      */
-    let showNewSystemDialog = function(map, options){
+    let showNewSystemDialog = (map, options) => {
         let mapContainer = $(map.getContainer());
 
         // format system status for form select -----------------------------------------------------------------------
-        let systemStatus = {};
         // "default" selection (id = 0) prevents status from being overwritten
         // -> e.g. keep status information if system was just inactive (active = 0)
-        systemStatus[0] = 'default';
-
-        $.each(Init.systemStatus, function(status, statusData){
-            systemStatus[statusData.id] = statusData.label;
-        });
-
-        // default system status -> first status entry
-        let defaultSystemStatus = 0;
+        let statusData = [{id: 0, text: 'auto'}];
 
         // get current map data ---------------------------------------------------------------------------------------
         let mapData = mapContainer.getMapDataFromClient({forceData: true});
@@ -1416,7 +1409,10 @@ define([
         // dialog data ------------------------------------------------------------------------------------------------
         let data = {
             id: config.systemDialogId,
-            selectClass: config.systemDialogSelectClass
+            select2Class: Util.config.select2Class,
+            selectClass: config.systemDialogSelectClass,
+            statusSelectId: config.systemDialogStatusSelectId,
+            statusData: statusData
         };
 
         // set current position as "default" system to add ------------------------------------------------------------
@@ -1438,6 +1434,7 @@ define([
             let systemDialog = bootbox.dialog({
                 title: 'Add new system',
                 message: content,
+                show: false,
                 buttons: {
                     close: {
                         label: 'cancel',
@@ -1517,9 +1514,21 @@ define([
                 }
             });
 
-            // init dialog
-            systemDialog.on('shown.bs.modal', function(e) {
+            systemDialog.on('show.bs.modal', function(e) {
+                let modalContent = $('#' + config.systemDialogId);
 
+                // init "status" select2
+                for (let [statusName, data] of Object.entries(Init.systemStatus)){
+                    statusData.push({id: data.id, text: data.label, class: data.class});
+                }
+
+                modalContent.find('#' + config.systemDialogStatusSelectId).initStatusSelect({
+                    data: statusData,
+                    iconClass: 'fa-tag'
+                });
+            });
+
+            systemDialog.on('shown.bs.modal', function(e) {
                 let modalContent = $('#' + config.systemDialogId);
 
                 // init system select live search  - some delay until modal transition has finished
@@ -1530,18 +1539,8 @@ define([
                 });
             });
 
-            // init system status select
-            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
-
-            modalFields.editable({
-                mode: 'inline',
-                emptytext: 'unknown',
-                onblur: 'submit',
-                showbuttons: false,
-                source: systemStatus,
-                value: defaultSystemStatus,
-                inputclass: config.systemDialogSelectClass
-            });
+            // show dialog
+            systemDialog.modal('show');
         });
     };
 
