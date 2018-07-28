@@ -679,6 +679,11 @@ table{
     }
   }
 
+  // "Fake" spacer module -> preserves height during hide -> show animation for a module
+  .pf-module-spacer{
+    margin-bottom: 10px;  // same as .pf-module -> no UI jump
+  }
+
 }
 
 // User status ====================================================================================

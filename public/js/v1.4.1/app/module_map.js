@@ -53,6 +53,7 @@ define([
 
         // module
         moduleClass: 'pf-module',                                               // class for a module
+        moduleSpacerClass: 'pf-module-spacer',                                  // class for "spacer" module (preserves height during hide/show animation)
         moduleClosedClass: 'pf-module-closed'                                   // class for a closed module
 
     };
@@ -167,7 +168,7 @@ define([
      * @param Module
      * @param callback
      */
-    let removeModule = (moduleElement, Module, callback) => {
+    let removeModule = (moduleElement, Module, callback, addSpacer) => {
         if(moduleElement.length > 0){
             if(typeof Module.beforeReDraw === 'function'){
                 Module.beforeReDraw();
@@ -176,9 +177,22 @@ define([
             moduleElement.velocity('reverse',{
                 complete: function(moduleElement){
                     moduleElement = $(moduleElement);
+                    let oldModuleHeight = moduleElement.outerHeight();
+
                     if(typeof Module.beforeDestroy === 'function'){
                         Module.beforeDestroy(moduleElement);
                     }
+
+                    // [optional] add a "spacer" <div> that fakes Module height during hide->show animation
+                    if(addSpacer){
+                        moduleElement.after($('<div>', {
+                            class: [config.moduleSpacerClass, Module.config.moduleTypeClass + '-spacer'].join(' '),
+                            css: {
+                                height: oldModuleHeight + 'px'
+                            }
+                        }));
+                    }
+
                     moduleElement.remove();
 
                     if(typeof callback === 'function'){
@@ -199,6 +213,16 @@ define([
     let drawModule = (parentElement, Module, mapId, data) => {
 
         let drawModuleExecutor = (resolve, reject) => {
+
+            /**
+             * remove "Spacer" Module
+             * @param parentElement
+             * @param Module
+             */
+            let removeSpacerModule = (parentElement, Module) => {
+                parentElement.find('.' + Module.config.moduleTypeClass + '-spacer').remove();
+            };
+
             /**
              * show/render a Module
              * @param parentElement
@@ -220,6 +244,10 @@ define([
                     promiseStore.then(function (dataStore) {
                         let Module = this.moduleElement.data('module');
                         let defaultPosition = Module.config.modulePosition || 0;
+
+                        // hide "spacer" Module (in case it exist)
+                        // -> Must be done BEFORE position calculation! Spacer Modules should not be counted!
+                        removeSpacerModule(this.parentElement, Module);
 
                         // check for stored module order in indexDB (client) ----------------------------------------------
                         let key = 'modules_cell_' + this.parentElement.attr('data-position');
@@ -278,6 +306,9 @@ define([
                         parentElement: parentElement,
                         moduleElement: moduleElement
                     }));
+                }else{
+                    // Module should not be shown (e.g. "Graph" module on WH systems)
+                    removeSpacerModule(parentElement, Module);
                 }
             };
 
@@ -286,7 +317,7 @@ define([
             if (moduleElement.length > 0) {
                 removeModule(moduleElement, Module, () => {
                     showPanel(parentElement, Module, mapId, data);
-                });
+                }, true);
             } else {
                 showPanel(parentElement, Module, mapId, data);
             }
