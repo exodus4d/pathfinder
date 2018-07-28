@@ -148,6 +148,10 @@ define(['jquery'], ($) => {
                 class: 'fa-heart',
                 label: 'heart',
                 unicode: '&#xf004;'
+            },{
+                class: 'fa-poop',
+                label: 'poop',
+                unicode: '&#xf619;'
             }
         ],
 

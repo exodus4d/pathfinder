@@ -408,7 +408,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Manual').prepend(
                     $('<i>',{
-                        class: 'fas fa-book fa-fw'
+                        class: 'fas fa-book-reader fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Manual');
