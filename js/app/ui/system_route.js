@@ -40,7 +40,9 @@ define([
 
         dataTableActionCellClass: 'pf-table-action-cell',                       // class for "action" cells
         dataTableRouteCellClass: 'pf-table-route-cell',                         // class for "route" cells
-        dataTableJumpCellClass: 'pf-table-jump-cell'                            // class for "route jump" cells
+        dataTableJumpCellClass: 'pf-table-jump-cell',                           // class for "route jump" cells
+
+        rallyClass: 'pf-rally'                                                  // class for "rally point" style
     };
 
     // cache for system routes
@@ -109,11 +111,8 @@ define([
      * @param routesData
      */
     let callbackAddRouteRows = (context, routesData) => {
-
         if(routesData.length > 0){
-            for(let i = 0; i < routesData.length; i++){
-                let routeData = routesData[i];
-
+            for(let routeData of routesData){
                 // format routeData
                 let rowData = formatRouteData(routeData);
                 if(rowData.route){
@@ -145,7 +144,7 @@ define([
         // search for an existing row (e.g. on mass "table refresh" [all routes])
         // get rowIndex where column 1 (equals to "systemToData.name") matches rowData.systemToData.name
         let indexes = dataTable.rows().eq(0).filter((rowIdx) => {
-            return (dataTable.cell(rowIdx, 1 ).data().name === rowData.systemToData.name);
+            return (dataTable.cell(rowIdx, 1).data().name === rowData.systemToData.name);
         });
 
         if(indexes.length > 0){
@@ -163,9 +162,7 @@ define([
 
         if(row.length > 0){
             rowElement = row.nodes().to$();
-            if(animationStatus !== null){
-                rowElement.data('animationStatus', animationStatus);
-            }
+            rowElement.data('animationStatus', animationStatus);
 
             rowElement.initTooltips({
                 container: 'body'
@@ -262,6 +259,7 @@ define([
             selectClass: config.systemDialogSelectClass,
             mapSelectId: config.mapSelectId,
             systemFromData: dialogData.systemFromData,
+            systemToData: dialogData.systemToData,
             mapSelectOptions: mapSelectOptions
         };
 
@@ -368,9 +366,9 @@ define([
      * @param moduleElement
      * @param systemFromData
      * @param routesTable
-     * @param systemsTo
+     * @param systemsToData
      */
-    let drawRouteTable = (mapId, moduleElement, systemFromData, routesTable, systemsTo) => {
+    let drawRouteTable = (mapId, moduleElement, systemFromData, routesTable, systemsToData) => {
         let requestRouteData = [];
 
         // Skip some routes from search
@@ -378,9 +376,7 @@ define([
         let defaultRoutesCount = Init.routeSearch.defaultCount;
         let rowElements = [];
 
-        for(let i = 0; i < systemsTo.length; i++){
-            let systemToData = systemsTo[i];
-
+        for(let systemToData of systemsToData){
             if(systemFromData.name !== systemToData.name){
                 // check for cached rowData
                 let cacheKey = getRouteDataCacheKey([mapId], systemFromData.name, systemToData.name);
@@ -738,7 +734,7 @@ define([
         let connectionButton = '<i class="fas ' + ['fa-link', 'txt-color'].join(' ') + '"></i>';
         let flagButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', flagButtonClass].join(' ') + '"></i>';
         let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
-        let searchButton = '<i class="fas ' + ['fa-search-plus '].join(' ') + '"></i>';
+        let searchButton = '<i class="fas ' + ['fa-search'].join(' ') + '"></i>';
         let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
@@ -873,9 +869,13 @@ define([
 
     /**
      * get module element
-     * @returns {*}
+     * @param parentElement
+     * @param mapId
+     * @param systemData
+     * @returns {jQuery}
      */
-    let getModule = () => {
+    let getModule = (parentElement, mapId, systemData) => {
+
         // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
@@ -905,6 +905,15 @@ define([
                 })
             )
         );
+
+        // save systemFromData to module (data never changes during module lifetime)
+        // -> we need this later in updateModule()
+        let systemFromData = {
+            systemId: systemData.systemId,
+            name: systemData.name,
+        };
+
+        moduleElement.data('systemFromData', systemFromData);
 
         let table = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
@@ -951,12 +960,14 @@ define([
                         $(cell).initSystemPopover({
                             systemToData: rowData.systemToData
                         });
+
+                        $(cell).toggleClass(config.rallyClass, cellData.hasOwnProperty('rally'));
                     }
                 },{
                     targets: 2,
                     orderable: true,
                     title: '<span title="jumps" data-toggle="tooltip"><i class="fas fa-arrows-alt-h"></i>&nbsp;&nbsp;</span>',
-                    width: 18,
+                    width: 16,
                     class: 'text-right',
                     data: 'jumps',
                     render: {
@@ -967,7 +978,7 @@ define([
                     targets: 3,
                     orderable: true,
                     title: '<span title="average security" data-toggle="tooltip">&#216;&nbsp;&nbsp;</span>',
-                    width: 15,
+                    width: 14,
                     class: 'text-right',
                     data: 'avgTrueSec',
                     render: {
@@ -1207,8 +1218,8 @@ define([
                 popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
                     // hint: "data" attributes should be in lower case!
                     let systemData = {
-                        name: $(this).data('name'),
-                        systemId: $(this).data('systemid')
+                        systemId: $(this).data('systemid'),
+                        name: $(this).data('name')
                     };
                     Util.setDestination(systemData, 'set_destination');
 
@@ -1217,6 +1228,58 @@ define([
                 });
             });
         });
+    };
+
+    /**
+     * get data from all Rally Point systems
+     * @param mapId
+     * @returns {Array}
+     */
+    let getRallySystemsData = (mapId) => {
+        let systemsRallyData = [];
+        let map = MapUtil.getMapInstance(mapId);
+        if(map){
+            let mapContainer = $(map.getContainer());
+            let systems = mapContainer.find('.pf-system-info-rally');
+
+            for(let system of systems){
+                system = $(system);
+                systemsRallyData.push({
+                    systemId: system.data('systemId'),
+                    name: system.data('name'),
+                    rally: 1
+                });
+            }
+        }
+
+        return systemsRallyData;
+    };
+
+    /**
+     * update trigger function for this module
+     * @param moduleElement
+     * @param data
+     */
+    let updateModule = (moduleElement, data) => {
+        let routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
+        let routesTable = routesTableElement.DataTable();
+
+        switch(data.task){
+            case 'showFindRouteDialog':
+                let dialogData = {
+                    moduleElement: moduleElement,
+                    mapId: data.mapId,
+                    systemFromData: moduleElement.data('systemFromData'),
+                    systemToData: data.systemToData,
+                    dataTable: routesTable
+                };
+
+                showFindRouteDialog(dialogData);
+                break;
+            case 'findRoute':
+                drawRouteTable(data.mapId, moduleElement, moduleElement.data('systemFromData'), routesTable, [data.systemToData]);
+                break;
+        }
     };
 
     /**
@@ -1229,8 +1292,8 @@ define([
     let initModule = (moduleElement, mapId, systemData) => {
 
         let systemFromData = {
-            name: systemData.name,
-            systemId: systemData.systemId
+            systemId: systemData.systemId,
+            name: systemData.name
         };
 
         let routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
@@ -1247,7 +1310,7 @@ define([
 
             if(routesTable.rows().count() >= maxRouteSearchLimit){
                 // max routes limit reached -> show warning
-                Util.showNotify({title: 'Route limit reached', text: 'Serch is limited by ' + maxRouteSearchLimit, type: 'warning'});
+                Util.showNotify({title: 'Route limit reached', text: 'Search is limited by ' + maxRouteSearchLimit, type: 'warning'});
             }else{
                 let dialogData = {
                     moduleElement: moduleElement,
@@ -1276,8 +1339,8 @@ define([
         promiseStore.then(function(dataStore) {
             // selected systems (if already stored)
             let systemsTo = [{
-                name: 'Jita',
-                systemId: 30000142
+                systemId: 30000142,
+                name: 'Jita'
             }];
 
             if(
@@ -1287,7 +1350,11 @@ define([
                 systemsTo = dataStore.routes;
             }
 
-            drawRouteTable(mapId, moduleElement, systemFromData, routesTable, systemsTo);
+            // add "Rally Point" systems to table
+            let systemsToData = getRallySystemsData(mapId);
+            systemsToData.push(...systemsTo);
+
+            drawRouteTable(mapId, moduleElement, systemFromData, routesTable, systemsToData);
         });
 
     };
@@ -1295,7 +1362,8 @@ define([
     return {
         config: config,
         getModule: getModule,
-        initModule: initModule
+        initModule: initModule,
+        updateModule: updateModule
     };
 
 });

@@ -31,7 +31,6 @@ define([
     'use strict';
 
     let config = {
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                           // parent Element for dynamic content (dialogs,..)
         mapTabElementId: 'pf-map-tab-element',                                  // id for map tab element (tabs + content)
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
         mapTabIdPrefix: 'pf-map-tab-',                                          // id prefix for a map tab
@@ -105,6 +104,10 @@ define([
         tabElement.on('pf:updateSystemModules',  '.' + config.mapTabContentClass, function(e, data){
             updateSystemModules($(e.target), data);
         });
+
+        tabElement.on('pf:updateRouteModules',  '.' + config.mapTabContentClass, function(e, data){
+            updateRouteModules($(e.target), data);
+        });
     };
 
     /**
@@ -130,6 +133,16 @@ define([
     let updateSystemModules = (tabContentElement, data) => {
         let systemModules = [SystemInfoModule, SystemSignatureModule, SystemIntelModule];
         updateModules(tabContentElement, systemModules, data);
+    };
+
+    /**
+     * update route modules with new data
+     * @param tabContentElement
+     * @param data
+     */
+    let updateRouteModules = (tabContentElement, data) => {
+        let routeModules = [SystemRouteModule];
+        updateModules(tabContentElement, routeModules, data);
     };
 
     /**

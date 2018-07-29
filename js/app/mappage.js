@@ -194,8 +194,11 @@ define([
         let initMapModule = (payload) => {
 
             let initMapModuleExecutor = (resolve, reject) => {
-                // init tab change observer, Once the timers are available
+                // init browser tab change observer, Once the timers are available
                 Page.initTabChangeObserver();
+
+                // init hidden context menu elements
+                Page.initMapContextMenus();
 
                 // init map module
                 mapModule.initMapModule() ;

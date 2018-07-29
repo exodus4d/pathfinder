@@ -9,6 +9,7 @@ define([
     'app/logging',
     'mustache',
     'app/map/util',
+    'app/map/contextmenu',
     'text!img/logo.svg!strip',
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
@@ -26,7 +27,7 @@ define([
     'xEditable',
     'slidebars',
     'app/module_map'
-], ($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) => {
+], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, TplLogo, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -66,7 +67,7 @@ define([
         menuClockClass: 'pf-menu-clock',                                        // class for EVE-Time clock
 
         // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper',
+        dynamicElementWrapperId: 'pf-dialog-wrapper',                           // class for container element that holds hidden "context menus"
 
         // system signature module
         systemSignatureModuleClass: 'pf-signature-table-module',                // module wrapper (signatures)
@@ -105,8 +106,7 @@ define([
                     id: config.pageId,
                     class: config.pageClass
                 }).append(
-                    Util.getMapModule()
-                ).append(
+                    Util.getMapModule(),
                     $('<div>', {
                         id: config.dynamicElementWrapperId
                     })
@@ -1087,7 +1087,7 @@ define([
     /**
      * shows a test notification for desktop messages
      */
-    let notificationTest = function(){
+    let notificationTest = () => {
         Util.showNotify({
                 title: 'Test Notification',
                 text: 'Accept browser security question'},
@@ -1102,7 +1102,7 @@ define([
      *  set event listener if the program tab is active or not
      *  this is used to lower the update ping cycle to reduce server load
      */
-    let initTabChangeObserver = function(){
+    let initTabChangeObserver = () => {
 
         // increase the timer if a user is inactive
         let increaseTimer = 5000;
@@ -1128,7 +1128,7 @@ define([
         }
 
         // function is called if the tab becomes active/inactive
-        function handleVisibilityChange() {
+        let handleVisibilityChange = () => {
             if (document[hidden]) {
                 // tab is invisible
                 // globally store current visibility status
@@ -1147,7 +1147,7 @@ define([
                 // stop blinking tab from previous notifications
                 Util.stopTabBlink();
             }
-        }
+        };
 
         if (
             typeof document.addEventListener !== 'undefined' &&
@@ -1162,6 +1162,14 @@ define([
             document.addEventListener(visibilityChange, handleVisibilityChange, false);
         }
 
+    };
+
+    let initMapContextMenus = () => {
+        $('#' + config.dynamicElementWrapperId).append(
+            MapContextMenu.initMapContextMenu(),
+            MapContextMenu.initConnectionContextMenu(),
+            MapContextMenu.initSystemContextMenu(Init.systemStatus)
+        );
     };
 
     /**
@@ -1308,7 +1316,8 @@ define([
     };
 
     return {
-        initTabChangeObserver: initTabChangeObserver
+        initTabChangeObserver: initTabChangeObserver,
+        initMapContextMenus: initMapContextMenus
     };
 
 

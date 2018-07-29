@@ -14,7 +14,6 @@ define([
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
-    'app/map/contextmenu',
     'app/map/overlay',
     'app/map/local'
 ], ($, Init, Util, Render, bootbox, MapUtil, System, Layout, MagnetizerWrapper) => {
@@ -534,8 +533,12 @@ define([
             e.stopPropagation();
 
             // trigger menu "open
-            Promise.all([getHiddenContextMenuOptions(component), getActiveContextMenuOptions(component)]).then(payload => {
-                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1]]);
+            Promise.all([
+                getHiddenContextMenuOptions(component),
+                getActiveContextMenuOptions(component),
+                getDisabledContextMenuOptions(component)
+            ]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1], payload[2]]);
             });
 
             return false;
@@ -1765,124 +1768,11 @@ define([
     };
 
     /**
-     * load context menu template for map
-     */
-    let initMapContextMenu = function(){
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
-        let moduleData = {
-            id: config.mapContextMenuId,
-            items: [
-                {icon: 'fa-plus', action: 'add_system', text: 'add system'},
-                {icon: 'fa-object-ungroup', action: 'select_all', text: 'select all'},
-                {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
-                    {subIcon: '', subAction: 'filter_wh', subText: 'wormhole'},
-                    {subIcon: '', subAction: 'filter_stargate', subText: 'stargate'},
-                    {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'},
-                    {subIcon: '', subAction: 'filter_abyssal', subText: 'abyssal'}
-                ]},
-                {icon: 'fa-sitemap', action: 'map', text: 'map', subitems: [
-                    {subIcon: 'fa-edit', subAction: 'map_edit', subText: 'edit map'},
-                    {subIcon: 'fa-street-view', subAction: 'map_info', subText: 'map info'},
-                ]},
-                {divider: true, action: 'delete_systems'},
-                {icon: 'fa-trash', action: 'delete_systems', text: 'delete systems'}
-            ]
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-    };
-
-    /**
-     * load contextmenu template for connections
-     */
-    let initConnectionContextMenu = function(){
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
-        let moduleData = {
-            id: config.connectionContextMenuId,
-            items: [
-                {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
-                {icon: 'fa-exclamation-triangle', action: 'preserve_mass', text: 'preserve mass'},
-                {icon: 'fa-crosshairs', action: 'change_scope', text: 'change scope', subitems: [
-                    {subIcon: 'fa-minus-circle', subIconClass: '', subAction: 'scope_wh', subText: 'wormhole'},
-                    {subIcon: 'fa-minus-circle', subIconClass: 'txt-color  txt-color-indigoDarkest', subAction: 'scope_stargate', subText: 'stargate'},
-                    {subIcon: 'fa-minus-circle', subIconClass: 'txt-color  txt-color-tealLighter', subAction: 'scope_jumpbridge', subText: 'jumpbridge'}
-
-                ]},
-                {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'change status', subitems: [
-                    {subIcon: 'fa-clock', subAction: 'wh_eol', subText: 'toggle EOL'},
-                    {subDivider: true},
-                    {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 1 (fresh)'},
-                    {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 2 (reduced)'},
-                    {subIcon: 'fa-circle', subAction: 'status_critical', subText: 'stage 3 (critical)'}
-
-                ]},
-                {divider: true, action: 'separator'} ,
-                {icon: 'fa-unlink', action: 'delete_connection', text: 'detach'}
-            ]
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-
-    };
-
-    /**
-     * load contextmenu template for systems
-     */
-    let initSystemContextMenu = function(){
-        let systemStatus = [];
-
-        $.each(Init.systemStatus, function(status, statusData){
-            let tempStatus = {
-                subIcon: 'fa-tag',
-                subIconClass: statusData.class,
-                subAction: 'change_status_' + status,
-                subText: statusData.label
-            };
-            systemStatus.push(tempStatus);
-        });
-
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
-        let moduleData = {
-            id: config.systemContextMenuId,
-            items: [
-                {icon: 'fa-plus', action: 'add_system', text: 'add system'},
-                {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
-                {icon: 'fa-volume-up', action: 'set_rally', text: 'set rally point'},
-                {icon: 'fa-object-group', action: 'select_connections', text: 'select connections'},
-                {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
-                {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
-                    {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
-                    {subDivider: true, action: ''},
-                    {subIcon: 'fa-step-backward', subAction: 'add_first_waypoint', subText: 'add new [start]'},
-                    {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
-                ]},
-                {divider: true, action: 'delete_system'},
-                {icon: 'fa-trash', action: 'delete_system', text: 'delete system(s)'}
-            ]
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-
-    };
-
-    /**
      * get hidden menu entry options for a context menu
      * @param component
      * @returns {Promise<any>}
      */
-    let getHiddenContextMenuOptions = function(component){
+    let getHiddenContextMenuOptions = component => {
 
         let getHiddenContextMenuOptionsExecutor = (resolve, reject) => {
             let hiddenOptions = [];
@@ -1915,6 +1805,11 @@ define([
                 // disable system menu entries
                 if(component.data('locked') === true){
                     hiddenOptions.push('delete_system');
+                }
+
+                let mapElement = component.parents('.' + config.mapClass);
+                if( !mapElement.find('.' + config.systemActiveClass).length ){
+                    hiddenOptions.push('find_route');
                 }
             }
 
@@ -1980,6 +1875,29 @@ define([
         };
 
         return new Promise(getActiveContextMenuOptionsExecutor);
+    };
+
+    /**
+     * get disabled menu entry options for a context menu
+     * @param component
+     * @returns {Promise<any>}
+     */
+    let getDisabledContextMenuOptions = component => {
+
+        let getDisabledContextMenuOptionsExecutor = (resolve, reject) => {
+            let disabledOptions = [];
+
+            if( component.hasClass(config.systemClass) ){
+                // disable system menu entries
+                if( component.hasClass(config.systemActiveClass) ){
+                    disabledOptions.push('find_route');
+                }
+            }
+
+            resolve(disabledOptions);
+        };
+
+        return new Promise(getDisabledContextMenuOptionsExecutor);
     };
 
     /**
@@ -2109,8 +2027,12 @@ define([
             let systemElement = $(this);
 
             // trigger menu "open
-            Promise.all([getHiddenContextMenuOptions(systemElement), getActiveContextMenuOptions(systemElement)]).then(payload => {
-                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1]]);
+            Promise.all([
+                getHiddenContextMenuOptions(systemElement),
+                getActiveContextMenuOptions(systemElement),
+                getDisabledContextMenuOptions(systemElement)
+            ]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1], payload[2]]);
             });
 
             return false;
@@ -2156,6 +2078,14 @@ define([
                             currentSystem.setSystemRally(0);
                             currentSystem.markAsChanged();
                         }
+                        break;
+                    case 'find_route':
+                        // show find route dialog
+                        systemData = system.getSystemData();
+                        MapUtil.showFindRouteDialog(mapContainer, {
+                            systemId: systemData.systemId,
+                            name: systemData.name
+                        });
                         break;
                     case 'select_connections':
                         let connections = MapUtil.searchConnectionsBySystems(map, [currentSystem], '*');
@@ -2221,13 +2151,11 @@ define([
                 if( !system.hasClass('no-click') ){
                     // left mouse button
                     if(e.which === 1){
-                        if(! system.hasClass('no-click')){
-                            if(e.ctrlKey === true){
-                                // select system
-                                MapUtil.toggleSystemsSelect(map, [system]);
-                            }else{
-                                MapUtil.showSystemInfo(map, system);
-                            }
+                        if(e.ctrlKey === true){
+                            // select system
+                            MapUtil.toggleSystemsSelect(map, [system]);
+                        }else{
+                            MapUtil.showSystemInfo(map, system);
                         }
                     }
                 }
@@ -2402,17 +2330,6 @@ define([
                 let sourceId = info.sourceId;
                 let targetId = info.targetId;
 
-                // lock the target system for "click" events
-                // to prevent loading system information
-                let sourceSystem = $('#' + sourceId);
-                let targetSystem = $('#' + targetId);
-                sourceSystem.addClass('no-click');
-                targetSystem.addClass('no-click');
-                setTimeout(function(){
-                    sourceSystem.removeClass('no-click');
-                    targetSystem.removeClass('no-click');
-                }, Init.timer.DBL_CLICK + 50);
-
                 // loop connection not allowed
                 if(sourceId === targetId){
                     console.warn('Source/Target systems are identical');
@@ -2424,6 +2341,18 @@ define([
                     console.warn('Endpoint already occupied');
                     return false;
                 }
+
+                // lock the target system for "click" events
+                // to prevent loading system information
+                let sourceSystem = $('#' + sourceId);
+                let targetSystem = $('#' + targetId);
+                sourceSystem.addClass('no-click');
+                targetSystem.addClass('no-click');
+
+                setTimeout(() => {
+                    sourceSystem.removeClass('no-click');
+                    targetSystem.removeClass('no-click');
+                }, Init.timer.DBL_CLICK + 50);
 
                 // switch connection type to "abyss" in case source OR target system belongs to "a-space"
                 if(sourceSystem.data('typeId') === 3 || targetSystem.data('typeId') === 3){
@@ -2500,8 +2429,12 @@ define([
                 let mapElement = $(this);
 
                 // trigger menu "open
-                Promise.all([getHiddenContextMenuOptions(mapElement), getActiveContextMenuOptions(mapElement)]).then(payload => {
-                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1]]);
+                Promise.all([
+                    getHiddenContextMenuOptions(mapElement),
+                    getActiveContextMenuOptions(mapElement),
+                    getDisabledContextMenuOptions(mapElement)
+                ]).then(payload => {
+                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1], payload[2]]);
                 });
             }
 
@@ -3280,11 +3213,6 @@ define([
          * @param reject
          */
         let loadMapExecutor = (resolve, reject) => {
-            // add context menus to dom (if not already
-            initMapContextMenu();
-            initConnectionContextMenu();
-            initSystemContextMenu();
-
             // init jsPlumb
             jsPlumb.ready(function(){
                 // get new map instance or load existing

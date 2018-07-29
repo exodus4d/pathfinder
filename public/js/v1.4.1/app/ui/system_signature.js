@@ -2071,7 +2071,7 @@ define([
                     orderable: true,
                     searchable: false,
                     title: '',
-                    width: '10px',
+                    width: 2,
                     class: ['text-center', 'min-tablet-l'].join(' '),
                     data: 'status',
                     type: 'html',
@@ -2085,7 +2085,7 @@ define([
                     searchable: true,
                     title: 'id',
                     type: 'html',
-                    width: '30px',
+                    width: 30,
                     data: 'name',
                     render: {
                         _: 'render'
@@ -2100,7 +2100,7 @@ define([
                     searchable: true,
                     title: 'group',
                     type: 'html',
-                    width: '50px',
+                    width: 50,
                     data: 'group',
                     render: {
                         _: 'group',
@@ -2113,7 +2113,7 @@ define([
                     searchable: false,
                     title: 'type',
                     type: 'html',
-                    width: '180px',
+                    width: 180,
                     data: 'type'
                 },{
                     targets: 4,
@@ -2129,7 +2129,7 @@ define([
                     className: [config.sigTableConnectionClass].join(' '),
                     title: 'leads to',
                     type: 'html',
-                    width: '70px',
+                    width: 70,
                     data: 'connection',
                     render: {
                         _: 'render'
@@ -2137,7 +2137,7 @@ define([
                 },{
                     targets: 6,
                     title: 'created',
-                    width: '90px',
+                    width: 90,
                     searchable: false,
                     className: ['text-right', config.sigTableCounterClass, config.sigTableCreatedCellClass, 'min-tablet-l'].join(' '),
                     data: 'created',
@@ -2151,7 +2151,7 @@ define([
                 },{
                     targets: 7,
                     title: 'updated',
-                    width: '90px',
+                    width: 90,
                     searchable: false,
                     className: ['text-right', config.sigTableCounterClass, config.sigTableUpdatedCellClass, 'min-tablet-l'].join(' '),
                     data: 'updated',
@@ -2175,7 +2175,7 @@ define([
                     title: '',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     class: 'pf-help text-center',
                     data: 'info',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
@@ -2196,7 +2196,7 @@ define([
                     title: '',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     class: ['text-center', config.sigTableActionCellClass].join(' '),
                     data: 'action',
                     render: {

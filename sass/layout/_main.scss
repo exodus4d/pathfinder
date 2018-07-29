@@ -741,26 +741,30 @@ table{
 }
 
 // system info status =============================================================================
-.pf-system-info-rally{
-  .pf-system-head{
-    background-color: $pink-darker;
+.pf-rally{
+  text-shadow: 1px 1px 2px $gray-darkest; // improve text contrast
+  background-color: $pink-darker;
 
-    @include background-image(linear-gradient(-45deg,
-      $purple-dark 25%,
-      transparent 25%,
-      transparent 50%,
-      $purple-dark 50%,
-      $purple-dark 75%,
-      transparent 75%,
-      transparent));
-    background-size:25px 25px;
-    -webkit-animation:move 3s linear infinite;
-    -moz-animation:move 3s linear infinite;
-    -ms-animation:move 3s linear infinite;
-    animation:move 3s linear infinite;
-  }
+  @include background-image(linear-gradient(-45deg,
+          $purple-dark 25%,
+          transparent 25%,
+          transparent 50%,
+          $purple-dark 50%,
+          $purple-dark 75%,
+          transparent 75%,
+          transparent));
+  background-size: 25px 25px;
+  -webkit-animation: move 2.5s linear infinite;
+  -moz-animation: move 2.5s linear infinite;
+  -ms-animation: move 2.5s linear infinite;
+  animation: move 2.5s linear infinite;
 }
 
+.pf-system-info-rally{
+  .pf-system-head{
+    @extend .pf-rally;
+  }
+}
 
 // system security status =========================================================================
 

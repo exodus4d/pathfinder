@@ -668,9 +668,8 @@ define([
 
         // get parent Tab Content and fire update event
         let mapContainer = $(map.getContainer());
-        let tabContentElement = getTabContentElementByMapElement(mapContainer);
 
-        $(tabContentElement).trigger('pf:drawConnectionModules', {
+        getTabContentElementByMapElement(mapContainer).trigger('pf:drawConnectionModules', {
             connections: connections,
             mapId: parseInt(mapContainer.data('id'))
         });
@@ -689,6 +688,28 @@ define([
         $(document).trigger('pf:updateConnectionInfoModule', {
             connectionsUpdate: selectedConnections,
             connectionsRemove: deselectedConnections,
+            mapId: parseInt(mapContainer.data('id'))
+        });
+    };
+
+    /**
+     * show "find route" dialog -> trigger route panel
+     * @param mapContainer
+     * @param systemToData
+     */
+    let showFindRouteDialog = (mapContainer, systemToData) => {
+        // get parent Tab Content and fire update event
+        getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
+            task: 'showFindRouteDialog',
+            systemToData: systemToData,
+            mapId: parseInt(mapContainer.data('id'))
+        });
+    };
+
+    let findRoute = (mapContainer, systemToData) => {
+        getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
+            task: 'findRoute',
+            systemToData: systemToData,
             mapId: parseInt(mapContainer.data('id'))
         });
     };
@@ -1199,8 +1220,8 @@ define([
 
                 if(rallyUpdated > 0){
                     // new rally point set OR update system with rally information
+                    system.addClass(rallyClass);
 
-                    system.addClass( rallyClass );
                     // rallyUpdated > 0 is required for poke!
                     rallyPoke = options.poke;
 
@@ -1249,9 +1270,17 @@ define([
                             rallyUpdated: rallyUpdated
                         }));
                     }
+
+                    // update active "route" module -> add rally point row --------------------------------------------
+                    let mapContainer = system.parents('.' + config.mapClass);
+                    findRoute(mapContainer, {
+                        systemId: system.data('systemId'),
+                        name: system.data('name'),
+                        rally: 1
+                    });
                 }else{
                     // rally point removed
-                    system.removeClass( rallyClass );
+                    system.removeClass(rallyClass);
 
                     if( !options.hideNotification ){
                         Util.showNotify({title: 'Rally point removed', type: 'success'});
@@ -1601,6 +1630,7 @@ define([
         setSystemActive: setSystemActive,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
+        showFindRouteDialog: showFindRouteDialog,
         getConnectionsByType: getConnectionsByType,
         getDataByConnection: getDataByConnection,
         searchConnectionsBySystems: searchConnectionsBySystems,
