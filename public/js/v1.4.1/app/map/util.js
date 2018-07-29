@@ -706,6 +706,11 @@ define([
         });
     };
 
+    /**
+     * performs a new route search -> trigger route panel
+     * @param mapContainer
+     * @param systemToData
+     */
     let findRoute = (mapContainer, systemToData) => {
         getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
             task: 'findRoute',

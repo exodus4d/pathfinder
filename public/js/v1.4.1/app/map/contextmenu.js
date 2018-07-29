@@ -4,7 +4,7 @@
 
 define([
     'jquery',
-    'app/render',
+    'app/render'
 ], ($, Render) => {
 
     'use strict';

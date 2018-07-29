@@ -1164,6 +1164,9 @@ define([
 
     };
 
+    /**
+     * add "hidden" context menu elements to page
+     */
     let initMapContextMenus = () => {
         $('#' + config.dynamicElementWrapperId).append(
             MapContextMenu.initMapContextMenu(),
