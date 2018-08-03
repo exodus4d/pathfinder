@@ -209,6 +209,28 @@ select:active, select:hover {
 }
 
 // global dataTable styles ========================================================================
+.dataTables_wrapper{
+  .dt-buttons{
+    .dt-button.btn-sm{
+      padding: 3px 5px 1px; // overwrite default
+      margin-bottom: 8px;
+
+      &:not(:last-child){
+        margin-right: 5px;
+      }
+
+      .fa{
+        margin-right: 5px;
+      }
+
+      .badge{
+        margin-left: 8px;
+        padding: 2px 7px; // overwrite default...
+      }
+    }
+  }
+}
+
 .dataTable{
   th{
     &.pf-table-image-cell,

@@ -6,11 +6,11 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
+    'mustache',
     'bootbox',
     'app/map/map',
     'app/map/util'
-], function($, Init, Util, Render, bootbox, Map, MapUtil) {
+], function($, Init, Util, Mustache, bootbox, Map, MapUtil) {
     'use strict';
 
     let config = {
@@ -25,15 +25,19 @@ define([
         // system signature module
         moduleTypeClass: 'pf-signature-table-module',                           // module wrapper
 
+        // headline toolbar
+        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
+        moduleHeadlineIconAddClass: 'pf-module-icon-button-add',                // class for "add signature" icon
+        moduleHeadlineIconReaderClass: 'pf-module-icon-button-reader',          // class for "signature reader" icon
+        moduleHeadlineIconLazyClass: 'pf-module-icon-button-lazy',              // class for "lazy delete" toggle icon
+
         // tables
-        tableToolsClass: 'pf-table-tools',                                      // class for table toolbar
         tableToolsActionClass: 'pf-table-tools-action',                         // class for table toolbar action
 
         // signature progress bar
         signatureScannedProgressBarClass: 'pf-system-progress-scanned',         // class for signature progress bar
 
-        // toolbar
-        sigTableLazyToggleButtonClass: 'pf-sig-table-lazy-button',              // class for "lazy update" toggle button
+        // table toolbar
         sigTableClearButtonClass: 'pf-sig-table-clear-button',                  // class for "clear" signatures button
 
         // signature table
@@ -112,6 +116,45 @@ define([
     // some static signature data
     let signatureGroupsLabels   = Util.getSignatureGroupInfo('label');
     let signatureGroupsNames    = Util.getSignatureGroupInfo('name');
+
+    /**
+     * get module toolbar element
+     * @returns {jQuery}
+     */
+    let getHeadlineToolbar = () => {
+        let headlineToolbar  = $('<h5>', {
+            class: 'pull-right'
+        }).append(
+            $('<span>', {
+                class: 'progress-label-right',
+                text: '0%'
+            }),
+            $('<i>', {
+                class: ['fas', 'fa-fw', 'fa-plus',
+                    config.moduleHeadlineIconClass,
+                    config.moduleHeadlineIconAddClass].join(' '),
+                title: 'add'
+            }).attr('data-toggle', 'tooltip'),
+            $('<i>', {
+                class: ['fas', 'fa-fw', 'fa-paste',
+                    config.moduleHeadlineIconClass,
+                    config.moduleHeadlineIconReaderClass].join(' '),
+                title: 'signature reader'
+            }).attr('data-toggle', 'tooltip'),
+            $('<i>', {
+                class: ['fas', 'fa-fw', 'fa-exchange-alt',
+                    config.moduleHeadlineIconClass,
+                    config.moduleHeadlineIconLazyClass].join(' '),
+                title: 'lazy \'delete\' signatures'
+            }).attr('data-toggle', 'tooltip')
+        );
+
+        headlineToolbar.find('[data-toggle="tooltip"]').tooltip({
+            container: 'body'
+        });
+
+        return headlineToolbar;
+    };
 
     /**
      * check whether a dataTable API instance exists in the global cache
@@ -457,7 +500,7 @@ define([
         // get progress bar
         let progressBarWrapper = moduleElement.find('.' + config.signatureScannedProgressBarClass);
         let progressBar = $(progressBarWrapper).find('.progress-bar');
-        let progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
+        let progressBarLabel = moduleElement.find('.progress-label-right');
 
         let tableData = getTableData(signatureTableApi);
 
@@ -937,16 +980,13 @@ define([
      * check the "delete signature" button. show/hide the button if a signature is selected
      * @param moduleElement
      */
-    let checkDeleteSignaturesButton = moduleElement => {
-        moduleElement = $(moduleElement);
-        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
-
-        let selectedRows = getSelectedRows(signatureTableApi);
+    let checkDeleteSignaturesButton = tableApi => {
+        let selectedRows = getSelectedRows(tableApi);
         let selectedRowCount = selectedRows.data().length;
-        let clearButton = moduleElement.find('.' + config.sigTableClearButtonClass);
+        let clearButton = tableApi.button('tableTools', 'delete:name').node();
 
         if(selectedRowCount > 0){
-            let allRows = getRows(signatureTableApi);
+            let allRows = getRows(tableApi);
             let rowCount = allRows.data().length;
 
             let badgeText = selectedRowCount;
@@ -983,115 +1023,7 @@ define([
      * @param mapId
      * @param systemData
      */
-    let drawSignatureTableToolbar = (moduleElement, mapId, systemData) => {
-
-        // add toolbar buttons for table ------------------------------------------------------------------------------
-        let tableToolbar = $('<div>', {
-            class: config.tableToolsClass
-        }).append(
-            getLabeledButton({
-                type: 'primary',
-                label: 'add',
-                icon: 'fa-plus',
-                onClick: function(e){
-                    // show "add sig" div
-                    let toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.tableToolsActionClass);
-
-                    // set toggle animation
-                    if(toolsElement.is(':visible')){
-                        toolsElement.velocity('stop').velocity('reverse');
-                    }else{
-                        toolsElement.velocity('stop').velocity({
-                            opacity: 1,
-                            height: '75px'
-                        },{
-                            duration: 150,
-                            display: 'block',
-                            visibility: 'visible'
-                        });
-                    }
-                }
-            })
-        ).append(
-            getLabeledButton({
-                type: 'primary',
-                label: 'signature reader',
-                icon: 'fa-paste',
-                onClick: function(){
-                    moduleElement.showSignatureReaderDialog(systemData);
-                }
-            })
-        ).append(
-            getLabeledButton({
-                type: 'default',
-                label: 'select all',
-                icon: 'fa-check-square',
-                onClick: function(){
-                    let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
-
-                    let allRows = getRows(signatureTableApi);
-                    let selectedRows = getSelectedRows(signatureTableApi);
-                    let allRowElements = allRows.nodes().to$();
-
-                    if(allRows.data().length === selectedRows.data().length){
-                        allRowElements.removeClass('selected');
-                    }else{
-                        allRowElements.addClass('selected');
-                    }
-
-                    // check delete button
-                    checkDeleteSignaturesButton(moduleElement);
-                }
-            })
-        ).append(
-            $('<input>', {
-                type: 'checkbox',
-                class: [config.sigTableLazyToggleButtonClass, 'btn-labeled'].join(' '),
-                value: 1,
-            }).attr('data-toggle', 'toggle')
-        ).append(
-            getLabeledButton({
-                type: 'danger',
-                classes: [config.sigTableClearButtonClass, 'pull-right'],
-                label: 'delete',
-                icon: 'fa-times',
-                badge: {
-                    label: '0'
-                },
-                onClick: function(){
-                    // delete all rows
-                    let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
-                    let selectedRows = getSelectedRows(signatureTableApi);
-
-                    bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
-                        if(result){
-                            deleteSignatures(signatureTableApi, selectedRows);
-                        }
-                    });
-                }
-            })
-        );
-
-        moduleElement.append(tableToolbar);
-
-        // "lazy update" toggle button --------------------------------------------------------------------------------
-        let lazyToggleCheckbox = moduleElement.find('.' + config.sigTableLazyToggleButtonClass).bootstrapToggle({
-            size: 'small' ,
-            on: '<i class="fas fa-fw fa-exchange-alt"></i>&nbsp;&nbsp;lazy&nbsp;delete',
-            off: '<i class="fas fa-fw fa-paste"></i>&nbsp;&nbsp;lazy&nbsp;update',
-            onstyle: 'warning' ,
-            offstyle: 'default' ,
-            width: 110
-        });
-
-        let lazyToggleButton = lazyToggleCheckbox.parent();
-        lazyToggleButton.find('.toggle-on').attr('title', 'lazy \'update\' and \'delete\' old<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
-        lazyToggleButton.find('.toggle-off').attr('title', 'lazy \'update\' signatures<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
-        lazyToggleButton.initTooltips({
-            container: 'body',
-            html: true
-        });
-
+    let drawSignatureTableNew = (moduleElement, mapId, systemData) => {
         // add toolbar action for table -------------------------------------------------------------------------------
         let tableToolbarAction = $('<div>', {
             class: config.tableToolsActionClass
@@ -1104,7 +1036,7 @@ define([
 
         tableToolbarAction.append(table);
 
-        tableToolbar.after(tableToolbarAction);
+        moduleElement.find('.' + config.moduleHeadClass).after(tableToolbarAction);
 
         let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
         let signatureTable = table.dataTable( {
@@ -1119,24 +1051,6 @@ define([
         setDataTableInstance(mapId, systemData.id, 'secondary', signatureTableApi);
 
         table.makeEditable(signatureTableApi, systemData);
-
-        // scanned signatures progress bar ----------------------------------------------------------------------------
-        let moduleConfig = {
-            name: 'form/progress',
-            position: tableToolbar,
-            link: 'before'
-        };
-
-        let moduleData = {
-            label: true,
-            wrapperClass: config.signatureScannedProgressBarClass,
-            class: ['progress-bar-success'].join(' '),
-            percent: 0,
-            headline: 'System scanned',
-            headlineRight: ' ' // will be updated by js
-        };
-
-        Render.showModule(moduleConfig, moduleData);
     };
 
     /**
@@ -1999,6 +1913,46 @@ define([
         moduleElement.append(table);
 
         let dataTableOptions = {
+            dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
+                '<"row"<"col-xs-12"tr>>' +
+                '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+            buttons: {
+                name: 'tableTools',
+                buttons: [
+                    {
+                        name: 'selectAll',
+                        className: 'btn btn-sm btn-default',
+                        text: '<i class="fa fa-fw fa-check-square"></i>select all',
+                        action: function(e, tableApi, node, conf){
+                            let allRows = getRows(tableApi);
+                            let selectedRows = getSelectedRows(tableApi);
+                            let allRowElements = allRows.nodes().to$();
+
+                            if(allRows.data().length === selectedRows.data().length){
+                                allRowElements.removeClass('selected');
+                            }else{
+                                allRowElements.addClass('selected');
+                            }
+
+                            // check delete button
+                            checkDeleteSignaturesButton(tableApi);
+                        }
+                    },
+                    {
+                        name: 'delete',
+                        className: 'btn btn-sm btn-danger pull-right ' + config.sigTableClearButtonClass,
+                        text: '<i class="fa fa-fw fa-times"></i>delete<span class="badge">0</span>',
+                        action: function(e, tableApi, node, conf){
+                            let selectedRows = getSelectedRows(tableApi);
+                            bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
+                                if(result){
+                                    deleteSignatures(tableApi, selectedRows);
+                                }
+                            });
+                        }
+                    }
+                ]
+            },
             drawCallback: function(settings){
                 this.api().columns(filterColumnIndexes).every(function(){
                     let column = this;
@@ -2010,7 +1964,6 @@ define([
                 });
             },
             initComplete: function (settings, json){
-
                 this.api().columns(filterColumnIndexes).every(function(){
                     let column = this;
                     let headerLabel = $(column.header()).text();
@@ -2316,20 +2269,53 @@ define([
         let tablePrimaryElement = moduleElement.find('.' + config.sigTablePrimaryClass);
         let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
+        // add signature toggle ---------------------------------------------------------------------------------------
+        moduleElement.find('.' + config.moduleHeadlineIconAddClass).on('click', function(e){
+            let button = $(this);
+            let toolsElement = moduleElement.find('.' + config.tableToolsActionClass);
+            button.toggleClass('active');
+
+            // set toggle animation
+            if(toolsElement.is(':visible')){
+                toolsElement.velocity('stop').velocity('reverse');
+            }else{
+                toolsElement.velocity('stop').velocity({
+                    opacity: 1,
+                    height: '75px'
+                },{
+                    duration: 150,
+                    display: 'block',
+                    visibility: 'visible'
+                });
+            }
+        });
+
+        // signature reader dialog ------------------------------------------------------------------------------------
+        moduleElement.find('.' + config.moduleHeadlineIconReaderClass).on('click', function(e) {
+            moduleElement.showSignatureReaderDialog(systemData);
+        });
+
+        // "lazy update" toggle ---------------------------------------------------------------------------------------
+        moduleElement.find('.' + config.moduleHeadlineIconLazyClass).on('click', function(e) {
+            let button = $(this);
+            button.toggleClass('active');
+        });
+
         // set multi row select ---------------------------------------------------------------------------------------
-        tablePrimaryElement.on('click', 'tr', {moduleElement: moduleElement}, function(e){
+        tablePrimaryElement.on('click', 'tr', {tableApi: signatureTableApi}, function(e){
             if(e.ctrlKey) {
                 $(this).toggleClass('selected');
 
                 // check delete button
-                checkDeleteSignaturesButton(e.data.moduleElement);
+                checkDeleteSignaturesButton(e.data.tableApi);
             }
         });
 
         // draw event for signature table -----------------------------------------------------------------------------
-        signatureTableApi.on('draw.dt', {moduleElement: moduleElement}, function(e, settings){
+        signatureTableApi.on('draw.dt', function(e, settings){
             // check delete button
-            checkDeleteSignaturesButton(e.data.moduleElement);
+            let tableApi = $(this).dataTable().api();
+            checkDeleteSignaturesButton(tableApi);
         });
 
         // destroy dataTables event -----------------------------------------------------------------------------------
@@ -2344,7 +2330,7 @@ define([
         moduleElement.on('pf:updateSystemSignatureModuleByClipboard', function(e, clipboard){
             // check "lazy update" toggle button
             let signatureOptions = {
-                deleteOld: moduleElement.find('.' + config.sigTableLazyToggleButtonClass).is(':checked') ? 1 : 0
+                deleteOld: moduleElement.find('.' + config.moduleHeadlineIconLazyClass).hasClass('active') ? 1 : 0
             };
 
             $(this).updateSignatureTableByClipboard(systemData, clipboard, signatureOptions);
@@ -2379,9 +2365,26 @@ define([
                 }),
                 $('<h5>', {
                     text: 'Signatures'
-                })
+                }),
+                getHeadlineToolbar()
             )
         );
+
+        // scanned signatures progress bar ----------------------------------------------------------------------------
+        requirejs(['text!templates/form/progress.html', 'mustache'], (template, Mustache) => {
+            let data = {
+                label: true,
+                wrapperClass: config.signatureScannedProgressBarClass,
+                class: ['progress-bar-success'].join(' '),
+                percent: 0
+            };
+
+            let content = Mustache.render(template, data);
+
+            moduleElement.find('.' + config.moduleHeadClass).append(content);
+        });
+
+
 
         moduleElement.data('mapId', mapId);
         moduleElement.data('systemId', systemData.id);
@@ -2392,7 +2395,7 @@ define([
         initSignatureDataTable(systemData);
 
         // draw "new signature" add table
-        drawSignatureTableToolbar(moduleElement, mapId, systemData);
+        drawSignatureTableNew(moduleElement, mapId, systemData);
 
         // draw signature table
         drawSignatureTable(moduleElement, mapId, systemData);

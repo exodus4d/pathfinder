@@ -34,6 +34,23 @@
 // signature table module ==================================================
 .pf-signature-table-module{
 
+  .progress-label-right{
+    margin-right: 20px;
+    vertical-align: middle;
+    font-size: 11px;
+  }
+
+  // progress bar
+  .pf-system-progress-scanned{
+    display: inline-block;
+    margin-left: 20px;
+    width: calc(100% - 225px);
+
+    .progress{
+      margin-bottom: 3px; // overwrite default
+    }
+  }
+
   // delete signature button
   .pf-sig-table-clear-button{
     will-change: opacity, transform;

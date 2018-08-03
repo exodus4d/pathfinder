@@ -277,7 +277,7 @@ define([
                 // ------------------------------------------------------------------------------
                 // add dataTable buttons (extension)
 
-                let buttons = new $.fn.dataTable.Buttons( logDataTable, {
+                let buttons = new $.fn.dataTable.Buttons(logDataTable, {
                     buttons: [
                         {
                             extend: 'copy',
@@ -289,7 +289,7 @@ define([
                             text: '<i class="fas fa-fw fa-download"></i> csv'
                         }
                     ]
-                } );
+                });
 
                 logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
             });

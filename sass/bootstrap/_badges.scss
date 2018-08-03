@@ -28,7 +28,7 @@
   // Quick fix for badges in buttons
   .btn & {
     position: relative;
-    top: 1px;
+    //top: 1px; // sig table "delete" button is not "inline" with badge if 1px is set...
   }
   .btn-xs & {
     top: 0;
