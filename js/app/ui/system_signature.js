@@ -60,6 +60,7 @@ define([
 
         // xEditable
         editableDescriptionInputClass: 'pf-editable-description',               // class for "description" textarea
+        editableUnknownInputClass: 'pf-editable-unknown',                       // class for input fields (e.g. checkboxes) with "unknown" status
 
         signatureGroupsLabels: Util.getSignatureGroupInfo('label'),
         signatureGroupsNames: Util.getSignatureGroupInfo('name')
@@ -1849,7 +1850,7 @@ define([
         let promiseStore = MapUtil.getLocaleData('character', Util.getCurrentCharacterId());
         promiseStore.then(data => {
             let filterButton = tableApi.button('tableTools', 'filterGroup:name').node();
-            let prependOptions = [{value: '0', text: 'undefined'}];
+            let prependOptions = [{value: '0', text: 'unknown'}];
             let sourceOptions = [];
             let selectedValues = [];
 
@@ -1880,6 +1881,7 @@ define([
                 value: selectedValues,
                 source: sourceOptions,
                 prepend: prependOptions,
+                inputclass: config.editableUnknownInputClass,
                 display: function(value, sourceData){
                     // update filter button label
                     let html = '<i class="fa fa-filter"></i>group';

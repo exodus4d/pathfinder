@@ -193,6 +193,10 @@ a{
         }
       }
     }
+
+    .pf-editable-unknown[value='0'] + span {
+      color: $red;
+    }
   }
 }
 select:active, select:hover {
