@@ -55,6 +55,7 @@
   .pf-sig-table-clear-button{
     will-change: opacity, transform;
     display: none;
+    color: $red-darker;
   }
 
   .pf-sig-table{
@@ -82,21 +83,7 @@
     .pf-sig-table-edit-name-input{
       text-transform: uppercase;
     }
-
-    // table filter fields
-    .pf-editable-filter{
-      // overwrites default xEditable style
-      color: $gray-light;
-      border: none;
-      font-style: normal;
-    }
   }
-}
-
-// table filter (active) select (popover)
-// -> popover is child from <body>
-.pf-editable-filter-active{
-  min-width: 100px;
 }
 
 // system graph module =====================================================

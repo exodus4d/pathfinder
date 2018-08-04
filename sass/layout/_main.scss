@@ -133,10 +133,15 @@ em{
 
 .pf-module-icon-button{
   cursor: pointer;
+  color: $gray-light; // overwrite xEditable button style
   @include transition(color 0.15s ease-out);
 
   &:hover, &.active{
     color: $orange !important;
+  }
+
+  &.editable{
+    border-bottom: none !important; // overwrite xEditable button style
   }
 }
 
@@ -170,6 +175,23 @@ a{
       background-color: $gray-dark;
       color: $gray-lighter;
       font-family: $font-family-monospace;
+    }
+  }
+
+  .editable-checklist{
+    & > div > label {
+      @extend .checkbox;
+      display: block !important;
+      padding-left: 20px !important; // overwrite inline-form styles
+      color: $gray-lighter;
+
+      & > span {
+        @extend label;
+
+        &:after{
+          top: -2px;
+        }
+      }
     }
   }
 }
@@ -211,21 +233,15 @@ select:active, select:hover {
 // global dataTable styles ========================================================================
 .dataTables_wrapper{
   .dt-buttons{
-    .dt-button.btn-sm{
-      padding: 3px 5px 1px; // overwrite default
-      margin-bottom: 8px;
+    .dt-button{
+      padding: 0 5px; // overwrite default
 
       &:not(:last-child){
-        margin-right: 5px;
+        margin-right: 10px;
       }
 
       .fa{
         margin-right: 5px;
-      }
-
-      .badge{
-        margin-left: 8px;
-        padding: 2px 7px; // overwrite default...
       }
     }
   }

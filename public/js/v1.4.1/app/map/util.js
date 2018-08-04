@@ -913,17 +913,18 @@ define([
     };
 
     /**
-     * store mapId for current user (IndexedDB)
-     * @param mapId
+     * store local data for current user (IndexDB)
+     * @param key
+     * @param value
      */
-    let storeDefaultMapId = (mapId) => {
-        if(mapId > 0){
+    let storeLocaleCharacterData = (key, value) => {
+        if(key.length && value){
             let userData = Util.getCurrentUserData();
             if(
                 userData &&
                 userData.character
             ){
-                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
+                storeLocalData('character', userData.character.id, key, value);
             }
         }
     };
@@ -1652,7 +1653,7 @@ define([
         getTabContentElementByMapElement: getTabContentElementByMapElement,
         hasActiveConnection: hasActiveConnection,
         filterMapByScopes: filterMapByScopes,
-        storeDefaultMapId: storeDefaultMapId,
+        storeLocaleCharacterData: storeLocaleCharacterData,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
         deleteLocalData: deleteLocalData,

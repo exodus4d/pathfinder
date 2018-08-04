@@ -59,10 +59,10 @@ define([
         sigTableActionCellClass: 'pf-table-action-cell',                        // class for "action" cells
 
         // xEditable
-        moduleIcon: 'pf-module-icon-button',                                    // class for "filter" - icons
         editableDescriptionInputClass: 'pf-editable-description',               // class for "description" textarea
-        editableFilterElementClass: 'pf-editable-filter',                       // class for "filter" selects (not active)
-        editableFilterSelectPopoverClass: 'pf-editable-filter-active'           // class for active "filter" selects (popover)
+
+        signatureGroupsLabels: Util.getSignatureGroupInfo('label'),
+        signatureGroupsNames: Util.getSignatureGroupInfo('name')
     };
 
     // lock Signature Table update temporary (until. some requests/animations) are finished
@@ -310,7 +310,7 @@ define([
      * @param data
      */
     let updateSignatureCell = (tableApi, rowElement, cellIndex, data) => {
-        let rowIndex = tableApi.row( rowElement ).index();
+        let rowIndex = tableApi.row(rowElement).index();
         let updateCell = tableApi.cell( rowIndex, cellIndex );
         let updateCellElement = updateCell.nodes().to$();
 
@@ -685,7 +685,7 @@ define([
 
         if(clipboard.length){
             let signatureRows = clipboard.split(/\r\n|\r|\n/g);
-            let signatureGroupOptions = signatureGroupsNames;
+            let signatureGroupOptions = config.signatureGroupsNames;
             let invalidSignatures = 0;
 
             for(let i = 0; i < signatureRows.length; i++){
@@ -817,8 +817,8 @@ define([
 
                 tempData.group = {
                     group: sigGroup,
-                    sort: signatureGroupsLabels[data.groupId],
-                    filter: signatureGroupsLabels[data.groupId]
+                    sort: config.signatureGroupsLabels[data.groupId],
+                    filter: config.signatureGroupsLabels[data.groupId]
                 };
 
                 // set type id ----------------------------------------------------------------------------------------
@@ -901,62 +901,6 @@ define([
     };
 
     /**
-     * get a labeled button
-     * @param options
-     * @returns {*|jQuery}
-     */
-    let getLabeledButton = options => {
-
-        let buttonClasses = ['btn', 'btn-sm', 'btn-labeled'];
-
-        switch(options.type){
-            case 'default':
-                buttonClasses.push('btn-default');
-                break;
-            case 'primary':
-                buttonClasses.push('btn-primary');
-                break;
-            case 'danger':
-                buttonClasses.push('btn-danger');
-                break;
-        }
-
-        // add optional classes
-        if(options.classes){
-            buttonClasses = buttonClasses.concat(options.classes);
-        }
-
-
-        let buttonElement = $('<button>', {
-            class: buttonClasses.join(' '),
-            type: 'button',
-            html: '&nbsp;' + options.label + '&nbsp;&nbsp;'
-        }).on('click', function(e){
-            options.onClick(e);
-        }).prepend(
-            $('<span>', {
-                class: 'btn-label'
-            }).prepend(
-                $('<i>', {
-                    class: ['fas', options.icon, 'fa-fw'].join(' ')
-                })
-            )
-        );
-
-        // add optional badge
-        if(options.badge){
-            buttonElement.append(
-                $('<span>', {
-                    class: ['badge'].join(' '),
-                    text: options.badge.label
-                })
-            );
-        }
-
-        return buttonElement;
-    };
-
-    /**
      * get all rows of a table
      * @param tableApi
      * @returns {*}
@@ -989,11 +933,11 @@ define([
             let allRows = getRows(tableApi);
             let rowCount = allRows.data().length;
 
-            let badgeText = selectedRowCount;
+            let countText = selectedRowCount;
             if(selectedRowCount >= rowCount){
-                badgeText = 'all';
+                countText = 'all';
             }
-            clearButton.find('.badge').text( badgeText );
+            clearButton.find('i+span').text(countText);
 
             // update clear signatures button text
             clearButton.velocity('stop');
@@ -1201,7 +1145,7 @@ define([
                 let systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
 
                 // get all available Signature Types
-                let availableTypes = signatureGroupsLabels;
+                let availableTypes = config.signatureGroupsLabels;
 
                 // add empty option
                 availableTypes[0] = '';
@@ -1861,6 +1805,7 @@ define([
      * @param column
      * @returns {{}}
      */
+    /* currently not needet but could be helpful one day
     let getColumnTableDataForFilter = column => {
         // get all available options from column
         let source = {};
@@ -1882,6 +1827,80 @@ define([
         source[0] = '';
 
         return source;
+    };*/
+
+    /**
+     * init table filter button "group" column
+     * @param tableApi
+     */
+    let initGroupFilterButton = tableApi => {
+        let characterId = Util.getCurrentCharacterId();
+
+        let searchGroupColumn = (tableApi, newValue, sourceOptions) => {
+            let column = tableApi.column('group:name');
+            let pattern = '';
+            if(newValue.length <= sourceOptions.length){
+                // all options selected + "prepend" option
+                pattern = newValue.map(val => val !== '0' ? $.fn.dataTable.util.escapeRegex(val) : '^$').join('|');
+            }
+            column.search(pattern, true, false).draw();
+        };
+
+        let promiseStore = MapUtil.getLocaleData('character', Util.getCurrentCharacterId());
+        promiseStore.then(data => {
+            let filterButton = tableApi.button('tableTools', 'filterGroup:name').node();
+            let prependOptions = [{value: '0', text: 'undefined'}];
+            let sourceOptions = [];
+            let selectedValues = [];
+
+            // format group filter options
+            let groups = Object.assign({}, config.signatureGroupsLabels);
+            for (let [value, label] of Object.entries(groups)){
+                if(label.length){
+                    sourceOptions.push({value: label, text: label});
+                }
+            }
+
+            if(data && data.filterSignatureGroups && data.filterSignatureGroups.length){
+                // select local stored values
+                selectedValues = data.filterSignatureGroups;
+            }else{
+                // no default group filter options -> show all
+                selectedValues = sourceOptions.map(option => option.text);
+                selectedValues.unshift('0');
+            }
+
+            filterButton.editable({
+                mode: 'popup',
+                type: 'checklist',
+                showbuttons: false,
+                onblur: 'submit',
+                highlight: false,
+                title: 'filter groups',
+                value: selectedValues,
+                source: sourceOptions,
+                prepend: prependOptions,
+                display: function(value, sourceData){
+                    // update filter button label
+                    let html = '<i class="fa fa-filter"></i>group';
+                    let allSelected = value.length >= (sourceOptions.length + prependOptions.length);
+                    if( !allSelected ){
+                        html += '&nbsp;(' + value.length + ')';
+                    }
+                    $(this).toggleClass('active', !allSelected).html(html);
+                }
+            });
+
+            filterButton.on('save', {tableApi: tableApi, sourceOptions: sourceOptions}, function(e, params){
+                // store values local -> IndexDB
+                MapUtil.storeLocaleCharacterData('filterSignatureGroups', params.newValue);
+
+                searchGroupColumn(e.data.tableApi, params.newValue, e.data.sourceOptions);
+            });
+
+            // set initial search string -> even if table ist currently empty
+            searchGroupColumn(tableApi, selectedValues, sourceOptions);
+        });
     };
 
     /**
@@ -1891,24 +1910,10 @@ define([
      * @param systemData
      */
     let drawSignatureTable = (moduleElement, mapId, systemData) => {
-        // setup filter select in footer
-        // column indexes that need a filter select
-        let filterColumnIndexes = [2];
 
-        // create new signature table ---------------------------------------------------------------------------------
         let table = $('<table>', {
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
-
-        // create table footer ----------------------------------------------------------------------------------------
-        // get column count from default dataTable config
-        let columnCount = $.fn.dataTable.defaults.columnDefs.length;
-        let footerHtml = '<tfoot><tr>';
-        for(let i = 0; i < columnCount; i++){
-            footerHtml += '<td></td>';
-        }
-        footerHtml += '</tr></tfoot>';
-        table.append(footerHtml);
 
         moduleElement.append(table);
 
@@ -1920,9 +1925,14 @@ define([
                 name: 'tableTools',
                 buttons: [
                     {
+                        name: 'filterGroup',
+                        className: config.moduleHeadlineIconClass,
+                        text: '' // set by js (xEditable)
+                    },
+                    {
                         name: 'selectAll',
-                        className: 'btn btn-sm btn-default',
-                        text: '<i class="fa fa-fw fa-check-square"></i>select all',
+                        className: config.moduleHeadlineIconClass,
+                        text: '<i class="fa fa-check-double"></i>select all',
                         action: function(e, tableApi, node, conf){
                             let allRows = getRows(tableApi);
                             let selectedRows = getSelectedRows(tableApi);
@@ -1940,11 +1950,11 @@ define([
                     },
                     {
                         name: 'delete',
-                        className: 'btn btn-sm btn-danger pull-right ' + config.sigTableClearButtonClass,
-                        text: '<i class="fa fa-fw fa-times"></i>delete<span class="badge">0</span>',
+                        className: [config.moduleHeadlineIconClass, config.sigTableClearButtonClass].join(' '),
+                        text: '<i class="fa fa-trash"></i>delete&nbsp;(<span>0</span>)',
                         action: function(e, tableApi, node, conf){
                             let selectedRows = getSelectedRows(tableApi);
-                            bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
+                            bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result){
                                 if(result){
                                     deleteSignatures(tableApi, selectedRows);
                                 }
@@ -1953,42 +1963,9 @@ define([
                     }
                 ]
             },
-            drawCallback: function(settings){
-                this.api().columns(filterColumnIndexes).every(function(){
-                    let column = this;
-                    let footerColumnElement = $(column.footer());
-                    let filterSelect = footerColumnElement.find('.editable');
-
-                    // update select values
-                    filterSelect.editable('option', 'source', getColumnTableDataForFilter(column));
-                });
-            },
             initComplete: function (settings, json){
-                this.api().columns(filterColumnIndexes).every(function(){
-                    let column = this;
-                    let headerLabel = $(column.header()).text();
-                    let selectField = $('<a class="pf-editable ' +
-                        config.moduleIcon + ' ' +
-                        config.editableFilterElementClass +
-                        '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
-
-                    // add field to footer
-                    selectField.appendTo( $(column.footer()).empty() );
-
-                    selectField.editable({
-                        emptytext: '<i class="fas fa-filter fa-fw"></i>',
-                        onblur: 'submit',
-                        title: 'filter',
-                        showbuttons: false,
-                        source: getColumnTableDataForFilter(column),
-                        inputclass: config.editableFilterSelectPopoverClass
-                    });
-
-                    selectField.on('save', { column: column }, function(e, params) {
-                        let val = $.fn.dataTable.util.escapeRegex( params.newValue );
-                        e.data.column.search( val !== '0' ? '^' + val + '$' : '', true, false ).draw();
-                    });
-                });
+                let tableApi = this.api();
+                initGroupFilterButton(tableApi);
             }
         };
 
@@ -2021,6 +1998,7 @@ define([
             columnDefs: [
                 {
                     targets: 0,
+                    name: 'status',
                     orderable: true,
                     searchable: false,
                     title: '',
@@ -2034,6 +2012,7 @@ define([
                     }
                 },{
                     targets: 1,
+                    name: 'id',
                     orderable: true,
                     searchable: true,
                     title: 'id',
@@ -2049,6 +2028,7 @@ define([
                     }
                 },{
                     targets: 2,
+                    name: 'group',
                     orderable: true,
                     searchable: true,
                     title: 'group',
@@ -2062,6 +2042,7 @@ define([
                     }
                 },{
                     targets: 3,
+                    name: 'type',
                     orderable: false,
                     searchable: false,
                     title: 'type',
@@ -2070,6 +2051,7 @@ define([
                     data: 'type'
                 },{
                     targets: 4,
+                    name: 'description',
                     orderable: false,
                     searchable: false,
                     title: 'description',
@@ -2077,6 +2059,7 @@ define([
                     data: 'description'
                 },{
                     targets: 5,
+                    name: 'connection',
                     orderable: false,
                     searchable: false,
                     className: [config.sigTableConnectionClass].join(' '),
@@ -2089,6 +2072,7 @@ define([
                     }
                 },{
                     targets: 6,
+                    name: 'created',
                     title: 'created',
                     width: 90,
                     searchable: false,
@@ -2103,6 +2087,7 @@ define([
                     }
                 },{
                     targets: 7,
+                    name: 'updated',
                     title: 'updated',
                     width: 90,
                     searchable: false,
@@ -2125,6 +2110,7 @@ define([
                     }
                 },{
                     targets: 8,
+                    name: 'info',
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -2146,6 +2132,7 @@ define([
                     }
                 },{
                     targets: 9,
+                    name: 'action',
                     title: '',
                     orderable: false,
                     searchable: false,

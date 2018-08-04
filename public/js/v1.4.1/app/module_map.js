@@ -743,7 +743,7 @@ define([
 
                 if(mapId > 0){
                     // save mapId as new "default" (local storage)
-                    MapUtil.storeDefaultMapId(mapId);
+                    MapUtil.storeLocaleCharacterData('defaultMapId', mapId);
                 }else{
                     // add new Tab selected
                     $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
@@ -1122,7 +1122,7 @@ define([
          */
         let showDefaultTabExecutor = (resolve, reject) => {
             let promiseStore = MapUtil.getLocaleData('character', currentUserData.character.id);
-            promiseStore.then((data) => {
+            promiseStore.then(data => {
                 let activeTabLinkElement = false;
 
                 // check for existing mapId URL identifier ------------------------------------------------------------
