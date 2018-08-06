@@ -6,7 +6,7 @@ define([
     'jquery',
     'easePack',
     'tweenLite'
-], function($) {
+], ($) => {
     'use strict';
 
     let config = {

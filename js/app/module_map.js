@@ -539,7 +539,7 @@ define([
             let clickY = e.pageY - posY;
 
             // check for top-left click
-            if(clickX <= 8 && clickY <= 8){
+            if(clickX <= 8 && clickY <= 8 && clickX >= 0 && clickY >= 0){
 
                 // remember height
                 if(! moduleElement.data('origHeight')){

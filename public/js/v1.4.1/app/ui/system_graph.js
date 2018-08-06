@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'morris'
-], function($, Init, Util, Morris) {
+], ($, Init, Util, Morris) => {
     'use strict';
 
     let config = {

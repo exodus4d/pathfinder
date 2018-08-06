@@ -138,6 +138,15 @@ define([
                 location.reload();
             });
 
+            body.watchKey('newSignature', (body) => {
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    let mapContentElement = MapUtil.getTabContentElementByMapElement(activeMap);
+                    let signatureModuleElement = mapContentElement.find('.' + config.systemSignatureModuleClass);
+                    signatureModuleElement.trigger('pf:showSystemSignatureModuleAddNew');
+                }
+            });
+
             body.watchKey('clipboardPaste', (e) => {
                 // just send event to the current active map
                 let activeMap = Util.getMapModule().getActiveMap();

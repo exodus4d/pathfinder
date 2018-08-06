@@ -1,6 +1,6 @@
 define([
     'jquery'
-], function($) {
+], ($) => {
     'use strict';
 
     let allCombo = {
@@ -31,12 +31,17 @@ define([
             keyNames:   ['CONTROL', 'V'],
             alias:      'paste'
         },
+        newSignature: {
+            group:      'signatures',
+            label:      'New Signature',
+            keyNames:   ['ALT', '3']
+        },
 
         // map ----------------------------------------------------------------------------------------------
         mapSystemAdd: {
             group:      'map',
-            label:      'Add new system',
-            keyNames:   ['CONTROL', 'S']
+            label:      'New system',
+            keyNames:   ['ALT', '2']
         },
         mapSystemsSelect: {
             group:      'map',
@@ -409,19 +414,18 @@ define([
 
     /**
      * get a array with all available shortcut groups and their events
-     * @returns {Array}
+     * @returns {any[]}
      */
     let getGroupedShortcuts = () => {
         let result = $.extend(true, {}, groups);
 
         // add combos and events to groups
         let allEntries = [allCombo, allEvents];
-        for(let i = 0; i < allEntries.length; i++){
-            for(let event in allEntries[i]){
-                let data = allEntries[i][event];
 
+        for(let entries of allEntries){
+            for(let [event, data] of Object.entries(entries)){
                 //format keyNames for UI
-                let keyNames = data.keyNames.map( (key) => {
+                let keyNames = data.keyNames.map(key => {
                     if(key === 'CONTROL'){
                         key = 'ctrl';
                     }

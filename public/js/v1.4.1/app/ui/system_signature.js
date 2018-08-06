@@ -10,7 +10,7 @@ define([
     'bootbox',
     'app/map/map',
     'app/map/util'
-], function($, Init, Util, Mustache, bootbox, Map, MapUtil) {
+], ($, Init, Util, Mustache, bootbox, Map, MapUtil) => {
     'use strict';
 
     let config = {
@@ -44,8 +44,6 @@ define([
         sigTableClass: 'pf-sig-table',                                          // Table class for all Signature Tables
         sigTablePrimaryClass: 'pf-sig-table-primary',                           // class for primary sig table
         sigTableSecondaryClass: 'pf-sig-table-secondary',                       // class for secondary sig table
-        sigTableRowIdPrefix: 'pf-sig-table-row-',                               // id prefix for a table row <tr>
-        sigTableEditText: 'pf-sig-table-edit-text',                             // class for editable fields (text)
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigGroupSelect: 'pf-sig-table-edit-group-select',           // class for editable fields (sig group)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (sig type)
@@ -755,7 +753,6 @@ define([
      * @returns {Array}
      */
     let formatSignatureData = (systemData, signatureData, options) => {
-
         let formattedData = [];
 
         // security check
@@ -976,7 +973,7 @@ define([
 
         // create "empty table for new signature
         let table = $('<table>', {
-            class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTableSecondaryClass].join(' ')
+            class: ['stripe', 'row-border', 'compact', 'nowrap', config.sigTableClass, config.sigTableSecondaryClass].join(' ')
         });
 
         tableToolbarAction.append(table);
@@ -987,9 +984,9 @@ define([
         let signatureTable = table.dataTable( {
             data: signatureData,
             paging: false,
-            ordering: false,
             info: false,
-            searching: false
+            searching: false,
+            tabIndex: -1
         } );
         let signatureTableApi = signatureTable.api();
 
@@ -1009,6 +1006,48 @@ define([
     };
 
     /**
+     * helper function - jump to "next" editable field on save
+     * @param field
+     * @param selector
+     * @returns {*|jQuery|HTMLElement}
+     */
+    let getNextEditableField = (field, selector) => {
+        let nextEditableField = null;
+        if(selector){
+            // search specific sibling
+            nextEditableField = $(field).closest('td').nextAll(selector).find('.editable');
+        }else{
+            // get next sibling
+            nextEditableField = $(field).closest('td').next().find('.editable');
+        }
+
+        return $(nextEditableField);
+    };
+
+    /**
+     * helper function - get the next editable field in next table column
+     * @param fields
+     */
+    let openNextEditDialogOnSave = fields => {
+        fields.on('save', function(e, params){
+            let currentField = $(this);
+            let nextField = getNextEditableField(currentField);
+            nextField.editable('show');
+
+            setTimeout(() => {
+                // update scanning progressbar if sig "type" has changed AND
+                // the current field is in the "primary" table (not the "add" new sig row)
+                if(
+                    $(e.target).hasClass(config.sigTableEditSigGroupSelect) &&
+                    $(e.target).parents('.' + config.sigTableClass).hasClass(config.sigTablePrimaryClass)
+                ){
+                    currentField.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
+                }
+            }, 200);
+        });
+    };
+
+    /**
      * make a table or row editable
      * @param tableApi
      * @param systemData
@@ -1024,50 +1063,13 @@ define([
         let sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
         let sigConnectionFields = tableElement.find('.' + config.sigTableEditSigConnectionSelect);
 
-        // jump to "next" editable field on save
-        let openNextEditDialogOnSave = function(fields){
-            fields.on('save', function(e, a){
-
-                let currentField = $(this);
-
-                setTimeout(function() {
-                    let nextField = getNextEditableField(currentField);
-                    nextField.editable('show');
-
-                    // update scanning progressbar if sig "type" has changed AND
-                    // the current field is in the "primary" table (not the "add" new sig row)
-                    if(
-                        $(e.target).hasClass(config.sigTableEditSigGroupSelect) &&
-                        $(e.target).parents('.' + config.sigTableClass).hasClass(config.sigTablePrimaryClass)
-                    ){
-                        currentField.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
-                    }
-                }, 200);
-            });
-        };
-
-        // helper function - get the next editable field in next table column
-        let getNextEditableField = function(field, selector){
-            let nextEditableField = null;
-            if(selector){
-                // search specific sibling
-                nextEditableField = $(field).closest('td').nextAll(selector).find('.editable');
-            }else{
-                // get next sibling
-                nextEditableField = $(field).closest('td').next().find('.editable');
-            }
-
-            return $(nextEditableField);
-        };
-
         /**
          * add map/system specific data for each editable field in the sig-table
          * @param params
          * @returns {*}
          */
-        let modifyFieldParamsOnSend = function(params){
+        let modifyFieldParamsOnSend = params => {
             params.systemId = systemData.id;
-
             return params;
         };
 
@@ -1227,13 +1229,19 @@ define([
                 return availableSigs;
             },
             success: function(response, newValue){
+                let signatureTypeField = $(this);
+                let rowElement = signatureTypeField.parents('tr');
+
                 if(response){
-                    let signatureTypeField = $(this);
-                    let rowElement = signatureTypeField.parents('tr');
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
                     updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
+                }else{
+                    // "add new" signature -> set "+" focus for keyboard control
+                    setTimeout(function() {
+                        rowElement.find('.pf-table-action-cell')[0].focus();
+                    }, 50);
                 }
             }
         });
@@ -1316,6 +1324,21 @@ define([
             }
         });
 
+        sigGroupFields.on('shown', function(e, editable) {
+            let inputField = editable.input.$input;
+            inputField.addClass('pf-select2').initSignatureGroupSelect();
+        });
+
+        sigTypeFields.on('shown', function(e, editable) {
+            let inputField = editable.input.$input;
+            inputField.addClass('pf-select2').initSignatureTypeSelect();
+        });
+
+        sigConnectionFields.on('shown', function(e, editable) {
+            let inputField = editable.input.$input;
+            inputField.addClass('pf-select2').initSignatureConnectionSelect();
+        });
+
         // open even
         sigDescriptionFields.on('shown', function(e, editable) {
             // enlarge the tools-action container because the tables gets bigger
@@ -1331,6 +1354,12 @@ define([
         // save events
         sigConnectionFields.on('save', function(e, editable){
             checkConnectionConflicts();
+        });
+
+        $().add(sigNameFields).add(sigGroupFields).add(sigTypeFields)
+            .add(sigDescriptionFields).add(sigConnectionFields).on('hidden', function(e, editable) {
+                // re-focus element on close (keyboard navigation)
+                this.focus();
         });
 
         // open next field dialog -------------------------------------------------------------------------------------
@@ -1537,7 +1566,7 @@ define([
             // add static WH(s) for this system
             if(systemData.statics){
                 let staticWHData = [];
-                for(let wormholeName of systemData.statics) {
+                for(let wormholeName of systemData.statics){
                     let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
                     let staticWHName = wormholeData.name + ' - ' + wormholeData.security;
 
@@ -1856,7 +1885,7 @@ define([
 
             // format group filter options
             let groups = Object.assign({}, config.signatureGroupsLabels);
-            for (let [value, label] of Object.entries(groups)){
+            for(let [value, label] of Object.entries(groups)){
                 if(label.length){
                     sourceOptions.push({value: label, text: label});
                 }
@@ -1920,6 +1949,7 @@ define([
         moduleElement.append(table);
 
         let dataTableOptions = {
+            tabIndex: -1,
             dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
                 '<"row"<"col-xs-12"tr>>' +
                 '<"row"<"col-xs-5"i><"col-xs-7"p>>',
@@ -2019,7 +2049,7 @@ define([
                     searchable: true,
                     title: 'id',
                     type: 'html',
-                    width: 30,
+                    width: 15,
                     data: 'name',
                     render: {
                         _: 'render'
@@ -2035,7 +2065,7 @@ define([
                     searchable: true,
                     title: 'group',
                     type: 'html',
-                    width: 50,
+                    width: 40,
                     data: 'group',
                     render: {
                         _: 'group',
@@ -2149,10 +2179,20 @@ define([
                         let tempTableElement = this;
                         let rowElement = $(cell).parents('tr');
 
+                        $(cell).attr('tabindex', 0).on('keydown', function(e){
+                            e.stopPropagation();
+                            if(e.which === 13){
+                                $(this).trigger('click');
+                            }
+                        });
+
                         switch(cellData.action){
                             case 'add':
                                 // add new signature ------------------------------------------------------------------
                                 $(cell).on('click', function(e) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+
                                     // submit all fields within a table row
                                     let formFields = rowElement.find('.editable');
 
@@ -2250,33 +2290,62 @@ define([
     };
 
     /**
+     * open xEditable input field in "new Signature" table
+     * @param moduleElement
+     */
+    let focusNewSignatureEditableField = moduleElement => {
+        let secondaryTable = moduleElement.find('.' + config.sigTableSecondaryClass);
+        secondaryTable.find('.' + config.sigTableEditSigNameInput).editable('show');
+    };
+
+    /**
      * set module observer and look for relevant signature data to update
      * @param moduleElement
      * @param systemData
      */
     let setModuleObserver = (moduleElement, systemData) => {
-        let tablePrimaryElement = moduleElement.find('.' + config.sigTablePrimaryClass);
-        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
+        let primaryTable = moduleElement.find('.' + config.sigTablePrimaryClass);
+        let primaryTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         // add signature toggle ---------------------------------------------------------------------------------------
-        moduleElement.find('.' + config.moduleHeadlineIconAddClass).on('click', function(e){
-            let button = $(this);
+        let toggleAddSignature = (show = 'auto') => {
+            let button = moduleElement.find('.' + config.moduleHeadlineIconAddClass);
             let toolsElement = moduleElement.find('.' + config.tableToolsActionClass);
-            button.toggleClass('active');
+            button.toggleClass('active', show === 'auto' ? undefined : show);
 
-            // set toggle animation
-            if(toolsElement.is(':visible')){
-                toolsElement.velocity('stop').velocity('reverse');
-            }else{
+            if(toolsElement.is(':visible') && (!show || show === 'auto')){
+                // hide container
                 toolsElement.velocity('stop').velocity({
-                    opacity: 1,
-                    height: '75px'
+                    opacity: [0, 1],
+                    height: [0, '70px']
+                },{
+                    duration: 150,
+                    display: 'none'
+                });
+            }else if(!toolsElement.is(':visible') && (show || show === 'auto')){
+                // show container
+                toolsElement.velocity('stop').velocity({
+                    opacity: [1, 0],
+                    height: ['70px', 0]
                 },{
                     duration: 150,
                     display: 'block',
-                    visibility: 'visible'
+                    complete: function(){
+                        focusNewSignatureEditableField(moduleElement);
+                    }
                 });
+            }else if(toolsElement.is(':visible') && show){
+                // still visible -> no animation
+                focusNewSignatureEditableField(moduleElement);
             }
+        };
+
+        moduleElement.find('.' + config.moduleHeadlineIconAddClass).on('click', function(e){
+            toggleAddSignature('auto');
+        });
+
+        moduleElement.on('pf:showSystemSignatureModuleAddNew', function(e){
+            toggleAddSignature(true);
         });
 
         // signature reader dialog ------------------------------------------------------------------------------------
@@ -2291,7 +2360,7 @@ define([
         });
 
         // set multi row select ---------------------------------------------------------------------------------------
-        tablePrimaryElement.on('click', 'tr', {tableApi: signatureTableApi}, function(e){
+        primaryTable.on('click', 'tr', {tableApi: primaryTableApi}, function(e){
             if(e.ctrlKey) {
                 $(this).toggleClass('selected');
 
@@ -2301,17 +2370,17 @@ define([
         });
 
         // draw event for signature table -----------------------------------------------------------------------------
-        signatureTableApi.on('draw.dt', function(e, settings){
+        primaryTableApi.on('draw.dt', function(e, settings){
             // check delete button
             let tableApi = $(this).dataTable().api();
             checkDeleteSignaturesButton(tableApi);
         });
 
         // destroy dataTables event -----------------------------------------------------------------------------------
-        tablePrimaryElement.on('destroy.dt', function(){
+        primaryTable.on('destroy.dt', function(){
             $(this).destroyTimestampCounter();
         });
-        signatureTableApi.on('destroy.dt', function(){
+        primaryTableApi.on('destroy.dt', function(){
             $(this).destroyTimestampCounter();
         });
 

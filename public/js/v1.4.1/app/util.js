@@ -1017,6 +1017,13 @@ define([
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
+        $.fn.select2.defaults.set('language', {
+            searching: params => '&nbsp;<i class="fas fa-sync fa-spin"></i>&nbsp;&nbsp;searching...'
+        });
+        $.fn.select2.defaults.set('escapeMarkup', markup => {
+            // required for HTML in options
+            return markup;
+        });
 
         let initScrollbar = (resultsWrapper) => {
             // default 'mousewheel' event set by select2 needs to be disabled
@@ -1055,10 +1062,9 @@ define([
 
         let getResultsWrapper = (selectElement) => {
             let wrapper = null;
-            let selectElementId = selectElement.getAttribute('data-select2-id');
-            if(selectElementId){
-                let resultsOptions = $('#select2-' + selectElementId + '-results');
-                if(resultsOptions.length) {
+            if($(selectElement).data('select2')){
+                let resultsOptions = $(selectElement).data('select2').$results;
+                if(resultsOptions.length){
                     let resultsWrapper = resultsOptions.parents('.select2-results');
                     if(resultsWrapper.length){
                         wrapper = resultsWrapper;
@@ -1089,7 +1095,7 @@ define([
      * set default configuration for "xEditable"
      */
     let initDefaultEditableConfig = () => {
-        // use fontAwesome buttons
+        // use fontAwesome buttons template
         $.fn.editableform.buttons =
             '<button type="submit" class="btn btn-primary btn-sm editable-submit">'+
             '<i class="fa fa-fw fa-check"></i>'+
@@ -1097,6 +1103,10 @@ define([
             '<button type="button" class="btn btn-default btn-sm editable-cancel">'+
             '<i class="fa fa-fw fa-times"></i>'+
             '</button>';
+
+        // loading spinner template
+        $.fn.editableform.loading =
+            '<div class="editableform-loading"><i class="fas fa-lg fa-sync fa-spin"></i></div>';
     };
 
     /**

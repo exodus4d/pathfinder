@@ -44,7 +44,7 @@ label {
 	font-weight:normal;
 }
 
-*:focus {
+*:not(td):focus {
     outline: 0 !important;
 }
 

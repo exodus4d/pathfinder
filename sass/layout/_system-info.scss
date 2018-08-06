@@ -84,6 +84,22 @@
       text-transform: uppercase;
     }
   }
+
+  .pf-sig-table-secondary{
+    // columns should be "inline" with primary table
+    // -> therefore "sortable" must be true even if columns should not be sortable -> now "disable" sortable by CSS
+    th{
+      pointer-events: none;
+
+      &:after{
+        display: none !important;
+      }
+
+      &.pf-table-counter-cell{
+        color: transparent; // hide label for counter columns -> no data here
+      }
+    }
+  }
 }
 
 // system graph module =====================================================

@@ -8,7 +8,7 @@ define([
     'app/util',
     'app/render',
     'app/map/util'
-], function($, Init, Util, Render, MapUtil) {
+], ($, Init, Util, Render, MapUtil) => {
     'use strict';
 
     let config = {

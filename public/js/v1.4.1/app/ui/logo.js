@@ -5,12 +5,11 @@
 define([
     'jquery',
     'lazylinepainter'
-], function($) {
+], ($) => {
 
     'use strict';
 
     let config = {
-
         staticLogoId: 'pf-static-logo-svg',                                     // id for "static" logo
 
         logoPartTopRightClass: 'logo-ploygon-top-right',                        // class for logo part "top right"

@@ -212,9 +212,12 @@ select:active, select:hover {
 .select2-results{
   [class*="col-"]{
     // smaller and less padding
-    line-height: 22px;
     padding-left: 3px;
     padding-right: 3px;
+  }
+
+  .clearfix.pf-result-image [class*="col-"]{
+    line-height: 22px;  // options with images need more height
   }
 }
 
@@ -236,6 +239,11 @@ select:active, select:hover {
 
 // global dataTable styles ========================================================================
 .dataTables_wrapper{
+
+  .dataTables_length select{
+    margin: 0 3px;  // <select> for page size
+  }
+  
   .dt-buttons{
     .dt-button{
       padding: 0 5px; // overwrite default
@@ -269,12 +277,20 @@ select:active, select:hover {
     }
   }
 
-  tr.group{
-    background-color: rgba($gray-darker, 0.4);
+  tr {
+    &.group{
+      background-color: rgba($gray-darker, 0.4);
+    }
   }
 
   // "special" column styles
   td{
+    &:focus-within{
+      // set td as :focus even is td content is focused
+      outline: 1px solid $orange-dark;
+      background-color: rgba($orange-dark, .1) !important;
+      outline-offset: -1px;
+    }
 
     > .fa-circle{
       font-size: 9px !important; // should not be "so big" (10px default)
@@ -445,11 +461,11 @@ table{
 }
 
 .pf-table-tools-action{
-  will-change: height, opacity, display;
+  will-change: height, opacity;
   opacity: 0; // triggered by js
   display: none; // triggered by js
   height: 0;
-  visibility: hidden;
+  overflow: hidden;
 }
 
 // landing indicator overlay ======================================================================

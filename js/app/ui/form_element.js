@@ -10,6 +10,11 @@ define([
 ], ($, Init, Util, MapUtil) => {
     'use strict';
 
+    let config = {
+        // Select2
+        resultOptionImageClass: 'pf-result-image'                       // class for Select2 result option entry with image
+    };
+
     /**
      * format result data
      * @param data
@@ -19,7 +24,7 @@ define([
         if(data.loading) return data.text;
         if(data.placeholder) return data.placeholder;
 
-        let markup = '<div class="clearfix">';
+        let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
 
         if(data.hasOwnProperty('children')){
             // category group label
@@ -89,18 +94,16 @@ define([
      */
     $.fn.initStatusSelect = function(options){
 
-        let config = {
+        let defaultConfig = {
             minimumResultsForSearch: -1,
             width: '100%',
             iconClass: 'fa-circle'
         };
 
-        config = $.extend({}, config, options);
+        options = $.extend({}, defaultConfig, options);
 
         let formatStatusSelectionData = state => {
-            let markup = '<span>';
-            markup += '<i class="fas ' + config.iconClass + ' ' + state.class + '"></i>&nbsp;&nbsp;&nbsp;' + state.text;
-            markup += '</span>';
+            let markup = '<i class="fas ' + options.iconClass + ' ' + state.class + '"></i>&nbsp;&nbsp;&nbsp;' + state.text;
 
             return $(markup);
         };
@@ -109,9 +112,9 @@ define([
             if(data.loading) return data.text;
             if(data.placeholder) return data.placeholder;
 
-            let markup = '<div class="clearfix">';
+            let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
             markup += '<div class="col-xs-2 text-center">';
-            markup += '<i class="fas ' + config.iconClass + ' ' + data.class + '"></i>';
+            markup += '<i class="fas ' + options.iconClass + ' ' + data.class + '"></i>';
             markup += '</div>';
             markup += '<div class="col-xs-10">' + data.text + '</div>';
             markup += '</div>';
@@ -119,12 +122,12 @@ define([
             return $(markup);
         };
 
-        config.templateSelection = formatStatusSelectionData;
-        config.templateResult = formatStatusResultData;
+        options.templateSelection = formatStatusSelectionData;
+        options.templateResult = formatStatusResultData;
 
         return this.each(function(){
             let selectElement = $(this);
-            selectElement.select2(config);
+            selectElement.select2(options);
         });
     };
 
@@ -135,10 +138,10 @@ define([
     $.fn.initSystemSelect = function(options){
         let selectElement = $(this);
 
-        let config = {
+        let defaultConfig = {
             maxSelectionLength: 1
         };
-        options = $.extend({}, config, options);
+        options = $.extend({}, defaultConfig, options);
 
         let shatteredClass = Util.getSecurityClassForSystem('SH');
 
@@ -154,7 +157,7 @@ define([
 
             let hideShatteredClass = !data.shattered ? 'hide' : '';
 
-            let markup = '<div class="clearfix">';
+            let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
             markup += '<div class="col-sm-4 pf-select-item-anchor ' + systemNameClass + '">' + data.text + '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.effectClass + '">';
             markup += '<i class="fas fa-fw fa-square ' + hideEffectClass + '"></i>';
@@ -247,11 +250,7 @@ define([
                 templateResult: formatResultData,
                 placeholder: 'System name',
                 allowClear: true,
-                maximumSelectionLength: options.maxSelectionLength,
-                escapeMarkup: function(markup){
-                    // let our custom formatter work
-                    return markup;
-                }
+                maximumSelectionLength: options.maxSelectionLength
             }).on('change', function(e){
                 // select changed
             }).on('select2:open', function(){
@@ -337,11 +336,7 @@ define([
                     allowClear: false,
                     maximumSelectionLength: options.maxSelectionLength,
                     templateResult: formatCategoryTypeResultData,
-                    templateSelection: formatSelectionData,
-                    escapeMarkup: function(markup){
-                        // let our custom formatter work
-                        return markup;
-                    }
+                    templateSelection: formatSelectionData
                 }).on('change', function(e){
                     // select changed
 
@@ -435,9 +430,6 @@ define([
                     dropdownParent: selectElement.parents('.modal-body') ,
                     minimumInputLength: 3,
                     placeholder: '',
-                    language: {
-                        searching: params => '&nbsp;<i class="fas fa-sync fa-spin"></i>&nbsp;&nbsp;searching...'
-                    },
                     /* alphabetic search not always fits the users need
                     sorter: data => {
                         // sort nested data options by "text" prop
@@ -448,12 +440,8 @@ define([
                     },*/
                     allowClear: options.maxSelectionLength <= 1,
                     maximumSelectionLength: options.maxSelectionLength,
-                    templateResult: formatCategoryTypeResultData,
+                    templateResult: formatCategoryTypeResultData
                     //  templateSelection: formatSelectionData, // some issues with "clear" selection on single selects (empty option is needed)
-                    escapeMarkup: function(markup){
-                        // let our custom formatter work
-                        return markup;
-                    }
                 }).on('change', function(e){
                     // select changed
                 }).on('select2:open', function(){
@@ -472,8 +460,12 @@ define([
         });
     };
 
-
-    $.fn.initUniverseTypeSelect = function(options)  {
+    /**
+     * init a select element as an "select2" object for system search
+     * @param options
+     * @returns {*}
+     */
+    $.fn.initUniverseTypeSelect = function(options){
 
         /**
          * get select option data by categoryIds
@@ -531,10 +523,7 @@ define([
                     maximumSelectionLength: options.maxSelectionLength,
                    // maximumSelectionLength: options.maxSelectionLength > 1 ? options.maxSelectionLength > 1 : 0,
                    // minimumResultsForSearch: 5, // minimum number of results required to display the search box
-                    templateResult: formatCategoryTypeResultData,
-                    escapeMarkup: function(markup){
-                        return markup;
-                    }
+                    templateResult: formatCategoryTypeResultData
                 }).on('select2:open', function(){
                     // clear selected system (e.g. default system)
                     // => improves usability (not necessary). There is a small "x" if field can be cleared manually
@@ -546,6 +535,167 @@ define([
                     }
                 }).val(options.selected).trigger('change')
             );
+        });
+    };
+
+    /**
+     * init a select element as an "select2" object for signature group data
+     * @param options
+     * @returns {*}
+     */
+    $.fn.initSignatureGroupSelect = function(options){
+        let defaultConfig = {
+            minimumResultsForSearch: -1,
+            width: '110px',
+            dropdownParent: this.parents('.popover-content')
+        };
+
+        options = $.extend({}, defaultConfig, options);
+
+        return this.each(function(){
+            let selectElement = $(this);
+            selectElement.select2(options);
+
+            // initial open dropDown
+            if( !parseInt(selectElement.val()) ){
+                // setTimeout() required because of dropDown positioning
+                setTimeout(() => {
+                    selectElement.select2('open');
+                }, 0);
+            }
+        });
+    };
+
+    /**
+     * init a select element as an "select2" object for signature types data
+     * @param options
+     * @returns {*}
+     */
+    $.fn.initSignatureTypeSelect = function(options){
+        let defaultConfig = {
+            minimumResultsForSearch: 6,
+            width: '220px',
+            dropdownParent: this.parents('.popover-content')
+        };
+
+        options = $.extend({}, defaultConfig, options);
+
+        let formatSignatureTypeSelectionData = state => {
+            let parts = state.text.split(' - ');
+
+            let markup = '';
+            if(parts.length === 2){
+                // wormhole data -> 2 columns
+                let securityClass = Util.getSecurityClassForSystem(parts[1]);
+                markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
+                markup += '<i class="fas fa-long-arrow-alt-right"></i>&nbsp;&nbsp;';
+                markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
+            }else{
+                markup += '<span>' + state.text + '</span>';
+            }
+
+            return $(markup);
+        };
+
+        let formatSignatureTypeResultData = data => {
+            if(data.loading) return data.text;
+            if(data.placeholder) return data.placeholder;
+
+            let markup = '<div class="clearfix">';
+
+            if(data.hasOwnProperty('children')){
+                // category group label
+                markup += '<div class="col-xs-9">' + data.text + '</div>';
+                markup += '<div class="col-xs-3 text-right">(' + data.children.length + ')</div>';
+            }else{
+                let parts = data.text.split(' - ');
+
+                if(parts.length === 2){
+                    // wormhole data -> 2 columns
+                    let securityClass = Util.getSecurityClassForSystem(parts[1]);
+
+                    markup += '<div class="col-xs-3 text-right">' + parts[0] + '</div>';
+                    markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right"></i></div>';
+                    markup += '<div class="col-xs-7 ' + securityClass + '">' + parts[1] + '</div>';
+                }else{
+                    markup += '<div class="col-xs-12">' + data.text + '</div>';
+                }
+            }
+            markup += '</div>';
+
+            return $(markup);
+        };
+
+        let search = (params, data) => {
+            if($.trim(params.term) === '') return data;             // If there are no search terms, return all of the data
+            if(typeof data.children === 'undefined') return null;   // Skip if there is no 'children' property
+
+            // `data.children` contains the actual options that we are matching against
+            let filteredChildren = [];
+            for(let [idx, child] of Object.entries(data.children)){
+                if(child.text.toUpperCase().indexOf(params.term.toUpperCase()) === 0){
+                    filteredChildren.push(child);
+                }
+            }
+
+            // If we matched any of the timezone group's children, then set the matched children on the group
+            // and return the group object
+            if(filteredChildren.length){
+                let modifiedData = $.extend({}, data, true);
+                modifiedData.children = filteredChildren;
+
+                // You can return modified objects from here
+                // This includes matching the `children` how you want in nested data sets
+                return modifiedData;
+            }
+
+            // Return `null` if the term should not be displayed
+            return null;
+        };
+
+        options.templateSelection = formatSignatureTypeSelectionData;
+        options.templateResult = formatSignatureTypeResultData;
+        options.matcher = search;
+
+        return this.each(function(){
+            let selectElement = $(this);
+            selectElement.select2(options);
+
+            // initial open dropDown
+            if( !parseInt(selectElement.val()) ){
+                // setTimeout() required because of dropDown positioning
+                setTimeout(() => {
+                    selectElement.select2('open');
+                }, 0);
+            }
+        });
+    };
+
+    /**
+     * init a select element as an "select2" object for signature group data
+     * @param options
+     * @returns {*}
+     */
+    $.fn.initSignatureConnectionSelect = function(options){
+        let defaultConfig = {
+            minimumResultsForSearch: -1,
+            width: '140px',
+            dropdownParent: this.parents('.popover-content')
+        };
+
+        options = $.extend({}, defaultConfig, options);
+
+        return this.each(function(){
+            let selectElement = $(this);
+            selectElement.select2(options);
+
+            // initial open dropDown
+            if( !parseInt(selectElement.val()) ){
+                // setTimeout() required because of dropDown positioning
+                setTimeout(() => {
+                    selectElement.select2('open');
+                }, 0);
+            }
         });
     };
 

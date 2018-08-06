@@ -38,6 +38,12 @@
       vertical-align: middle !important;
     }
   }
+
+  .select2-container{
+    // Select2 within popover (xEditable field)
+    margin-top: -1px;   // strange UI bug 1px off
+    margin-left: -1px;  // strange UI bug 1px off
+  }
 }
 
 // smaller variant ----------------------------------------------------------------------------------------------------
