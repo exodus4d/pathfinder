@@ -1487,7 +1487,7 @@ define([
             // cached signatures do not include static WHs!
             // -> ".slice(0)" creates copy
             newSelectOptions =  sigNameCache[cacheKey].slice(0);
-            newSelectOptionsCount = sumSignaturesRecursive('children', newSelectOptions);
+            newSelectOptionsCount = getOptionsCount('children', newSelectOptions);
         }else{
             // get new Options ----------
             // get all possible "static" signature names by the selected groupId
@@ -1602,7 +1602,7 @@ define([
     };
 
     /**
-     * recursive sum array.length for a given object key
+     * sum up all options in nested (or not nested) object of objects
      * -> e.g.
      * {
      *     first: {
@@ -1614,23 +1614,20 @@ define([
      *         test = { ... }
      *     }
      * }
-     * -> sumSignaturesRecursive('count', obj) => 5;
+     * -> getOptionsCount('count', obj) => 5;
      * @param key
      * @param obj
      * @returns {number}
      */
-    let sumSignaturesRecursive = (key, obj) => {
+    let getOptionsCount = (key, obj) => {
         let sum = 0;
-
-        for (let prop in obj) {
-            if (obj.hasOwnProperty(prop) && key === prop) {
-                sum += obj[prop].length;
-            }
-            else if (Object.prototype.toString.call(obj[prop]) === '[object Object]') {
-                sum += sumSignaturesRecursive(key, obj[prop]);
+        for(let entry of obj){
+            if(entry.hasOwnProperty(key)){
+                sum += entry[key].length;
+            }else{
+                sum++;
             }
         }
-
         return sum;
     };
 
