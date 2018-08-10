@@ -55,6 +55,12 @@ define([
                         }
                     };
                 },
+                formatTime: function(){
+                    return function(value, render){
+                        let time = render(value);
+                        return time.length ? time + '&nbsp;h' : 'unknown';
+                    };
+                },
                 sigStrengthValue: function(){
                     return function(value, render){
                         let float = render(value);

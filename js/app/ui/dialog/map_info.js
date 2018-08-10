@@ -883,7 +883,7 @@ define([
                     width: 26,
                     orderable: false,
                     searchable: false,
-                    className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
+                    className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
                     data: 'log.ship',
                     defaultContent: '',
                     render: {

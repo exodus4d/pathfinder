@@ -1438,9 +1438,13 @@ define([
                 let data = {};
                 if(tooltipData.massTotal){
                     data.massTotal = Util.formatMassValue(tooltipData.massTotal);
+                }else{
+                    data.massTotal = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
                 if(tooltipData.massIndividual){
                     data.massIndividual = Util.formatMassValue(tooltipData.massIndividual);
+                }else{
+                    data.massIndividual = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
                 if(tooltipData.massRegeneration){
                     data.massRegeneration = Util.formatMassValue(tooltipData.massRegeneration);
@@ -1451,14 +1455,21 @@ define([
                 if(tooltipData.signatureStrength){
                     data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString() + '&nbsp;&#37;';
                 }else{
-                    data.signatureStrength = 'unknown';
-                }
-                if(!tooltipData.class){
-                    tooltipData.class = Util.getSecurityClassForSystem(tooltipData.security);
+                    data.signatureStrength = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
 
-                let title = tooltipData.name +
-                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
+                let title = tooltipData.name;
+
+                if(tooltipData.security){
+                    // K162 has no security
+
+                    if(!tooltipData.class){
+                        tooltipData.class = Util.getSecurityClassForSystem(tooltipData.security);
+                    }
+
+                    title += '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
+                }
+
                 let content = Mustache.render(template, data);
 
                 let defaultOptions = {

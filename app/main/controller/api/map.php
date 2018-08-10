@@ -210,6 +210,10 @@ class Map extends Controller\AccessController {
                 foreach($rows as $rowData){
                     $wormholesData[$rowData->name] = $rowData->getData();
                 }
+
+                $wormhole->reset();
+                $wormhole->name = 'K162';
+                $wormholesData[$wormhole->name] = $wormhole->getData();
             }
             $return->wormholes = $wormholesData;
 

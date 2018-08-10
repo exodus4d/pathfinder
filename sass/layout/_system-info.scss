@@ -75,7 +75,19 @@
     }
 
     // textarea field
+    // overwrite some styles in order to make <textarea> 100% width
+    .editable-container.editable-inline {
+      display: inline;
+      .control-group{
+        display: inline;
+        .editable-input{
+          display: inline;
+        }
+      }
+    }
+
     .pf-editable-description{
+      width: 100%;
       background-color: $gray-darker;
       max-height: 50px;
     }

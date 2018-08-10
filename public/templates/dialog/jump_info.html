@@ -1,5 +1,5 @@
 <div class="pf-dynamic-area">
-    <table class="compact stripe order-column row-border {{config.wormholeInfoMassTableClass}}">
+    <table class="compact stripe order-column row-border {{config.wormholeInfoMassTableClass}}" data-order="[0, &quot;asc&quot;]">
         <thead>
         <tr>
             <th class=""></th>
@@ -21,7 +21,7 @@
             <td class="text-right" data-order="{{massTotal}}">{{#massValue}}{{massTotal}}{{/massValue}}</td>
             <td class="text-right" data-order="{{massIndividual}}">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
             <td class="text-right" data-order="{{massRegeneration}}">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
-            <td class="text-right" data-order="{{maxStableTime}}">{{maxStableTime}}&nbsp&nbsp;h</td>
+            <td class="text-right txt-color {{^maxStableTime}}txt-color-grayLight{{/maxStableTime}}" data-order="{{maxStableTime}}">{{#formatTime}}{{maxStableTime}}{{/formatTime}}</td>
             <td class="text-right txt-color {{^signatureStrength}}txt-color-grayLight{{/signatureStrength}}" data-order="{{signatureStrength}}">
                 {{#sigStrengthValue}}{{signatureStrength}}{{/sigStrengthValue}}
             </td>

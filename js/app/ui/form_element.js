@@ -65,12 +65,98 @@ define([
                 thumb = '<i class="fas fa-fw ' + iconName + '" ></i>';
             }
 
-            markup += '<div class="col-xs-2 text-center">' + thumb + '</div>';
+            markup += '<div class="col-xs-2">' + thumb + '</div>';
             markup += '<div class="col-xs-10">' + data.text + '</div>';
         }
         markup += '</div>';
 
         return markup;
+    };
+
+    /**
+     * format results data for signature type select
+     * @param state
+     * @returns {*|jQuery|HTMLElement}
+     */
+    let formatSignatureTypeSelectionData = state => {
+        let parts = state.text.split(' - ');
+
+        let markup = '';
+        if(parts.length === 2){
+            // wormhole data -> 2 columns
+            let securityClass = Util.getSecurityClassForSystem(parts[1].length > 3 ? parts[1].substring(0, 2) : parts[1]);
+            markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
+            markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
+            markup += '<span class="' + securityClass + ' ' + Util.config.popoverTriggerClass + ' ' + Util.config.helpDefaultClass + '" data-name="' + parts[0] + '">&nbsp;&nbsp;' + parts[1] + '&nbsp;</span>';
+        }else{
+            markup += '<span>' + state.text + '</span>';
+        }
+
+        return $(markup);
+    };
+
+    /**
+     * format result data for signature type OR signature connection data
+     * @param data
+     * @param formatType
+     * @returns {*}
+     */
+    let formatSignatureTypeConnectionResultData = (data, formatType) => {
+        if(data.loading) return data.text;
+        if(data.placeholder) return data.placeholder;
+
+        let markup = '<div class="clearfix">';
+
+        if(data.hasOwnProperty('children')){
+            // optgroup label
+            markup += '<div class="col-xs-9">' + data.text + '</div>';
+            markup += '<div class="col-xs-3 text-right">(' + data.children.length + ')</div>';
+        }else{
+            // child label
+            let parts = data.text.split(' - ');
+            if(parts.length === 2){
+                // wormhole data -> 2 columns
+                let securityClass = Util.getSecurityClassForSystem(parts[1].length > 3 ? parts[1].substring(0, 2) : parts[1]);
+
+                switch(formatType){
+                    case 'wormhole':
+                        markup += '<div class="col-xs-3">' + parts[0] + '</div>';
+                        markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right"></i></div>';
+                        markup += '<div class="col-xs-7 ' + securityClass + '">' + parts[1] + '</div>';
+                        break;
+                    case 'system':
+                        markup += '<div class="col-xs-10">' + parts[0] + '</div>';
+                        markup += '<div class="col-xs-2 ' + securityClass + '">' + parts[1] + '</div>';
+                        break;
+                }
+            }else{
+                markup += '<div class="col-xs-12">' + data.text + '</div>';
+            }
+        }
+        markup += '</div>';
+
+        return $(markup);
+    };
+
+    /**
+     * format results data for signature connection select
+     * @param state
+     * @returns {*|jQuery|HTMLElement}
+     */
+    let formatSignatureConnectionSelectionData = state => {
+        let parts = state.text.split(' - ');
+
+        let markup = '';
+        if(parts.length === 2){
+            // wormhole data -> 2 columns
+            let securityClass = Util.getSecurityClassForSystem(parts[1]);
+            markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
+            markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
+        }else{
+            markup += '<span>' + state.text + '</span>';
+        }
+
+        return $(markup);
     };
 
     /**
@@ -103,9 +189,7 @@ define([
         options = $.extend({}, defaultConfig, options);
 
         let formatStatusSelectionData = state => {
-            let markup = '<i class="fas ' + options.iconClass + ' ' + state.class + '"></i>&nbsp;&nbsp;&nbsp;' + state.text;
-
-            return $(markup);
+            return '<i class="fas ' + options.iconClass + ' ' + state.class + '"></i>&nbsp;&nbsp;&nbsp;' + state.text;
         };
 
         let formatStatusResultData = data => {
@@ -113,7 +197,7 @@ define([
             if(data.placeholder) return data.placeholder;
 
             let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
-            markup += '<div class="col-xs-2 text-center">';
+            markup += '<div class="col-xs-2">';
             markup += '<i class="fas ' + options.iconClass + ' ' + data.class + '"></i>';
             markup += '</div>';
             markup += '<div class="col-xs-10">' + data.text + '</div>';
@@ -278,21 +362,17 @@ define([
      */
     $.fn.initAccessSelect = function(options){
 
+        let formatSelectionData = data => {
+            if(data.loading) return data.text;
+
+            let markup = '<div class="clearfix">';
+            markup += '<div class="col-sm-10">' + data.text + '</div></div>';
+
+            return markup;
+        };
+
         return this.each(function(){
             let selectElement = $(this);
-
-            // format selection data
-            function formatSelectionData (data){
-
-                if (data.loading){
-                    return data.text;
-                }
-
-                let markup = '<div class="clearfix">';
-                markup += '<div class="col-sm-10">' + data.text + '</div></div>';
-
-                return markup;
-            }
 
             $.when(
                 selectElement.select2({
@@ -470,7 +550,7 @@ define([
         /**
          * get select option data by categoryIds
          * @param categoryIds
-         * @returns {{results: Array}}
+         * @returns {Array}
          */
         let getOptionsData = categoryIds => {
             let data = [];
@@ -569,9 +649,10 @@ define([
     /**
      * init a select element as an "select2" object for signature types data
      * @param options
+     * @param hasOptGroups
      * @returns {*}
      */
-    $.fn.initSignatureTypeSelect = function(options){
+    $.fn.initSignatureTypeSelect = function(options, hasOptGroups){
         let defaultConfig = {
             minimumResultsForSearch: 6,
             width: '220px',
@@ -580,50 +661,8 @@ define([
 
         options = $.extend({}, defaultConfig, options);
 
-        let formatSignatureTypeSelectionData = state => {
-            let parts = state.text.split(' - ');
-
-            let markup = '';
-            if(parts.length === 2){
-                // wormhole data -> 2 columns
-                let securityClass = Util.getSecurityClassForSystem(parts[1]);
-                markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
-                markup += '<i class="fas fa-long-arrow-alt-right"></i>&nbsp;&nbsp;';
-                markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
-            }else{
-                markup += '<span>' + state.text + '</span>';
-            }
-
-            return $(markup);
-        };
-
         let formatSignatureTypeResultData = data => {
-            if(data.loading) return data.text;
-            if(data.placeholder) return data.placeholder;
-
-            let markup = '<div class="clearfix">';
-
-            if(data.hasOwnProperty('children')){
-                // category group label
-                markup += '<div class="col-xs-9">' + data.text + '</div>';
-                markup += '<div class="col-xs-3 text-right">(' + data.children.length + ')</div>';
-            }else{
-                let parts = data.text.split(' - ');
-
-                if(parts.length === 2){
-                    // wormhole data -> 2 columns
-                    let securityClass = Util.getSecurityClassForSystem(parts[1]);
-
-                    markup += '<div class="col-xs-3 text-right">' + parts[0] + '</div>';
-                    markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right"></i></div>';
-                    markup += '<div class="col-xs-7 ' + securityClass + '">' + parts[1] + '</div>';
-                }else{
-                    markup += '<div class="col-xs-12">' + data.text + '</div>';
-                }
-            }
-            markup += '</div>';
-
-            return $(markup);
+            return formatSignatureTypeConnectionResultData(data, 'wormhole');
         };
 
         let search = (params, data) => {
@@ -655,7 +694,11 @@ define([
 
         options.templateSelection = formatSignatureTypeSelectionData;
         options.templateResult = formatSignatureTypeResultData;
-        options.matcher = search;
+
+        if(hasOptGroups){
+            // NOT nested selects don´t need the custom search() function
+            options.matcher = search;
+        }
 
         return this.each(function(){
             let selectElement = $(this);
@@ -685,6 +728,13 @@ define([
 
         options = $.extend({}, defaultConfig, options);
 
+        let formatSignatureConnectionResultData = data => {
+            return formatSignatureTypeConnectionResultData(data, 'system');
+        };
+
+        options.templateSelection = formatSignatureConnectionSelectionData;
+        options.templateResult = formatSignatureConnectionResultData;
+
         return this.each(function(){
             let selectElement = $(this);
             selectElement.select2(options);
@@ -699,4 +749,8 @@ define([
         });
     };
 
+    return {
+        formatSignatureTypeSelectionData: formatSignatureTypeSelectionData,
+        formatSignatureConnectionSelectionData: formatSignatureConnectionSelectionData
+    };
 });

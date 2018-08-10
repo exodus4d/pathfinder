@@ -210,6 +210,13 @@ select:active, select:hover {
 
 // select2 custom template ========================================================================
 .select2-results{
+  // <optgroup> options
+  .select2-results__options--nested{
+    .select2-results__option{
+      padding-left: 15px;  // more padding for nested options
+    }
+  }
+
   [class*="col-"]{
     // smaller and less padding
     padding-left: 3px;
@@ -288,7 +295,7 @@ select:active, select:hover {
     &:focus-within{
       // set td as :focus even is td content is focused
       outline: 1px solid $orange-dark;
-      background-color: rgba($orange-dark, .1) !important;
+      background-color: rgba($orange-dark, .08) !important;
       outline-offset: -1px;
     }
 

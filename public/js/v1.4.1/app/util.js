@@ -71,6 +71,10 @@ define([
         popoverSmallClass: 'pf-popover-small',                                  // class for "small" popover
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
 
+        // help
+        helpDefaultClass: 'pf-help-default',                                    // class for "help" tooltip elements
+        helpClass: 'pf-help',                                                   // class for "help" tooltip elements
+
         // fonts
         fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
@@ -1017,9 +1021,11 @@ define([
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
+
         $.fn.select2.defaults.set('language', {
             searching: params => '&nbsp;<i class="fas fa-sync fa-spin"></i>&nbsp;&nbsp;searching...'
         });
+
         $.fn.select2.defaults.set('escapeMarkup', markup => {
             // required for HTML in options
             return markup;
@@ -1824,6 +1830,9 @@ define([
      */
     let getSecurityClassForSystem = sec => {
         let secClass = '';
+        if(sec === 'C13'){
+            sec = 'SH';
+        }
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
         }

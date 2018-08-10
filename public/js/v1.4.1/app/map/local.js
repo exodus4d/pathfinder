@@ -406,7 +406,7 @@ define([
                             orderable: true,
                             title: '<span title="jumps" data-toggle="tooltip">&nbsp;</span>',
                             width: '1px',
-                            className: ['pf-help-default', 'text-center'].join(' '),
+                            className: [Util.config.helpDefaultClass, 'text-center'].join(' '),
                             data: 'jumps',
                             render: {
                                 _: function(data, type, row, meta){
@@ -428,7 +428,7 @@ define([
                             orderable: false,
                             title: '',
                             width: '26px',
-                            className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
+                            className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
                             data: 'log.ship',
                             render: {
                                 _: function(data, type, row, meta){
@@ -478,7 +478,7 @@ define([
                             orderable: false,
                             title: '',
                             width: '10px',
-                            className: ['pf-help-default'].join(' '),
+                            className: [Util.config.helpDefaultClass].join(' '),
                             data: 'log',
                             render: {
                                 _: function(data, type, row, meta){

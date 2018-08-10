@@ -133,7 +133,7 @@ define([
                 $('<thead>').append(
                     $('<tr>').append(
                         $('<th>', {
-                            class: ['pf-table-cell-20', 'text-right', 'pf-help', 'pf-pie-chart'].join(' ')
+                            class: ['pf-table-cell-20', 'text-right', Util.config.helpClass, 'pf-pie-chart'].join(' ')
                         }).attr('data-toggle', 'tooltip').attr('data-percent', '-100').easyPieChart({
                             barColor: (percent) => {
                                 let color = '#e28a0d';
@@ -180,7 +180,7 @@ define([
                 $('<tbody>').append(
                     $('<tr>').append(
                         $('<td>', {
-                            class: ['text-right', 'pf-help', config.connectionInfoTableCellMassTotalTooltipClass].join(' '),
+                            class: ['text-right', Util.config.helpClass, config.connectionInfoTableCellMassTotalTooltipClass].join(' '),
                             html: '<i class="fas fa-fw fa-question-circle"></i>'
                         }),
                         $('<td>', {
@@ -196,7 +196,7 @@ define([
                     ),
                     $('<tr>').append(
                         $('<td>', {
-                            class: ['text-right', 'pf-help'].join(' '),
+                            class: ['text-right', Util.config.helpClass].join(' '),
                             html: '<i class="fas fa-fw fa-question-circle"></i>',
                             title: 'initial mass. From signature table'
                         }).attr('data-toggle', 'tooltip'),
@@ -211,7 +211,7 @@ define([
                         class: config.connectionInfoTableRowMassLogClass
                     }).append(
                         $('<td>', {
-                            class: ['text-right', 'pf-help'].join(' '),
+                            class: ['text-right', Util.config.helpClass].join(' '),
                             title: 'recorded total jump mass'
                         }).attr('data-toggle', 'tooltip').append(
                             $('<i>', {
@@ -245,7 +245,7 @@ define([
                         class: config.connectionInfoTableRowMassShipClass
                     }).append(
                         $('<td>', {
-                            class: ['text-right', 'pf-help'].join(' '),
+                            class: ['text-right', Util.config.helpClass].join(' '),
                             title: 'current ship mass'
                         }).attr('data-toggle', 'tooltip').append(
                             $('<i>', {
@@ -269,7 +269,7 @@ define([
                     ),
                     $('<tr>').append(
                         $('<td>', {
-                            class: ['text-right', 'pf-help'].join(' '),
+                            class: ['text-right', Util.config.helpClass].join(' '),
                             html: '<i class="fas fa-fw fa-question-circle"></i>',
                             title: 'max. mass left'
                         }).attr('data-toggle', 'tooltip'),
@@ -697,7 +697,7 @@ define([
                         title: '',
                         width: 26,
                         orderable: false,
-                        className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
+                        className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
                         data: 'ship',
                         render: {
                             _: function(data, type, row){
@@ -716,7 +716,7 @@ define([
                         title: '',
                         width: 26,
                         orderable: false,
-                        className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
+                        className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
                         data: 'created.character',
                         render: {
                             _: function(data, type, row){

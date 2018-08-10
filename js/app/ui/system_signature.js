@@ -9,8 +9,9 @@ define([
     'mustache',
     'bootbox',
     'app/map/map',
-    'app/map/util'
-], ($, Init, Util, Mustache, bootbox, Map, MapUtil) => {
+    'app/map/util',
+    'app/ui/form_element'
+], ($, Init, Util, Mustache, bootbox, Map, MapUtil, FormElement) => {
     'use strict';
 
     let config = {
@@ -844,7 +845,7 @@ define([
                     sigConnection += 'data-pk="' + data.id + '" ';
                 }
 
-                // set disabled if group is not wromhole
+                // set disabled if group is not wormhole
                 if(data.groupId !== 5){
                     sigConnection += 'data-disabled="1" ';
                 }
@@ -1106,7 +1107,7 @@ define([
             emptytext: '? ? ?',
             display: function(value) {
                 // change display value to first 3 letters
-                $(this).text( $.trim( value.substr(0, 3) ).toLowerCase() );
+                $(this).text($.trim( value.substr(0, 3) ).toLowerCase());
             },
             validate: function(value) {
                 if($.trim(value).length < 3) {
@@ -1175,7 +1176,6 @@ define([
 
                 let newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
                 typeSelect.editable('option', 'source', newSelectOptions);
-                typeSelect.editable('setValue', null);
 
                 if(
                     newValue > 0 &&
@@ -1186,10 +1186,10 @@ define([
                     typeSelect.editable('disable');
                 }
 
+                typeSelect.editable('setValue', null);
+
                 // find "connection" select (same row) and change "enabled" flag
                 let connectionSelect = getNextEditableField(signatureTypeField, '.' + config.sigTableConnectionClass);
-                connectionSelect.editable('setValue', null);
-
                 if(newValue === 5){
                     // wormhole
                     connectionSelect.editable('enable');
@@ -1197,6 +1197,9 @@ define([
                     checkConnectionConflicts();
                     connectionSelect.editable('disable');
                 }
+
+                connectionSelect.editable('setValue', null);
+
             }
         });
 
@@ -1218,6 +1221,14 @@ define([
             onblur: 'submit',
             showbuttons: false,
             params: modifyFieldParamsOnSend,
+            display: function(value, sourceData){
+                let selected = $.fn.editableutils.itemsByValue(value, sourceData);
+                if(selected.length && selected[0].text.length){
+                    $(this).html(FormElement.formatSignatureTypeSelectionData({text: selected[0].text}));
+                }else{
+                    $(this).empty();
+                }
+            },
             source: function(){
                 let signatureTypeField = $(this);
 
@@ -1234,12 +1245,11 @@ define([
 
                 if(response){
                     let newRowData = response.signatures[0];
-
                     // update "updated" cell
                     updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }else{
                     // "add new" signature -> set "+" focus for keyboard control
-                    setTimeout(function() {
+                    setTimeout(() => {
                         rowElement.find('.pf-table-action-cell')[0].focus();
                     }, 50);
                 }
@@ -1285,24 +1295,15 @@ define([
             onblur: 'submit',
             showbuttons: false,
             params: modifyFieldParamsOnSend,
+            prepend: [{value: '0', text: ''}],
             display: function(value, sourceData) {
-                let editableElement = $(this);
-                let newValue = '';
-
-                if(value !== null){
-                    let selected = $.fn.editableutils.itemsByValue(value, sourceData);
-                    if(
-                        selected.length &&
-                        selected[0].text !== ''
-                    ){
-                        newValue += '<i class="fas fa-exclamation-triangle txt-color txt-color-danger hide"></i>';
-                        newValue += ' ' + selected[0].text;
-                    }else{
-                        newValue = '<span class="editable-empty">unknown</span>';
-                    }
+                let selected = $.fn.editableutils.itemsByValue(value, sourceData);
+                if(selected.length && selected[0].text.length){
+                    let errorIcon = '<i class="fas fa-exclamation-triangle txt-color txt-color-danger hide"></i>&nbsp;';
+                    $(this).html(FormElement.formatSignatureConnectionSelectionData({text: selected[0].text})).prepend(errorIcon);
+                }else{
+                    $(this).empty() ;
                 }
-
-                editableElement.html(newValue);
             },
             source: function(a,b){
                 let activeMap = Util.getMapModule().getActiveMap();
@@ -1313,40 +1314,50 @@ define([
                 return availableConnections;
             },
             success: function(response, newValue){
+                let signatureConnectionField = $(this);
+                let rowElement = signatureConnectionField.parents('tr');
+
                 if(response){
-                    let signatureConnectionField = $(this);
-                    let rowElement = signatureConnectionField.parents('tr');
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
                     updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
+                }else{
+                    // "add new" signature -> set "+" focus for keyboard control
+                    setTimeout(() => {
+                        rowElement.find('.pf-table-action-cell')[0].focus();
+                    }, 50);
                 }
             }
         });
 
-        sigGroupFields.on('shown', function(e, editable) {
+        sigGroupFields.on('shown', function(e, editable){
             let inputField = editable.input.$input;
             inputField.addClass('pf-select2').initSignatureGroupSelect();
         });
 
-        sigTypeFields.on('shown', function(e, editable) {
+        sigTypeFields.on('shown', function(e, editable){
+            // destroy possible open popovers (e.g. wormhole types)
+            $(this).destroyPopover(true);
+
             let inputField = editable.input.$input;
-            inputField.addClass('pf-select2').initSignatureTypeSelect();
+            let hasOptGroups = inputField.has('optgroup').length > 0;
+            inputField.addClass('pf-select2').initSignatureTypeSelect({}, hasOptGroups);
         });
 
-        sigConnectionFields.on('shown', function(e, editable) {
+        sigConnectionFields.on('shown', function(e, editable){
             let inputField = editable.input.$input;
             inputField.addClass('pf-select2').initSignatureConnectionSelect();
         });
 
         // open even
-        sigDescriptionFields.on('shown', function(e, editable) {
+        sigDescriptionFields.on('shown', function(e, editable){
             // enlarge the tools-action container because the tables gets bigger
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '+=35px' );
         });
 
         // close event
-        sigDescriptionFields.on('hidden', function(e, editable) {
+        sigDescriptionFields.on('hidden', function(e, editable){
             // enlarge the tools-action container because the tables gets bigger
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
         });
@@ -1412,9 +1423,6 @@ define([
         if(connectionOptions.length > 0){
             newSelectOptions.push({ text: 'System', children: connectionOptions});
         }
-
-        // add empty entry
-        newSelectOptions.unshift({ value: null, text: ''});
 
         return newSelectOptions;
     };
@@ -1502,14 +1510,14 @@ define([
                         tempSelectOptions.hasOwnProperty(key)
                     ) {
                         newSelectOptionsCount++;
-                        fixSelectOptions.push( {value: parseInt(key), text: tempSelectOptions[key] } );
+                        fixSelectOptions.push({value: parseInt(key), text: tempSelectOptions[key]});
                     }
                 }
 
                 if(newSelectOptionsCount > 0){
                     if(groupId === 5){
                         // "wormhole" selected => multiple <optgroup> available
-                        newSelectOptions.push({ text: 'Wandering WH', children: fixSelectOptions});
+                        newSelectOptions.push({ text: 'Wandering', children: fixSelectOptions});
                     }else{
                         newSelectOptions = fixSelectOptions;
                     }
@@ -1533,7 +1541,7 @@ define([
                 }
 
                 if(frigateWHData.length > 0){
-                    newSelectOptions.push({ text: 'Frigate WH', children: frigateWHData});
+                    newSelectOptions.push({ text: 'Frigate', children: frigateWHData});
                 }
 
                 // add possible incoming holes
@@ -1549,7 +1557,7 @@ define([
                 }
 
                 if(incomingWHData.length > 0){
-                    newSelectOptions.push({ text: 'Incoming WH', children: incomingWHData});
+                    newSelectOptions.push({ text: 'Incoming', children: incomingWHData});
                 }
             }else{
                 // groups without "children" (optgroup) should be sorted by "value"
@@ -1575,7 +1583,7 @@ define([
                 }
 
                 if(staticWHData.length > 0){
-                    newSelectOptions.unshift({ text: 'Static WH', children: staticWHData});
+                    newSelectOptions.unshift({ text: 'Static', children: staticWHData});
                 }
             }
         }
@@ -2144,13 +2152,10 @@ define([
                     orderable: false,
                     searchable: false,
                     width: 10,
-                    class: 'pf-help text-center',
+                    class: ['text-center', Util.config.helpClass].join(' '),
                     data: 'info',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-
                         if(rowData.id > 0){
-
-                            // add row tooltip
                             let tooltipData = {
                                 created: rowData.created,
                                 updated: rowData.updated
@@ -2389,6 +2394,26 @@ define([
             };
 
             $(this).updateSignatureTableByClipboard(systemData, clipboard, signatureOptions);
+        });
+
+        // signature cell - "type" popover ----------------------------------------------------------------------------
+        moduleElement.find('.' + config.sigTableClass).hoverIntent({
+            over: function(e){
+                let staticWormholeElement = $(this);
+                let wormholeName = staticWormholeElement.attr('data-name');
+                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
+                if(wormholeData){
+                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, {
+                        trigger: 'manual',
+                        placement: 'top',
+                        show: true
+                    });
+                }
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: '.editable-click:not(.editable-open) span[class^="pf-system-sec-"]'
         });
     };
 
