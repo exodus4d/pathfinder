@@ -68,8 +68,8 @@ class Signature extends Controller\AccessController {
                         $signature = $system->getSignatureByName($activeCharacter, $data['name']);
                     }
 
-                    if( is_null($signature) ){
-                        $signature = $system->rel('signatures');
+                    if(is_null($signature)){
+                        $signature = $system->getNewSignature();
                     }
 
                     if($signature->dry()){

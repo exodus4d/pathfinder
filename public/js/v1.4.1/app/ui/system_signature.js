@@ -816,8 +816,8 @@ define([
 
                 tempData.group = {
                     group: sigGroup,
-                    sort: config.signatureGroupsLabels[data.groupId],
-                    filter: config.signatureGroupsLabels[data.groupId]
+                    sort: config.signatureGroupsLabels[data.groupId] || '',
+                    filter: config.signatureGroupsLabels[data.groupId] ||''
                 };
 
                 // set type id ----------------------------------------------------------------------------------------
@@ -1119,9 +1119,9 @@ define([
             params: modifyFieldParamsOnSend,
             success: function(response, newValue){
                 if(response){
-                    let signatureTypeField = $(this);
-                    let columnElement = signatureTypeField.parents('td');
-                    let rowElement = signatureTypeField.parents('tr');
+                    let signatureNameField = $(this);
+                    let columnElement = signatureNameField.parents('td');
+                    let rowElement = signatureNameField.parents('tr');
                     let newRowData = response.signatures[0];
 
                     // update column tooltip
@@ -1142,23 +1142,20 @@ define([
             emptytext: 'unknown',
             onblur: 'submit',
             showbuttons: false,
+            prepend: [{value: '0', text: ''}],
             params: modifyFieldParamsOnSend,
             source: function(){
-
                 let signatureGroupField = $(this);
                 let systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
 
                 // get all available Signature Types
                 let availableTypes = config.signatureGroupsLabels;
 
-                // add empty option
-                availableTypes[0] = '';
-
                 return availableTypes;
             },
             success: function(response, newValue){
-                let signatureTypeField = $(this);
-                let rowElement = signatureTypeField.parents('tr');
+                let signatureGroupField = $(this);
+                let rowElement = signatureGroupField.parents('tr');
                 newValue = parseInt(newValue);
 
                 if(response){
@@ -1169,37 +1166,36 @@ define([
                 }
 
                 // find related "type" select (same row) and change options
-                let typeSelect = getNextEditableField(signatureTypeField);
+                let signatureTypeField = getNextEditableField(signatureGroupField);
 
-                let systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
-                let areaId = parseInt( signatureTypeField.attr('data-areaid') );
+                let systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
+                let areaId = parseInt( signatureGroupField.attr('data-areaid') );
 
                 let newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
-                typeSelect.editable('option', 'source', newSelectOptions);
+                signatureTypeField.editable('option', 'source', newSelectOptions);
 
                 if(
                     newValue > 0 &&
                     newSelectOptions.length > 0
                 ){
-                    typeSelect.editable('enable');
+                    signatureTypeField.editable('enable');
                 }else{
-                    typeSelect.editable('disable');
+                    signatureTypeField.editable('disable');
                 }
 
-                typeSelect.editable('setValue', null);
+                signatureTypeField.editable('setValue', null);
 
                 // find "connection" select (same row) and change "enabled" flag
-                let connectionSelect = getNextEditableField(signatureTypeField, '.' + config.sigTableConnectionClass);
+                let signatureConnectionField = getNextEditableField(signatureGroupField, '.' + config.sigTableConnectionClass);
                 if(newValue === 5){
                     // wormhole
-                    connectionSelect.editable('enable');
+                    signatureConnectionField.editable('enable');
                 }else{
                     checkConnectionConflicts();
-                    connectionSelect.editable('disable');
+                    signatureConnectionField.editable('disable');
                 }
 
-                connectionSelect.editable('setValue', null);
-
+                signatureConnectionField.editable('setValue', null);
             }
         });
 
@@ -1269,8 +1265,8 @@ define([
             params: modifyFieldParamsOnSend,
             success: function(response, newValue){
                 if(response){
-                    let signatureTypeField = $(this);
-                    let rowElement = signatureTypeField.parents('tr');
+                    let signatureDescriptionField = $(this);
+                    let rowElement = signatureDescriptionField.parents('tr');
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
@@ -1294,8 +1290,8 @@ define([
             emptytext: 'unknown',
             onblur: 'submit',
             showbuttons: false,
-            params: modifyFieldParamsOnSend,
             prepend: [{value: '0', text: ''}],
+            params: modifyFieldParamsOnSend,
             display: function(value, sourceData) {
                 let selected = $.fn.editableutils.itemsByValue(value, sourceData);
                 if(selected.length && selected[0].text.length){
@@ -1350,19 +1346,16 @@ define([
             inputField.addClass('pf-select2').initSignatureConnectionSelect();
         });
 
-        // open even
         sigDescriptionFields.on('shown', function(e, editable){
             // enlarge the tools-action container because the tables gets bigger
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '+=35px' );
         });
 
-        // close event
         sigDescriptionFields.on('hidden', function(e, editable){
             // enlarge the tools-action container because the tables gets bigger
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
         });
 
-        // save events
         sigConnectionFields.on('save', function(e, editable){
             checkConnectionConflicts();
         });
@@ -1432,7 +1425,7 @@ define([
      * -> show "conflict" icon next to select
      */
     let checkConnectionConflicts = () => {
-        setTimeout(function() {
+        setTimeout(() => {
             let connectionSelects = $('.' + config.sigTableConnectionClass + ' .editable');
             let connectionIds = [];
             let duplicateConnectionIds = [];
@@ -1840,7 +1833,7 @@ define([
      * @param column
      * @returns {{}}
      */
-    /* currently not needet but could be helpful one day
+    /* currently not needed but could be helpful one day
     let getColumnTableDataForFilter = column => {
         // get all available options from column
         let source = {};
@@ -1864,22 +1857,23 @@ define([
         return source;
     };*/
 
+    let searchGroupColumn = (tableApi, newValue, sourceOptions) => {
+        let column = tableApi.column('group:name');
+        let pattern = '';
+
+        if(newValue.length <= sourceOptions.length){
+            // all options selected + "prepend" option
+            pattern = newValue.map(val => val !== '0' ? $.fn.dataTable.util.escapeRegex(val) : '^$').join('|');
+        }
+        column.search(pattern, true, false).draw();
+    };
+
     /**
      * init table filter button "group" column
      * @param tableApi
      */
     let initGroupFilterButton = tableApi => {
         let characterId = Util.getCurrentCharacterId();
-
-        let searchGroupColumn = (tableApi, newValue, sourceOptions) => {
-            let column = tableApi.column('group:name');
-            let pattern = '';
-            if(newValue.length <= sourceOptions.length){
-                // all options selected + "prepend" option
-                pattern = newValue.map(val => val !== '0' ? $.fn.dataTable.util.escapeRegex(val) : '^$').join('|');
-            }
-            column.search(pattern, true, false).draw();
-        };
 
         let promiseStore = MapUtil.getLocaleData('character', Util.getCurrentCharacterId());
         promiseStore.then(data => {

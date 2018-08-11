@@ -459,6 +459,20 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
+     * get blank signature model
+     * @return SystemSignatureModel
+     * @throws \Exception
+     */
+    public function getNewSignature() : SystemSignatureModel {
+        /**
+         * @var $signature SystemSignatureModel
+         */
+        $signature = self::getNew('SystemSignatureModel');
+        $signature->systemId = $this;
+        return $signature;
+    }
+
+    /**
      * @param string $action
      * @return Logging\LogInterface
      * @throws \Exception\PathfinderException
