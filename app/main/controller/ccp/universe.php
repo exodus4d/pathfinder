@@ -14,6 +14,8 @@ use Model;
 
 class Universe extends Controller {
 
+    const SESSION_KEY_SYSTEM_IDS                    = 'SESSION.SETUP.SYSTEM_IDS';
+
 
     /*  currently not used
     protected function setupRegions(\Base $f3){
@@ -134,21 +136,45 @@ class Universe extends Controller {
      * @throws \Exception
      */
     public function buildSystemsIndex(int $offset = 0, int $length = 10) : array {
+        $systemIds = $this->getSystemIds();
+        $systemsAll = count($systemIds);
+        $systemIds = array_slice($systemIds, $offset, $length);
+
         /**
          * @var $system Model\Universe\SystemModel
          */
         $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
-        $systems = $system->find();
-        $systemIds =  $systems->getAll('id', true);
-        sort($systemIds, SORT_NUMERIC);
-        $systemsAll = count($systemIds);
-        $systemIds = array_slice($systemIds, $offset, $length);
         foreach($systemIds as $systemId){
             $system->getById($systemId);
             $system->buildIndex();
             $system->reset();
+            $offset++;
         }
-        return ['countAll' => $systemsAll, 'countBuild' => count($systemIds)];
+        return ['countAll' => $systemsAll, 'countBuild' => count($systemIds), 'offset' => $offset];
+    }
+
+    /**
+     * get systemIds for all systems
+     * @return array
+     * @throws \Exception
+     */
+    public function getSystemIds() : array {
+        $f3 = $this->getF3();
+        if( !$f3->exists(self::SESSION_KEY_SYSTEM_IDS, $systemIds) ){
+            /**
+             * @var $system Model\Universe\SystemModel
+             */
+            $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+            $systems = $system->find();
+            $systemIds = $systems->getAll('id');
+
+            if(count($systemIds)){
+                sort($systemIds, SORT_NUMERIC);
+                $f3->set(self::SESSION_KEY_SYSTEM_IDS, $systemIds);
+            }
+        }
+
+        return (array)$systemIds;
     }
 
     /**

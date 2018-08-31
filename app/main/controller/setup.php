@@ -1238,7 +1238,6 @@ class Setup extends Controller {
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
             $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
-            $systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
             $systemNeighbourModel = Model\BasicModel::getNew('SystemNeighbourModel');
 
             $indexInfo = [
@@ -1258,7 +1257,7 @@ class Setup extends Controller {
                     ],
                     'label' => 'build systems index',
                     'countBuild' => count((new Universe())->getSystemsIndex()),
-                    'countAll' => $this->dbLib->getRowCount($systemUniverseModel->getTable(), 'UNIVERSE'),
+                    'countAll' => count((new Universe())->getSystemIds()),
                     'tooltip' => 'build up a static search index over all systems found on DB. Do not refresh page until import is complete (check progress)! Runtime: ~5min'
                 ],
                 'Structures' => [

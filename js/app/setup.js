@@ -71,7 +71,8 @@ define([
             let url = '/api/setup/' + element.attr('data-action');
             sendRequest(url, {
                 type: element.attr('data-type'),
-                count: 0
+                count: 0,
+                offset: 0
             }, {
                 target: element,
                 url: url
@@ -113,7 +114,8 @@ define([
         ){
             sendRequest(context.url, {
                 type: responseData.type,
-                count: responseData.count
+                count: responseData.count,
+                offset: responseData.offset
             }, {
                 target: context.target,
                 url: context.url

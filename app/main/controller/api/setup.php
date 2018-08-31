@@ -25,11 +25,13 @@ class Setup extends Controller\Controller {
         $postData = (array)$f3->get('POST');
         $type = (string)$postData['type'];
         $count = (int)$postData['count'];
+        $offset = (int)$postData['offset'];
 
         $return = (object) [];
         $return->error = [];
         $return->type = $type;
         $return->count = $count;
+        $return->offset = $offset;
         $return->countAll = 0;
         $return->countBuild = 0;
         $return->countBuildAll = 0;
@@ -60,12 +62,12 @@ class Setup extends Controller\Controller {
         switch($type){
             case 'Systems':
                 $length = 100;
-                $offset = $count * $length;
                 $buildInfo = $controller->buildSystemsIndex($offset, $length);
+                $return->offset = $buildInfo['offset'];
                 $return->countAll = $buildInfo['countAll'];
                 $return->countBuild = $buildInfo['countBuild'];
-                $return->countBuildAll = count($controller->getSystemsIndex());
-                $return->progress = $percent($return->countAll, $offset + $length);
+                $return->countBuildAll = $offset;
+                $return->progress = $percent($return->countAll, $offset);
                 break;
             case 'Structures':
                 $categoryId = 65;
