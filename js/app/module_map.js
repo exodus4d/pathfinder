@@ -5,13 +5,14 @@ define([
     'app/map/map',
     'app/map/util',
     'sortable',
-    'app/ui/system_info',
-    'app/ui/system_graph',
-    'app/ui/system_signature',
-    'app/ui/system_route',
-    'app/ui/system_intel',
-    'app/ui/system_killboard',
-    'app/ui/connection_info',
+    'app/ui/module/system_info',
+    'app/ui/module/system_graph',
+    //'app/ui/module/system_signature',
+    'app/ui/module/system_signature_new',
+    'app/ui/module/system_route',
+    'app/ui/module/system_intel',
+    'app/ui/module/system_killboard',
+    'app/ui/module/connection_info',
     'app/counter'
 ], (
     $,
@@ -180,11 +181,12 @@ define([
      * @param moduleElement
      * @param Module
      * @param callback
+     * @param addSpacer
      */
     let removeModule = (moduleElement, Module, callback, addSpacer) => {
         if(moduleElement.length > 0){
-            if(typeof Module.beforeReDraw === 'function'){
-                Module.beforeReDraw();
+            if(typeof Module.beforeHide === 'function'){
+                Module.beforeHide(moduleElement);
             }
 
             moduleElement.velocity('reverse',{
@@ -335,8 +337,6 @@ define([
                 showPanel(parentElement, Module, mapId, data);
             }
         };
-
-
 
         return new Promise(drawModuleExecutor);
     };
@@ -539,23 +539,25 @@ define([
             let clickY = e.pageY - posY;
 
             // check for top-left click
-            if(clickX <= 8 && clickY <= 8 && clickX >= 0 && clickY >= 0){
+            if(clickX <= 9 && clickY <= 9 && clickX >= 0 && clickY >= 0){
 
                 // remember height
-                if(! moduleElement.data('origHeight')){
+                if( !moduleElement.data('origHeight') ){
                     moduleElement.data('origHeight', moduleElement.outerHeight());
                 }
 
-                if(moduleElement.hasClass( config.moduleClosedClass )){
+                if(moduleElement.hasClass(config.moduleClosedClass)){
                     let moduleHeight = moduleElement.data('origHeight');
                     moduleElement.velocity('finish').velocity({
                         height: [ moduleHeight + 'px', [ 400, 15 ] ]
                     },{
                         duration: 400,
                         easing: 'easeOutSine',
-                        complete: function(){
-                            moduleElement.removeClass( config.moduleClosedClass );
+                        complete: function(moduleElement){
+                            moduleElement = $(moduleElement);
+                            moduleElement.removeClass(config.moduleClosedClass);
                             moduleElement.removeData('origHeight');
+                            moduleElement.css({height: ''});
                         }
                     });
                 }else{
@@ -564,8 +566,9 @@ define([
                     },{
                         duration: 400,
                         easing: 'easeOutSine',
-                        complete: function(){
-                            moduleElement.addClass( config.moduleClosedClass );
+                        complete: function(moduleElement){
+                            moduleElement = $(moduleElement);
+                            moduleElement.addClass(config.moduleClosedClass);
                         }
                     });
                 }

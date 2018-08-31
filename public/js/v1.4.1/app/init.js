@@ -60,10 +60,12 @@ define(['jquery'], ($) => {
             gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
         },
         breakpoints: [
-            { name: 'desktop', width: Infinity },
-            { name: 'tablet',  width: 1200 },
-            { name: 'fablet',  width: 780 },
-            { name: 'phone',   width: 480 }
+            { name: 'screen-xl', width: Infinity },
+            { name: 'screen-l', width: 1600 },
+            { name: 'screen-m', width: 1200 },
+            { name: 'screen-d', width: 1000 },
+            { name: 'screen-s', width: 780 },
+            { name: 'screen-xs', width: 480 }
         ],
         animationSpeed: {
             splashOverlay: 300,                                             // "splash" loading overlay

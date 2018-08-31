@@ -218,14 +218,17 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
     /**
      * delete signature
      * @param CharacterModel $characterModel
+     * @return bool
      */
-    public function delete(CharacterModel $characterModel){
+    public function delete(CharacterModel $characterModel) : bool {
+        $deleted = false;
         if( !$this->dry() ){
             // check if character has access
             if($this->hasAccess($characterModel)){
-                $this->erase();
+                $deleted = $this->erase();
             }
         }
+        return $deleted;
     }
 
     /**

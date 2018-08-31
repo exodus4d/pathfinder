@@ -367,7 +367,7 @@ define([
             connection &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('app/ui/system_signature');
+            let SystemSignatures = require('app/ui/module/system_signature_new');
 
             let connectionId        = connection.getParameter('connectionId');
             let sourceEndpoint      = connection.endpoints[0];
@@ -1426,6 +1426,7 @@ define([
     /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
+     * @param options
      * @returns {*}
      */
     $.fn.addWormholeInfoTooltip = function(tooltipData, options){

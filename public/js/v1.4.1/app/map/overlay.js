@@ -65,7 +65,7 @@ define([
      * @param connectionsData
      */
     let addConnectionsOverlay = (connections, connectionsData) => {
-        let SystemSignatures = require('app/ui/system_signature');
+        let SystemSignatures = require('app/ui/module/system_signature_new');
 
         /**
          *  add label to endpoint

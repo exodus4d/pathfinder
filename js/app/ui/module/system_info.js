@@ -1,5 +1,5 @@
 /**
- *  System info module
+ * System info module
  */
 
 define([
@@ -156,8 +156,6 @@ define([
      * @param systemData
      */
     let getModule = (parentElement, mapId, systemData) => {
-
-        // create new module container
         let moduleElement = $('<div>');
 
         // store systemId -> module can be updated with the correct data

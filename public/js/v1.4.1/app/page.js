@@ -70,7 +70,7 @@ define([
         dynamicElementWrapperId: 'pf-dialog-wrapper',                           // class for container element that holds hidden "context menus"
 
         // system signature module
-        systemSignatureModuleClass: 'pf-signature-table-module',                // module wrapper (signatures)
+        systemSignatureModuleClass: 'pf-system-signature-module',               // module wrapper (signatures)
         systemIntelModuleClass: 'pf-system-intel-module',                       // module wrapper (intel)
     };
 
@@ -744,7 +744,7 @@ define([
         // global "modal" callback (for all modals)
         $('body').on('hide.bs.modal', '> .modal', function(e) {
             let modalElement = $(this);
-            modalElement.destroyTimestampCounter();
+            modalElement.destroyTimestampCounter(true);
 
             // destroy all Select2
             modalElement.find('.' + Util.config.select2Class)

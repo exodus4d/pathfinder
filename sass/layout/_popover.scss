@@ -20,7 +20,7 @@
 
   // image in popover
   img{
-    @include border-radius(5px);
+    @include border-radius(3px);
   }
 
   h4{
@@ -102,5 +102,21 @@
         margin-right: 20px;
       }
     }
+  }
+}
+
+// character popover --------------------------------------------------------------------------------------------------
+.pf-popover-character{
+  .table>tbody>tr>td{
+    border: none;
+
+    &:first-child + td{
+      // 2nd column
+      padding: 0 5px;
+    }
+  }
+
+  .well{
+    margin-bottom: 0; // overwrite default
   }
 }

@@ -1,5 +1,5 @@
 /**
- *  connection info module
+ * Connection info module
  */
 
 define([
@@ -764,7 +764,7 @@ define([
                     });
 
                     for(let i = 0; i < animationRows.length; i++){
-                        $(animationRows[i]).pulseTableRow($(animationRows[i]).data('animationStatus'));
+                        $(animationRows[i]).pulseBackgroundColor($(animationRows[i]).data('animationStatus'));
                         $(animationRows[i]).removeData('animationStatus');
                     }
 
@@ -807,10 +807,6 @@ define([
                     let content = (pageInfo.recordsTotal - i) + '.&nbsp;&nbsp;';
                     $(cell).html(content);
                 });
-            });
-
-            logTable.on('destroy.dt', function(){
-                $(this).destroyTimestampCounter();
             });
         }
     };
@@ -981,7 +977,6 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     let getModule = (parentElement, mapId, connections) => {
-        // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
                 class: config.moduleHeadClass

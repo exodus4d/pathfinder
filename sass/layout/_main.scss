@@ -167,6 +167,11 @@ a{
 
 // form fields custom styles ======================================================================
 .editable-input{
+
+  .pf-editable-name{
+    text-transform: uppercase;
+  }
+
   optgroup[label]{
     background-color: $gray;
     color: $gray-light;
@@ -292,11 +297,23 @@ select:active, select:hover {
 
   // "special" column styles
   td{
-    &:focus-within{
+
+    &.editable-disabled:focus{
+      // disabled xEditable td´s should not get focus style
+      // -> "pointer-events = none" would be nicer but does not work because "mousedown" should work -> select row function
+      outline: none;
+      background-color: transparent;
+    }
+
+    &.editable-click:not(.editable-disabled){
+      cursor: pointer;
+    }
+
+    &:focus, &.editable-open{
       // set td as :focus even is td content is focused
       outline: 1px solid $orange-dark;
-      background-color: rgba($orange-dark, .08) !important;
       outline-offset: -1px;
+      background-color: rgba($orange-dark, .08);
     }
 
     > .fa-circle{
@@ -691,7 +708,7 @@ table{
       top: 0;
       left: 0;
       border-style: solid;
-      border-width: 0 0 8px 8px;
+      border-width: 0 0 9px 9px;
       border-color: transparent transparent transparent $gray;
       cursor: ns-resize;
     }
@@ -1337,18 +1354,6 @@ code {
 
   small{
     font-family: $font-family-bold;
-  }
-}
-
-// character switch popover
-#pf-head-character-switch{
-  td{
-    border: none;
-
-    &:first-child + td{
-      // 2nd column
-      padding: 0 5px;
-    }
   }
 }
 

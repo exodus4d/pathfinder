@@ -1,5 +1,5 @@
 /**
- * system route module
+ * System route module
  */
 
 define([
@@ -17,8 +17,6 @@ define([
         moduleName: 'systemRoute',
         moduleHeadClass: 'pf-module-head',                                      // class for module header
         moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
-
-        routeCacheTTL: 5,                                                       // route cache timer (client) in seconds
 
         // system route module
         moduleTypeClass: 'pf-system-route-module',                              // class for this module
@@ -42,7 +40,9 @@ define([
         dataTableRouteCellClass: 'pf-table-route-cell',                         // class for "route" cells
         dataTableJumpCellClass: 'pf-table-jump-cell',                           // class for "route jump" cells
 
-        rallyClass: 'pf-rally'                                                  // class for "rally point" style
+        rallyClass: 'pf-rally',                                                 // class for "rally point" style
+
+        routeCacheTTL: 5                                                        // route cache timer (client) in seconds
     };
 
     // cache for system routes
@@ -875,8 +875,6 @@ define([
      * @returns {jQuery}
      */
     let getModule = (parentElement, mapId, systemData) => {
-
-        // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
                 class: config.moduleHeadClass
@@ -921,7 +919,7 @@ define([
         moduleElement.append(table);
 
         // init empty table
-        let routesTable = table.DataTable( {
+        let routesTable = table.dataTable( {
             paging: false,
             ordering: true,
             order: [[ 2, 'asc' ], [ 0, 'asc' ]],
@@ -1137,7 +1135,7 @@ define([
 
                 for(let i = 0; i < animationRows.length; i++){
                     let animationRow = $(animationRows[i]);
-                    animationRow.pulseTableRow(animationRow.data('animationStatus'));
+                    animationRow.pulseBackgroundColor(animationRow.data('animationStatus'));
                     animationRow.removeData('animationStatus');
                 }
             },

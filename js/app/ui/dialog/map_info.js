@@ -321,10 +321,6 @@ define([
             tooltipElements.tooltip();
         });
 
-        systemTable.on('destroy.dt', function(){
-            $(this).destroyTimestampCounter();
-        });
-
         // prepare data for dataTables
         let systemsData = [];
         for(let i = 0; i < mapData.data.systems.length; i++){
@@ -470,11 +466,6 @@ define([
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
             order: [[ 9, 'desc' ], [ 3, 'asc' ]],
-            autoWidth: false,
-            responsive: {
-                breakpoints: Init.breakpoints,
-                details: false
-            },
             hover: false,
             data: systemsData,
             columnDefs: [],
@@ -488,7 +479,7 @@ define([
                 {
                     title: 'type',
                     width: '25px',
-                    className: ['min-desktop'].join(' '),
+                    className: ['min-screen-l'].join(' '),
                     data: 'type',
                     render: {
                         _: 'type',
@@ -506,7 +497,7 @@ define([
                 },{
                     title: 'sec',
                     width: '18px',
-                    className: ['text-center', 'min-desktop'].join(' '),
+                    className: ['text-center', 'min-screen-l'].join(' '),
                     searchable: false,
                     data: 'trueSec',
                     render: {
@@ -516,7 +507,7 @@ define([
                 },{
                     title: '<i class="fas fa-skull" title="shattered" data-toggle="tooltip"></i>',
                     width: '10px',
-                    className: ['text-center', 'min-desktop'].join(' '),
+                    className: ['text-center', 'min-screen-l'].join(' '),
                     searchable: false,
                     data: 'shattered',
                     render: {
@@ -593,7 +584,7 @@ define([
                     title: 'updated',
                     width: '80px',
                     searchable: false,
-                    className: ['text-right', config.tableCellCounterClass, 'min-desktop'].join(' '),
+                    className: ['text-right', config.tableCellCounterClass, 'min-screen-l'].join(' '),
                     data: 'updated',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         $(cell).initTimestampCounter();
@@ -863,11 +854,6 @@ define([
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
             order: [[ 3, 'asc' ]],
-            autoWidth: false,
-            responsive: {
-                breakpoints: Init.breakpoints,
-                details: false
-            },
             hover: false,
             data: usersData,
             language: {
@@ -962,7 +948,7 @@ define([
                     width: 26,
                     orderable: false,
                     searchable: false,
-                    className: [config.tableCellImageClass, config.tableCellImageSmallClass, 'min-desktop'].join(' '),
+                    className: [config.tableCellImageClass, config.tableCellImageSmallClass, 'min-screen-l'].join(' '),
                     data: 'corporation',
                     render: {
                         _: function(data, type, row, meta){
@@ -978,7 +964,7 @@ define([
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
-                    className: [config.tableCellActionClass, 'min-desktop'].join(' '),
+                    className: [config.tableCellActionClass, 'min-screen-l'].join(' '),
                     data: 'corporation',
                     render: {
                         _: function (data, type, row, meta) {
@@ -1041,7 +1027,7 @@ define([
                     width: 30,
                     orderable: true,
                     searchable: true,
-                    className: ['text-right', 'min-desktop'].join(' '),
+                    className: ['text-right', 'min-screen-l'].join(' '),
                     data: 'role',
                     render: {
                         _: function (data, type, row, meta) {

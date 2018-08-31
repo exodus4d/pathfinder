@@ -31,8 +31,8 @@
   }
 }
 
-// signature table module ==================================================
-.pf-signature-table-module{
+// system signature module ==================================================
+.pf-system-signature-module{
 
   .progress-label-right{
     margin-right: 20px;
@@ -61,17 +61,8 @@
   .pf-sig-table{
     font-size: 10px;
 
-    .pf-sig-table-edit-desc-text{
-      white-space: normal;
-
-      &.editable-empty{
-        border-bottom: none;
-        @extend .pf-dialog-icon-button;
-      }
-    }
-
-    .fa-plus{
-       @extend .pf-dialog-icon-button;
+    .pf-sig-table-edit-name-input{
+      text-transform: uppercase;
     }
 
     // textarea field
@@ -95,8 +86,8 @@
       padding: 3px 6px;
     }
 
-    .pf-sig-table-edit-name-input{
-      text-transform: uppercase;
+    .fa-plus{
+      @extend .pf-dialog-icon-button;
     }
   }
 

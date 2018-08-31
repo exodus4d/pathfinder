@@ -654,7 +654,7 @@ define([
      */
     $.fn.initSignatureTypeSelect = function(options, hasOptGroups){
         let defaultConfig = {
-            minimumResultsForSearch: 6,
+            minimumResultsForSearch: 10,
             width: '220px',
             dropdownParent: this.parents('.popover-content')
         };

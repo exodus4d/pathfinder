@@ -1,5 +1,5 @@
 /**
- *  System signature module
+ * System signature module
  */
 
 define([
@@ -24,7 +24,7 @@ define([
         moduleClass: 'pf-module',                                               // class for each module
 
         // system signature module
-        moduleTypeClass: 'pf-signature-table-module',                           // module wrapper
+        moduleTypeClass: 'pf-system-signature-module',                          // module wrapper
 
         // headline toolbar
         moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
@@ -395,7 +395,7 @@ define([
 
                         if(changedRowElement){
                             // highlight
-                            changedRowElement.pulseTableRow('changed');
+                            changedRowElement.pulseBackgroundColor('changed');
                             notificationCounter.changed++;
                         }
                     }
@@ -439,7 +439,7 @@ define([
 
             if(newRowElement){
                 // highlight
-                newRowElement.pulseTableRow('added');
+                newRowElement.pulseBackgroundColor('added');
                 notificationCounter.added++;
             }
         }
@@ -921,7 +921,7 @@ define([
 
     /**
      * check the "delete signature" button. show/hide the button if a signature is selected
-     * @param moduleElement
+     * @param tableApi
      */
     let checkDeleteSignaturesButton = tableApi => {
         let selectedRows = getSelectedRows(tableApi);
@@ -1907,8 +1907,8 @@ define([
                 highlight: false,
                 title: 'filter groups',
                 value: selectedValues,
-                source: sourceOptions,
                 prepend: prependOptions,
+                source: sourceOptions,
                 inputclass: config.editableUnknownInputClass,
                 display: function(value, sourceData){
                     // update filter button label
@@ -2231,7 +2231,7 @@ define([
 
                                             if(newRowElement){
                                                 // highlight
-                                                newRowElement.pulseTableRow('added');
+                                                newRowElement.pulseBackgroundColor('added');
 
                                                 // prepare "add signature" table for new entry -> reset -------------------
                                                 let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
@@ -2429,7 +2429,6 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     let getModule = function(parentElement, mapId, systemData){
-        // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
                 class: config.moduleHeadClass
@@ -2481,9 +2480,9 @@ define([
     };
 
     /**
-     * before module reDraw callback
+     * before module hide callback
      */
-    let beforeReDraw = () => {
+    let beforeHide = () => {
         // disable update
         lockSignatureTable();
     };
@@ -2504,8 +2503,8 @@ define([
         config: config,
         getModule: getModule,
         initModule: initModule,
-        beforeReDraw: beforeReDraw,
         updateModule: updateModule,
+        beforeHide: beforeHide,
         beforeDestroy: beforeDestroy,
         getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
     };

@@ -1,5 +1,5 @@
 /**
- * system route module
+ * System intel module
  */
 
 define([
@@ -16,6 +16,8 @@ define([
         moduleName: 'systemIntel',
         moduleHeadClass: 'pf-module-head',                                      // class for module header
         moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
+
+        // system info module
         moduleTypeClass: 'pf-system-intel-module',                              // class for this module
 
         // headline toolbar
@@ -398,7 +400,6 @@ define([
     let getModule = (parentElement, mapId, systemData) => {
         let corporationId = Util.getCurrentUserInfo('corporationId');
 
-        // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
                 class: config.moduleHeadClass
@@ -460,7 +461,7 @@ define([
                     class: 'text-center',
                     data: 'status',
                     render: {
-                        display: data =>  getStatusData(data),
+                        display: data => getStatusData(data),
                         sort: data => data.id
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
@@ -542,7 +543,7 @@ define([
                     data: null,
                     render: {
                         display: data => {
-                            let icon = '<i class="fas fa-pencil-alt"></i>';
+                            let icon = '<i class="fas fa-pen"></i>';
                             if(data.corporation.id !== corporationId){
                                 icon = '';
                             }
@@ -660,7 +661,7 @@ define([
 
                 for(let i = 0; i < animationRows.length; i++){
                     let animationRow = $(animationRows[i]);
-                    animationRow.pulseTableRow(animationRow.data('animationStatus'));
+                    animationRow.pulseBackgroundColor(animationRow.data('animationStatus'));
                     animationRow.removeData('animationStatus');
                 }
             },
@@ -817,11 +818,24 @@ define([
         });
     };
 
+    /**
+     * before module destroy callback
+     * @param moduleElement
+     */
+    let beforeDestroy = moduleElement => {
+        // Destroying the data tables throws
+        // -> safety remove  all dataTables
+        let structureTableElement = moduleElement.find('.' + config.systemStructuresTableClass);
+        let tableApi = structureTableElement.DataTable();
+        tableApi.destroy();
+    };
+
     return {
         config: config,
         getModule: getModule,
         initModule: initModule,
-        updateModule: updateModule
+        updateModule: updateModule,
+        beforeDestroy: beforeDestroy
     };
 
 });

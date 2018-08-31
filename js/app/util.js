@@ -33,7 +33,6 @@ define([
 
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
-        headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
         headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
 
         // menu
@@ -66,10 +65,12 @@ define([
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
         animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
+        animationPulseDangerClass: 'pf-animation-pulse-danger',                 // animation class
 
         // popover
-        popoverSmallClass: 'pf-popover-small',                                  // class for "small" popover
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
+        popoverSmallClass: 'pf-popover-small',                                  // class for small "popover"
+        popoverCharacterClass: 'pf-popover-character',                          // class for character "popover"
 
         // help
         helpDefaultClass: 'pf-help-default',                                    // class for "help" tooltip elements
@@ -231,7 +232,7 @@ define([
             }else{
                 callback(responseData.img);
             }
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function( jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
         });
@@ -424,7 +425,7 @@ define([
             let width = element.offsetWidth;
             let height = element.offsetHeight;
 
-            while(element.offsetParent) {
+            while(element.offsetParent){
                 element = element.offsetParent;
                 top += element.offsetTop;
                 left += element.offsetLeft;
@@ -494,7 +495,7 @@ define([
      * @returns {*}
      */
     $.fn.destroyTooltip = function(recursive){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
             let tooltipSelector = '[title]';
             let tooltipElements = element.filter(tooltipSelector);
@@ -502,18 +503,20 @@ define([
                 tooltipElements = tooltipElements.add(element.find(tooltipSelector));
             }
 
-            tooltipElements.each(function() {
+            tooltipElements.each(function(){
                 $(this).tooltip('destroy');
             });
         });
     };
 
     /**
-     * adds a popup tooltip with character information (created/updated)
+     * add a popup tooltip with character information (created/updated)
      * @param tooltipData
+     * @param options
+     * @returns {*}
      */
-    $.fn.addCharacterInfoTooltip = function(tooltipData){
-        let element = $(this);
+    $.fn.addCharacterInfoTooltip = function(tooltipData, options){
+        let data = {};
 
         if(
             tooltipData.created.character &&
@@ -522,59 +525,60 @@ define([
             let createdData = tooltipData.created;
             let updatedData = tooltipData.updated;
 
-            // check if data has changed
-            if(
-                element.data('created') !== createdData.created ||
-                element.data('updated') !== updatedData.updated
-            ){
-                // data changed
-                // set new data for next check
-                element.data('created', createdData.created);
-                element.data('updated', updatedData.updated);
+            let statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
+            let statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
 
-                let statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
-                let statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
+            // convert timestamps
+            let dateCreated = new Date(createdData.created * 1000);
+            let dateUpdated = new Date(updatedData.updated * 1000);
+            let dateCreatedUTC = convertDateToUTC(dateCreated);
+            let dateUpdatedUTC = convertDateToUTC(dateUpdated);
 
-                // convert timestamps
-                let dateCreated = new Date(createdData.created * 1000);
-                let dateUpdated = new Date(updatedData.updated * 1000);
-                let dateCreatedUTC = convertDateToUTC(dateCreated);
-                let dateUpdatedUTC = convertDateToUTC(dateUpdated);
-
-                let data = {
-                    created: createdData,
-                    updated: updatedData,
-                    createdTime: convertDateToString(dateCreatedUTC),
-                    updatedTime: convertDateToString(dateUpdatedUTC),
-                    createdStatusClass: statusCreatedClass,
-                    updatedStatusClass: statusUpdatedClass
-                };
-
-                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
-                    let content = Mustache.render(template, data);
-
-                    element.popover({
-                        placement: 'top',
-                        html: true,
-                        trigger: 'hover',
-                        content: '',
-                        container: 'body',
-                        title: 'Created / Updated',
-                        delay: {
-                            show: 250,
-                            hide: 0
-                        }
-                    });
-
-                    // set new popover content
-                    let popover = element.data('bs.popover');
-                    popover.options.content = content;
-                });
-
-            }
+            data = {
+                popoverClass: config.popoverCharacterClass,
+                ccpImageServerUrl: Init.url.ccpImageServer,
+                created: createdData,
+                updated: updatedData,
+                createdTime: convertDateToString(dateCreatedUTC),
+                updatedTime: convertDateToString(dateUpdatedUTC),
+                createdStatusClass: statusCreatedClass,
+                updatedStatusClass: statusUpdatedClass
+            };
         }
 
-        return element;
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: 'Created / Updated',
+            delay: {
+                show: 150,
+                hide: 0
+            }
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            let element = $(this);
+
+            requirejs(['text!templates/tooltip/character_info.html', 'mustache'], (template, Mustache) => {
+                let content = Mustache.render(template, data);
+
+                element.popover(options);
+
+                // set new popover content
+                let popover = element.data('bs.popover');
+                popover.options.content = content;
+
+                if(options.show){
+                    element.popover('show');
+                }
+
+            });
+
+        });
     };
 
     /**
@@ -585,10 +589,10 @@ define([
         let elements = $(this);
         let eventNamespace = 'hideCharacterPopup';
 
-        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
+        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache){
 
             let data = {
-                id: config.headCharacterSwitchId,
+                popoverClass: config.popoverCharacterClass,
                 browserTabId: getBrowserTabId(),
                 routes:  Init.routes,
                 userData: userData,
@@ -608,7 +612,7 @@ define([
 
             let content = Mustache.render(template, data);
 
-            return elements.each(function() {
+            return elements.each(function(){
                 let element = $(this);
 
                 // check if popover already exists -> remove it
@@ -616,7 +620,7 @@ define([
                     element.off('click').popover('destroy');
                 }
 
-                element.on('click', function(e) {
+                element.on('click', function(e){
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -631,7 +635,7 @@ define([
 
                     if(popoverData === undefined){
 
-                        button.on('shown.bs.popover', function (e) {
+                        button.on('shown.bs.popover', function (e){
                             let tmpPopupElement = $(this).data('bs.popover').tip();
                             tmpPopupElement.find('.btn').on('click', function(e){
                                 // close popover
@@ -662,7 +666,7 @@ define([
                             // character switch detected
                             $('body').data('characterSwitch', true);
                             // ... and remove "characterSwitch" data again! after "unload"
-                            setTimeout(function() {
+                            setTimeout(function(){
                                 $('body').removeData('characterSwitch');
                             }, 500);
                         });
@@ -690,7 +694,7 @@ define([
      * @returns {*}
      */
     $.fn.destroyPopover = function(recursive){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
             let popoverSelector = '.' + config.popoverTriggerClass;
             let popoverElements = element.filter(popoverSelector);
@@ -698,7 +702,7 @@ define([
                 popoverElements = popoverElements.add(element.find(popoverSelector));
             }
 
-            popoverElements.each(function() {
+            popoverElements.each(function(){
                 let popoverElement = $(this);
                 if(popoverElement.data('bs.popover')){
                     popoverElement.popover('destroy');
@@ -713,9 +717,9 @@ define([
      * @returns {*}
      */
     $.fn.initPopoverClose = function(eventNamespace){
-        return this.each(function() {
-            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
-                $('.' + config.popoverTriggerClass).each(function () {
+        return this.each(function(){
+            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e){
+                $('.' + config.popoverTriggerClass).each(function (){
                     let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
                     //the 'has' for icons within a button that triggers a popup
@@ -743,7 +747,7 @@ define([
      * @returns {*}
      */
     $.fn.setPopoverSmall = function(){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
             let popover = element.data('bs.popover');
             if(popover){
@@ -760,7 +764,7 @@ define([
     $.fn.showMessage = function(config){
         let containerElement = $(this);
 
-        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache){
 
             let messageTypeClass = 'alert-danger';
             let messageTextClass = 'txt-color-danger';
@@ -809,7 +813,7 @@ define([
      * add/remove css class for keyframe animation
      * @returns {any|JQuery|*}
      */
-    $.fn.pulseTableRow = function(status, clear){
+    $.fn.pulseBackgroundColor = function(status, clear){
 
         let animationClass = '';
         switch(status){
@@ -819,9 +823,12 @@ define([
             case 'changed':
                 animationClass = config.animationPulseWarningClass;
                 break;
+            case 'deleted':
+                animationClass = config.animationPulseDangerClass;
+                break;
         }
 
-        let clearTimer =  function(element) {
+        let clearTimer = element => {
             element.removeClass( animationClass );
             let currentTimer = element.data('animationTimer');
 
@@ -841,7 +848,7 @@ define([
             }
 
             if(clear !== true){
-                element.addClass( animationClass );
+                element.addClass(animationClass);
                 let timer = setTimeout(clearTimer, 1500, element);
                 element.data('animationTimer', timer);
                 animationTimerCache[timer] = true;
@@ -902,14 +909,14 @@ define([
 
         const prepareSafeListener = (listener, passive) => {
             if (!passive) return listener;
-            return function (e) {
+            return function (e){
                 e.preventDefault = () => {};
                 return listener.call(this, e);
             };
         };
 
         const overwriteAddEvent = (superMethod) => {
-            EventTarget.prototype.addEventListener = function (type, listener, options) { // jshint ignore:line
+            EventTarget.prototype.addEventListener = function (type, listener, options){ // jshint ignore:line
                 const usesListenerOptions = typeof options === 'object';
                 const useCapture          = usesListenerOptions ? options.capture : options;
 
@@ -927,20 +934,20 @@ define([
 
             try {
                 const opts = Object.defineProperty({}, 'passive', {
-                    get() {
+                    get(){
                         supported = true;
                     }
                 });
 
                 window.addEventListener('test', null, opts);
                 window.removeEventListener('test', null, opts);
-            } catch (e) {}
+            } catch (e){}
 
             return supported;
         };
 
         let supportsPassive = eventListenerOptionsSupported ();
-        if (supportsPassive) {
+        if (supportsPassive){
             const addEvent = EventTarget.prototype.addEventListener; // jshint ignore:line
             overwriteAddEvent(addEvent);
         }
@@ -953,8 +960,8 @@ define([
         // Array diff
         // [1,2,3,4,5,6].diff( [3,4,5] );
         // => [1, 2, 6]
-        Array.prototype.diff = function(a) {
-            return this.filter(function(i) {return a.indexOf(i) < 0;});
+        Array.prototype.diff = function(a){
+            return this.filter(function(i){return a.indexOf(i) < 0;});
         };
 
         /**
@@ -962,7 +969,7 @@ define([
          * @param p
          * @returns {Array.<T>}
          */
-        Array.prototype.sortBy = function(p) {
+        Array.prototype.sortBy = function(p){
             return this.slice(0).sort((a,b) => {
                 return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
             });
@@ -972,10 +979,10 @@ define([
          * get hash from string
          * @returns {number}
          */
-        String.prototype.hashCode = function() {
+        String.prototype.hashCode = function(){
             let hash = 0, i, chr;
             if (this.length === 0) return hash;
-            for (i = 0; i < this.length; i++) {
+            for (i = 0; i < this.length; i++){
                 chr   = this.charCodeAt(i);
                 hash  = ((hash << 5) - hash) + chr;
                 hash |= 0; // Convert to 32bit integer
@@ -1094,6 +1101,12 @@ define([
             if(resultsWrapper){
                 resultsWrapper.mCustomScrollbar('destroy');
             }
+
+            // select2 sets :focus to the select2 <input> field. This is bad!
+            // we want to keep the focus where it is (e.g. signature table cell)
+            // the only way to prevent this is to remove the element
+            // https://stackoverflow.com/questions/17995057/prevent-select2-from-autmatically-focussing-its-search-input-when-dropdown-is-op
+            $(this).parents('.editableform').find(this).next().find('.select2-selection').remove();
         });
     };
 
@@ -1262,7 +1275,7 @@ define([
         // line breaks are 2 characters!
         let newLines = value.match(/(\r\n|\n|\r)/g);
         let addition = 0;
-        if (newLines != null) {
+        if(newLines != null){
             addition = newLines.length;
         }
         inputLength += addition;
@@ -1300,7 +1313,7 @@ define([
      * stop browser tab title "blinking"
      */
     let stopTabBlink = function(){
-        requirejs(['notification'], function(Notification) {
+        requirejs(['notification'], function(Notification){
             Notification.stopTabBlink();
         });
     };
@@ -1388,7 +1401,7 @@ define([
      */
     let ajaxSetup = () => {
         $.ajaxSetup({
-            beforeSend: function(jqXHR, settings) {
+            beforeSend: function(jqXHR, settings){
                 // store request URL for later use (e.g. in error messages)
                 jqXHR.url = location.protocol + '//' + location.host + settings.url;
 
@@ -1579,11 +1592,13 @@ define([
     };
 
     /**
-     * get Area ID by security string
+     * get areaId by security string
+     * areaId is required as a key for signature names
+     * if areaId is 0, no signature data is available for this system
      * @param security
      * @returns {number}
      */
-    let getAreaIdBySecurity = (security) => {
+    let getAreaIdBySecurity = security => {
         let areaId = 0;
         switch(security){
             case 'H':
@@ -1646,7 +1661,6 @@ define([
      * @returns {string}
      */
     let getStatusInfoForCharacter = (characterData, option) => {
-
         let statusInfo = '';
 
         // character status can not be checked if there are no reference data
@@ -1898,20 +1912,17 @@ define([
     /**
      * get signature group information
      * @param option
-     * @returns {{}}
+     * @returns {Array}
      */
-    let getSignatureGroupInfo = function(option){
-
-        let groupInfo = {};
-
-        for (let prop in Init.signatureGroups) {
-            if(Init.signatureGroups.hasOwnProperty(prop)){
-                prop = parseInt(prop);
-                groupInfo[prop] = Init.signatureGroups[prop][option];
-            }
+    let getSignatureGroupOptions = option => {
+        let options = [];
+        for(let [key, data] of Object.entries(Init.signatureGroups)){
+            options.push({
+                value: parseInt(key),
+                text: data[option]
+            });
         }
-
-        return groupInfo;
+        return options;
     };
 
     /**
@@ -1943,28 +1954,22 @@ define([
      * @param name
      * @returns {number}
      */
-    let getSignatureTypeIdByName = function(systemData, sigGroupId, name){
-
+    let getSignatureTypeIdByName = (systemData, sigGroupId, name) => {
         let signatureTypeId = 0;
-
         let areaId = getAreaIdBySecurity(systemData.security);
-
         if(areaId > 0){
-            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
+            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId);
             name = name.toLowerCase();
-
-            for(let prop in signatureNames) {
-
+            for(let prop in signatureNames){
                 if(
                     signatureNames.hasOwnProperty(prop) &&
                     signatureNames[prop].toLowerCase() === name
                 ){
-                    signatureTypeId = parseInt( prop );
+                    signatureTypeId = parseInt(prop);
                     break;
                 }
             }
         }
-
         return signatureTypeId;
     };
 
@@ -1995,9 +2000,8 @@ define([
      * to keep the data always up2data
      * @param mapUserData
      */
-    let setCurrentMapUserData = (mapUserData) => {
+    let setCurrentMapUserData = mapUserData => {
         Init.currentMapUserData = mapUserData;
-
         return getCurrentMapUserData();
     };
 
@@ -2006,7 +2010,7 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    let getCurrentMapUserData = (mapId) => {
+    let getCurrentMapUserData = mapId => {
         let currentMapUserData = false;
 
         if(Init.currentMapUserData){
@@ -2041,7 +2045,7 @@ define([
      * @param mapId
      * @returns {boolean|int}
      */
-    let getCurrentMapUserDataIndex = (mapId) => {
+    let getCurrentMapUserDataIndex = mapId => {
         return getDataIndexByMapId(Init.currentMapUserData, mapId);
     };
 
@@ -2049,7 +2053,7 @@ define([
      * update cached mapUserData for a single map
      * @param mapUserData
      */
-    let updateCurrentMapUserData = (mapUserData) => {
+    let updateCurrentMapUserData = mapUserData => {
         let mapUserDataIndex = getCurrentMapUserDataIndex( mapUserData.config.id );
 
         if( !Array.isArray(Init.currentMapUserData) ){
@@ -2072,7 +2076,7 @@ define([
      * to keep the data always up2data
      * @param mapData
      */
-    let setCurrentMapData = (mapData) => {
+    let setCurrentMapData = mapData => {
         Init.currentMapData = mapData;
 
         return getCurrentMapData();
@@ -2083,7 +2087,7 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    let getCurrentMapData = (mapId) => {
+    let getCurrentMapData = mapId => {
         let currentMapData = false;
 
         if( mapId === parseInt(mapId, 10) ){
@@ -2107,7 +2111,7 @@ define([
      * @param mapId
      * @returns {boolean|int}
      */
-    let getCurrentMapDataIndex = (mapId) => {
+    let getCurrentMapDataIndex = mapId => {
         return getDataIndexByMapId(Init.currentMapData, mapId);
     };
 
@@ -2115,7 +2119,7 @@ define([
      * update cached mapData for a single map
      * @param mapData
      */
-    let updateCurrentMapData = (mapData) => {
+    let updateCurrentMapData = mapData => {
         let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
 
         if(mapDataIndex !== false){
@@ -2146,7 +2150,7 @@ define([
      * delete map data by mapId from currentMapData
      * @param mapId
      */
-    let deleteCurrentMapData = (mapId) => {
+    let deleteCurrentMapData = mapId => {
         Init.currentMapData = Init.currentMapData.filter((mapData) => {
             return (mapData.config.id !== mapId);
         });
@@ -2176,7 +2180,7 @@ define([
      * @param option
      * @returns {boolean}
      */
-    let getCurrentUserInfo = (option) => {
+    let getCurrentUserInfo = option => {
         let currentUserData = getCurrentUserData();
         let userInfo = false;
 
@@ -2297,7 +2301,7 @@ define([
             characterData = characterData.filter(function(tmpCharacterData, index, allData){
                 let keepData = true;
 
-                for(let tmpJump in data) {
+                for(let tmpJump in data){
                     // just scan systems with > jumps than current system
                     if(tmpJump > jumps){
                         let filteredFinalData = data[tmpJump].filter(filterFinalCharData, tmpCharacterData);
@@ -2325,7 +2329,7 @@ define([
         }
 
         jumps++;
-        for(let prop in nearBySystems.tree) {
+        for(let prop in nearBySystems.tree){
             if( nearBySystems.tree.hasOwnProperty(prop) ){
                 let tmpSystemData = nearBySystems.tree[prop];
                 data = getNearByCharacterData(tmpSystemData, userData, jumps, data);
@@ -2374,7 +2378,7 @@ define([
                 responseData.systemData &&
                 responseData.systemData.length > 0
             ){
-                for (let j = 0; j < responseData.systemData.length; j++) {
+                for (let j = 0; j < responseData.systemData.length; j++){
                     showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
                 }
             }
@@ -2388,7 +2392,7 @@ define([
                 }
             }
 
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function( jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
         });
@@ -2452,7 +2456,7 @@ define([
                 }else{
                     showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
                 }
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function( jqXHR, status, error){
                 let reason = status + ' ' + error;
                 showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
             });
@@ -2585,9 +2589,9 @@ define([
 
             element.off(eventName).on(eventName, function(e){
                 clicks++;
-                if (clicks === 1) {
+                if (clicks === 1){
                     setTimeout(element => {
-                        if(clicks === 1) {
+                        if(clicks === 1){
                             singleClickCallback.call(element, e);
                         } else {
                             doubleClickCallback.call(element, e);
@@ -2666,7 +2670,7 @@ define([
             if(data.reroute){
                 redirect(data.reroute, ['logout']);
             }
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function( jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
@@ -2709,13 +2713,13 @@ define([
         let name = cname + '=';
         let ca = document.cookie.split(';');
 
-        for(let i = 0; i <ca.length; i++) {
+        for(let i = 0; i <ca.length; i++){
             let c = ca[i];
-            while (c.charAt(0) === ' ') {
+            while (c.charAt(0) === ' '){
                 c = c.substring(1);
             }
 
-            if (c.indexOf(name) === 0) {
+            if (c.indexOf(name) === 0){
                 return c.substring(name.length,c.length);
             }
         }
@@ -2757,7 +2761,7 @@ define([
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
-        getSignatureGroupInfo: getSignatureGroupInfo,
+        getSignatureGroupOptions: getSignatureGroupOptions,
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,

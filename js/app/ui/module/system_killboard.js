@@ -1,3 +1,7 @@
+/**
+ * System killboard module
+ */
+
 define([
     'jquery',
     'app/init',
@@ -378,7 +382,6 @@ define([
      * @returns {jQuery}
      */
     let getModule = (parentElement, mapId, systemData) => {
-        // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
                 class: config.moduleHeadClass
