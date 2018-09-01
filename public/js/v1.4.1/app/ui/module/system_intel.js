@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'bootbox'
-], ($, Init, Util, bootbox) => {
+    'bootbox',
+    'app/counter'
+], ($, Init, Util, bootbox, Counter) => {
     'use strict';
 
     let config = {
@@ -113,7 +114,6 @@ define([
                                 if(rowData.updated.updated !== structureData.updated.updated){
                                     // row data changed -> update
                                     api.data(structureData);
-                                    api.nodes().to$().data('animationStatus', 'changed').destroyTimestampCounter();
                                     notificationCounter.changed++;
                                 }
 
@@ -138,7 +138,13 @@ define([
             api.remove();
         }
 
-        context.tableApi.draw();
+        if(
+            notificationCounter.added > 0 ||
+            notificationCounter.changed > 0 ||
+            notificationCounter.deleted > 0
+        ){
+            context.tableApi.draw();
+        }
 
         // show notification ------------------------------------------------------------------------------------------
         let notification = '';
@@ -434,7 +440,7 @@ define([
         });
         moduleElement.append(table);
 
-        let structureTable = table.DataTable({
+        let tableApi = table.DataTable({
             paging: false,
             lengthChange: false,
             ordering: true,
@@ -456,6 +462,7 @@ define([
             columnDefs: [
                 {
                     targets: 0,
+                    name: 'status',
                     title: '',
                     width: 2,
                     class: 'text-center',
@@ -469,6 +476,7 @@ define([
                     }
                 },{
                     targets: 1,
+                    name: 'structureImage',
                     title: '',
                     width: 26,
                     orderable: false,
@@ -486,6 +494,7 @@ define([
                     }
                 },{
                     targets: 2,
+                    name: 'structureType',
                     title: 'type',
                     width: 30,
                     className: [config.tableCellEllipsisClass].join(' '),
@@ -493,12 +502,14 @@ define([
                     defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
                 },{
                     targets: 3,
+                    name: 'name',
                     title: 'name',
                     width: 60,
                     className: [config.tableCellEllipsisClass].join(' '),
                     data: 'name'
                 },{
                     targets: 4,
+                    name: 'ownerImage',
                     title: '',
                     width: 26,
                     orderable: false,
@@ -518,6 +529,7 @@ define([
                     }
                 },{
                     targets: 5,
+                    name: 'ownerName',
                     title: 'owner',
                     width: 50,
                     className: [config.tableCellEllipsisClass].join(' '),
@@ -525,17 +537,20 @@ define([
                     defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
                 },{
                     targets: 6,
+                    name: 'note',
                     title: 'note',
                     className: [config.tableCellEllipsisClass].join(' '),
                     data: 'description'
                 },{
                     targets: 7,
+                    name: 'updated',
                     title: 'updated',
                     width: 60,
-                    className: ['text-right', config.tableCellCounterClass].join(' '),
+                    className: ['text-right', config.tableCellCounterClass, 'not-screen-l'].join(' '),
                     data: 'updated.updated'
                 },{
                     targets: 8,
+                    name: 'edit',
                     title: '',
                     orderable: false,
                     width: 10,
@@ -566,6 +581,7 @@ define([
                     }
                 },{
                     targets: 9,
+                    name: 'delete',
                     title: '',
                     orderable: false,
                     width: 10,
@@ -650,8 +666,6 @@ define([
                     }
                 });
 
-                rows.to$().find('.' + config.tableCellCounterClass + ':not([data-counter])').initTimestampCounter('d');
-
                 let animationRows = rows.to$().filter(function() {
                     return (
                         $(this).data('animationStatus') ||
@@ -668,9 +682,18 @@ define([
             initComplete: function(settings){
                 // table data is load in updateModule() method
                 // -> no need to trigger additional ajax call here for data
-                // -> in case table update failed -> each if this initComplete() function finished before table updata
+                // -> in case table update failed -> each if this initComplete() function finished before table updated
                 // e.g. return now promise in getModule() function
+
+                Counter.initTableCounter(this, ['updated:name'], 'd');
             }
+        });
+
+        new $.fn.dataTable.Responsive(tableApi);
+
+        tableApi.on('responsive-resize', function(e, tableApi, columns){
+            // rowGroup length changes as well -> trigger draw() updates rowGroup length (see drawCallback())
+            tableApi.draw();
         });
 
         // init tooltips for this module

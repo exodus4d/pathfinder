@@ -357,6 +357,7 @@ define([
             planetsInfoClass: config.systemInfoPlanetsClass,
             wormholePrefixClass: config.systemInfoWormholeClass,
             statusInfoClass: config.systemInfoStatusLabelClass,
+            popoverTriggerClass: Util.config.popoverTriggerClass,
 
             systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
             systemIsWormhole: MapUtil.getSystemTypeInfo(systemData.type.id, 'name') === 'w-space',
@@ -405,6 +406,8 @@ define([
         // remove xEditable description textarea
         let descriptionTextareaElement = moduleElement.find('.' + config.descriptionTextareaElementClass);
         descriptionTextareaElement.editable('destroy');
+
+        moduleElement.destroyPopover(true);
     };
 
     return {

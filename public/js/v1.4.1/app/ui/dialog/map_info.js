@@ -8,8 +8,9 @@ define([
     'app/util',
     'app/render',
     'bootbox',
+    'app/counter',
     'app/map/util'
-], function($, Init, Util, Render, bootbox, MapUtil) {
+], function($, Init, Util, Render, bootbox, Counter, MapUtil) {
 
     'use strict';
 
@@ -477,6 +478,7 @@ define([
             },
             columns: [
                 {
+                    name: 'type',
                     title: 'type',
                     width: '25px',
                     className: ['min-screen-l'].join(' '),
@@ -486,6 +488,7 @@ define([
                         sort: 'type_sort'
                     }
                 },{
+                    name: 'security',
                     title: '',
                     width: '1px',
                     searchable: false,
@@ -495,6 +498,7 @@ define([
                         sort: 'security_sort'
                     }
                 },{
+                    name: 'trueSec',
                     title: 'sec',
                     width: '18px',
                     className: ['text-center', 'min-screen-l'].join(' '),
@@ -505,6 +509,7 @@ define([
                         sort: 'trueSec_sort'
                     }
                 },{
+                    name: 'shattered',
                     title: '<i class="fas fa-skull" title="shattered" data-toggle="tooltip"></i>',
                     width: '10px',
                     className: ['text-center', 'min-screen-l'].join(' '),
@@ -515,6 +520,7 @@ define([
                         sort: 'shattered_sort'
                     }
                 },{
+                    name: 'name',
                     title: 'system',
                     data: 'name',
                     className: [config.tableCellLinkClass].join(' '),
@@ -525,12 +531,15 @@ define([
                         });
                     }
                 },{
+                    name: 'alias',
                     title: 'alias',
                     data: 'alias'
                 },{
+                    name: 'region',
                     title: 'region',
                     data: 'region'
                 },{
+                    name: 'status',
                     title: '<i class="far fa-square" title="system&nbsp;status" data-toggle="tooltip"></i>',
                     width: '10px',
                     className: 'text-center',
@@ -541,6 +550,7 @@ define([
                         sort: 'status_sort'
                     }
                 },{
+                    name: 'effect',
                     title: '<i class="fas fa-square" title="system&nbsp;effect" data-toggle="tooltip"></i>',
                     width: '10px',
                     className: 'text-center',
@@ -551,10 +561,12 @@ define([
                         sort: 'effect_sort'
                     }
                 },{
+                    name: 'static',
                     title: 'static',
                     width: '30px',
                     data: 'static'
                 },{
+                    name: 'position',
                     title: '<i class="fas fa-map-marker-alt" title="your&nbsp;position" data-toggle="tooltip"></i>',
                     width: '8px',
                     className: 'text-center',
@@ -565,12 +577,14 @@ define([
                         sort: 'position_sort'
                     }
                 },{
+                    name: 'userCount',
                     title: '<i class="fas fa-plane" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
                     data: 'userCount'
                 },{
+                    name: 'locked',
                     title: '<i class="fas fa-lock" title="system&nbsp;locked" data-toggle="tooltip"></i>',
                     width: '10px',
                     className: 'text-center',
@@ -581,15 +595,14 @@ define([
                         sort: 'locked_sort'
                     }
                 },{
+                    name: 'updated',
                     title: 'updated',
                     width: '80px',
                     searchable: false,
                     className: ['text-right', config.tableCellCounterClass, 'min-screen-l'].join(' '),
-                    data: 'updated',
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        $(cell).initTimestampCounter();
-                    }
+                    data: 'updated'
                 },{
+                    name: 'action',
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -639,7 +652,10 @@ define([
 
                     }
                 }
-            ]
+            ],
+            initComplete: function(settings){
+                Counter.initTableCounter(this, ['updated:name']);
+            }
         });
 
     };
@@ -719,6 +735,7 @@ define([
             },
             columns: [
                 {
+                    name: 'scope',
                     title: 'scope',
                     width: '50px',
                     orderable: true,
@@ -728,6 +745,7 @@ define([
                         sort: 'scope_sort'
                     }
                 },{
+                    name: 'sourceName',
                     title: 'source system',
                     data: 'source.name',
                     className: [config.tableCellLinkClass].join(' '),
@@ -738,6 +756,7 @@ define([
                         });
                     }
                 },{
+                    name: 'connection',
                     title: 'connection',
                     width: '80px',
                     className: 'text-center',
@@ -755,14 +774,13 @@ define([
                         });
                     }
                 },{
+                    name: 'updated',
                     title: 'updated',
                     width: '80px',
                     searchable: false,
                     className: ['text-right', config.tableCellCounterClass].join(' '),
                     data: 'updated',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        $(cell).initTimestampCounter();
-
                         if(rowData.scope.scope_sort === 'wh'){
                             // highlight cell
                             let diff = new Date().getTime() - cellData * 1000;
@@ -773,6 +791,7 @@ define([
                         }
                     }
                 },{
+                    name: 'action',
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -801,7 +820,10 @@ define([
                         $(cell).confirmation(tempConfirmationSettings);
                     }
                 }
-            ]
+            ],
+            initComplete: function(settings){
+                Counter.initTableCounter(this, ['updated:name']);
+            }
         });
     };
 

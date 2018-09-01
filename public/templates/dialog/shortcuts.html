@@ -10,7 +10,8 @@
                         <td>{{label}}</td>
                         <td class="text-right">
                             {{#keyNames}}
-                            <kbd>{{.}}</kbd>&nbsp;<i class="fas fa-fw fa-plus"></i>&nbsp;
+                                <kbd>{{.}}</kbd>
+                                {{^list}}<i class="fas fa-fw fa-plus"></i>{{/list}}
                             {{/keyNames}}
                         </td>
                     </tr>

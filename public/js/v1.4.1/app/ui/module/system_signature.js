@@ -1766,9 +1766,9 @@ define([
                     cellIndex[0] = 0; // first column
                 }
                 if(cellIndex[1] < 0){
-                    cellIndex[1] = tableApi.row(':last').nodes().to$().index(); // last row
+                    cellIndex[1] = tableApi.row(':last', {search: 'applied'}).nodes().to$().index(); // last row
                 }
-                if(cellIndex[1] > tableApi.row(':last').nodes().to$().index()){
+                if(cellIndex[1] > tableApi.row(':last', {search: 'applied'}).nodes().to$().index()){
                     cellIndex[1] = 0; // first row
                 }
                 return cellIndex;
@@ -1792,7 +1792,7 @@ define([
                 newCellIndex = checkIndex(tableApi, newCellIndex);
 
                 //let cell = tableApi.cell(newCellIndex[1], newCellIndex[0]);
-                let cell = tableApi.cell(':eq(' + newCellIndex[1] + ')', ':eq(' + newCellIndex[0] + ')');
+                let cell = tableApi.cell(':eq(' + newCellIndex[1] + ')', ':eq(' + newCellIndex[0] + ')', {search: 'applied'});
                 let node = cell.node();
 
                 if(
@@ -2008,22 +2008,7 @@ define([
                     keyNavigation(tableApi, e);
                 });
 
-                // init update counter for timestamp columns
-                // mark as init
-                this.attr('data-counter', 'init');
-                let refreshIntervalId = window.setInterval(() => {
-                    tableApi.cells(null, ['created:name', 'updated:name']).every(function(rowIndex, colIndex, tableLoopCount, cellLoopCount){
-                        let cell = this;
-                        let node = cell.node();
-                        let data = cell.data();
-                        if(data && Number.isInteger(data) && !node.classList.contains('stopCounter')){
-                            // timestamp expected int > 0
-                            let date = new Date(data * 1000);
-                            Counter.updateDateDiff( cell.nodes().to$(), date);
-                        }
-                    });
-                }, 500);
-                this.data('interval', refreshIntervalId);
+                Counter.initTableCounter(this, ['created:name', 'updated:name']);
             }
         };
 

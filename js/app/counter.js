@@ -126,7 +126,35 @@ define([
         });
     };
 
+    /**
+     * init global timestamp counter or DataTable for specific columns
+     * @param tableElement
+     * @param columnSelector
+     * @param round
+     */
+    let initTableCounter = (tableElement, columnSelector, round) => {
+        let tableApi = tableElement.api();
+
+        // mark as init
+        tableElement.attr('data-counter', 'init');
+        let refreshIntervalId = window.setInterval(() => {
+            tableApi.cells(null, columnSelector).every(function(rowIndex, colIndex, tableLoopCount, cellLoopCount){
+                let cell = this;
+                let node = cell.node();
+                let data = cell.data();
+                if(data && Number.isInteger(data) && !node.classList.contains('stopCounter')){
+                    // timestamp expected int > 0
+                    let date = new Date(data * 1000);
+                    updateDateDiff( cell.nodes().to$(), date, round);
+                }
+            });
+        }, 500);
+
+        tableElement.data('interval', refreshIntervalId);
+    };
+
     return {
-        updateDateDiff: updateDateDiff
+        updateDateDiff: updateDateDiff,
+        initTableCounter: initTableCounter
     };
 });

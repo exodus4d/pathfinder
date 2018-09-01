@@ -15,6 +15,12 @@ define([
             group:      'signatures',
             label:      'Select multiple rows',
             keyNames:   ['CONTROL', 'CLICK']
+        },
+        signatureNavigate: {
+            group:      'signatures',
+            label:      'Table navigation',
+            keyNames:   ['UP', 'RIGHT', 'DOWN', 'LEFT'],
+            list: true
         }
     };
 
@@ -434,7 +440,8 @@ define([
 
                 let newEventData = {
                     label:      data.label,
-                    keyNames:   keyNames
+                    keyNames:   keyNames,
+                    list:       data.list
                 };
 
                 if( result[data.group].events ){
