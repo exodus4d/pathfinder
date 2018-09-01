@@ -102,10 +102,9 @@ abstract class BasicUniverseModel extends BasicModel {
         $data = null;
 
         if($hashKeyId = $this->getHashKey()){
-            $f3 = self::getF3();
             $hashKeyTable = self::generateHashKeyTable($this->getTable());
 
-            if( !$f3->exists($hashKeyTable, $cachedData) ){
+            if( !self::existsCacheValue($hashKeyTable, $cachedData) ){
                 $cachedData = [];
             }
 
@@ -113,11 +112,8 @@ abstract class BasicUniverseModel extends BasicModel {
                 $cachedData[] = $hashKeyId;
             }
 
-            // value update does not update ttl -> delete key from cache and add again
-            $f3->clear($hashKeyId);
-            $f3->clear($hashKeyTable);
-
             $data = $this->getData();
+
             // straight into cache (no $f->set() ), no sync with hive here -> save ram
             self::setCacheValue($hashKeyId, $data, self::CACHE_INDEX_EXPIRE_KEY);
             self::setCacheValue($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
