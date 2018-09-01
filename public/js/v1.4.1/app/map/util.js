@@ -367,7 +367,7 @@ define([
             connection &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('app/ui/module/system_signature_new');
+            let SystemSignatures = require('app/ui/module/system_signature');
 
             let connectionId        = connection.getParameter('connectionId');
             let sourceEndpoint      = connection.endpoints[0];

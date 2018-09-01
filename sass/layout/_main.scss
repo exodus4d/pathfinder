@@ -254,10 +254,12 @@ select:active, select:hover {
 
   .dataTables_length select{
     margin: 0 3px;  // <select> for page size
+    padding: 1px;
   }
   
   .dt-buttons{
     .dt-button{
+      line-height: 22px;
       padding: 0 5px; // overwrite default
 
       &:not(:last-child){

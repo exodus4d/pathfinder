@@ -87,7 +87,8 @@ define([
             let securityClass = Util.getSecurityClassForSystem(parts[1].length > 3 ? parts[1].substring(0, 2) : parts[1]);
             markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
             markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
-            markup += '<span class="' + securityClass + ' ' + Util.config.popoverTriggerClass + ' ' + Util.config.helpDefaultClass + '" data-name="' + parts[0] + '">&nbsp;&nbsp;' + parts[1] + '&nbsp;</span>';
+            markup += '<span class="' + securityClass + ' ' + Util.config.popoverTriggerClass + ' ' + Util.config.helpDefaultClass +
+                '" data-name="' + parts[0] + '">&nbsp;&nbsp;' + parts[1] + '&nbsp;</span>';
         }else{
             markup += '<span>' + state.text + '</span>';
         }

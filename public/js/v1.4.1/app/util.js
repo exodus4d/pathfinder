@@ -1051,9 +1051,9 @@ define([
                     preventDefault: true
                 },
                 keyboard: {
-                    enable: false,
+                    enable: true,
                     scrollType: 'stepless',
-                    scrollAmount: 'auto'
+                    scrollAmount: 20
                 },
                 scrollbarPosition: 'inside',
                 autoDraggerLength: true,
