@@ -455,6 +455,46 @@ define([
             return markup;
         }
 
+        /**
+         * sort universe data
+         * @param data universe search result array
+         * @param term search term
+         */
+        function sortResultData (data, term){
+            let levenshtein = function (a,b){
+                let matrix = new Array(a.length+1);
+                for(let i = 0; i < matrix.length; i++){
+                    matrix[i] = new Array(b.length+1).fill(0);
+                }
+
+                for(let ai = 1; ai <= a.length; ai++){
+                    matrix[ai][0] = ai;
+                }
+
+                for(let bi = 1; bi <= b.length; bi++){
+                    matrix[0][bi] = bi;
+                }
+
+                for(let bi = 1; bi <= b.length; bi++){
+                    for(let ai = 1; ai <= a.length; ai++){
+                        matrix[ai][bi] = Math.min(
+                            matrix[ai-1][bi]+1,
+                            matrix[ai][bi-1]+1,
+                            matrix[ai-1][bi-1]+(a[ai-1] == b[bi-1] ? 0 : 1)
+                        );
+                    }                
+                }
+
+                return matrix[a.length][b.length];
+            };
+
+            data.sort(function(a,b){
+                let levA = levenshtein(term, a.name.toLowerCase());
+                let levB = levenshtein(term, b.name.toLowerCase());
+                return levA === levB ? 0 : (levA > levB ? 1 : -1);
+            });
+        }
+
         return this.each(function() {
             let selectElement = $(this);
 
@@ -491,6 +531,7 @@ define([
                                 for(let category in result){
                                     // skip custom functions in case result = [] (array functions)
                                     if(result.hasOwnProperty(category)){
+                                        sortResultData(result[category], page.term);
                                         data.results.push({
                                             text: category,
                                             children: result[category].map(mapChildren, category)
