@@ -461,7 +461,7 @@ define([
          * @param term search term
          */
         function sortResultData (data, term){
-            let levenshtein = function (a,b){
+            let levenshtein = (a,b) => {
                 let matrix = new Array(a.length+1);
                 for(let i = 0; i < matrix.length; i++){
                     matrix[i] = new Array(b.length+1).fill(0);
@@ -480,7 +480,7 @@ define([
                         matrix[ai][bi] = Math.min(
                             matrix[ai-1][bi]+1,
                             matrix[ai][bi-1]+1,
-                            matrix[ai-1][bi-1]+(a[ai-1] == b[bi-1] ? 0 : 1)
+                            matrix[ai-1][bi-1]+(a[ai-1] === b[bi-1] ? 0 : 1)
                         );
                     }                
                 }
@@ -488,7 +488,7 @@ define([
                 return matrix[a.length][b.length];
             };
 
-            data.sort(function(a,b){
+            data.sort((a,b) => {
                 let levA = levenshtein(term, a.name.toLowerCase());
                 let levB = levenshtein(term, b.name.toLowerCase());
                 return levA === levB ? 0 : (levA > levB ? 1 : -1);
@@ -531,6 +531,7 @@ define([
                                 for(let category in result){
                                     // skip custom functions in case result = [] (array functions)
                                     if(result.hasOwnProperty(category)){
+                                        // sort results (optional)
                                         sortResultData(result[category], page.term);
                                         data.results.push({
                                             text: category,

@@ -1220,7 +1220,7 @@ define([
                     searchable: true,
                     title: 'id',
                     type: 'string',
-                    width: 15,
+                    width: 12,
                     class: [config.tableCellFocusClass, config.sigTableEditSigNameInput].join(' '),
                     data: 'name',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
