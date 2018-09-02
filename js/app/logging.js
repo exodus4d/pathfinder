@@ -25,7 +25,7 @@ define([
         taskDialogStatusAreaClass: 'pf-task-dialog-status',                             // class for "status" dynamic area
         taskDialogLogTableAreaClass: 'pf-task-dialog-table',                            // class for "log table" dynamic area
         logGraphClass: 'pf-log-graph',                                                  // class for all log Morris graphs
-        tableToolsClass: 'pf-table-tools'                                               // class for table tools
+        moduleHeadlineIconClass: 'pf-module-icon-button'                                // class for toolbar icons in the head
     };
 
     /**
@@ -85,8 +85,7 @@ define([
                 id: config.taskDialogId,
                 dialogDynamicAreaClass: config.dialogDynamicAreaClass,
                 taskDialogStatusAreaClass: config.taskDialogStatusAreaClass,
-                taskDialogLogTableAreaClass: config.taskDialogLogTableAreaClass,
-                tableActionBarClass: config.tableToolsClass
+                taskDialogLogTableAreaClass: config.taskDialogLogTableAreaClass
             };
 
             let contentTaskManager = $( Mustache.render(templateTaskManagerDialog, data) );
@@ -102,10 +101,27 @@ define([
 
             // init log table
             logDataTable = logTable.DataTable({
+                dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
+                    '<"row"<"col-xs-12"tr>>' +
+                    '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+                buttons: {
+                    name: 'tableTools',
+                    buttons: [
+                        {
+                            extend: 'copy',
+                            className: config.moduleHeadlineIconClass,
+                            text: '<i class="fas fa-fw fa-copy"></i> copy'
+                        },
+                        {
+                            extend: 'csv',
+                            className: config.moduleHeadlineIconClass,
+                            text: '<i class="fas fa-fw fa-download"></i> csv'
+                        }
+                    ]
+                },
                 paging: true,
                 ordering: true,
                 order: [ 1, 'desc' ],
-                autoWidth: false,
                 hover: false,
                 pageLength: 10,
                 lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'All']],
@@ -113,7 +129,7 @@ define([
                 language: {
                     emptyTable:  'No entries',
                     zeroRecords: 'No entries found',
-                    lengthMenu:  'Show _MENU_ entries',
+                    lengthMenu:  'Show _MENU_',
                     info:        'Showing _START_ to _END_ of _TOTAL_ entries'
                 },
                 columnDefs: [
@@ -273,25 +289,6 @@ define([
 
                     }
                 }
-
-                // ------------------------------------------------------------------------------
-                // add dataTable buttons (extension)
-
-                let buttons = new $.fn.dataTable.Buttons(logDataTable, {
-                    buttons: [
-                        {
-                            extend: 'copy',
-                            className: 'btn btn-sm btn-default',
-                            text: '<i class="fas fa-fw fa-copy"></i> copy'
-                        },{
-                            extend: 'csv',
-                            className: 'btn btn-sm btn-default',
-                            text: '<i class="fas fa-fw fa-download"></i> csv'
-                        }
-                    ]
-                });
-
-                logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
             });
 
 

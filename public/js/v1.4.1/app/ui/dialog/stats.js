@@ -27,6 +27,7 @@ define([
         statsContainerId: 'pf-stats-dialog-container',                          // class for statistics container (dynamic ajax content)
         statsTableId: 'pf-stats-table',                                         // id for statistics table element
         tableCellImageClass: 'pf-table-image-cell',                             // class for table "image" cells
+        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
 
         // charts
         statsLineChartClass: 'pf-line-chart'                                    // class for inline chart elements
@@ -74,6 +75,26 @@ define([
         let table = dialogElement.find('#' + config.statsTableId);
 
         let  statsTable = table.DataTable({
+            dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
+                '<"row"<"col-xs-12"tr>>' +
+                '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+            buttons: {
+                name: 'tableTools',
+                buttons: [
+                    {
+                        extend: 'copy',
+                        className: config.moduleHeadlineIconClass,
+                        text: '<i class="fas fa-fw fa-copy"></i> copy',
+                        exportOptions: { orthogonal: 'filter' }
+                    },
+                    {
+                        extend: 'csv',
+                        className: config.moduleHeadlineIconClass,
+                        text: '<i class="fas fa-fw fa-download"></i> csv',
+                        exportOptions: { orthogonal: 'filter' }
+                    }
+                ]
+            },
             pageLength: 30,
             lengthMenu: [[10, 20, 30, 50], [10, 20, 30, 50]],
             paging: true,
@@ -82,7 +103,6 @@ define([
             info: true,
             searching: true,
             hover: false,
-            autoWidth: false,
             language: {
                 emptyTable:  'No statistics found',
                 zeroRecords: 'No characters found',
