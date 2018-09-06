@@ -243,6 +243,22 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
 
     /**
      * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeUpdateEvent($self, $pkeys){
+        // "updated" column should always be updated if no changes made this signature
+        // -> makes it easier to see what signatures have not been updated
+        $this->touch('updated');
+
+        return parent::beforeUpdateEvent($self, $pkeys);
+    }
+
+    /**
+     * Event "Hook" function
      * return false will stop any further action
      * @param self $self
      * @param $pkeys
@@ -278,6 +294,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         $status = parent::setup($db,$table,$fields);
