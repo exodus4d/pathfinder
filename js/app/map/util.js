@@ -570,6 +570,7 @@ define([
     /**
      * set system visibility e.g. or filtered systems
      * @param system
+     * @param map
      * @param visible
      */
     let setSystemVisible = (system, map, visible) => {
@@ -1585,12 +1586,13 @@ define([
     /**
      * get a unique map url for deeplinking
      * @param mapId
+     * @param systemId
      * @returns {string}
      */
-    let getMapDeeplinkUrl = (mapId) => {
+    let getMapDeeplinkUrl = (mapId, systemId) => {
         let url = location.protocol + '//' + location.host + '/map';
         url += mapId ? '/' + encodeURIComponent(window.btoa(mapId)) : '';
-
+        url += systemId ? '_' + encodeURIComponent(window.btoa(systemId)) : '';
         return url;
     };
 

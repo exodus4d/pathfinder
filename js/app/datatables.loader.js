@@ -12,8 +12,6 @@ define([
     // all Datatables stuff is available...
     let initDefaultDatatablesConfig = () => {
 
-
-
         $.extend(true, $.fn.dataTable.defaults, {
             pageLength: -1,
             pagingType: 'simple_numbers',

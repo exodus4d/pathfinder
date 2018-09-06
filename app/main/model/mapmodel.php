@@ -1210,7 +1210,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether this map is private map
      * @return bool
      */
-    public function isPrivate(){
+    public function isPrivate() : bool {
         return ($this->typeId->id === 2);
     }
 
@@ -1218,7 +1218,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether this map is corporation map
      * @return bool
      */
-    public function isCorporation(){
+    public function isCorporation() : bool {
         return ($this->typeId->id === 3);
     }
 
@@ -1226,7 +1226,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether this map is alliance map
      * @return bool
      */
-    public function isAlliance(){
+    public function isAlliance() : bool {
         return ($this->typeId->id === 4);
     }
 
@@ -1240,6 +1240,22 @@ class MapModel extends AbstractMapTrackingModel {
             $scope = $this->scopeId;
         }
         return $scope;
+    }
+
+    /**
+     * get deeplink url for map
+     * -> optional return link for map + system
+     * @param int $systemId
+     * @return string
+     */
+    public function getDeeplinkUrl(int $systemId = 0) : string {
+        $url = '';
+        if( !$this->dry() ){
+            $param =  rawurlencode(base64_encode($this->_id));
+            $param .=  $systemId ? '_' . rawurlencode(base64_encode($systemId)) : '';
+            $url = $this->getF3()->get('SCHEME') . '://' . $this->getF3()->get('HOST') . $this->getF3()->alias('map', ['*' => '/' . $param]);
+        }
+        return $url;
     }
 
     /**

@@ -32,11 +32,14 @@
 
         </div>
         <div class="col-xs-8 col-sm-9">
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 10px;">
                 <label for="{{dialogRallyMessageId}}" class="col-sm-2 control-label">Message <span class="txt-color txt-color-grayLight">[optional]</span></label>
                 <div class="col-sm-10">
                     <textarea id="{{dialogRallyMessageId}}" name="message" class="form-control" rows="5" placeholder="{{dialogRallyMessageDefault}}"></textarea>
-                    <div class="note help-block with-errors"></div>
+                    <div class="note help-block with-errors">
+                        Attach deeplink:
+                        <a target="_blank" href="{{systemUrl}}" rel="noopener">{{systemUrl}}</a>
+                    </div>
                 </div>
             </div>
 

@@ -19,10 +19,14 @@ define([
         // system info module
         moduleTypeClass: 'pf-system-info-module',                               // class for this module
 
+        // headline toolbar
+        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
+
         // breadcrumb
         constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" name
         regionLinkClass: 'pf-system-info-region',                               // class for "region" name
         typeLinkClass: 'pf-system-info-type',                                   // class for "type" name
+        urlLinkClass: 'pf-system-info-url',                                     // class for "url" copy link
 
         // info table
         systemInfoTableClass: 'pf-module-table',                                // class for system info table
@@ -185,13 +189,10 @@ define([
             functions: {
                 after: function(conf){
                     let tempModuleElement = conf.position;
-
                     // lock "description" field until first update
                     tempModuleElement.find('.' + config.descriptionArea).showLoadingAnimation();
-
                     // "add description" button
                     let descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
-
                     // description textarea element
                     let descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
 
@@ -302,19 +303,32 @@ define([
 
                     // init tooltips ----------------------------------------------------------------------------------
                     let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
-                    tooltipElements.tooltip();
+                    tooltipElements.tooltip({
+                        container: 'body',
+                        placement: 'top'
+                    });
 
                     // init system effect popover ---------------------------------------------------------------------
-                    $(moduleElement).find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
+                    tempModuleElement.find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
 
                     // init planets popover ---------------------------------------------------------------------------
-                    $(moduleElement).find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
+                    tempModuleElement.find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
 
                     // init static wormhole information ---------------------------------------------------------------
                     for(let staticData of staticsData){
                         let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
                         staticRowElement.addWormholeInfoTooltip(staticData);
                     }
+
+                    // copy system deeplink URL -----------------------------------------------------------------------
+                    tempModuleElement.find('.' + config.urlLinkClass).on('click', function(){
+                        let mapUrl = $(this).attr('data-url');
+                        Util.copyToClipboard(mapUrl).then(payload => {
+                            if(payload.data){
+                                Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
+                            }
+                        });
+                    });
 
                     // constellation popover --------------------------------------------------------------------------
                     tempModuleElement.find('a.popup-ajax').popover({
@@ -351,6 +365,7 @@ define([
         let moduleData = {
             system: systemData,
             static: staticsData,
+            moduleHeadlineIconClass: config.moduleHeadlineIconClass,
             tableClass: config.systemInfoTableClass,
             nameInfoClass: config.systemInfoNameClass,
             effectInfoClass: config.systemInfoEffectClass,
@@ -359,6 +374,7 @@ define([
             statusInfoClass: config.systemInfoStatusLabelClass,
             popoverTriggerClass: Util.config.popoverTriggerClass,
 
+            systemUrl: MapUtil.getMapDeeplinkUrl(mapId, systemData.id),
             systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
             systemIsWormhole: MapUtil.getSystemTypeInfo(systemData.type.id, 'name') === 'w-space',
             systemStatusId: systemData.status.id,
@@ -389,8 +405,8 @@ define([
 
             systemConstellationLinkClass: config.constellationLinkClass,
             systemRegionLinkClass: config.regionLinkClass,
-            systemTypeLinkClass: config.typeLinkClass
-
+            systemTypeLinkClass: config.typeLinkClass,
+            systemUrlLinkClass: config.urlLinkClass
         };
 
         Render.showModule(moduleConfig, moduleData);

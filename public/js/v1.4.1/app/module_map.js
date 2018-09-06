@@ -246,7 +246,7 @@ define([
              */
             let showPanel = (parentElement, Module, mapId, data) => {
                 let moduleElement = Module.getModule(parentElement, mapId, data);
-                if (moduleElement) {
+                if(moduleElement) {
                     // store Module object to DOM element for further access
                     moduleElement.data('module', Module);
                     moduleElement.data('data', data);
@@ -265,12 +265,12 @@ define([
 
                         // check for stored module order in indexDB (client) ----------------------------------------------
                         let key = 'modules_cell_' + this.parentElement.attr('data-position');
-                        if (
+                        if(
                             dataStore &&
                             dataStore[key]
-                        ) {
+                        ){
                             let positionIndex = dataStore[key].indexOf(Module.config.moduleName);
-                            if (positionIndex !== -1) {
+                            if(positionIndex !== -1) {
                                 // first index (0) => is position 1
                                 defaultPosition = positionIndex + 1;
                             }
@@ -284,13 +284,13 @@ define([
 
                         // insert at correct position ---------------------------------------------------------------------
                         let prevModuleElement = this.parentElement.find('.' + config.moduleClass + ':nth-child(' + position + ')');
-                        if (prevModuleElement.length) {
+                        if(prevModuleElement.length) {
                             this.moduleElement.insertAfter(prevModuleElement);
                         } else {
                             this.parentElement.prepend(this.moduleElement);
                         }
 
-                        if (typeof Module.beforeShow === 'function') {
+                        if(typeof Module.beforeShow === 'function') {
                             Module.beforeShow(this.moduleElement, moduleElement.data('data'));
                         }
 
@@ -304,7 +304,7 @@ define([
                             complete: function (moduleElement) {
                                 moduleElement = $(moduleElement);
                                 let Module = $(moduleElement).data('module');
-                                if (typeof Module.initModule === 'function') {
+                                if(typeof Module.initModule === 'function') {
                                     Module.initModule(moduleElement, mapId, moduleElement.data('data'));
                                 }
 
@@ -328,7 +328,7 @@ define([
 
             // check if module already exists
             let moduleElement = parentElement.find('.' + Module.config.moduleTypeClass);
-            if (moduleElement.length > 0) {
+            if(moduleElement.length > 0) {
                 removeModule(moduleElement, Module, () => {
                     showPanel(parentElement, Module, mapId, data);
                 }, true);
@@ -714,7 +714,7 @@ define([
 
                 if(mapTabChangeBlocked === false){
                     let tabLinkElement = $(this);
-                    let mapId = tabLinkElement.data('map-id');
+                    let mapId = tabLinkElement.data('mapId');
 
                     // ignore "add" tab. no need for map change
                     if(mapId > 0){
@@ -741,7 +741,7 @@ define([
 
              // tab switch --------------------------------------------------------------------------------------------
             $(tabListElement).on('show.bs.tab', 'a', function(e){
-                let mapId = $(e.target).data('map-id');
+                let mapId = $(e.target).data('mapId');
 
                 if(mapId > 0){
                     // save mapId as new "default" (local storage)
@@ -755,7 +755,9 @@ define([
 
             $(tabListElement).on('shown.bs.tab', 'a', function(e){
                 // load new map right after tab-change
-                let mapId = $(e.target).data('map-id');
+                let tabLinkElement = $(e.target);
+                let mapId = tabLinkElement.data('mapId');
+                let defaultSystemId = tabLinkElement.data('defaultSystemId');
                 let tabMapData = Util.getCurrentMapData(mapId);
 
                 if(tabMapData !== false){
@@ -773,10 +775,19 @@ define([
                             let activeSystem = mapElement.find('.' + MapUtil.config.systemActiveClass + ':first');
                             if(activeSystem.length){
                                 MapUtil.setSystemActive(mapConfig.map, activeSystem);
+                            }else if(defaultSystemId){
+                                // currently no system "active" check if there is a default system set for this mapTab
+                                // -> e.g. from URL link
+                                let systemId = MapUtil.getSystemId(mapConfig.config.id, defaultSystemId);
+                                let system = mapElement.find('#' + systemId);
+                                if(system.length){
+                                    // system exists on map -> make active and show panels
+                                    MapUtil.showSystemInfo(mapConfig.map, system);
+                                }
                             }
 
                             // change url to unique map URL
-                            if (history.pushState) {
+                            if(history.pushState) {
                                 let mapUrl = MapUtil.getMapDeeplinkUrl(mapConfig.config.id);
                                 history.pushState({}, '', mapUrl);
                             }
@@ -788,8 +799,8 @@ define([
             });
 
             $(tabListElement).on('hide.bs.tab', 'a', function(e){
-                let newMapId = $(e.relatedTarget).data('map-id');
-                let oldMapId = $(e.target).data('map-id');
+                let newMapId = $(e.relatedTarget).data('mapId');
+                let oldMapId = $(e.target).data('mapId');
 
                 // skip "add button"
                 if(newMapId > 0){
@@ -823,7 +834,7 @@ define([
          */
         let updateTabExecutor = (resolve, reject) => {
             // set "main" data
-            tabElement.data('map-id', options.id);
+            tabElement.data('mapId', options.id);
 
             // add updated timestamp (not available for "add" tab
             if(Util.getObjVal(options, 'updated.updated')){
@@ -988,7 +999,7 @@ define([
                 let key = 'maps_list_' + tabBar.attr('data-position');
                 if(dataStore && dataStore[key]){
                     let positionIndex = dataStore[key].indexOf(this.options.id);
-                    if (positionIndex !== -1) {
+                    if(positionIndex !== -1) {
                         // first index (0) => is position 1
                         defaultPosition = positionIndex + 1;
                     }
@@ -1000,7 +1011,7 @@ define([
 
                 // insert at correct position -------------------------------------------------------------------------
                 let prevListElement = tabBar.find('li' + '' + ':nth-child(' + position + ')');
-                if (prevListElement.length) {
+                if(prevListElement.length) {
                     tabListElement.insertAfter(prevListElement);
                 } else {
                     tabBar.prepend(tabListElement);
@@ -1085,7 +1096,7 @@ define([
             let tabElements = mapModule.getMapTabElements();
             for(let i = 0; i < tabElements.length; i++){
                 let tabElement = $(tabElements[i]);
-                let mapId = tabElement.data('map-id');
+                let mapId = tabElement.data('mapId');
                 if(mapId > 0){
                     promiseDeleteTab.push(deleteTab(tabMapElement, mapId));
                 }
@@ -1102,6 +1113,19 @@ define([
     let getLastUrlSegment = () => {
         let parts = window.location.pathname.split('/');
         return parts.pop() || parts.pop();
+    };
+
+    let getMapDataFromUrl = () => {
+        let data = [];
+        let lastURLSegment = getLastUrlSegment();
+        if(lastURLSegment.length){
+            try{
+                data = lastURLSegment.split('_').map(part => parseInt(atob(decodeURIComponent(part))) || 0);
+            }catch(e){
+                // data could not be extracted from URL -> ignore
+            }
+        }
+        return data;
     };
 
     /**
@@ -1128,17 +1152,15 @@ define([
                 let activeTabLinkElement = false;
 
                 // check for existing mapId URL identifier ------------------------------------------------------------
-                let lastURLSegment = getLastUrlSegment();
-
-                let defaultMapId = 0;
-                try{
-                    defaultMapId = parseInt(atob(decodeURIComponent(lastURLSegment)));
-                }catch(e){
-                    // defaultMapID could not be extracted from URL -> ignore
-                }
+                let urlData = getMapDataFromUrl();
+                let defaultMapId = urlData[0] || 0;
+                let defaultSystemId = urlData[1] || 0;
 
                 if(defaultMapId){
                     activeTabLinkElement = getActiveTabLinkElement(defaultMapId);
+                    if(defaultSystemId && activeTabLinkElement.length){
+                        activeTabLinkElement.data('defaultSystemId', defaultSystemId);
+                    }
                 }
 
                 // ... else check for existing cached default mapId ---------------------------------------------------
@@ -1218,7 +1240,7 @@ define([
                     // check whether a tab/map is still active
                     for(let i = 0; i < tabElements.length; i++){
                         let tabElement = $(tabElements[i]);
-                        let mapId = tabElement.data('map-id');
+                        let mapId = tabElement.data('mapId');
 
                         if(mapId > 0){
                             let tabMapData = Util.getCurrentMapData(mapId);

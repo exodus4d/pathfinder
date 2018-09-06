@@ -1560,7 +1560,7 @@ define([
         if(mapId){
             // search for a specific tab element
             mapTabElements = mapTabElements.filter(function(i, el){
-                return ( $(el).data('map-id') === mapId );
+                return ( $(el).data('mapId') === mapId );
             });
         }
 
@@ -2398,6 +2398,100 @@ define([
         });
     };
 
+
+    /**
+     * write clipboard text
+     * @param text
+     * @returns {Promise<any>}
+     */
+    let copyToClipboard = (text) => {
+
+        let copyToClipboardExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'copyToClipboard',
+                data: false
+            };
+
+            if (navigator.clipboard) {
+                // get current permission status
+                navigator.permissions.query({
+                    name: 'clipboard-write'
+                }).then(permissionStatus => {
+                    // will be 'granted', 'denied' or 'prompt'
+                    if(
+                        permissionStatus.state === 'granted' ||
+                        permissionStatus.state === 'prompt'
+                    ){
+                        navigator.clipboard.writeText(text)
+                            .then(() => {
+                                payload.data = true;
+                                resolve(payload);                        })
+                            .catch(err => {
+                                let errorMsg = 'Failed to write clipboard content';
+                                console.error(errorMsg, err);
+                                showNotify({title: 'Clipboard API', text: errorMsg, type: 'error'});
+                                resolve(payload);
+                            });
+                    }else{
+                        showNotify({title: 'Clipboard API', text: 'You denied write access', type: 'warning'});
+                        resolve(payload);
+                    }
+                });
+            } else {
+                console.warn('Clipboard API not supported by your browser');
+                resolve(payload);
+            }
+        };
+
+        return new Promise(copyToClipboardExecutor);
+    };
+
+    /**
+     * read clipboard text
+     * @returns {Promise<any>}
+     */
+    let readFromClipboard = () => {
+
+        let readFromClipboardExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'readFromClipboard',
+                data: false
+            };
+
+            if (navigator.clipboard) {
+                // get current permission status
+                navigator.permissions.query({
+                    name: 'clipboard-read'
+                }).then(permissionStatus => {
+                    // will be 'granted', 'denied' or 'prompt'
+                    if(
+                        permissionStatus.state === 'granted' ||
+                        permissionStatus.state === 'prompt'
+                    ){
+                        navigator.clipboard.readText()
+                            .then(text => {
+                                payload.data = text;
+                                resolve(payload);                        })
+                            .catch(err => {
+                                let errorMsg = 'Failed to read clipboard content';
+                                console.error(errorMsg, err);
+                                showNotify({title: 'Clipboard API', text: errorMsg, type: 'error'});
+                                resolve(payload);
+                            });
+                    }else{
+                        showNotify({title: 'Clipboard API', text: 'You denied read access', type: 'warning'});
+                        resolve(payload);
+                    }
+                });
+            } else {
+                console.warn('Clipboard API not supported by your browser');
+                resolve(payload);
+            }
+        };
+
+        return new Promise(readFromClipboardExecutor);
+    };
+
     /**
      * set currentSystemData as "global" variable
      * @param systemData
@@ -2786,6 +2880,8 @@ define([
         getNearBySystemData: getNearBySystemData,
         getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
+        copyToClipboard: copyToClipboard,
+        readFromClipboard: readFromClipboard,
         convertDateToUTC: convertDateToUTC,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,

@@ -738,12 +738,14 @@ class SystemModel extends AbstractMapTrackingModel {
         ];
 
         if($fullData){
+            $objectData['objUrl'] = $this->getMap()->getDeeplinkUrl($this->_id);
             $objectData['objAlias'] = $this->alias;
             $objectData['objRegion'] = $this->region;
             $objectData['objIsWormhole'] = $this->isWormhole();
             $objectData['objEffect'] = $this->effect;
             $objectData['objSecurity'] = $this->security;
             $objectData['objTrueSec'] = $this->trueSec;
+            $objectData['objCountPlanets'] = count((array)$this->planets);
             $objectData['objDescription'] = $this->description;
         }
 

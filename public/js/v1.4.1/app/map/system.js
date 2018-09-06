@@ -48,7 +48,9 @@ define([
      * @param system
      */
     $.fn.showRallyPointDialog = (system) => {
-        let mapData = Util.getCurrentMapData(system.data('mapid'));
+        let mapId = system.data('mapid');
+        let systemId = system.data('id');
+        let mapData = Util.getCurrentMapData(mapId);
 
         requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
 
@@ -108,7 +110,8 @@ define([
                 mailRallyEnabled: Boolean(Util.getObjVal(mapData, 'config.logging.mailRally')),
                 dialogRallyMessageDefault: config.dialogRallyMessageDefault,
 
-                systemId: system.data('id')
+                systemUrl: MapUtil.getMapDeeplinkUrl(mapId, systemId),
+                systemId: systemId
             };
 
             let content = Mustache.render(template, data);
