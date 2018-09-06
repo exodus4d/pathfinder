@@ -89,7 +89,8 @@ define([
                         lengthMenu:  'Show _MENU_ wormholes',
                         info:        'Showing _START_ to _END_ of _TOTAL_ wormholes'
                     },
-                    columnDefs: []
+                    columnDefs: [],
+                    data: null      // use DOM data overwrites [] default -> data.loader.js
                 });
 
                 $(this).find('.' + config.wormholeInfoJumpTableClass).DataTable({
@@ -106,7 +107,8 @@ define([
                         lengthMenu:  'Show _MENU_ wormholes',
                         info:        'Showing _START_ to _END_ of _TOTAL_ wormholes'
                     },
-                    columnDefs: []
+                    columnDefs: [],
+                    data: null      // use DOM data overwrites [] default -> data.loader.js
                 });
             });
 

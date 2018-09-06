@@ -1115,6 +1115,10 @@ define([
         return parts.pop() || parts.pop();
     };
 
+    /**
+     * extract data from map url
+     * @returns {Array}
+     */
     let getMapDataFromUrl = () => {
         let data = [];
         let lastURLSegment = getLastUrlSegment();
