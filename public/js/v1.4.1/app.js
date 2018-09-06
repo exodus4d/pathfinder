@@ -71,7 +71,7 @@ requirejs.config({
         'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
         // notification plugin
-        pnotify: 'lib/pnotify/pnotify',                                 // v3.2.0 PNotify - notification core file - https://sciactive.com/pnotify/
+        pnotify: 'lib/pnotify/pnotify',                                 // v3.2.1 PNotify - notification core file - https://sciactive.com/pnotify/
         'pnotify.buttons': 'lib/pnotify/pnotify.buttons',               // PNotify - buttons notification extension
         'pnotify.confirm': 'lib/pnotify/pnotify.confirm',               // PNotify - confirmation notification extension
         'pnotify.nonblock': 'lib/pnotify/pnotify.nonblock',             // PNotify - notification non-block extension (hover effect)

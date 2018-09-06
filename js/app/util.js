@@ -1301,11 +1301,11 @@ define([
     /**
      * trigger a notification (on screen or desktop)
      * @param customConfig
-     * @param desktop
+     * @param settings
      */
-    let showNotify = (customConfig, desktop) => {
+    let showNotify = (customConfig, settings) => {
         requirejs(['notification'], Notification => {
-            Notification.showNotify(customConfig, desktop);
+            Notification.showNotify(customConfig, settings);
         });
     };
 

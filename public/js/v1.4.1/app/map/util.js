@@ -1208,8 +1208,8 @@ define([
 
         let defaultOptions = {
             poke: false,
-            hideNotification: false,
-            hideCounter: false,
+            hideNotification: false,    // do not show notification
+            hideCounter: false          // do not start map update counter
         };
         options = $.extend({}, defaultOptions, options);
 
@@ -1269,7 +1269,11 @@ define([
                                 storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
 
                                 notificationOptions.type = 'info';
-                                Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
+                                Util.showNotify(notificationOptions, {
+                                    desktop: true,
+                                    stack: 'barBottom',
+                                    click: e => {window.location.href = getMapDeeplinkUrl(mapId, systemId);}
+                                });
                             }
                         }.bind({
                             mapId: mapId,
