@@ -575,9 +575,7 @@ define([
                 if(options.show){
                     element.popover('show');
                 }
-
             });
-
         });
     };
 
@@ -1705,6 +1703,20 @@ define([
     };
 
     /**
+     * get planet info e.g. class by type e.g. "barren"
+     * @param type
+     * @param option
+     * @returns {string}
+     */
+    let getPlanetInfo = (type, option = 'class') => {
+        let info = '';
+        if( Init.classes.planets.hasOwnProperty(type) ){
+            info = Init.classes.planets[type][option];
+        }
+        return info;
+    };
+
+    /**
      * get a HTML table with system effect information
      * e.g. for popover
      * @param data
@@ -1739,14 +1751,26 @@ define([
     let getSystemPlanetsTable = planets => {
         let table = '';
         if(planets.length > 0){
+            let regex = /\(([^)]+)\)/;
             table += '<table>';
             for(let planet of planets){
+                let typeName = planet.type.name;
+                let typeClass = '';
+                let matches = regex.exec(typeName.toLowerCase());
+                if(matches && matches[1]){
+                    typeName = matches[1].charAt(0).toUpperCase() + matches[1].slice(1);
+                    typeClass = getPlanetInfo(matches[1]);
+                }
+
                 table += '<tr>';
                 table += '<td>';
                 table += planet.name;
                 table += '</td>';
+                table += '<td class="' + typeClass + '">';
+                table += '<i class="fas fa-circle"></i>';
+                table += '</td>';
                 table += '<td class="text-right">';
-                table += planet.type.name;
+                table += typeName;
                 table += '</td>';
                 table += '</tr>';
             }
@@ -2698,6 +2722,33 @@ define([
     };
 
     /**
+     * get dataTable id
+     * @param prefix
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {string}
+     */
+    let getTableId = (prefix, mapId, systemId, tableType) => prefix + [mapId, systemId, tableType].join('-');
+
+    /**
+     * get a dataTableApi instance from global cache
+     * @param prefix
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstance = (prefix, mapId, systemId, tableType) => {
+        let instance = null;
+        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(prefix, mapId, systemId, tableType));
+        if(table.node()){
+            instance = table;
+        }
+        return instance;
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -2892,6 +2943,8 @@ define([
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,
+        getTableId: getTableId,
+        getDataTableInstance: getDataTableInstance,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

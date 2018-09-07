@@ -34,7 +34,7 @@
     font-size: 11px;
 
     td{
-      padding: 0 5px;
+      padding: 0 4px; // 10px popover padding + 4px table cell padding == 14px -> same as popover title
       vertical-align: middle !important;
     }
   }

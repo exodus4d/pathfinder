@@ -1009,6 +1009,43 @@ table{
   }
 }
 
+// planet types ===================================================================================
+.pf-planet-barren{
+  color: $planet-color-barren;
+}
+
+.pf-planet-gas{
+  color: $planet-color-gas;
+}
+
+.pf-planet-ice{
+  color: $planet-color-ice;
+}
+
+.pf-planet-lava{
+  color: $planet-color-lava;
+}
+
+.pf-planet-oceanic{
+  color: $planet-color-oceanic;
+}
+
+.pf-planet-plasma{
+  color: $planet-color-plasma;
+}
+
+.pf-planet-shattered{
+  color: $planet-color-shattered;
+}
+
+.pf-planet-storm{
+  color: $planet-color-storm;
+}
+
+.pf-planet-temperate{
+  color: $planet-color-temperate;
+}
+
 // "fake connection" classes for the map manual
 .pf-fake-connection{
   box-sizing: content-box;

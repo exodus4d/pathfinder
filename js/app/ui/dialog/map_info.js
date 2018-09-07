@@ -10,7 +10,7 @@ define([
     'bootbox',
     'app/counter',
     'app/map/util'
-], function($, Init, Util, Render, bootbox, Counter, MapUtil) {
+], ($, Init, Util, Render, bootbox, Counter, MapUtil) => {
 
     'use strict';
 
@@ -32,8 +32,10 @@ define([
         mapInfoLogsId: 'pf-map-info-logs',                                      // id for map info logs box
 
         mapInfoLifetimeCounterClass: 'pf-map-info-lifetime-counter',            // class for map lifetime counter
+        systemInfoPlanetsClass: 'pf-system-info-planets',                       // class for "planets" information element
 
         // dataTable
+        tableId: 'pf-info-table-',                                              // Table id prefix
         tableToolsClass: 'pf-table-tools',                                      // class for table "tools" section (e.g. Buttons)
         tableCellImageClass: 'pf-table-image-cell',                             // class for table "image" cells
         tableCellImageSmallClass: 'pf-table-image-small-cell',                  // class for table "small image" cells
@@ -215,13 +217,14 @@ define([
         let systemsElement = $(this).empty();
 
         let systemTable = $('<table>', {
+            id: Util.getTableId(config.tableId, mapData.config.id, '', 'systems'),
             class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
         systemsElement.append(systemTable);
 
         systemsElement.showLoadingAnimation(config.loadingOptions);
 
-        systemTable.on( 'init.dt', function () {
+        systemTable.on( 'init.dt', function (){
             systemsElement.hideLoadingAnimation();
 
             // init table tooltips
@@ -229,153 +232,14 @@ define([
             tooltipElements.tooltip();
         });
 
-        // prepare data for dataTables
-        let systemsData = [];
-        for(let i = 0; i < mapData.data.systems.length; i++){
-            let tempSystemData = mapData.data.systems[i];
-
-            let tempData = {};
-
-            // system id
-            tempData.id = tempSystemData.id;
-
-            // current position
-            if(tempSystemData.currentUser === true){
-                tempData.position = {
-                    position: '<i class="fas fa-map-marker-alt fa-fw"></i>',
-                    position_sort: 1
-                };
-            }else{
-                tempData.position = {
-                    position: '',
-                    position_sort: 0
-                };
-            }
-
-            // active pilots
-            if(tempSystemData.userCount > 0){
-                tempData.userCount = tempSystemData.userCount;
-            }else{
-                tempData.userCount = '';
-            }
-
-            // type
-            tempData.type = {
-                type: MapUtil.getSystemTypeInfo(tempSystemData.type.id, 'name'),
-                type_sort: tempSystemData.type.id
-            };
-
-            // security
-            let securityClass = Util.getSecurityClassForSystem(tempSystemData.security);
-            tempData.security = {
-                security: '<span class="' + securityClass + '">' + tempSystemData.security + '</span>',
-                security_sort: tempSystemData.security
-            };
-
-            // name
-            tempData.name = tempSystemData.name;
-
-            // alias
-            tempData.alias = (tempSystemData.alias === tempSystemData.name) ? '' : tempSystemData.alias;
-
-            // region
-            tempData.region = tempSystemData.region.name;
-
-            // static
-            let statics = [];
-            for(let wormholeName of tempSystemData.statics){
-                let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                let security = wormholeData.security;
-                let secClass = Util.getSecurityClassForSystem(security);
-                statics.push('<span class="' + secClass + '">' + security + '</span>');
-            }
-            tempData.static = statics.join('&nbsp;&nbsp;');
-
-            // status
-            let systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
-            if(systemStatusClass !== ''){
-                tempData.status = {
-                    status: '<i class="far fa-square fa-fw ' + systemStatusClass + '"></i>',
-                    status_sort: tempSystemData.status.id
-                };
-            }else{
-                tempData.status = {
-                    status: '',
-                    status_sort: tempSystemData.status.id
-                };
-            }
-
-            // effect
-            let systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
-            if(systemEffectClass !== ''){
-                tempData.effect = {
-                    effect: '<i class="fas fa-square fa-fw ' + systemEffectClass + '"></i>',
-                    effect_sort: tempSystemData.effect
-                };
-            }else{
-                tempData.effect = {
-                    effect: '',
-                    effect_sort: ''
-                };
-            }
-
-            // trueSec
-            let systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
-            if(systemTrueSecClass !== ''){
-                tempData.trueSec = {
-                    trueSec: '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>',
-                    trueSec_sort: tempSystemData.trueSec
-                };
-            }else{
-                tempData.trueSec = {
-                    trueSec: '',
-                    trueSec_sort: tempSystemData.trueSec
-                };
-            }
-
-            // shattered
-            if(tempSystemData.shattered){
-                tempData.shattered = {
-                    shattered: '<i class="fas fa-skull fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>',
-                    shattered_sort: tempSystemData.shattered
-                };
-            }else{
-                tempData.shattered = {
-                    shattered: '',
-                    shattered_sort: 0
-                };
-            }
-
-            // locked
-            if(tempSystemData.locked === 1){
-                tempData.locked = {
-                    locked: '<i class="fas fa-lock fa-fw"></i>',
-                    locked_sort: tempSystemData.locked
-                };
-            }else{
-                tempData.locked = {
-                    locked: '',
-                    locked_sort: 0
-                };
-            }
-
-            // updated
-            tempData.updated = tempSystemData.updated.updated;
-
-            // delete row
-            tempData.clear = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
-
-            systemsData.push(tempData);
-        }
-
-        let systemsDataTable = systemTable.DataTable( {
+        let systemsDataTable = systemTable.DataTable({
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [[ 9, 'desc' ], [ 3, 'asc' ]],
+            order: [14, 'desc'],
             hover: false,
-            data: systemsData,
+            data: mapData.data.systems,
             columnDefs: [],
             language: {
                 emptyTable:  'Map is empty',
@@ -387,44 +251,53 @@ define([
                 {
                     name: 'type',
                     title: 'type',
-                    width: '25px',
+                    width: 25,
                     className: ['min-screen-l'].join(' '),
                     data: 'type',
                     render: {
-                        _: 'type',
-                        sort: 'type_sort'
+                        _: (cellData, type, rowData, meta) => {
+                            return MapUtil.getSystemTypeInfo(cellData.id, 'name');
+                        }
                     }
                 },{
                     name: 'security',
                     title: '',
-                    width: '1px',
-                    searchable: false,
+                    width: 1,
                     data: 'security',
                     render: {
-                        _: 'security',
-                        sort: 'security_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let securityClass = Util.getSecurityClassForSystem(cellData);
+                            return '<span class="' + securityClass + '">' + cellData + '</span>';
+                        }
                     }
                 },{
                     name: 'trueSec',
                     title: 'sec',
-                    width: '18px',
+                    width: 18,
                     className: ['text-center', 'min-screen-l'].join(' '),
                     searchable: false,
                     data: 'trueSec',
                     render: {
-                        _: 'trueSec',
-                        sort: 'trueSec_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let systemTrueSecClass = Util.getTrueSecClassForSystem(cellData);
+                            return '<span class="' + systemTrueSecClass + '">' + cellData.toFixed(1) + '</span>';
+                        }
                     }
                 },{
                     name: 'shattered',
                     title: '<i class="fas fa-skull" title="shattered" data-toggle="tooltip"></i>',
-                    width: '10px',
+                    width: 10,
                     className: ['text-center', 'min-screen-l'].join(' '),
                     searchable: false,
                     data: 'shattered',
                     render: {
-                        _: 'shattered',
-                        sort: 'shattered_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData){
+                                value = '<i class="fas fa-skull fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>';
+                            }
+                            return value;
+                        }
                     }
                 },{
                     name: 'name',
@@ -440,83 +313,148 @@ define([
                 },{
                     name: 'alias',
                     title: 'alias',
-                    data: 'alias'
+                    data: 'alias',
+                    render: {
+                        _: (cellData, type, rowData, meta) => {
+                            return (cellData === rowData.name) ? '' : cellData;
+                        }
+                    }
                 },{
                     name: 'region',
                     title: 'region',
-                    data: 'region'
+                    data: 'region.name'
+                },{
+                    name: 'planets',
+                    title: '<i class="fas fa-circle" title="planets" data-toggle="tooltip"></i>',
+                    width: 10,
+                    className: ['text-right', config.systemInfoPlanetsClass, Util.config.helpDefaultClass, Util.config.popoverTriggerClass].join(' '),
+                    searchable: false,
+                    orderSequence: ['desc', 'asc'],
+                    data: 'planets',
+                    render: {
+                        _: (cellData, type, rowData, meta) => {
+                            return cellData.length;
+                        }
+                    }
                 },{
                     name: 'status',
                     title: '<i class="far fa-square" title="system&nbsp;status" data-toggle="tooltip"></i>',
-                    width: '10px',
+                    width: 10,
                     className: 'text-center',
                     searchable: false,
-                    data: 'status',
+                    data: 'status.id',
                     render: {
-                        _: 'status',
-                        sort: 'status_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            let systemStatusClass = Util.getStatusInfoForSystem(cellData, 'class');
+                            if(systemStatusClass !== ''){
+                                value = '<i class="far fa-square fa-fw ' + systemStatusClass + '"></i>';
+                            }
+                            return value;
+                        }
                     }
                 },{
                     name: 'effect',
                     title: '<i class="fas fa-square" title="system&nbsp;effect" data-toggle="tooltip"></i>',
-                    width: '10px',
+                    width: 10,
                     className: 'text-center',
                     searchable: false,
                     data: 'effect',
                     render: {
-                        _: 'effect',
-                        sort: 'effect_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            let systemEffectClass = MapUtil.getEffectInfoForSystem(cellData, 'class');
+                            if(systemEffectClass !== ''){
+                                value = '<i class="fas fa-square fa-fw ' + systemEffectClass + '"></i>';
+                            }
+                            return value;
+                        }
                     }
                 },{
-                    name: 'static',
-                    title: 'static',
-                    width: '30px',
-                    data: 'static'
+                    name: 'statics',
+                    title: 'statics',
+                    width: 30,
+                    searchable: false,
+                    data: 'statics',
+                    render: {
+                        _: (cellData, type, rowData, meta) => {
+                            let statics = [];
+                            for(let wormholeName of cellData){
+                                let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                                let security = wormholeData.security;
+                                let secClass = Util.getSecurityClassForSystem(security);
+                                statics.push('<span class="' + secClass + '">' + security + '</span>');
+                            }
+                            return statics.join('&nbsp;&nbsp;');
+                        }
+                    }
                 },{
                     name: 'position',
                     title: '<i class="fas fa-map-marker-alt" title="your&nbsp;position" data-toggle="tooltip"></i>',
-                    width: '8px',
+                    width: 8,
                     className: 'text-center',
                     searchable: false,
-                    data: 'position',
+                    data: 'currentUser',
+                    defaultContent: false,
                     render: {
-                        _: 'position',
-                        sort: 'position_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData === true){
+                                value = '<i class="fas fa-map-marker-alt fa-fw"></i>';
+                            }
+                            return value;
+                        }
                     }
                 },{
                     name: 'userCount',
                     title: '<i class="fas fa-plane" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
-                    width: '12px',
+                    width: 12,
                     className: 'text-center',
                     searchable: false,
-                    data: 'userCount'
+                    data: 'userCount',
+                    render: {
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData > 0){
+                                value = cellData;
+                            }
+                            return value;
+                        }
+                    }
                 },{
                     name: 'locked',
                     title: '<i class="fas fa-lock" title="system&nbsp;locked" data-toggle="tooltip"></i>',
-                    width: '10px',
+                    width: 10,
                     className: 'text-center',
                     searchable: false,
                     data: 'locked',
                     render: {
-                        _: 'locked',
-                        sort: 'locked_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData === 1){
+                                value = '<i class="fas fa-lock fa-fw"></i>';
+                            }
+                            return value;
+                        }
                     }
                 },{
                     name: 'updated',
                     title: 'updated',
-                    width: '80px',
+                    width: 80,
                     searchable: false,
                     className: ['text-right', config.tableCellCounterClass, 'min-screen-l'].join(' '),
-                    data: 'updated'
+                    data: 'updated.updated',
+                    defaultContent: '',
                 },{
                     name: 'action',
                     title: '',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     className: ['text-center', config.tableCellActionClass].join(' '),
-                    data: 'clear',
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                    data: null,
+                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDarker"></i>',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
                         let tempConfirmationSettings = confirmationSettings;
@@ -582,7 +520,7 @@ define([
         connectionsElement.showLoadingAnimation(config.loadingOptions);
 
         // table init complete
-        connectionTable.on( 'init.dt', function () {
+        connectionTable.on( 'init.dt', function (){
             connectionsElement.hideLoadingAnimation();
         });
 
@@ -624,7 +562,7 @@ define([
             connectionData.push(tempConData);
         }
 
-        let connectionDataTable = connectionTable.dataTable( {
+        let connectionDataTable = connectionTable.dataTable({
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -705,7 +643,7 @@ define([
                     width: '10px',
                     className: ['text-center', config.tableCellActionClass].join(' '),
                     data: 'clear',
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
                         let tempConfirmationSettings = confirmationSettings;
@@ -749,7 +687,7 @@ define([
         usersElement.showLoadingAnimation(config.loadingOptions);
 
         // table init complete
-        userTable.on( 'init.dt', function () {
+        userTable.on( 'init.dt', function (){
             usersElement.hideLoadingAnimation();
 
             // init table tooltips
@@ -777,7 +715,7 @@ define([
             }
         }
 
-        let userDataTable = userTable.dataTable( {
+        let userDataTable = userTable.dataTable({
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -866,7 +804,7 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
                             let rowData = e.data.tableApi.row(this).data();
                             Util.openIngameWindow(rowData.id);
                         });
@@ -896,7 +834,7 @@ define([
                     className: [config.tableCellActionClass, 'min-screen-l'].join(' '),
                     data: 'corporation',
                     render: {
-                        _: function (data, type, row, meta) {
+                        _: function (data, type, row, meta){
                             let value = data.name;
                             if(type === 'display'){
                                 value += '&nbsp;' + getIconForInformationWindow();
@@ -906,7 +844,7 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
                             let cellData = e.data.tableApi.cell(this).data();
                             Util.openIngameWindow(cellData.id);
                         });
@@ -936,7 +874,7 @@ define([
                     data: 'log',
                     defaultContent: getLabelForUnknownData(),
                     render: {
-                        _: function (data, type, row, meta) {
+                        _: function (data, type, row, meta){
                             let value = data;
                             if(data){
                                 if(data.station && data.station.id > 0){
@@ -959,7 +897,7 @@ define([
                     className: ['text-right', 'min-screen-l'].join(' '),
                     data: 'role',
                     render: {
-                        _: function (data, type, row, meta) {
+                        _: function (data, type, row, meta){
                             let value = data.label;
                             if(type === 'display'){
                                 value = Util.getLabelByRole(data).prop('outerHTML');
@@ -971,6 +909,33 @@ define([
             ]
         });
 
+    };
+
+    /**
+     * set global dialog observer (all tabs/tables)
+     * @param mapInfoDialog
+     * @param mapData
+     */
+    let setDialogObserver = (mapInfoDialog, mapData) => {
+
+        // planets popover --------------------------------------------------------------------------------------------
+        mapInfoDialog.hoverIntent({
+            over: function(e){
+                let cellElement = $(this);
+                let tableApi = Util.getDataTableInstance(config.tableId, mapData.config.id, '', 'systems');
+                let rowData = tableApi.row(cellElement.parents('tr')).data();
+
+                cellElement.addSystemPlanetsTooltip(rowData.planets, {
+                    trigger: 'manual',
+                    placement: 'left',
+                    show: true
+                });
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: 'td.' + config.systemInfoPlanetsClass
+        });
     };
 
     /**
@@ -996,7 +961,7 @@ define([
                 context: context
             }).done(function(data){
                 this.callback(data, context);
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function( jqXHR, status, error){
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': loadLogs', text: reason, type: 'warning'});
             }).always(function(){
@@ -1092,7 +1057,7 @@ define([
                             data = Util.convertDateToString(logDate, true);
 
                             // check whether log is new (today) ->
-                            if(logDate.setHours(0,0,0,0) === serverHours) {
+                            if(logDate.setHours(0,0,0,0) === serverHours){
                                 // replace dd/mm/YYYY
                                 data = 'today' + data.substring(10);
                             }
@@ -1161,7 +1126,7 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
                             let rowData = e.data.tableApi.row(this).data();
                             Util.openIngameWindow(rowData.context.data.character.id);
                         });
@@ -1263,7 +1228,7 @@ define([
                     className: 'btn btn-sm btn-default',
                     text: '<i class="fas fa-fw fa-plus"></i>&nbsp;load more',
                     enabled: false,
-                    action: function ( e, dt, node, config ) {
+                    action: function ( e, dt, node, config ){
                         let pageInfo = dt.page.info();
 
                         getLogsData({
@@ -1327,14 +1292,15 @@ define([
                         success: {
                             label: 'close',
                             className: 'btn-primary',
-                            callback: function() {
+                            callback: function(){
                                 $(mapInfoDialog).modal('hide');
                             }
                         }
                     }
                 });
 
-                mapInfoDialog.on('shown.bs.modal', function(e) {
+                mapInfoDialog.on('shown.bs.modal', function(e){
+                    let mapInfoDialog = $(this);
                     let mapElement = $('#' + config.mapInfoId);
                     let systemsElement = $('#' + config.mapInfoSystemsId);
                     let connectionsElement = $('#' + config.mapInfoConnectionsId);
@@ -1370,6 +1336,9 @@ define([
 
                     // load users table
                     usersElement.initUsersInfoTable(mapData);
+
+                    // set global dialog observer
+                    setDialogObserver(mapInfoDialog, mapData);
                 });
 
                 // events for tab change

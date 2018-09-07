@@ -286,6 +286,36 @@ define(['jquery'], ($) => {
                     label: 'rally point'
                 }
             },
+            // planets
+            planets: {
+                barren: {
+                    class: 'pf-planet-barren'
+                },
+                gas: {
+                    class: 'pf-planet-gas'
+                },
+                ice: {
+                    class: 'pf-planet-ice'
+                },
+                lava: {
+                    class: 'pf-planet-lava'
+                },
+                oceanic: {
+                    class: 'pf-planet-oceanic'
+                },
+                plasma: {
+                    class: 'pf-planet-plasma'
+                },
+                shattered: {
+                    class: 'pf-planet-shattered'
+                },
+                storm: {
+                    class: 'pf-planet-storm'
+                },
+                temperate: {
+                    class: 'pf-planet-temperate'
+                }
+            },
             // easy-pie-charts
             pieChart: {
                 class: 'pf-pie-chart',                                      // class for all pie charts

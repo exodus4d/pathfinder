@@ -1424,7 +1424,15 @@ define([
         options = $.extend({}, defaultOptions, options);
 
         return this.each(function(){
-            $(this).popover(options);
+            if(planets.length){
+                // Abyss systems don´t have planets -> no tooltip
+                let element = $(this);
+                element.popover(options);
+
+                if(options.show){
+                    element.popover('show');
+                }
+            }
         });
     };
 

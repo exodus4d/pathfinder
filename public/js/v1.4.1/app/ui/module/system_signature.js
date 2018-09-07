@@ -190,7 +190,7 @@ define([
      * @param tableType
      * @returns {string}
      */
-    let getTableId = (mapId, systemId, tableType) => config.sigTableId + [mapId, systemId, tableType].join('-');
+    let getTableId = (mapId, systemId, tableType) => Util.getTableId(config.sigTableId, mapId, systemId, tableType);
 
     /**
      * get a dataTableApi instance from global cache
@@ -199,14 +199,7 @@ define([
      * @param tableType
      * @returns {*}
      */
-    let getDataTableInstance = (mapId, systemId, tableType) => {
-        let instance = null;
-        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(mapId, systemId, tableType));
-        if(table.node()){
-            instance = table;
-        }
-        return instance;
-    };
+    let getDataTableInstance = (mapId, systemId, tableType) => Util.getDataTableInstance(config.sigTableId, mapId, systemId, tableType);
 
     /**
      * Update/set tooltip for an element
@@ -1791,7 +1784,6 @@ define([
                 // check if cell index is inside table dimensions
                 newCellIndex = checkIndex(tableApi, newCellIndex);
 
-                //let cell = tableApi.cell(newCellIndex[1], newCellIndex[0]);
                 let cell = tableApi.cell(':eq(' + newCellIndex[1] + ')', ':eq(' + newCellIndex[0] + ')', {search: 'applied'});
                 let node = cell.node();
 
