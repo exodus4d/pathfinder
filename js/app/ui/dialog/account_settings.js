@@ -62,6 +62,7 @@ define([
             let accountSettingsDialog = bootbox.dialog({
                 title: 'Account settings',
                 message: content,
+                show: false,
                 buttons: {
                     close: {
                         label: 'cancel',
@@ -170,12 +171,7 @@ define([
                 }
             });
 
-            // after modal is shown =======================================================================
-            accountSettingsDialog.on('shown.bs.modal', function(e) {
-
-                let dialogElement = $(this);
-                let form = dialogElement.find('form');
-
+            accountSettingsDialog.on('show.bs.modal', function(e){
                 // request captcha image and show
                 let captchaImageWrapperContainer = $('#' + config.captchaImageWrapperId);
                 captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyUpdateAccount);
@@ -184,13 +180,20 @@ define([
                 captchaImageWrapperContainer.find('i').on('click', function(){
                     captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyUpdateAccount);
                 });
+            });
 
+            // after modal is shown =======================================================================
+            accountSettingsDialog.on('shown.bs.modal', function(e) {
+                let dialogElement = $(this);
+                let form = dialogElement.find('form');
 
-                // init dialog tooltips
                 dialogElement.initTooltips();
 
                 form.initFormValidation();
             });
+
+            // show dialog
+            accountSettingsDialog.modal('show');
 
             // events for tab change
             accountSettingsDialog.find('.navbar a').on('shown.bs.tab', function(e){

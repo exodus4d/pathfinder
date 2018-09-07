@@ -19,8 +19,9 @@
                 <div class="col-sm-12">
                     <div class="form-group">
                         <label class="col-sm-3 control-label"></label>
-                        <div class="col-sm-6">
-                            <p id="{{captchaImageWrapperId}}">
+                        <div class="col-sm-9">
+                            <p id="{{captchaImageWrapperId}}" class="form-control-static">
+                                <i class="fas fa-fw fa-lg fa-sync pull-right pf-dialog-icon-button collapsed"></i>
                                 <img src="" />
                             </p>
                         </div>
@@ -34,8 +35,8 @@
                         <div class="form-group">
                             <label for="captcha" class="col-sm-3 control-label">Captcha</label>
                             <div class="col-sm-6">
-                                <div class="input-group" title="Enter the characters seen above" data-placement="right">
-                                    <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" data-error="Field is required" autocomplete="off" required>
+                                <div class="input-group" title="Enter Captcha" data-placement="right">
+                                    <input name="captcha" type="text" class="form-control" id="captcha" data-minlength-error="Min. of 6 characters" placeholder="" data-error="Captcha required" data-minlength="6" maxlength="6" autocomplete="off" required>
                                     <span class="input-group-addon"><i class="fas fa-fw fa-sync"></i></span>
                                 </div>
                                 <div class="help-block with-errors"></div>
