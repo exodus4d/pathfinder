@@ -140,6 +140,8 @@ class Setup extends Controller {
      * @throws \Exception\PathfinderException
      */
     function beforeroute(\Base $f3, $params): bool {
+        $this->initResource($f3);
+
         // init dbLib class. Manages all DB connections
         $this->dbLib = DB\Database::instance();
 
@@ -151,9 +153,6 @@ class Setup extends Controller {
 
         // body element class
         $f3->set('tplBodyClass', 'pf-landing');
-
-        // js path (build/minified or raw uncompressed files)
-        $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
 
         return true;
     }

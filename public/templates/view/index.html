@@ -43,45 +43,28 @@
     <meta property="og:description" content="PATHFINDER is an 'open source' mapping tool for EVE ONLINE,
     primarily developed to enrich the gameplay of small scale PvP and PvE.">
 
-
     <meta name="theme-color" content="#2b2b2b">                                                     {* Chrome, Firefox OS and Opera *}
     <meta name="msapplication-navbutton-color" content="#2b2b2b">                                   {* Windows Phone *}
     <meta name="apple-mobile-web-app-status-bar-style" content="#2b2b2b">                           {* iOS Safari *}
 
     <meta name="google-site-verification" content="sHoh0gfMw3x1wiwLTK5OsKsxt7kRgxi69hRgWEGh9DQ" />  {* Youtube verification code *}
 
-    <set pathCSS="{{ @BASE . '/public/css/' . @PATHFINDER.VERSION . '/pathfinder.css' }}" />
-    <set pathJSApp="{{ @BASE . '/' . @tplPathJs . '/app' }}" />
-    <set pathJSRequire="{{ @BASE . '/' . @tplPathJs . '/lib/require.js' }}" />
+    <check if="{{ @tplResource->getOption('output') === 'inline' }}">
+        {{ @tplResource->buildLinks() }}                                                            {* Prefetch / Preload *}
+    </check>
 
-    {* Prefetch / Preload *}
-    <link rel="preload" href="{{@pathCSS}}" as="style">
-    <link rel="preload" href="{{@pathJSRequire}}" as="script">
-    <link rel="preload" href="{{@pathJSApp}}.js" as="script">
-    <link rel="preload" href="{{@pathJSApp}}/{{@tplJsView}}.js" as="script">
     <link rel="prerender" href="//login.eveonline.com">
     <link rel="dns-prefetch" href="//image.eveonline.com">
     <link rel="dns-prefetch" href="//i.ytimg.com">
 
-    <check if="{{ @tplJsView != 'mappage' }}">
-        <link rel="prefetch" href="{{@pathJSApp}}/mappage.js" as="script">
-    </check>
-
-    <link rel="preload" href="/public/fonts/oxygen-regular-webfont.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="/public/fonts/oxygen-bold-webfont.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-    <link rel="preload" href="/public/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="/public/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="/public/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-    <link rel="stylesheet" href="{{@pathCSS}}" type="text/css" media="screen">
+    <link rel="stylesheet" href="{{ @tplResource->getLink('style', 'pathfinder') }}" type="text/css" media="screen">
 </head>
-<body class="pf-body {{ @tplBodyClass }}" data-js-path="{{ @BASE }}/{{ @tplPathJs }}" data-script="{{ @tplJsView }}" <check if="{{ @tplCharacterId }}">data-character-id="{{ @tplCharacterId }}"</check> data-version="{{ @PATHFINDER.VERSION }}">
+<body class="pf-body {{ @tplBodyClass }}" data-js-path="{{ @tplResource->getPath('script') }}" data-script="{{ @tplJsView }}" <check if="{{ @tplCharacterId }}">data-character-id="{{ @tplCharacterId }}"</check> data-version="{{ @PATHFINDER.VERSION }}">
     <include if="{{ @tplPageContent }}" href="{{ @tplPageContent }}"/>
 
     <!-- Hey dude! Where is all the magic? -->
 
-    <script data-main="{{@pathJSApp}}" src="{{@pathJSRequire}}" ></script>
+    <script data-main="{{ @tplResource->getLink('script', 'app') }}" src="{{ @tplResource->getLink('script', 'lib/require') }}" ></script>
 </body>
 
 </html>

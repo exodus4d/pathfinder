@@ -8,7 +8,6 @@
 
 namespace lib;
 
-
 use controller\LogController;
 use Exception;
 

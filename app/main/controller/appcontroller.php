@@ -10,6 +10,7 @@ namespace Controller;
 
 use Controller\Ccp as Ccp;
 use lib\Config;
+use lib\Resource;
 
 class AppController extends Controller {
 
@@ -58,7 +59,13 @@ class AppController extends Controller {
      * @param \Base $f3
      */
     public function init(\Base $f3) {
-
+        $resource = Resource::instance();
+        $resource->register('script', 'app/login');
+        $resource->register('script', 'app/mappage', 'prefetch');
+        $resource->register('image', 'pf-bg.jpg');
+        $resource->register('image', 'pf-header-bg.jpg');
+        $resource->register('image', 'landing/eve_sso_login_buttons_large_black.png');
+        $resource->register('image', 'landing/eve_sso_login_buttons_large_black_hover.png');
     }
 
 }

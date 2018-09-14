@@ -7,8 +7,10 @@
  */
 
 namespace Controller;
+
 use Controller\Api as Api;
 use lib\Config;
+use lib\Resource;
 use lib\Monolog;
 use lib\Socket;
 use lib\Util;
@@ -76,8 +78,7 @@ class Controller {
         if($f3->get('AJAX')){
             header('Content-type: application/json');
         }else{
-            // js path (build/minified or raw uncompressed files)
-            $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
+            $this->initResource($f3);
 
             $this->setTemplate( Config::getPathfinderData('view.index') );
         }
@@ -91,6 +92,12 @@ class Controller {
      * @param \Base $f3
      */
     public function afterroute(\Base $f3){
+        // send preload/prefetch headers
+        $resource = Resource::instance();
+        if($resource->getOption('output') === 'header'){
+            header($resource->buildHeader(), false);
+        }
+
         if($this->getTemplate()){
             // Ajax calls don´t need a page render..
             // this happens on client side
@@ -143,6 +150,34 @@ class Controller {
             }
         }
 
+    }
+
+    /**
+     * init new Resource handler
+     * @param \Base $f3
+     * @throws \Exception\PathfinderException
+     */
+    protected function initResource(\Base $f3){
+        $resource = Resource::instance();
+        $resource->setOption('filePath', [
+            'style'     => $f3->get('BASE') . '/public/css/' . Config::getPathfinderData('version'),
+            'script'    => $f3->get('BASE') . '/public/js/' . Config::getPathfinderData('version'),
+            'font'      => $f3->get('BASE') . '/public/fonts',
+            'image'     => $f3->get('BASE') . '/public/img'
+        ]);
+
+        $resource->register('style', 'pathfinder');
+
+        $resource->register('script', 'lib/require');
+        $resource->register('script', 'app');
+
+        $resource->register('font', 'oxygen-regular-webfont');
+        $resource->register('font', 'oxygen-bold-webfont');
+        $resource->register('font', 'fa-regular-400');
+        $resource->register('font', 'fa-solid-900');
+        $resource->register('font', 'fa-brands-400');
+
+        $f3->set('tplResource', $resource);
     }
 
     /**
