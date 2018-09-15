@@ -166,13 +166,7 @@ class Setup extends Controller {
         $f3->set('tplJsView', 'setup');
 
         // set render functions (called within template)
-        $f3->set('cacheType', function(){
-            $cacheType = $this->getF3()->get('CACHE');
-            if( strpos($cacheType, 'redis') !== false ){
-                $cacheType = 'redis';
-            }
-            return $cacheType;
-        });
+        $f3->set('cacheType', $this->getCacheType($f3));
 
         // simple counter (called within template)
         $counter = 0;
@@ -186,6 +180,19 @@ class Setup extends Controller {
 
         // render view
         echo \Template::instance()->render( Config::getPathfinderData('view.index') );
+    }
+
+    /**
+     * get Cache backend type for F3
+     * @param \Base $f3
+     * @return string
+     */
+    protected function getCacheType(\Base &$f3) : string {
+        $cacheType = $f3->get('CACHE');
+        if(strpos($cacheType, 'redis') !== false){
+            $cacheType = 'redis';
+        }
+        return $cacheType;
     }
 
     /**
@@ -255,6 +262,9 @@ class Setup extends Controller {
 
         // set cache size
         $f3->set('cacheSize', $this->getCacheData($f3));
+
+        // set Redis config check information
+        $f3->set('checkRedisConfig', $this->checkRedisConfig($f3));
     }
 
     /**
@@ -337,8 +347,8 @@ class Setup extends Controller {
                 'value' => $f3->get('PORT')
             ],
             'protocol' => [
-                'label' => 'Protocol',
-                'value' => strtoupper( $f3->get('SCHEME') )
+                'label' => 'Protocol - scheme',
+                'value' => $f3->get('SERVER.SERVER_PROTOCOL') . ' - ' . $f3->get('SCHEME')
             ]
         ];
 
@@ -431,11 +441,8 @@ class Setup extends Controller {
                 'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'missing',
                 'check' => (extension_loaded('curl') && function_exists('curl_version'))
             ],
-            [
-                'label' => 'Redis Server [optional]'
-            ],
             'ext_redis' => [
-                'label' => 'Redis',
+                'label' => 'Redis [optional]',
                 'required' => $f3->get('REQUIREMENTS.PHP.REDIS'),
                 'version' => extension_loaded('redis') ? phpversion('redis') : 'missing',
                 'check' => version_compare( phpversion('redis'), $f3->get('REQUIREMENTS.PHP.REDIS'), '>='),
@@ -591,6 +598,81 @@ class Setup extends Controller {
         ];
 
         return $phpConfig;
+    }
+
+    /**
+     * check Redis (cache) config
+     * -> only visible if Redis is used as Cache backend
+     * @param \Base $f3
+     * @return array
+     */
+    protected function checkRedisConfig(\Base $f3): array {
+        $redisConfig = [];
+        if($this->getCacheType($f3) === 'redis'){
+            // we need to access the "protected" member $ref from F3´s Cache class
+            // to get access to the underlying Redis() class
+            $ref = new \ReflectionObject($cache = \Cache::instance());
+            $prop = $ref->getProperty('ref');
+            $prop->setAccessible(true);
+            /**
+             * @var $redis \Redis
+             */
+            $redis = $prop->getValue($cache);
+
+            $redisServerInfo = (array)$redis->info('SERVER');
+            $redisMemoryInfo = (array)$redis->info('MEMORY');
+            $redisStatsInfo = (array)$redis->info('STATS');
+
+            $redisConfig = [
+                'redisVersion' => [
+                    'label' => 'redis_version',
+                    'required' => number_format((float)$f3->get('REQUIREMENTS.REDIS.VERSION'), 1, '.', ''),
+                    'version' => $redisServerInfo['redis_version'],
+                    'check' => version_compare( $redisServerInfo['redis_version'], $f3->get('REQUIREMENTS.REDIS.VERSION'), '>='),
+                    'tooltip' => 'Redis server version'
+                ],
+                'maxMemory' => [
+                    'label' => 'maxmemory',
+                    'required' => $this->convertBytes($f3->get('REQUIREMENTS.REDIS.MAX_MEMORY')),
+                    'version' => $this->convertBytes($redisMemoryInfo['maxmemory']),
+                    'check' => $redisMemoryInfo['maxmemory'] >= $f3->get('REQUIREMENTS.REDIS.MAX_MEMORY'),
+                    'tooltip' => 'Max memory limit for Redis'
+                ],
+                'usedMemory' => [
+                    'label' => 'used_memory',
+                    'version' => $this->convertBytes($redisMemoryInfo['used_memory']),
+                    'check' => $redisMemoryInfo['used_memory'] < $redisMemoryInfo['maxmemory'],
+                    'tooltip' => 'Current memory used by Redis'
+                ],
+                'usedMemoryPeak' => [
+                    'label' => 'used_memory_peak',
+                    'version' => $this->convertBytes($redisMemoryInfo['used_memory_peak']),
+                    'check' => $redisMemoryInfo['used_memory_peak'] <= $redisMemoryInfo['maxmemory'],
+                    'tooltip' => 'Peak memory used by Redis'
+                ],
+                'maxmemoryPolicy' => [
+                    'label' => 'maxmemory_policy',
+                    'required' => $f3->get('REQUIREMENTS.REDIS.MAXMEMORY_POLICY'),
+                    'version' => $redisMemoryInfo['maxmemory_policy'],
+                    'check' => $redisMemoryInfo['maxmemory_policy'] == $f3->get('REQUIREMENTS.REDIS.MAXMEMORY_POLICY'),
+                    'tooltip' => 'How Redis behaves if \'maxmemory\' limit reached'
+                ],
+                'evictedKeys' => [
+                    'label' => 'evicted_keys',
+                    'version' => $redisStatsInfo['evicted_keys'],
+                    'check' => !(bool)$redisStatsInfo['evicted_keys'],
+                    'tooltip' => 'Number of evicted keys due to maxmemory limit'
+                ],
+                'dbSize' . $redis->getDbNum() => [
+                    'label' => 'Size DB (' . $redis->getDbNum() . ')',
+                    'version' => $redis->dbSize(),
+                    'check' => $redis->dbSize() > 0,
+                    'tooltip' => 'Keys found in DB (' . $redis->getDbNum() . ') [Cache DB]'
+                ]
+            ];
+        }
+
+        return $redisConfig;
     }
 
     /**
@@ -1419,8 +1501,8 @@ class Setup extends Controller {
         $result = '0';
         if($bytes){
             $base = log($bytes, 1024);
-            $suffixes = array('', 'KB', 'MB', 'GB', 'TB');
-            $result = round(pow(1024, $base - floor($base)), $precision) .' '. $suffixes[floor($base)];
+            $suffixes = array('', 'KB', 'M', 'GB', 'TB');
+            $result = round(pow(1024, $base - floor($base)), $precision) .''. $suffixes[floor($base)];
         }
         return $result;
     }

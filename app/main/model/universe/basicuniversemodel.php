@@ -100,26 +100,30 @@ abstract class BasicUniverseModel extends BasicModel {
      */
     public function buildIndex(){
         $data = null;
-
         if($hashKeyId = $this->getHashKey()){
-            $hashKeyTable = self::generateHashKeyTable($this->getTable());
-
-            if( !self::existsCacheValue($hashKeyTable, $cachedData) ){
-                $cachedData = [];
-            }
-
-            if( !in_array($hashKeyId, $cachedData) ){
-                $cachedData[] = $hashKeyId;
-            }
-
             $data = $this->getData();
+            $this->getF3()->set($hashKeyId, $data, self::CACHE_INDEX_EXPIRE_KEY);
 
-            // straight into cache (no $f->set() ), no sync with hive here -> save ram
-            self::setCacheValue($hashKeyId, $data, self::CACHE_INDEX_EXPIRE_KEY);
-            self::setCacheValue($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
+            // ... add hashKey for this rows to tableIndex as well
+            self::buildTableIndex($this, [$hashKeyId]);
         }
 
         return $data;
+    }
+
+    /**
+     * add $rowKeys (hashKeys) to a search index that holds all rowKeys of a table
+     * @param BasicUniverseModel $model
+     * @param array $rowKeys
+     */
+    public static function buildTableIndex(BasicUniverseModel $model, array $rowKeys = []){
+        $hashKeyTable = self::generateHashKeyTable($model->getTable());
+        if( !self::getF3()->exists($hashKeyTable, $cachedData) ){
+            $cachedData = [];
+        }
+        $cachedData = array_unique(array_merge($cachedData, $rowKeys));
+
+        self::getF3()->set($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
     }
 
     /**

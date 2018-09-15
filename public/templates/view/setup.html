@@ -142,10 +142,8 @@
             </div>
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
-
                 {* Server *}
                 <div class="panel panel-default pricing-big">
-
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">Server</h3>
                     </div>
@@ -166,6 +164,30 @@
                     </div>
                 </div>
 
+                {* System Env requirements *}
+                <check if="{{ @checkSystemConfig }}">
+                    <set requirementsData="{{ @checkSystemConfig }}" />
+
+                    <div class="panel panel-default pricing-big">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">Environment variables [optional]</h3>
+                        </div>
+                        <div class="panel-body no-padding text-align-center">
+                            <include href="templates/modules/requirements_table.html"/>
+                        </div>
+                        <div class="panel-footer text-align-center">
+                            <check if="{{ !@tplCounter('get') }}">
+                                <true>
+                                    <h3 class="panel-title txt-color txt-color-success">OK</h3>
+                                </true>
+                                <false>
+                                    <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                                </false>
+                            </check>
+                        </div>
+                    </div>
+                    {{ @tplCounter('reset') }}
+                </check>
             </div>
 
         </div>
@@ -204,7 +226,7 @@
 
                 <div class="panel panel-default pricing-big">
                     <div class="panel-heading text-left">
-                        <h3 class="panel-title">PHP configuration</h3>
+                        <h3 class="panel-title">PHP config (php.ini)</h3>
                     </div>
                     <div class="panel-body no-padding text-align-center">
                         <include href="templates/modules/requirements_table.html"/>
@@ -222,13 +244,13 @@
                 </div>
                 {{ @tplCounter('reset') }}
 
-                {* System Env requirements *}
-                <check if="{{ @checkSystemConfig }}">
-                    <set requirementsData="{{ @checkSystemConfig }}" />
+                {* Redis requirements *}
+                <check if="{{ @checkRedisConfig }}">
+                    <set requirementsData="{{ @checkRedisConfig }}" />
 
                     <div class="panel panel-default pricing-big">
                         <div class="panel-heading text-left">
-                            <h3 class="panel-title">Environment variables [optional]</h3>
+                            <h3 class="panel-title">Redis configuration [optional]</h3>
                         </div>
                         <div class="panel-body no-padding text-align-center">
                             <include href="templates/modules/requirements_table.html"/>
@@ -970,10 +992,10 @@
                             <kbd class="pull-right">
                                 <check if="{{ @cacheSize.all }}">
                                     <true>
-                                        {{ @cacheSize.all }}&nbsp;
+                                        {{ @cacheSize.all }}
                                     </true>
                                     <false>
-                                        0 KB&nbsp;
+                                        0KB
                                     </false>
                                 </check>
                             </kbd>
@@ -981,7 +1003,7 @@
                     </div>
 
                     <div class="panel-body no-padding">
-                        <check if="{{ @cacheType() == 'redis' }}">
+                        <check if="{{ @cacheType === 'redis' }}">
                             <div class="btn-group btn-group-justified">
                                 <span class="btn btn-default disabled btn-fake">
                                     Redis cache
@@ -1001,7 +1023,7 @@
                                             {{ @cacheSize.data }}
                                         </true>
                                         <false>
-                                            0 KB
+                                            0KB
                                         </false>
                                     </check>
                                 </kbd>
@@ -1020,7 +1042,7 @@
                                             {{ @cacheSize.template }}
                                         </true>
                                         <false>
-                                            0 KB
+                                            0KB
                                         </false>
                                     </check>
                                 </kbd>
