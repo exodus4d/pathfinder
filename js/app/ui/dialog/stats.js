@@ -10,7 +10,7 @@ define([
     'app/render',
     'bootbox',
     'peityInlineChart'
-], function($, Init, Util, Render, bootbox) {
+], function($, Init, Util, Render, bootbox){
     'use strict';
 
     let config = {
@@ -355,7 +355,7 @@ define([
                     });
                 });
             },
-            footerCallback: function ( row, data, start, end, display ) {
+            footerCallback: function(row, data, start, end, display ){
                 let api = this.api();
                 let sumColumnIndexes = [7, 11, 15, 19, 20];
 
@@ -417,7 +417,7 @@ define([
             this.dynamicArea.hideLoadingAnimation();
 
             this.callback(data);
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': loadStatistics', text: reason, type: 'warning'});
         });
@@ -753,7 +753,7 @@ define([
      * show activity stats dialog
      */
     $.fn.showStatsDialog = function(){
-        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache){
             // get current statistics map settings
             let logActivityEnabled = false;
             let activeMap = Util.getMapModule().getActiveMap();
@@ -816,20 +816,20 @@ define([
             });
 
             // model events
-            statsDialog.on('show.bs.modal', function(e) {
+            statsDialog.on('show.bs.modal', function(e){
                 let dialogElement = $(e.target);
                 initStatsTable(dialogElement);
             });
 
             // Tab module events
-            statsDialog.find('a[data-toggle="tab"]').on('show.bs.tab', function (e, b, c) {
+            statsDialog.find('a[data-toggle="tab"]').on('show.bs.tab', function(e, b, c){
                 if( $(e.target).parent().hasClass('disabled') ){
                     // no action on "disabled" tabs
                     return false;
                 }
             });
 
-            statsDialog.find('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            statsDialog.find('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
                 let requestData = getRequestDataFromTabPanels(statsDialog);
                 let tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
 

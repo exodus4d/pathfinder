@@ -8,7 +8,7 @@ define([
     'pnotify.desktop',
     //'pnotify.history',
     'pnotify.callbacks'
-], function($, Init, PNotify) {
+], function($, Init, PNotify){
 
     'use strict';
 
@@ -169,8 +169,8 @@ define([
                 }
             };
 
-            return function () {
-                if (!blinkTimer) {
+            return function(){
+                if(!blinkTimer){
                     blinkTimer = setInterval(blink, 1000);
                 }
             };

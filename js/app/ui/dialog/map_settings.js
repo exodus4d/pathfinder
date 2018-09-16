@@ -315,7 +315,7 @@ define([
 
                     formatFilename: function(){
                         // format filename from "map name" (initial)
-                        return function (mapName, render) {
+                        return function(mapName, render){
                             let filename = render(mapName);
                             return formatFilename(filename);
                         };
@@ -340,7 +340,7 @@ define([
                         success: {
                             label: '<i class="fas fa-check fa-fw"></i>&nbsp;save',
                             className: 'btn-success',
-                            callback: function() {
+                            callback: function(){
 
                                 // get the current active form
                                 let form = $('#' + config.newMapDialogId).find('form').filter(':visible');
@@ -424,12 +424,12 @@ define([
                                             $(mapInfoDialog).modal('hide');
                                             $(document).trigger('pf:closeMenu', [{}]);
                                         }
-                                    }).fail(function( jqXHR, status, error) {
+                                    }).fail(function(jqXHR, status, error){
                                         let reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
                                         $(document).setProgramStatus('problem');
 
-                                    }).always(function() {
+                                    }).always(function(){
                                         dialogContent.hideLoadingAnimation();
                                     });
                                 }
@@ -449,7 +449,7 @@ define([
 
                     // prevent "disabled" tabs from being clicked... "bootstrap" bugFix...
                     mapInfoDialog.find('.navbar a[data-toggle=tab]').on('click', function(e){
-                        if ($(this).hasClass('disabled')){
+                        if($(this).hasClass('disabled')){
                             e.preventDefault();
                             return false;
                         }
@@ -532,7 +532,7 @@ define([
                                 let output = [];
                                 let files = e.target.files;
 
-                                for (let i = 0, f; !!(f = files[i]); i++) {
+                                for(let i = 0, f; !!(f = files[i]); i++){
                                     output.push(( i + 1 ) + '. file: ' + f.name + ' - ' +
                                         f.size + ' bytes; last modified: ' +
                                         f.lastModifiedDate.toLocaleDateString() );
@@ -553,7 +553,7 @@ define([
                             let filesCountFail = 0;
 
                             // onLoad for FileReader API
-                            let readerOnLoad = function(readEvent) {
+                            let readerOnLoad = function(readEvent){
 
                                 // get file content
                                 try{
@@ -574,7 +574,7 @@ define([
                                 }
                             };
 
-                            let handleDragOver = function(dragEvent) {
+                            let handleDragOver = function(dragEvent){
                                 dragEvent.stopPropagation();
                                 dragEvent.preventDefault();
                                 dragEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
@@ -591,7 +591,7 @@ define([
 
                                 files = evt.dataTransfer.files; // FileList object.
 
-                                for (let file; !!(file = files[filesCount]); filesCount++){
+                                for(let file; !!(file = files[filesCount]); filesCount++){
                                     let reader = new FileReader();
                                     reader.onload = readerOnLoad;
                                     reader.readAsText(file);
@@ -605,7 +605,7 @@ define([
                             }
 
                             // import "button"
-                            downloadTabElement.find('#' + config.buttonImportId).on('click', function(e) {
+                            downloadTabElement.find('#' + config.buttonImportId).on('click', function(e){
 
                                 importFormElement.validator('validate');
                                 let validImportForm = importFormElement.isValidForm();
@@ -619,7 +619,7 @@ define([
                                     filesCount = 0;
                                     filesCountFail = 0;
 
-                                    for (let file; !!(file = files[filesCount]); filesCount++){
+                                    for(let file; !!(file = files[filesCount]); filesCount++){
                                         let reader = new FileReader();
                                         reader.onload = readerOnLoad;
                                         reader.readAsText(file);
@@ -710,10 +710,10 @@ define([
 
                 Util.showNotify({title: 'Import finished', text: 'Map(s) imported', type: 'success'});
             }
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': importMap', text: reason, type: 'error'});
-        }).always(function() {
+        }).always(function(){
             importForm.find('input, select').resetFormFields().trigger('change');
             dialogContent.hideLoadingAnimation();
         });
@@ -798,11 +798,11 @@ define([
                         dataType: 'json'
                     }).done(function(data){
                         Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
-                    }).fail(function( jqXHR, status, error) {
+                    }).fail(function(jqXHR, status, error){
                         let reason = status + ' ' + error;
                         Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
                         $(document).setProgramStatus('problem');
-                    }).always(function() {
+                    }).always(function(){
                         $(mapDeleteDialog).modal('hide');
                     });
 

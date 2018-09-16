@@ -8,7 +8,7 @@ define([
     'app/init',
     'app/util',
     'app/map/util'
-], function($, Init, Util, MapUtil) {
+], function($, Init, Util, MapUtil){
     'use strict';
 
     let config = {
@@ -122,7 +122,7 @@ define([
      * @param checkExistence
      */
     let filterRows = (table, data = 'id', values = [], checkExistence = true) => {
-        return table.rows().eq(0).filter( function (rowIdx) {
+        return table.rows().eq(0).filter( function(rowIdx){
             let rowExists = values.indexOf( table.row(rowIdx ).data()[data] ) !== -1;
 
             if( !checkExistence ){
@@ -157,17 +157,17 @@ define([
 
         // update userCount for "near by" count -------------------------------------------------------------------
         if( characterAll > 0){
-            userCountElement.toggleClass( 'txt-color-green', true).toggleClass( 'txt-color-red', false);
+            userCountElement.toggleClass('txt-color-green', true).toggleClass('txt-color-red', false);
         }else{
-            userCountElement.toggleClass( 'txt-color-green', false).toggleClass( 'txt-color-red', true);
+            userCountElement.toggleClass('txt-color-green', false).toggleClass('txt-color-red', true);
         }
         userCountElement.text(characterAll);
 
         // update userCount in current system ---------------------------------------------------------------------
         if( characterLocal > 0){
-            childElements.eq(3).toggleClass( 'txt-color-green', true).toggleClass( 'txt-color-red', false);
+            childElements.eq(3).toggleClass('txt-color-green', true).toggleClass('txt-color-red', false);
         }else{
-            childElements.eq(3).toggleClass( 'txt-color-green', false).toggleClass( 'txt-color-red', true);
+            childElements.eq(3).toggleClass('txt-color-green', false).toggleClass('txt-color-red', true);
         }
         childElements.eq(3).text(characterLocal);
     };
@@ -188,7 +188,7 @@ define([
             let characterLocalIds = [];
 
             // system is on map (just for security check)
-            for(let jumps in userData) {
+            for(let jumps in userData){
                 if( userData.hasOwnProperty(jumps) ){
                     jumps = parseInt(jumps);
 
@@ -237,7 +237,7 @@ define([
             // open Overlay -------------------------------------------------------------------------------------------
             if( !isOpen(overlay) ){
                 let promiseStore = MapUtil.getLocaleData('map', mapId);
-                promiseStore.then(function(dataStore) {
+                promiseStore.then(function(dataStore){
                     if(
                         dataStore &&
                         dataStore.showLocal
@@ -256,7 +256,7 @@ define([
      * @returns {*}
      */
     let getDescendantProp = (obj, selector) => {
-        return selector.split('.').reduce(function(a, b) {
+        return selector.split('.').reduce(function(a, b){
             return a[b];
         }, obj);
     };
@@ -376,7 +376,7 @@ define([
                 });
 
                 // table init complete
-                table.on( 'init.dt', function (){
+                table.on('init.dt', function(){
                     // init table head tooltips
                     $(this).initTooltips({
                         container: 'body',
@@ -394,7 +394,7 @@ define([
                     searching: false,
                     hover: false,
                     autoWidth: false,
-                    rowId: function(rowData) {
+                    rowId: function(rowData){
                         return 'pf-local-row_' + rowData.id; // characterId
                     },
                     language: {

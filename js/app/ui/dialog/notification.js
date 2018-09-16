@@ -8,7 +8,7 @@ define([
     'app/util',
     'app/render',
     'bootbox'
-], function($, Init, Util, Render, bootbox) {
+], function($, Init, Util, Render, bootbox){
 
     'use strict';
 
@@ -52,7 +52,7 @@ define([
             // close all modals
             $('.modal').modal('hide');
 
-            requirejs(['text!templates/dialog/notification.html', 'mustache'], function(template, Mustache) {
+            requirejs(['text!templates/dialog/notification.html', 'mustache'], function(template, Mustache){
 
                 let data = {
                     id: config.notificationDialogId,
@@ -70,7 +70,7 @@ define([
                 });
 
 
-                shutdownDialog.on('shown.bs.modal', function(e) {
+                shutdownDialog.on('shown.bs.modal', function(e){
                     // remove close button
                     let dialog = $(this);
 

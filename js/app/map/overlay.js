@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'app/map/util'
-], function($, Init, Util, MapUtil) {
+], function($, Init, Util, MapUtil){
     'use strict';
 
     let config = {
@@ -85,7 +85,7 @@ define([
         };
 
         // loop through all map connections (get from DOM)
-        for(let connection of connections) {
+        for(let connection of connections){
             let connectionId        = connection.getParameter('connectionId');
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
@@ -199,7 +199,7 @@ define([
             iconElement.data(dataName, defaultIconClass);
         }
 
-        iconElement.toggleClass( defaultIconClass + ' fa-sync fa-spin' );
+        iconElement.toggleClass( defaultIconClass + ' fa-sync fa-spin');
     };
 
     /**
@@ -211,7 +211,7 @@ define([
         let dataName = 'default-icon';
         let defaultIconClass = iconElement.data(dataName);
 
-        iconElement.toggleClass( defaultIconClass + ' fa-sync fa-spin' );
+        iconElement.toggleClass( defaultIconClass + ' fa-sync fa-spin');
     };
 
     /**
@@ -247,7 +247,7 @@ define([
             this.mapElement.hideEndpointOverlays();
             // ... add overlays
             callback(this.connections, connectionsData);
-        }).always(function() {
+        }).always(function(){
             hideLoading(this.overlayConnectionIcon);
         });
     };
@@ -275,7 +275,7 @@ define([
         let MapUtil = require('app/map/util');
         let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh');
 
-        for (let connection of connections){
+        for(let connection of connections){
             connection.removeOverlays(config.connectionOverlayArrowId);
             connection.endpoints.forEach(removeEndpointOverlay);
         }
@@ -326,7 +326,7 @@ define([
                     mapElement.find('.' + config.systemHeadClass).each(function(){
                         let system = $(this);
                         // init tooltip if not already exists
-                        if ( !system.data('bs.tooltip') ){
+                        if( !system.data('bs.tooltip') ){
                             system.tooltip({
                                 container: mapElement,
                                 placement: 'right',
@@ -379,7 +379,7 @@ define([
                     let serverDate = Util.getServerTime();
 
                     // show connection overlays ---------------------------------------------------
-                    for (let connection of connections) {
+                    for(let connection of connections){
                         let createdTimestamp = connection.getParameter('created');
                         let updatedTimestamp = connection.getParameter('updated');
 
@@ -412,7 +412,7 @@ define([
                     let MapUtil = require('app/map/util');
                     let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh');
 
-                    for (let connection of connections){
+                    for(let connection of connections){
                         connection.removeOverlays(config.connectionOverlayId);
                     }
                 }
@@ -430,7 +430,7 @@ define([
                     let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
                     let serverDate = Util.getServerTime();
 
-                    for (let connection of connections) {
+                    for(let connection of connections){
                         let eolTimestamp = connection.getParameter('eolUpdated');
                         let eolDate = Util.convertTimestampToServerTime(eolTimestamp);
                         let diff = Util.getTimeDiffParts(eolDate, serverDate);
@@ -451,7 +451,7 @@ define([
                     let MapUtil = require('app/map/util');
                     let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
 
-                    for (let connection of connections) {
+                    for(let connection of connections){
                         connection.removeOverlay(config.connectionOverlayEolId);
                     }
                 }
@@ -704,7 +704,7 @@ define([
             });
 
             // add all overlay elements
-            for (let prop in options) {
+            for(let prop in options){
                 if(options.hasOwnProperty(prop)){
                     let icon = $('<i>', {
                         class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')

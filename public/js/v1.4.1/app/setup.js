@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'app/map/worker'
-], function($, Init, Util, MapWorker) {
+], function($, Init, Util, MapWorker){
     'use strict';
 
     let config = {
@@ -35,7 +35,7 @@ define([
             context: context
         }).done(function(data){
             callback(this, data);
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Failed. Please retry', text: reason, type: 'warning'});
             this.target.button('reset');
@@ -83,7 +83,7 @@ define([
         body.initTooltips();
 
         // change url (remove logout parameter)
-        if (history.pushState) {
+        if(history.pushState){
             history.pushState({}, '', location.protocol + '//' + location.host + location.pathname);
         }
     };
@@ -139,7 +139,7 @@ define([
         webSocketPanel.showLoadingAnimation();
 
         let removeColorClasses = (el) => {
-            el.removeClass (function (index, css) {
+            el.removeClass (function(index, css){
                 return (css.match (/\btxt-color-\S+/g) || []).join(' ');
             });
         };

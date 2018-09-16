@@ -101,7 +101,7 @@ define([
             }
         };
 
-        requirejs(['text!templates/modules/killboard.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/modules/killboard.html', 'mustache'], function(template, Mustache){
             let content = Mustache.render(template, data);
 
             moduleElement.append(content);
@@ -150,7 +150,7 @@ define([
 
              if(data.count === 0){
                  labelOptions.type = 'label-success';
-                 label = getLabel( 'No kills found within the last 24h', labelOptions );
+                 label = getLabel('No kills found within the last 24h', labelOptions );
                  killboardGraphElement.append( label );
 
                  minifyKillboardGraphElement(killboardGraphElement);
@@ -184,8 +184,8 @@ define([
                 barRadius: [2, 2, 0, 0],
                 barSizeRatio: 0.5,
                 barGap: 3,
-                barColors: function (row, series, type) {
-                    if (type === 'bar') {
+                barColors: function(row, series, type){
+                    if(type === 'bar'){
                         // highlight last row -> recent kills found
                         if(this.xmax === row.x){
                             return '#c2760c';
@@ -252,13 +252,13 @@ define([
                 url: url,
                 type: 'GET',
                 dataType: 'json'
-            }).done(function(kbData) {
+            }).done(function(kbData){
 
                 // the API wont return more than 200KMs ! - remember last bar block with complete KM information
                 let lastCompleteDiffHourData = 0;
 
                 // loop kills and count kills by hour
-                for (let i = 0; i < kbData.length; i++) {
+                for(let i = 0; i < kbData.length; i++){
                     let killmailData = kbData[i];
                     let killDate = Util.convertDateToUTC(new Date(killmailData.killmail_time));
 
@@ -267,16 +267,16 @@ define([
                     let timeDiffHour = Math.floor(timeDiffMin / 60);
 
                     // update chart data
-                    if (chartData[timeDiffHour]) {
+                    if(chartData[timeDiffHour]){
                         chartData[timeDiffHour].kills++;
 
                         // add kill mail data
-                        if (chartData[timeDiffHour].killmails === undefined) {
+                        if(chartData[timeDiffHour].killmails === undefined){
                             chartData[timeDiffHour].killmails = [];
                         }
                         chartData[timeDiffHour].killmails.push(killmailData);
 
-                        if (timeDiffHour > lastCompleteDiffHourData) {
+                        if(timeDiffHour > lastCompleteDiffHourData){
                             lastCompleteDiffHourData = timeDiffHour;
                         }
                     }
@@ -284,7 +284,7 @@ define([
                 }
 
                 // remove empty chart Data
-                if (kbData.length >= maxKillmailCount) {
+                if(kbData.length >= maxKillmailCount){
                     chartData = chartData.splice(0, lastCompleteDiffHourData + 1);
                 }
 

@@ -231,11 +231,11 @@ define([
         let shatteredClass = Util.getSecurityClassForSystem('SH');
 
         // format result data
-        function formatResultData (data) {
+        function formatResultData (data){
             if(data.loading) return data.text;
 
             // abyss system font
-            let systemNameClass = data.security === 'A' ? Util.config.fontTriglivianClass : '' ;
+            let systemNameClass = data.security === 'A' ? Util.config.fontTriglivianClass : '';
 
             // show effect info just for wormholes
             let hideEffectClass = data.effect === null ? 'hide' : '';
@@ -272,7 +272,7 @@ define([
                             page: params.page || 1
                         };
                     },
-                    processResults: function(data, params) {
+                    processResults: function(data, params){
                         // parse the results into the format expected by Select2.
                         return {
                             results: data.results.map( function(item){
@@ -321,7 +321,7 @@ define([
                             }
                         };
                     },
-                    error: function (jqXHR, status, error) {
+                    error: function(jqXHR, status, error){
                         if( !Util.isXHRAborted(jqXHR) ){
 
                             let reason = status + ' ' + jqXHR.status + ': ' + error;
@@ -386,11 +386,11 @@ define([
                         delay: 250,
                         timeout: 5000,
                         cache: true,
-                        data: function(params) {
+                        data: function(params){
                             // no url params here
                             return;
                         },
-                        processResults: function(data, page) {
+                        processResults: function(data, page){
                             // parse the results into the format expected by Select2.
                             return {
                                 results: data.map( function(item){
@@ -402,7 +402,7 @@ define([
                                 })
                             };
                         },
-                        error: function (jqXHR, status, error) {
+                        error: function(jqXHR, status, error){
                             if( !Util.isXHRAborted(jqXHR) ){
 
                                 let reason = status + ' ' + jqXHR.status + ': ' + error;
@@ -434,7 +434,7 @@ define([
      * @param options
      * @returns {*}
      */
-    $.fn.initUniverseSearch = function(options) {
+    $.fn.initUniverseSearch = function(options){
 
         let showErrorNotification = (reason) => {
             Util.showNotify({title: 'Search failed', text: reason + ' deleted', type: 'warning'});
@@ -495,7 +495,7 @@ define([
             });
         }
 
-        return this.each(function() {
+        return this.each(function(){
             let selectElement = $(this);
 
             $.when(
@@ -515,7 +515,7 @@ define([
                                 categories: options.categoryNames
                             };
                         },
-                        processResults: function(result, page) {
+                        processResults: function(result, page){
                             let data = {results: []};
                             if(result.hasOwnProperty('error')){
                                 showErrorNotification(result.error);
@@ -543,7 +543,7 @@ define([
 
                             return data;
                         },
-                        error: function (jqXHR, status, error) {
+                        error: function(jqXHR, status, error){
                             if( !Util.isXHRAborted(jqXHR) ){
                                 let reason = status + ' ' + jqXHR.status + ': ' + error;
                                 showErrorNotification(reason);
@@ -631,7 +631,7 @@ define([
             return data;
         };
 
-        return this.each(function() {
+        return this.each(function(){
             let selectElement = $(this);
 
             $.when(

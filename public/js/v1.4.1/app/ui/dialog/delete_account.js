@@ -88,7 +88,7 @@ define([
                                             });
                                         }
 
-                                    }).fail(function( jqXHR, status, error){
+                                    }).fail(function(jqXHR, status, error){
                                         dialogElement.find('.modal-content').hideLoadingAnimation();
 
                                         let reason = status + ' ' + error;

@@ -207,8 +207,8 @@ define([
         };
         let routeData = [];
 
-        dataTable.rows().every( function() {
-            routeData.push( getRouteRequestDataFromRowData( this.data() ));
+        dataTable.rows().every( function(){
+            routeData.push( getRouteRequestDataFromRowData(this.data()));
         });
 
         getRouteData({routeData: routeData}, context, callbackAddRouteRows);
@@ -279,7 +279,7 @@ define([
                     success: {
                         label: '<i class="fas fa-fw fa-search"></i>&nbsp;search route',
                         className: 'btn-primary',
-                        callback: function () {
+                        callback: function(){
                             // add new route to route table
 
                             // get form Values
@@ -335,7 +335,7 @@ define([
                 }
             });
 
-            findRouteDialog.on('show.bs.modal', function(e) {
+            findRouteDialog.on('show.bs.modal', function(e){
                 findRouteDialog.initTooltips();
 
                 // init some dialog/form observer
@@ -347,7 +347,7 @@ define([
             });
 
 
-            findRouteDialog.on('shown.bs.modal', function(e) {
+            findRouteDialog.on('shown.bs.modal', function(e){
 
                 // init system select live  search ------------------------------------------------
                 // -> add some delay until modal transition has finished
@@ -467,7 +467,7 @@ define([
                         success: {
                             label: '<i class="fas fa-fw fa-check"></i>&nbsp;save',
                             className: 'btn-success',
-                            callback: function () {
+                            callback: function(){
                                 let form = this.find('form');
                                 // get all system data from select2
                                 let systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
@@ -489,7 +489,7 @@ define([
                     }
                 });
 
-                settingsDialog.on('shown.bs.modal', function(e) {
+                settingsDialog.on('shown.bs.modal', function(e){
 
                     // init default system select -----------------------------------------------------
                     // -> add some delay until modal transition has finished
@@ -582,7 +582,7 @@ define([
      */
     let getConnectionsDataFromMaps = (mapIds) => {
         let connectionsData = {};
-        for(let mapId of mapIds) {
+        for(let mapId of mapIds){
             let map = MapUtil.getMapInstance(mapId);
             if(map){
                 let cacheKey = 'map_' + mapId;
@@ -953,7 +953,7 @@ define([
                         _: 'name',
                         sort: 'name'
                     },
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // init context menu
                         $(cell).initSystemPopover({
                             systemToData: rowData.systemToData
@@ -1003,10 +1003,10 @@ define([
                     render: {
                         _: 'button'
                     },
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableApi = this.api();
 
-                        $(cell).on('click', function(e) {
+                        $(cell).on('click', function(e){
                             let routeCellElement = tempTableApi.cell( rowIndex, 4 ).nodes().to$();
 
                             if(routeCellElement.hasClass(config.dataTableJumpCellClass)){
@@ -1029,10 +1029,10 @@ define([
                     render: {
                         _: 'button'
                     },
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableApi = this.api();
 
-                        $(cell).on('click', function(e) {
+                        $(cell).on('click', function(e){
                             // get current row data (important!)
                             // -> "rowData" param is not current state, values are "on createCell()" state
                             rowData = tempTableApi.row( $(cell).parents('tr')).data();
@@ -1068,7 +1068,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableApi = this.api();
 
-                        $(cell).on('click', function(e) {
+                        $(cell).on('click', function(e){
                             // get current row data (important!)
                             // -> "rowData" param is not current state, values are "on createCell()" state
                             rowData = tempTableApi.row( $(cell).parents('tr')).data();
@@ -1126,7 +1126,7 @@ define([
             ],
             drawCallback: function(settings){
 
-                let animationRows = this.api().rows().nodes().to$().filter(function() {
+                let animationRows = this.api().rows().nodes().to$().filter(function(){
                     return (
                         $(this).data('animationStatus') ||
                         $(this).data('animationTimer')
@@ -1175,14 +1175,14 @@ define([
         let eventNamespace = 'hideSystemPopup';
         let systemToData = options.systemToData;
 
-        requirejs(['text!templates/tooltip/system_popover.html', 'mustache'], function (template, Mustache) {
+        requirejs(['text!templates/tooltip/system_popover.html', 'mustache'], function(template, Mustache){
             let data = {
                 systemToData: systemToData
             };
 
             let content = Mustache.render(template, data);
 
-            elements.each(function() {
+            elements.each(function(){
                 let element = $(this);
                 // destroy "popover" and remove "click" event for animation
                 element.popover('destroy').off();
@@ -1210,7 +1210,7 @@ define([
             });
 
             // set link observer "on shown" event
-            elements.on('shown.bs.popover', function () {
+            elements.on('shown.bs.popover', function(){
                 let popoverRoot = $(this);
 
                 popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
@@ -1334,7 +1334,7 @@ define([
 
         // fill routesTable with data -------------------------------------------------------------
         let promiseStore = MapUtil.getLocaleData('map', mapId);
-        promiseStore.then(function(dataStore) {
+        promiseStore.then(function(dataStore){
             // selected systems (if already stored)
             let systemsTo = [{
                 systemId: 30000142,

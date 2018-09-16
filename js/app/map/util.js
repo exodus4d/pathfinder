@@ -121,7 +121,7 @@ define([
 
             for(let i = 0; i < checkMapTypes.length; i++){
                 let objectId = Util.getCurrentUserInfo(checkMapTypes[i] + 'Id');
-                if(objectId > 0) {
+                if(objectId > 0){
                     // check if User could add new map with a mapType
                     let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, checkMapTypes[i] + '.id'));
                     let maxCountObject = Util.getObjVal(mapTypes, checkMapTypes[i] + '.defaultConfig.max_count');
@@ -131,7 +131,7 @@ define([
                 }
             }
 
-            for(let mapType in mapTypes) {
+            for(let mapType in mapTypes){
                 if(authorizedMapTypes.indexOf(mapType) < 0){
                     delete( mapTypes[mapType] );
                 }
@@ -971,7 +971,7 @@ define([
         if(objectId > 0){
             // get current map config
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data){
                 // This code runs once the value has been loaded
                 // from the offline store.
                 data = (data === null) ? {} : data;
@@ -982,7 +982,7 @@ define([
                 key: key,
                 value: value,
                 storageKey: storageKey
-            })).catch(function(err) {
+            })).catch(function(err){
                 // This code runs if there were any errors
                 console.error('Map local storage can not be accessed!');
             });
@@ -1180,7 +1180,7 @@ define([
         if(objectId > 0){
             // get current map config
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data){
                 if(
                     data &&
                     data.hasOwnProperty(key)
@@ -1248,7 +1248,7 @@ define([
                         let mapId = system.data('mapid');
                         let systemId = system.data('id');
                         let promiseStore = getLocaleData('map', mapId);
-                        promiseStore.then(function(data) {
+                        promiseStore.then(function(data){
                             // This code runs once the value has been loaded
                             // from the offline store.
                             let rallyPokeData = {};
@@ -1633,7 +1633,7 @@ define([
                 }else{
                     console.warn('Missing systemData in response!', requestData);
                 }
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function(jqXHR, status, error){
                 console.warn('Fail request systemData!', requestData);
             });
         };

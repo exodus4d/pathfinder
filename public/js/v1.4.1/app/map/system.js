@@ -52,7 +52,7 @@ define([
         let systemId = system.data('id');
         let mapData = Util.getCurrentMapData(mapId);
 
-        requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache){
 
             let setCheckboxObserver = (checkboxes) => {
                 checkboxes.each(function(){
@@ -87,7 +87,7 @@ define([
                     context: context
                 }).done(function(data){
 
-                }).fail(function( jqXHR, status, error) {
+                }).fail(function(jqXHR, status, error){
                     let reason = status + ' ' + error;
                     Util.showNotify({title: jqXHR.status + ': sendPoke', text: reason, type: 'warning'});
                 }).always(function(){
@@ -127,7 +127,7 @@ define([
                     success: {
                         label: '<i class="fas fa-fw fa-volume-up"></i> set rally point',
                         className: 'btn-success',
-                        callback: function() {
+                        callback: function(){
                             let form = $('#' + config.dialogRallyId).find('form');
                             // get form data
                             let formData = form.getFormValues();
@@ -168,7 +168,7 @@ define([
         let validDeleteSystems = [];
         let activeCharacters = 0;
         // check if systems belong to map -> security check
-        for (let system of systems) {
+        for(let system of systems){
             let systemElement = $(system);
             if(
                 systemElement.data('mapid') === mapContainer.data('id')  &&
@@ -333,7 +333,7 @@ define([
                             system.attr('title', getTitle(tooltipOptions.userCount, tooltipOptions.highlight));
                             system.tooltip(options);
 
-                            system.one('shown.bs.tooltip', function() {
+                            system.one('shown.bs.tooltip', function(){
                                 // set highlight only on FIRST show
                                 $('#' + this.innerTooltipId).addClass(this.highlightClass);
                             }.bind({
@@ -397,7 +397,7 @@ define([
             removeSystems(this.map,  deletedSystems);
 
             callback(deletedSystems);
-        }).fail(function(jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
@@ -414,7 +414,7 @@ define([
             map.remove(deleteSystem);
         };
 
-        for (let system of systems){
+        for(let system of systems){
             system = $(system);
 
             // check if system is "active"

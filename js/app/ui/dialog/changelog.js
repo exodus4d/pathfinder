@@ -80,7 +80,7 @@ define([
 
             showVersion(changelogDialog, versionData);
 
-            requirejs(['text!templates/ui/timeline_element.html', 'mustache'], function(template, Mustache) {
+            requirejs(['text!templates/ui/timeline_element.html', 'mustache'], function(template, Mustache){
                 for(let i = 0; i < releasesData.length; i++){
                     let releaseData = releasesData[i];
 
@@ -103,10 +103,10 @@ define([
                     complete: function(){}
                 });
             });
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + jqXHR.status + ': ' + error;
             Util.showNotify({title: jqXHR.status + ': login', text: reason, type: 'error'});
-        }).always(function() {
+        }).always(function(){
             dialogContent.hideLoadingAnimation();
         });
     };
@@ -132,7 +132,7 @@ define([
         });
 
         // after modal is shown =======================================================================
-        changelogDialog.on('shown.bs.modal', function(e) {
+        changelogDialog.on('shown.bs.modal', function(e){
             loadDialogData(changelogDialog);
         });
     };

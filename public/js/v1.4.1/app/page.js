@@ -265,7 +265,7 @@ define([
                     })
                 ).on('click', function(){
                     let fullScreenElement = $('body');
-                    requirejs(['jquery', 'fullScreen'], function($) {
+                    requirejs(['jquery', 'fullScreen'], function($){
 
                         if($.fullscreen.isFullScreen()){
                             $.fullscreen.exit();
@@ -313,7 +313,7 @@ define([
             )
         );
 
-        requirejs(['fullScreen'], function() {
+        requirejs(['fullScreen'], function(){
             if($.fullscreen.isNativelySupported() === true){
                 $('#' + Util.config.menuButtonFullScreenId).removeClass('hide');
             }
@@ -501,12 +501,12 @@ define([
         });
 
         // main menus
-        $('.' + config.headMenuClass).on('click', function(e) {
+        $('.' + config.headMenuClass).on('click', function(e){
             e.preventDefault();
             slideMenu.slidebars.toggle('left');
         });
 
-        $('.' + config.headMapClass).on('click', function(e) {
+        $('.' + config.headMapClass).on('click', function(e){
             e.preventDefault();
             slideMenu.slidebars.toggle('right');
         });
@@ -548,7 +548,7 @@ define([
         // -> always "enable"
         mapTrackingCheckbox.bootstrapToggle('on');
 
-        mapTrackingCheckbox.on('change', function(e) {
+        mapTrackingCheckbox.on('change', function(e){
             let value = $(this).is(':checked');
             let tracking = 'off';
             let trackingText = 'Your current location will not actually be added';
@@ -734,7 +734,7 @@ define([
         // END menu events =============================================================================
 
         // global "popover" callback (for all popovers)
-        $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e) {
+        $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e){
             let popoverElement = $(this).data('bs.popover').tip();
 
             // destroy all active tooltips inside this popover
@@ -742,7 +742,7 @@ define([
         });
 
         // global "modal" callback (for all modals)
-        $('body').on('hide.bs.modal', '> .modal', function(e) {
+        $('body').on('hide.bs.modal', '> .modal', function(e){
             let modalElement = $(this);
             modalElement.destroyTimestampCounter(true);
 
@@ -969,7 +969,7 @@ define([
             animateHeaderElement(userInfoElement, (userInfoElement) => {
                 if(currentCharacterChanged){
                     userInfoElement.find('span').text( newCharacterName );
-                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + newCharacterId + '_32.jpg' );
+                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + newCharacterId + '_32.jpg');
                 }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
@@ -990,7 +990,7 @@ define([
             // toggle element
             animateHeaderElement(userShipElement, (userShipElement) => {
                 userShipElement.find('span').text( newShipData.typeName );
-                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipData.typeId + '_32.png' );
+                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipData.typeId + '_32.png');
                 // trigger ship change event
                 $(document).trigger('pf:activeShip', {
                     shipData: newShipData
@@ -1122,30 +1122,30 @@ define([
 
         // Set the name of the hidden property and the change event for visibility
         let hidden, visibilityChange;
-        if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
+        if(typeof document.hidden !== 'undefined'){ // Opera 12.10 and Firefox 18 and later support
             hidden = 'hidden';
             visibilityChange = 'visibilitychange';
-        } else if (typeof document.mozHidden !== 'undefined') {
+        }else if(typeof document.mozHidden !== 'undefined'){
             hidden = 'mozHidden';
             visibilityChange = 'mozvisibilitychange';
-        } else if (typeof document.msHidden !== 'undefined') {
+        }else if(typeof document.msHidden !== 'undefined'){
             hidden = 'msHidden';
             visibilityChange = 'msvisibilitychange';
-        } else if (typeof document.webkitHidden !== 'undefined') {
+        }else if(typeof document.webkitHidden !== 'undefined'){
             hidden = 'webkitHidden';
             visibilityChange = 'webkitvisibilitychange';
         }
 
         // function is called if the tab becomes active/inactive
         let handleVisibilityChange = () => {
-            if (document[hidden]) {
+            if(document[hidden]){
                 // tab is invisible
                 // globally store current visibility status
                 window.isVisible = false;
 
                 Util.getCurrentTriggerDelay( mapUpdateKey, increaseTimer );
                 Util.getCurrentTriggerDelay( mapUserUpdateKey, increaseTimer );
-            } else {
+            }else{
                 // tab is visible
                 // globally store current visibility status
                 window.isVisible = true;
@@ -1158,7 +1158,7 @@ define([
             }
         };
 
-        if (
+        if(
             typeof document.addEventListener !== 'undefined' &&
             typeof document[hidden] !== 'undefined'
         ){
@@ -1268,16 +1268,16 @@ define([
      * show information panel to active users (on bottom)
      * @returns {*|jQuery|HTMLElement}
      */
-    $.fn.showGlobalInfoPanel = function (){
+    $.fn.showGlobalInfoPanel = function(){
         let body = $(this);
         let infoTemplate = 'text!templates/ui/info_panel.html';
 
-        requirejs([infoTemplate, 'mustache'], function(template, Mustache) {
+        requirejs([infoTemplate, 'mustache'], function(template, Mustache){
             let data = {
                 id: config.globalInfoPanelId
             };
             let content = $( Mustache.render(template, data) );
-            content.insertBefore( '#' + config.pageFooterId );
+            content.insertBefore('#' + config.pageFooterId );
         });
 
         return body;
@@ -1296,7 +1296,7 @@ define([
         // add "unchecked" checkboxes as well
         values = values.concat(
             form.find('input[type=checkbox]:not(:checked)').map(
-                function() {
+                function(){
                     return {name: this.name, value: 0};
                 }).get()
         );

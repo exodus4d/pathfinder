@@ -224,7 +224,7 @@ define([
 
         systemsElement.showLoadingAnimation(config.loadingOptions);
 
-        systemTable.on( 'init.dt', function (){
+        systemTable.on('init.dt', function(){
             systemsElement.hideLoadingAnimation();
 
             // init table tooltips
@@ -520,7 +520,7 @@ define([
         connectionsElement.showLoadingAnimation(config.loadingOptions);
 
         // table init complete
-        connectionTable.on( 'init.dt', function (){
+        connectionTable.on('init.dt', function(){
             connectionsElement.hideLoadingAnimation();
         });
 
@@ -687,7 +687,7 @@ define([
         usersElement.showLoadingAnimation(config.loadingOptions);
 
         // table init complete
-        userTable.on( 'init.dt', function (){
+        userTable.on('init.dt', function(){
             usersElement.hideLoadingAnimation();
 
             // init table tooltips
@@ -834,7 +834,7 @@ define([
                     className: [config.tableCellActionClass, 'min-screen-l'].join(' '),
                     data: 'corporation',
                     render: {
-                        _: function (data, type, row, meta){
+                        _: function(data, type, row, meta){
                             let value = data.name;
                             if(type === 'display'){
                                 value += '&nbsp;' + getIconForInformationWindow();
@@ -874,7 +874,7 @@ define([
                     data: 'log',
                     defaultContent: getLabelForUnknownData(),
                     render: {
-                        _: function (data, type, row, meta){
+                        _: function(data, type, row, meta){
                             let value = data;
                             if(data){
                                 if(data.station && data.station.id > 0){
@@ -897,7 +897,7 @@ define([
                     className: ['text-right', 'min-screen-l'].join(' '),
                     data: 'role',
                     render: {
-                        _: function (data, type, row, meta){
+                        _: function(data, type, row, meta){
                             let value = data.label;
                             if(type === 'display'){
                                 value = Util.getLabelByRole(data).prop('outerHTML');
@@ -961,7 +961,7 @@ define([
                 context: context
             }).done(function(data){
                 this.callback(data, context);
-            }).fail(function( jqXHR, status, error){
+            }).fail(function(jqXHR, status, error){
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': loadLogs', text: reason, type: 'warning'});
             }).always(function(){
@@ -1052,7 +1052,7 @@ define([
                     render: {
                         _: function(data, type, row, meta){
                             // strip microseconds
-                            let logDateString = data.substring(0, 19) ;
+                            let logDateString = data.substring(0, 19);
                             let logDate = new Date(logDateString.replace(/-/g, '/'));
                             data = Util.convertDateToString(logDate, true);
 
@@ -1204,7 +1204,7 @@ define([
                 let timestampColumn =  tableApi.column('timestamp:name').header();
                 let timestampColumnCells = tableApi.cells(undefined, 'timestamp:name', {page: 'current', order:'current'});
 
-                let hasOldLogs = timestampColumnCells.render( 'display' ).reduce((hasOldLogs, cellValue) => {
+                let hasOldLogs = timestampColumnCells.render('display').reduce((hasOldLogs, cellValue) => {
                     return (hasOldLogs === false && !cellValue.startsWith('today')) ? true : hasOldLogs;
                 }, false);
 
@@ -1228,7 +1228,7 @@ define([
                     className: 'btn btn-sm btn-default',
                     text: '<i class="fas fa-fw fa-plus"></i>&nbsp;load more',
                     enabled: false,
-                    action: function ( e, dt, node, config ){
+                    action: function(e, dt, node, config ){
                         let pageInfo = dt.page.info();
 
                         getLogsData({

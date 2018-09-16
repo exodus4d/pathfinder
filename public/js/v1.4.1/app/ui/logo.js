@@ -59,7 +59,7 @@ define([
         };
 
         // load Logo svg
-        requirejs(['text!templates/ui/logo.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/ui/logo.html', 'mustache'], function(template, Mustache){
             let logoData = {
                 staticLogoId: config.staticLogoId,
                 logoPartTopRightClass: config.logoPartTopRightClass,

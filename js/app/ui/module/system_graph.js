@@ -170,7 +170,7 @@ define([
                         graphData: graphData
                     }
                 });
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function(jqXHR, status, error){
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': System graph data', text: reason, type: 'warning'});
                 $(document).setProgramStatus('problem');
@@ -204,8 +204,8 @@ define([
         eventLine = 23 - eventLine;
 
         // update graph data ------------------------------------------------------------------------------------------
-        for (let [systemId, graphsData] of Object.entries(graphData)){
-            for (let [graphKey, graphData] of Object.entries(graphsData)){
+        for(let [systemId, graphsData] of Object.entries(graphData)){
+            for(let [graphKey, graphData] of Object.entries(graphsData)){
                 let graphElement = context.moduleElement.find('[data-graph="' + graphKey + '"]');
                 graphElement.hideLoadingAnimation();
                 initGraph(graphElement, graphKey, graphData, eventLine);
@@ -262,7 +262,7 @@ define([
                 class: 'row'
             });
 
-            for (let [graphKey, graphConfig] of Object.entries(config.systemGraphs)){
+            for(let [graphKey, graphConfig] of Object.entries(config.systemGraphs)){
                 rowElement.append(
                     $('<div>', {
                         class: ['col-xs-12', 'col-sm-6', 'col-md-4'].join(' ')

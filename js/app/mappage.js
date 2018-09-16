@@ -61,7 +61,7 @@ define([
          * -> stop program from working -> shutdown
          */
         let clearUpdateTimeouts = () => {
-            for(let intervalKey in updateTimeouts) {
+            for(let intervalKey in updateTimeouts){
                 if(updateTimeouts.hasOwnProperty(intervalKey)){
                     clearTimeout(updateTimeouts[intervalKey]);
                 }
@@ -201,7 +201,7 @@ define([
                 Page.initMapContextMenus();
 
                 // init map module
-                mapModule.initMapModule() ;
+                mapModule.initMapModule();
 
                 // load info (maintenance) info panel (if scheduled)
                 if(Init.programMode.maintenance){
@@ -253,7 +253,7 @@ define([
                                 },
                                 onOpen: (MsgWorkerMessage) => {
                                     Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
-                                    MapWorker.send( 'subscribe', response.data);
+                                    MapWorker.send('subscribe', response.data);
 
                                     resolve(getPayload(MsgWorkerMessage.command));
                                 },
@@ -396,7 +396,7 @@ define([
                         }else{
                             $(document).setProgramStatus('online');
 
-                            if(data.userData !== undefined) {
+                            if(data.userData !== undefined){
                                 // store current user data global (cache)
                                 Util.setCurrentUserData(data.userData);
                             }
@@ -526,7 +526,7 @@ define([
 
             // Send map update request on tab close/reload, in order to save map changes that
             // haven´t been saved through default update trigger
-            window.addEventListener('beforeunload', function(e) {
+            window.addEventListener('beforeunload', function(e){
                 // save unsaved map changes ...
                 triggerMapUpdatePing();
 

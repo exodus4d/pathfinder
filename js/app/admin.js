@@ -34,7 +34,7 @@ define([
                 let targetElement = $('[data-id="' + targetId + '"]');
                 let targetFormFields = targetElement.find('input[type="radio"]');
                 let checkFormFields = [];
-                for(let formField of targetFormFields) {
+                for(let formField of targetFormFields){
                     if(this.checked){
                         if(formField.hasAttribute('data-default') || formField.getAttribute('data-default-value')){
                             checkFormFields.push(formField);
@@ -47,7 +47,7 @@ define([
                     }
                 }
 
-                for(let checkFormField of checkFormFields) {
+                for(let checkFormField of checkFormFields){
                     checkFormField.checked = true;
                 }
             }

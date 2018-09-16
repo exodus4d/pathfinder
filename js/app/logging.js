@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'bootbox'
-], function($, Init, Util, bootbox) {
+], function($, Init, Util, bootbox){
 
     'use strict';
 
@@ -48,7 +48,7 @@ define([
         let logDialog = $('#' + config.taskDialogId);
         if(logDialog.length){
             // dialog is open
-            requirejs(['text!templates/modules/sync_status.html', 'mustache'], function(templateSyncStatus, Mustache) {
+            requirejs(['text!templates/modules/sync_status.html', 'mustache'], function(templateSyncStatus, Mustache){
                 let data = {
                     timestampCounterClass: config.timestampCounterClass,
                     syncStatus: Init.syncStatus,
@@ -80,7 +80,7 @@ define([
     let showDialog = function(){
         // dialog content
 
-        requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache) {
+        requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache){
             let data = {
                 id: config.taskDialogId,
                 dialogDynamicAreaClass: config.dialogDynamicAreaClass,
@@ -193,7 +193,7 @@ define([
             });
 
             // modal dialog is shown
-            logDialog.on('shown.bs.modal', function(e) {
+            logDialog.on('shown.bs.modal', function(e){
                 updateSyncStatus();
 
                 // show Morris graphs ----------------------------------------------------------
@@ -203,8 +203,8 @@ define([
                     return Math.round(y) + 'ms';
                 };
 
-                for(let key in chartData) {
-                    if(chartData.hasOwnProperty(key)) {
+                for(let key in chartData){
+                    if(chartData.hasOwnProperty(key)){
                         // create a chart for each key
 
                         let colElementGraph = $('<div>', {
@@ -293,17 +293,17 @@ define([
 
 
             // modal dialog is closed
-            logDialog.on('hidden.bs.modal', function(e) {
+            logDialog.on('hidden.bs.modal', function(e){
                 // clear memory -> destroy all charts
-                for (let key in chartData) {
-                    if (chartData.hasOwnProperty(key)) {
+                for(let key in chartData){
+                    if(chartData.hasOwnProperty(key)){
                         chartData[key].graph = null;
                     }
                 }
             });
 
             // modal dialog before hide
-            logDialog.on('hide.bs.modal', function(e) {
+            logDialog.on('hide.bs.modal', function(e){
 
                 // destroy logTable
                 logDataTable.destroy(true);
@@ -342,7 +342,7 @@ define([
             chartData[key].data = chartData[key].data.slice(0, maxGraphDataCount);
         }
 
-        function getGraphData(data) {
+        function getGraphData(data){
             let tempChartData = {
                 data: [],
                 dataSum: 0,
@@ -388,7 +388,7 @@ define([
             avgElement[0].textContent = 'Avg. ' + tempChartData.average + 'ms';
 
             let avgStatus = getLogStatusByDuration(key, tempChartData.average);
-            let avgStatusClass = Util.getLogInfo( avgStatus, 'class' );
+            let avgStatusClass = Util.getLogInfo( avgStatus, 'class');
 
             //change avg. display class
             if( !avgElement.hasClass(avgStatusClass) ){
@@ -473,7 +473,7 @@ define([
 
                 // check log status by duration
                 let logStatus = getLogStatusByDuration(logKey, logDuration);
-                let statusClass = Util.getLogInfo( logStatus, 'class' );
+                let statusClass = Util.getLogInfo( logStatus, 'class');
                 let typeIconClass = getLogTypeIconClass(logType);
 
                 // update graph data

@@ -139,7 +139,7 @@ define([
      * @param index
      * @param array
      */
-    let compareKeyLists = function(element, index, array) {
+    let compareKeyLists = function(element, index, array){
         return this.find(x => x === element);
     };
 
@@ -313,7 +313,7 @@ define([
             new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if(mutation.type === 'childList'){
-                        for (let i = 0; i < mutation.removedNodes.length; i++){
+                        for(let i = 0; i < mutation.removedNodes.length; i++){
                             let removedNode = mutation.removedNodes[i];
                             if(typeof removedNode.getAttribute === 'function'){
                                 let eventNames = removedNode.getAttribute(dataKeyEvents);

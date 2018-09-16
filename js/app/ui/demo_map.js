@@ -5,7 +5,7 @@
 define([
     'jquery',
     'lazylinepainter'
-], function($) {
+], function($){
 
     'use strict';
 

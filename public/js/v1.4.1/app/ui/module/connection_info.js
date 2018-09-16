@@ -530,7 +530,7 @@ define([
         }).done(function(connectionsData){
             // enrich connectionData with "logs" data (if available) and other "missing" data
             for(let i = 0; i < this.connectionsData.length; i++){
-                for(let connectionData of connectionsData) {
+                for(let connectionData of connectionsData){
                     if(this.connectionsData[i].id === connectionData.id){
                         // copy some missing data
                         this.connectionsData[i].created = connectionData.created;
@@ -564,7 +564,7 @@ define([
      */
     let getConnectionsLogData = (moduleElement, mapId, connectionsData) => {
         let connectionIds = [];
-        for(let connectionData of connectionsData) {
+        for(let connectionData of connectionsData){
             connectionIds.push(connectionData.id);
         }
 
@@ -592,11 +592,11 @@ define([
 
         let getRowIndexesByData = (dataTable, colName, value) => {
             return dataTable.rows().eq(0).filter((rowIdx) => {
-                return (dataTable.cell(rowIdx, colName + ':name' ).data() === value);
+                return (dataTable.cell(rowIdx, colName + ':name').data() === value);
             });
         };
 
-        for(let connectionData of connectionsData) {
+        for(let connectionData of connectionsData){
            // find related dom element for current connection
             let connectionElement = moduleElement.find('#' + getConnectionElementId(connectionData.id));
             if(connectionElement.length){
@@ -756,7 +756,7 @@ define([
                     }
                 ],
                 drawCallback: function(settings){
-                    let animationRows = this.api().rows().nodes().to$().filter(function(a,b ) {
+                    let animationRows = this.api().rows().nodes().to$().filter(function(a,b ){
                         return (
                             $(this).data('animationStatus') ||
                             $(this).data('animationTimer')
@@ -769,7 +769,7 @@ define([
                     }
 
                 },
-                footerCallback: function ( row, data, start, end, display ) {
+                footerCallback: function(row, data, start, end, display ){
 
                     let api = this.api();
                     let sumColumnIndexes = [3];

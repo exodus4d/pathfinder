@@ -293,7 +293,7 @@ define([
             if(tempSelectOptions){
                 let fixSelectOptions = [];
                 for(let key in tempSelectOptions){
-                    if (
+                    if(
                         key > 0 &&
                         tempSelectOptions.hasOwnProperty(key)
                     ){
@@ -319,7 +319,7 @@ define([
                 let frigateHoles = getFrigateHolesBySystem(areaId);
                 let frigateWHData = [];
                 for(let frigKey in frigateHoles){
-                    if (
+                    if(
                         frigKey > 0 &&
                         frigateHoles.hasOwnProperty(frigKey)
                     ){
@@ -335,7 +335,7 @@ define([
                 // add possible incoming holes
                 let incomingWHData = [];
                 for(let incomingKey in Init.incomingWormholes){
-                    if (
+                    if(
                         incomingKey > 0 &&
                         Init.incomingWormholes.hasOwnProperty(incomingKey)
                     ){
@@ -557,7 +557,7 @@ define([
         }
 
         if(percent < 30){
-            progressBarType = 'progress-bar-danger' ;
+            progressBarType = 'progress-bar-danger';
         }else if(percent < 100){
             progressBarType = 'progress-bar-warning';
         }else{
@@ -600,7 +600,7 @@ define([
                     success: {
                         label: '<i class="fas fa-paste fa-fw"></i>&nbsp;update signatures',
                         className: 'btn-success',
-                        callback: function (){
+                        callback: function(){
                             let form = this.find('form');
                             let formData = form.getFormValues();
                             let signatureOptions = {
@@ -729,7 +729,7 @@ define([
                 unlockTable(this.tableApi);
                 // updates table with new/updated signature information
                 updateSignatureTable(this.tableApi, responseData.signatures, false);
-            }).fail(function( jqXHR, status, error){
+            }).fail(function(jqXHR, status, error){
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
                 $(document).setProgramStatus('problem');
@@ -825,7 +825,7 @@ define([
                 }
                 Util.showNotify(notificationOptions);
             });
-        }).fail(function( jqXHR, status, error){
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
@@ -1078,7 +1078,7 @@ define([
      */
     let editableDescriptionOnShown = cell => {
         $(cell).on('shown', function(e, editable){
-            $(this).parents('.' + config.tableToolsActionClass).css( 'height', '+=35px' );
+            $(this).parents('.' + config.tableToolsActionClass).css('height', '+=35px');
         });
     };
 
@@ -1089,7 +1089,7 @@ define([
      */
     let editableDescriptionOnHidden = cell => {
         $(cell).on('hidden', function(e, editable){
-            $(this).parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
+            $(this).parents('.' + config.tableToolsActionClass).css('height', '-=35px');
         });
     };
 
@@ -1531,7 +1531,7 @@ define([
                                     let errorIcon = '<i class="fas fa-exclamation-triangle txt-color txt-color-danger hide"></i>&nbsp;';
                                     $(this).html(FormElement.formatSignatureConnectionSelectionData({text: selected[0].text})).prepend(errorIcon);
                                 }else{
-                                    $(this).empty() ;
+                                    $(this).empty();
                                 }
                             },
                             validate: function(value, b, c){
@@ -1829,7 +1829,7 @@ define([
             searching: false,
             tabIndex: -1,
             data: [$.extend(true, {}, emptySignatureData)],
-            initComplete: function (settings, json){
+            initComplete: function(settings, json){
                 let tableApi = this.api();
 
                 $(this).on('keyup', 'td', {tableApi: tableApi}, function(e){
@@ -1991,7 +1991,7 @@ define([
                     }
                 ]
             },
-            initComplete: function (settings, json){
+            initComplete: function(settings, json){
                 let tableApi = this.api();
 
                 initGroupFilterButton(tableApi);

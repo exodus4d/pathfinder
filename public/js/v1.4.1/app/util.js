@@ -232,7 +232,7 @@ define([
             }else{
                 callback(responseData.img);
             }
-        }).fail(function( jqXHR, status, error){
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
         });
@@ -437,7 +437,7 @@ define([
                 (top + height) > window.pageYOffset &&
                 (left + width) > window.pageXOffset
             ){
-                visibleElement.push( this );
+                visibleElement.push(this);
             }
         });
 
@@ -587,7 +587,7 @@ define([
         let elements = $(this);
         let eventNamespace = 'hideCharacterPopup';
 
-        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache){
+        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function(template, Mustache){
 
             let data = {
                 popoverClass: config.popoverCharacterClass,
@@ -633,7 +633,7 @@ define([
 
                     if(popoverData === undefined){
 
-                        button.on('shown.bs.popover', function (e){
+                        button.on('shown.bs.popover', function(e){
                             let tmpPopupElement = $(this).data('bs.popover').tip();
                             tmpPopupElement.find('.btn').on('click', function(e){
                                 // close popover
@@ -716,8 +716,8 @@ define([
      */
     $.fn.initPopoverClose = function(eventNamespace){
         return this.each(function(){
-            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e){
-                $('.' + config.popoverTriggerClass).each(function (){
+            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function(e){
+                $('.' + config.popoverTriggerClass).each(function(){
                     let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
                     //the 'has' for icons within a button that triggers a popup
@@ -892,7 +892,7 @@ define([
             'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
         ];
         const getDefaultPassiveOption = (passive, eventName) => {
-            if (passive !== undefined) return passive;
+            if(passive !== undefined) return passive;
 
             return supportedPassiveTypes.indexOf(eventName) === -1 ? false : defaultOptions.passive;
         };
@@ -906,15 +906,15 @@ define([
         };
 
         const prepareSafeListener = (listener, passive) => {
-            if (!passive) return listener;
-            return function (e){
+            if(!passive) return listener;
+            return function(e){
                 e.preventDefault = () => {};
                 return listener.call(this, e);
             };
         };
 
         const overwriteAddEvent = (superMethod) => {
-            EventTarget.prototype.addEventListener = function (type, listener, options){ // jshint ignore:line
+            EventTarget.prototype.addEventListener = function(type, listener, options){ // jshint ignore:line
                 const usesListenerOptions = typeof options === 'object';
                 const useCapture          = usesListenerOptions ? options.capture : options;
 
@@ -945,7 +945,7 @@ define([
         };
 
         let supportsPassive = eventListenerOptionsSupported ();
-        if (supportsPassive){
+        if(supportsPassive){
             const addEvent = EventTarget.prototype.addEventListener; // jshint ignore:line
             overwriteAddEvent(addEvent);
         }
@@ -979,8 +979,8 @@ define([
          */
         String.prototype.hashCode = function(){
             let hash = 0, i, chr;
-            if (this.length === 0) return hash;
-            for (i = 0; i < this.length; i++){
+            if(this.length === 0) return hash;
+            for(i = 0; i < this.length; i++){
                 chr   = this.charCodeAt(i);
                 hash  = ((hash << 5) - hash) + chr;
                 hash |= 0; // Convert to 32bit integer
@@ -2402,7 +2402,7 @@ define([
                 responseData.systemData &&
                 responseData.systemData.length > 0
             ){
-                for (let j = 0; j < responseData.systemData.length; j++){
+                for(let j = 0; j < responseData.systemData.length; j++){
                     showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
                 }
             }
@@ -2416,7 +2416,7 @@ define([
                 }
             }
 
-        }).fail(function( jqXHR, status, error){
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
         });
@@ -2436,7 +2436,7 @@ define([
                 data: false
             };
 
-            if (navigator.clipboard) {
+            if(navigator.clipboard){
                 // get current permission status
                 navigator.permissions.query({
                     name: 'clipboard-write'
@@ -2461,7 +2461,7 @@ define([
                         resolve(payload);
                     }
                 });
-            } else {
+            }else{
                 console.warn('Clipboard API not supported by your browser');
                 resolve(payload);
             }
@@ -2482,7 +2482,7 @@ define([
                 data: false
             };
 
-            if (navigator.clipboard) {
+            if(navigator.clipboard){
                 // get current permission status
                 navigator.permissions.query({
                     name: 'clipboard-read'
@@ -2507,7 +2507,7 @@ define([
                         resolve(payload);
                     }
                 });
-            } else {
+            }else{
                 console.warn('Clipboard API not supported by your browser');
                 resolve(payload);
             }
@@ -2574,7 +2574,7 @@ define([
                 }else{
                     showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
                 }
-            }).fail(function( jqXHR, status, error){
+            }).fail(function(jqXHR, status, error){
                 let reason = status + ' ' + error;
                 showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
             });
@@ -2707,11 +2707,11 @@ define([
 
             element.off(eventName).on(eventName, function(e){
                 clicks++;
-                if (clicks === 1){
+                if(clicks === 1){
                     setTimeout(element => {
                         if(clicks === 1){
                             singleClickCallback.call(element, e);
-                        } else {
+                        }else{
                             doubleClickCallback.call(element, e);
                         }
                         clicks = 0;
@@ -2815,7 +2815,7 @@ define([
             if(data.reroute){
                 redirect(data.reroute, ['logout']);
             }
-        }).fail(function( jqXHR, status, error){
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
@@ -2860,11 +2860,11 @@ define([
 
         for(let i = 0; i <ca.length; i++){
             let c = ca[i];
-            while (c.charAt(0) === ' '){
+            while(c.charAt(0) === ' '){
                 c = c.substring(1);
             }
 
-            if (c.indexOf(name) === 0){
+            if(c.indexOf(name) === 0){
                 return c.substring(name.length,c.length);
             }
         }

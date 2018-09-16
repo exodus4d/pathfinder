@@ -7,7 +7,7 @@ define([
     'jquery',
     'app/map/util',
     'farahey'
-], function($, MapUtil) {
+], function($, MapUtil){
 
     'use strict';
 
@@ -32,9 +32,9 @@ define([
          * @returns {{left, top}}
          * @private
          */
-        let _offset = function(system) {
+        let _offset = function(system){
 
-            let _ = function(p) {
+            let _ = function(p){
                 let v = system.style[p];
                 return parseInt(v.substring(0, v.length - 2));
             };
@@ -52,7 +52,7 @@ define([
          * @param o
          * @private
          */
-        let _setOffset = function(system, o) {
+        let _setOffset = function(system, o){
             let markAsUpdated = false;
 
             // new position must be within parent container
@@ -85,12 +85,12 @@ define([
          * @returns {boolean}
          * @private
          */
-        let _dragFilter = function(id) {
+        let _dragFilter = function(id){
             return !$('#' + id).is('.jsPlumb_dragged, .pf-system-locked');
         };
 
-        let gridConstrain = function(gridX, gridY) {
-            return function(id, current, delta) {
+        let gridConstrain = function(gridX, gridY){
+            return function(id, current, delta){
                 if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
                     // active grid
                     return {
@@ -107,14 +107,14 @@ define([
         // main init for "magnetize" feature ------------------------------------------------------
         m8 = new Magnetizer({
             container: mapContainer,
-            getContainerPosition: function(c) {
+            getContainerPosition: function(c){
                 return c.offset();
             },
             getPosition:_offset,
-            getSize: function(system) {
+            getSize: function(system){
                 return [ $(system).outerWidth(), $(system).outerHeight() ];
             },
-            getId : function(system) {
+            getId : function(system){
                 return $(system).attr('id');
             },
             setPosition:_setOffset,

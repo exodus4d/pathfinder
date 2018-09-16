@@ -93,8 +93,8 @@ define([
 
         if(systemData){
             let corporations = Util.getObjVal(systemData, 'structures');
-            if(corporations) {
-                for (let [corporationId, corporationData] of Object.entries(corporations)){
+            if(corporations){
+                for(let [corporationId, corporationData] of Object.entries(corporations)){
                     if(corporationData.structures && corporationData.structures.length){
                         for(let structureData of corporationData.structures){
                             let rowId = getRowId(context.tableApi, structureData.id);
@@ -199,7 +199,7 @@ define([
             context: context
         }).done(function(data){
             callback(this, data);
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': System intel data', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
@@ -283,7 +283,7 @@ define([
                     success: {
                         label: '<i class="fas fa-fw fa-check"></i>&nbsp;save',
                         className: 'btn-success',
-                        callback: function (){
+                        callback: function(){
                             let form = this.find('form');
 
                             // validate form
@@ -314,7 +314,7 @@ define([
                 }
             });
 
-            structureDialog.on('show.bs.modal', function(e) {
+            structureDialog.on('show.bs.modal', function(e){
                 let modalContent = $('#' + config.structureDialogId);
 
                 // init type select live search
@@ -375,7 +375,7 @@ define([
                     success: {
                         label: '<i class="fas fa-fw fa-paste fa-fw"></i>&nbsp;update intel',
                         className: 'btn-success',
-                        callback: function (){
+                        callback: function(){
                             let form = this.find('form');
                             let formData = form.getFormValues();
 
@@ -389,7 +389,7 @@ define([
             });
 
             // dialog shown event
-            structureDialog.on('shown.bs.modal', function(e) {
+            structureDialog.on('shown.bs.modal', function(e){
                 // set focus on textarea
                 structureDialog.find('textarea').focus();
             });
@@ -571,7 +571,7 @@ define([
                         if($(cell).is(':empty')){
                             $(cell).removeClass(config.dataTableActionCellClass + ' ' + config.moduleHeadlineIconClass);
                         }else{
-                            $(cell).on('click', function(e) {
+                            $(cell).on('click', function(e){
                                 // get current row data (important!)
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 rowData = tableApi.row( $(cell).parents('tr')).data();
@@ -645,14 +645,14 @@ define([
                     }
                 }
             ],
-            drawCallback: function (settings){
+            drawCallback: function(settings){
                 let tableApi = this.api();
                 let columnCount = tableApi.columns(':visible').count();
                 let rows = tableApi.rows( {page:'current'} ).nodes();
                 let last= null;
 
-                tableApi.column('corporation:name', {page:'current'} ).data().each( function ( group, i ) {
-                    if ( !last || last.id !== group.id ) {
+                tableApi.column('corporation:name', {page:'current'} ).data().each( function(group, i ){
+                    if( !last || last.id !== group.id ){
                         $(rows).eq(i).before(
                             '<tr class="group">' +
                                 '<td></td>' +
@@ -666,7 +666,7 @@ define([
                     }
                 });
 
-                let animationRows = rows.to$().filter(function() {
+                let animationRows = rows.to$().filter(function(){
                     return (
                         $(this).data('animationStatus') ||
                         $(this).data('animationTimer')

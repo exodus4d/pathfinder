@@ -246,7 +246,7 @@ define([
              */
             let showPanel = (parentElement, Module, mapId, data) => {
                 let moduleElement = Module.getModule(parentElement, mapId, data);
-                if(moduleElement) {
+                if(moduleElement){
                     // store Module object to DOM element for further access
                     moduleElement.data('module', Module);
                     moduleElement.data('data', data);
@@ -255,7 +255,7 @@ define([
 
                     // check module position from local storage
                     let promiseStore = MapUtil.getLocaleData('map', mapId);
-                    promiseStore.then(function (dataStore) {
+                    promiseStore.then(function(dataStore){
                         let Module = this.moduleElement.data('module');
                         let defaultPosition = Module.config.modulePosition || 0;
 
@@ -270,7 +270,7 @@ define([
                             dataStore[key]
                         ){
                             let positionIndex = dataStore[key].indexOf(Module.config.moduleName);
-                            if(positionIndex !== -1) {
+                            if(positionIndex !== -1){
                                 // first index (0) => is position 1
                                 defaultPosition = positionIndex + 1;
                             }
@@ -286,13 +286,13 @@ define([
                         // -> no :nth-child or :nth-of-type here because there might be temporary "spacer" div "modules"
                         // that should be ignored for positioning
                         let prevModuleElement = this.parentElement.find('.' + config.moduleClass).filter(i => ++i === position);
-                        if(prevModuleElement.length) {
+                        if(prevModuleElement.length){
                             this.moduleElement.insertAfter(prevModuleElement);
-                        } else {
+                        }else{
                             this.parentElement.prepend(this.moduleElement);
                         }
 
-                        if(typeof Module.beforeShow === 'function') {
+                        if(typeof Module.beforeShow === 'function'){
                             Module.beforeShow(this.moduleElement, moduleElement.data('data'));
                         }
 
@@ -303,10 +303,10 @@ define([
                         }, {
                             duration: Init.animationSpeed.mapModule,
                             easing: 'easeOutSine',
-                            complete: function (moduleElement) {
+                            complete: function(moduleElement){
                                 moduleElement = $(moduleElement);
                                 let Module = $(moduleElement).data('module');
-                                if(typeof Module.initModule === 'function') {
+                                if(typeof Module.initModule === 'function'){
                                     Module.initModule(moduleElement, mapId, moduleElement.data('data'));
                                 }
 
@@ -330,11 +330,11 @@ define([
 
             // check if module already exists
             let moduleElement = parentElement.find('.' + Module.config.moduleTypeClass);
-            if(moduleElement.length > 0) {
+            if(moduleElement.length > 0){
                 removeModule(moduleElement, Module, () => {
                     showPanel(parentElement, Module, mapId, data);
                 }, true);
-            } else {
+            }else{
                 showPanel(parentElement, Module, mapId, data);
             }
         };
@@ -487,7 +487,7 @@ define([
                 systemData.id === currentSystemData.systemData.id
             ){
                 // trigger system update events
-                let tabContentElement = $( '#' + config.mapTabIdPrefix + systemData.mapId + '.' + config.mapTabContentClass);
+                let tabContentElement = $('#' + config.mapTabIdPrefix + systemData.mapId + '.' + config.mapTabContentClass);
                 tabContentElement.trigger('pf:updateSystemModules', [systemData]);
             }
         }
@@ -514,15 +514,15 @@ define([
                 dataIdAttr: 'data-module',
                 sort: true,
                 store: {
-                    get: function (sortable) {
+                    get: function(sortable){
                         return [];
                     },
-                    set: function (sortable) {
+                    set: function(sortable){
                         let key = 'modules_' + sortable.options.group.name;
                         MapUtil.storeLocalData('map', mapId, key, sortable.toArray());
                     }
                 },
-                onStart: function (e) {
+                onStart: function(e){
                     // Element dragging started
                     // -> save initial sort state -> see store.set()
                     this.save();
@@ -686,17 +686,17 @@ define([
                     return !Boolean(mapId);
                 },
                 store: {
-                    get: function (sortable) {
+                    get: function(sortable){
                         return [];
                     },
-                    set: function (sortable) {
+                    set: function(sortable){
                         let key = 'maps_' + sortable.options.group.name;
                         // convert string array to int array
                         let order = sortable.toArray().map((x) => parseInt(x, 10));
                         MapUtil.storeLocalData('character', characterId, key, order);
                     }
                 },
-                onStart: function (e) {
+                onStart: function(e){
                     // Element dragging started
                     // -> save initial sort state -> see store.set()
                     this.save();
@@ -790,7 +790,7 @@ define([
                             }
 
                             // change url to unique map URL
-                            if(history.pushState) {
+                            if(history.pushState){
                                 let mapUrl = MapUtil.getMapDeeplinkUrl(mapConfig.config.id);
                                 history.pushState({}, '', mapUrl);
                             }
@@ -1002,7 +1002,7 @@ define([
                 let key = 'maps_list_' + tabBar.attr('data-position');
                 if(dataStore && dataStore[key]){
                     let positionIndex = dataStore[key].indexOf(this.options.id);
-                    if(positionIndex !== -1) {
+                    if(positionIndex !== -1){
                         // first index (0) => is position 1
                         defaultPosition = positionIndex + 1;
                     }
@@ -1014,9 +1014,9 @@ define([
 
                 // insert at correct position -------------------------------------------------------------------------
                 let prevListElement = tabBar.find('li' + '' + ':nth-child(' + position + ')');
-                if(prevListElement.length) {
+                if(prevListElement.length){
                     tabListElement.insertAfter(prevListElement);
-                } else {
+                }else{
                     tabBar.prepend(tabListElement);
                 }
 
@@ -1267,7 +1267,7 @@ define([
                     }
 
                     // add new tabs for new maps
-                    for(let data of tempMapData) {
+                    for(let data of tempMapData){
                         if( activeMapIds.indexOf( data.config.id ) === -1 ){
                             // add new map tab
                             promisesAddTab.push(addTab(tabMapElement, data.config, currentUserData).then(tabAddCallback));
@@ -1310,14 +1310,14 @@ define([
                     // add new tab for each map
                     for(let j = 0; j < tempMapData.length; j++){
                         let data = tempMapData[j];
-                        promisesAddTab.push(addTab(tabMapElement, data.config, currentUserData)) ;
+                        promisesAddTab.push(addTab(tabMapElement, data.config, currentUserData));
                     }
 
                     // add "add" button
                     let tabAddOptions = {
                         id: 0,
                         type: {
-                            classTab: MapUtil.getInfoForMap( 'standard', 'classTab')
+                            classTab: MapUtil.getInfoForMap('standard', 'classTab')
                         },
                         icon: 'fa-plus',
                         name: 'add',

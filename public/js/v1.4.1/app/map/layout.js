@@ -3,7 +3,7 @@ define(() => {
 
     class Position {
 
-        constructor(config) {
+        constructor(config){
             this._defaultConfig = {
                 container: null,                        // parent DOM container element
                 center: null,                           // DOM elements that works as center
@@ -61,8 +61,8 @@ define(() => {
 
                     left = point[0];
                     top = point[1];
-                    a = this._config.gapX ;
-                    b = this._config.gapY ;
+                    a = this._config.gapX;
+                    b = this._config.gapY;
                 }else if(element){
                     // DOM element
                     left = element.style.left ? parseInt(element.style.left, 10) : 0;
@@ -204,12 +204,12 @@ define(() => {
             this._percentCovered = (dim1, dim2) => {
                 let percent = 0;
 
-                if (
+                if(
                     (dim1.left <= dim2.left) &&
                     (dim1.top <= dim2.top) &&
                     ((dim1.left + dim1.width) >= (dim2.left + dim2.width)) &&
                     ((dim1.top + dim1.height) > (dim2.top + dim2.height))
-                ) {
+                ){
                     // The whole thing is covering the whole other thing
                     percent = 100;
                 }else{
@@ -224,7 +224,7 @@ define(() => {
                     let t = Math.max(dim1.top, dim2.top);
                     let b = Math.min(dim1.bottom, dim2.bottom);
 
-                    if (b >= t && r >= l) {
+                    if(b >= t && r >= l){
                         percent = (((r - l) * (b - t)) / (dim2.width * dim2.height)) * 100;
                     }
                 }
@@ -285,7 +285,7 @@ define(() => {
                 if(loops === 1){
                     // check center element
                     let centerDimension = this._getElementDimension(this._config.center);
-                    if (!this._isOverlapping(centerDimension, dimensionContainer, allDimensions)) {
+                    if(!this._isOverlapping(centerDimension, dimensionContainer, allDimensions)){
                         dimensions.push({
                             left: centerDimension.left,
                             top: centerDimension.top,
@@ -310,7 +310,7 @@ define(() => {
                     let coordinate = this._getEllipseCoordinates(centerDimension, end);
                     // transform relative x/y coordinate into a absolute 2D area
                     let checkDimension = this._transformCoordinate(centerDimension, coordinate);
-                    if (!this._isOverlapping(checkDimension, dimensionContainer, allDimensions)) {
+                    if(!this._isOverlapping(checkDimension, dimensionContainer, allDimensions)){
                         dimensions.push({
                             left: checkDimension.left,
                             top: checkDimension.top,

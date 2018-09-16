@@ -228,7 +228,7 @@ define([
                             return params;
                         },
                         validate: function(value){
-                            if(value.length > 0 && $.trim(value).length === 0) {
+                            if(value.length > 0 && $.trim(value).length === 0){
                                 return {newValue: ''};
                             }
                         },

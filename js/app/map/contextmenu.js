@@ -17,7 +17,7 @@ define([
         systemContextMenuId: 'pf-map-system-contextmenu'                // id for "systems" context menu
     };
 
-    $.fn.contextMenu = function (settings) {
+    $.fn.contextMenu = function(settings){
 
         // animation
         let animationInType = 'transition.flipXIn';
@@ -25,10 +25,10 @@ define([
         let animationOutType = 'transition.flipXOut';
         let animationOutDuration = 150;
 
-        return this.each(function () {
+        return this.each(function(){
 
             // Open context menu
-            $(this).off('pf:openContextMenu').on('pf:openContextMenu', function (e, originalEvent, component, hiddenOptions, activeOptions, disabledOptions) {
+            $(this).off('pf:openContextMenu').on('pf:openContextMenu', function(e, originalEvent, component, hiddenOptions, activeOptions, disabledOptions){
 
                 // hide all other open context menus
                $('#pf-dialog-wrapper > .dropdown-menu').hide();
@@ -73,11 +73,11 @@ define([
                         ){
                             // Chrome
                             posX = originalEvent.offsetX;
-                            posY = originalEvent.offsetY ;
+                            posY = originalEvent.offsetY;
                         }else if(originalEvent.originalEvent){
                             // Firefox -> #415
                             posX =  originalEvent.originalEvent.layerX;
-                            posY = originalEvent.originalEvent.layerY ;
+                            posY = originalEvent.originalEvent.layerY;
                         }
 
                         let position = {
@@ -85,7 +85,7 @@ define([
                             y: posY
                         };
 
-                        $(this).off('click').one('click', {component: component, position: position}, function (e) {
+                        $(this).off('click').one('click', {component: component, position: position}, function(e){
                             // hide contextmenu
                             $(this).hide();
 
@@ -102,7 +102,7 @@ define([
                 });
 
                 //make sure menu closes on any click
-                $(document).one('click.closeContextmenu', function () {
+                $(document).one('click.closeContextmenu', function(){
                     $('.dropdown-menu[role="menu"]').velocity(animationOutType, {
                         duration: animationOutDuration
                     });
@@ -113,27 +113,27 @@ define([
 
         });
 
-        function getLeftLocation(e) {
+        function getLeftLocation(e){
             let mouseWidth = e.pageX;
             let pageWidth = $(window).width();
             let menuWidth = $(settings.menuSelector).width();
 
             // opening menu would pass the side of the page
-            if (mouseWidth + menuWidth > pageWidth &&
-                menuWidth < mouseWidth) {
+            if(mouseWidth + menuWidth > pageWidth &&
+                menuWidth < mouseWidth){
                 return mouseWidth - menuWidth;
             }
             return mouseWidth;
         }
 
-        function getTopLocation(e) {
+        function getTopLocation(e){
             let mouseHeight = e.pageY;
             let pageHeight = $(window).height();
             let menuHeight = $(settings.menuSelector).height();
 
             // opening menu would pass the bottom of the page
-            if (mouseHeight + menuHeight > pageHeight &&
-                menuHeight < mouseHeight) {
+            if(mouseHeight + menuHeight > pageHeight &&
+                menuHeight < mouseHeight){
                 return mouseHeight - menuHeight;
             }
             return mouseHeight;
@@ -216,7 +216,7 @@ define([
     let initSystemContextMenu = (systemStatusData) => {
 
         let statusData = [];
-        for (let [statusName, data] of Object.entries(systemStatusData)){
+        for(let [statusName, data] of Object.entries(systemStatusData)){
             statusData.push({
                 subIcon:        'fa-tag',
                 subIconClass:   data.class,
