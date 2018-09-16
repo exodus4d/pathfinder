@@ -348,7 +348,7 @@ define([
      */
     let drawSystemModules = (tabContentElement) => {
 
-        require(['datatables.loader'], function(){
+        require(['datatables.loader'], () => {
             let currentSystemData = Util.getCurrentSystemData();
 
             let promiseDrawAll = [];

@@ -27,7 +27,7 @@ define([
                 headline: 'Jumps',
                 units: 'jumps',
                 ykeys: ['y'],
-                labels: ['jumps'],
+                labels: ['Jumps'],
                 lineColors: ['#375959'],
                 pointFillColors: ['#477372']
             },
@@ -35,7 +35,7 @@ define([
                 headline: 'Ship/POD Kills',
                 units: 'kills',
                 ykeys: ['y', 'z'],
-                labels: ['Ship kills', 'POD kills'],
+                labels: ['Ships', 'PODs'],
                 lineColors: ['#375959', '#477372'],
                 pointFillColors: ['#477372', '#568a89']
             },
@@ -43,12 +43,17 @@ define([
                 headline: 'NPC Kills',
                 units: 'kills',
                 ykeys: ['y'],
-                labels: ['kills'],
+                labels: ['NPCs'],
                 lineColors: ['#375959'],
                 pointFillColors: ['#477372']
             }
         }
     };
+
+    // temp storage for graphsData response Promise
+    // -> stored until module is fully rendered (attached to DOM)
+    // otherwise graph can not be rendered
+    let graphDataPromise = null;
 
     /**
      * get info for a given graph key
@@ -56,14 +61,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getInfoForGraph = function(graphKey, option){
-        let info = '';
-        if(config.systemGraphs.hasOwnProperty(graphKey)){
-            info = config.systemGraphs[graphKey][option];
-        }
-
-        return info;
-    };
+    let getInfoForGraph = (graphKey, option) => Util.getObjVal(config.systemGraphs, graphKey + '.' + option) || '';
 
     /**
      * init Morris Graph
@@ -72,28 +70,51 @@ define([
      * @param graphData
      * @param eventLine
      */
-    let initGraph = function(graphElement, graphKey, graphData, eventLine){
+    let initGraph = (graphElement, graphKey, graphData, eventLine) => {
         if(
             graphData.logExists &&
             graphData.data &&
             graphData.data.length
         ){
+            let dataLength = graphData.data.length;
+            let xKey = 'x';
+            let yKeys = getInfoForGraph(graphKey, 'ykeys');
+
+            // calc average (goal) ------------------------------------------------------------------------------------
+            // ... init empty sum object ...
+            let sum = yKeys.reduce((result, key) => {
+                result[key] = 0;
+                return result;
+                }, {});
+
+            // ... sum all values ...
+            sum = graphData.data.reduce((sum, obj) => {
+                for(let [key, value] of Object.entries(obj)){
+                    if(sum.hasOwnProperty(key)){
+                        sum[key] += value;
+                    }
+                }
+                return sum;
+            }, sum);
+
+            // ... calc average
+            let goals = Object.values(sum).map(value => Math.floor(value / dataLength));
 
             let graphConfig = {
                 element: graphElement,
                 data: graphData.data,
-                xkey: 'x',
-                ykeys: getInfoForGraph(graphKey, 'ykeys'),
+                xkey: xKey,
+                ykeys: yKeys,
                 labels: getInfoForGraph(graphKey, 'labels'),
                 parseTime: false,
                 ymin: 0,
                 yLabelFormat: value => Math.round(value),
-                padding: 10,
+                padding: 8,
                 hideHover: true,
                 pointSize: 3,
                 lineColors: getInfoForGraph(graphKey, 'lineColors'),
                 pointFillColors: getInfoForGraph(graphKey, 'pointFillColors'),
-                pointStrokeColors: ['#141413'],
+                pointStrokeColors: ['#141519'],
                 lineWidth: 2,
                 grid: true,
                 gridStrokeWidth: 0.3,
@@ -101,14 +122,15 @@ define([
                 gridTextFamily: 'Oxygen Bold',
                 gridTextColor: '#63676a',
                 behaveLikeLine: false,
-                goals: [],
-                goalLineColors: ['#5cb85c'],
+                goals: goals,
+                goalStrokeWidth: 1,
+                goalLineColors: ['#c2760c'],
                 smooth: true,
                 fillOpacity: 0.2,
                 resize: true,
                 redraw: true,
-                eventStrokeWidth: 2,
-                eventLineColors: ['#5CB85C']
+                eventStrokeWidth: 1,
+                eventLineColors: ['#63676a']
             };
 
             if(eventLine >= 0){
@@ -126,37 +148,47 @@ define([
      * request graphs data
      * @param requestData
      * @param context
-     * @param callback
+     * @returns {Promise<any>}
      */
-    let requestGraphData = (requestData, context, callback) => {
-        // show loading animation
-        context.moduleElement.find('.' + config.systemGraphClass).showLoadingAnimation();
+    let requestGraphData = (requestData, context) => {
 
-        $.ajax({
-            type: 'POST',
-            url: Init.path.getSystemGraphData,
-            data: requestData,
-            dataType: 'json',
-            context: context
-        }).done(function(systemGraphsData){
-            callback(this, systemGraphsData);
-        }).fail(function( jqXHR, status, error) {
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': System graph data', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-            this.moduleElement.hide();
-        }).always(function(){
-            // hide loading animation
-            context.moduleElement.find('.' + config.systemGraphClass).hideLoadingAnimation();
-        });
+        let requestGraphDataExecutor = (resolve, reject) => {
+            // show loading animation
+            context.moduleElement.find('.' + config.systemGraphClass).showLoadingAnimation();
+
+            $.ajax({
+                type: 'GET',
+                url: Init.path.getSystemGraphData,
+                data: requestData,
+                dataType: 'json',
+                context: context
+            }).done(function(graphData){
+                resolve({
+                    action: 'requestGraphData',
+                    data: {
+                        context: this,
+                        graphData: graphData
+                    }
+                });
+            }).fail(function( jqXHR, status, error) {
+                let reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': System graph data', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+                this.moduleElement.hide();
+
+                reject();
+            });
+        };
+
+        return new Promise(requestGraphDataExecutor);
     };
 
     /**
      * update graph elements with data
      * @param context
-     * @param systemGraphsData
+     * @param graphData
      */
-    let addGraphData = (context, systemGraphsData) => {
+    let addGraphData = (context, graphData) => {
 
         // calculate time offset until system created -----------------------------------------------------------------
         let serverData = Util.getServerTime();
@@ -172,9 +204,10 @@ define([
         eventLine = 23 - eventLine;
 
         // update graph data ------------------------------------------------------------------------------------------
-        for (let [systemId, graphsData] of Object.entries(systemGraphsData)){
+        for (let [systemId, graphsData] of Object.entries(graphData)){
             for (let [graphKey, graphData] of Object.entries(graphsData)){
                 let graphElement = context.moduleElement.find('[data-graph="' + graphKey + '"]');
+                graphElement.hideLoadingAnimation();
                 initGraph(graphElement, graphKey, graphData, eventLine);
             }
         }
@@ -183,10 +216,10 @@ define([
     /**
      * @see requestGraphData
      * @param moduleElement
-     * @param mapId
      * @param systemData
+     * @returns {Promise<any>}
      */
-    let updateGraphPanel = (moduleElement, mapId, systemData) => {
+    let getGraphsData = (moduleElement, systemData) => {
         let requestData = {
             systemIds: [systemData.systemId]
         };
@@ -196,7 +229,21 @@ define([
             systemData: systemData
         };
 
-        requestGraphData(requestData, contextData, addGraphData);
+        return requestGraphData(requestData, contextData);
+    };
+
+    /**
+     * init callback
+     * @param moduleElement
+     * @param mapId
+     * @param systemData
+     */
+    let initModule = (moduleElement, mapId, systemData) => {
+        if(graphDataPromise instanceof Promise){
+            graphDataPromise
+                .then(payload => addGraphData(payload.data.context, payload.data.graphData))
+                .catch(payload => {});
+        }
     };
 
     /**
@@ -238,7 +285,9 @@ define([
             }
             moduleElement.append(rowElement);
 
-            updateGraphPanel(moduleElement, mapId, systemData);
+            // request graph data and store result promise globally
+            // -> moduleElement is not full rendered at this point
+            graphDataPromise = getGraphsData(moduleElement, systemData);
         }
 
         return moduleElement;
@@ -246,7 +295,8 @@ define([
 
     return {
         config: config,
-        getModule: getModule
+        getModule: getModule,
+        initModule: initModule
     };
 
 });

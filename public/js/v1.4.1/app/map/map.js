@@ -877,7 +877,7 @@ define([
                 let checkMapSize = (entry) => {
                     return setTimeout(saveMapSize, 100, entry);
                 };
-                for (let entry of entries){
+                for(let entry of entries){
                     // use timeout to "throttle" save actions
                     clearTimeout(resizeTimer);
                     resizeTimer = checkMapSize(entry);
