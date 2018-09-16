@@ -118,24 +118,29 @@ class System extends Controller\AccessController {
 
                 // 10min cache (could be up to 1h cache time)
                 $systemLogModel->getByForeignKey('systemId', $systemId, [], 60 * 10);
+                $systemLogExists = !$systemLogModel->dry();
 
-                if( !$systemLogModel->dry() ){
-                    $counter = 0;
-                    for( $i = $logEntryCount; $i >= 1; $i--){
-                        $column = 'value' . $i;
+                // podKills share graph with shipKills -> skip
+                if($label != 'podKills'){
+                    $graphData[$systemId][$label]['logExists'] = $systemLogExists;
+                }
 
-                        // ship and pod kills should be merged into one table
-                        if($label == 'podKills'){
-                            $graphData[$systemId]['shipKills'][$counter]['z'] = $systemLogModel->$column;
-                        }else{
-                            $dataSet = [
-                                'x' => ($i - 1) . 'h',
-                                'y' => $systemLogModel->$column
-                            ];
-                            $graphData[$systemId][$label][] = $dataSet;
-                        }
-                        $counter++;
+                $counter = 0;
+                for( $i = $logEntryCount; $i >= 1; $i--){
+                    $column = 'value' . $i;
+                    $value = $systemLogExists ? $systemLogModel->$column : 0;
+
+                    // ship and pod kills should be merged into one table
+                    if($label == 'podKills'){
+                        $graphData[$systemId]['shipKills']['data'][$counter]['z'] = $value;
+                    }else{
+                        $dataSet = [
+                            'x' => ($i - 1) . 'h',
+                            'y' => $value
+                        ];
+                        $graphData[$systemId][$label]['data'][] = $dataSet;
                     }
+                    $counter++;
                 }
             }
         }

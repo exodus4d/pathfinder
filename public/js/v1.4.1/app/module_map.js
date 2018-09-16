@@ -277,13 +277,15 @@ define([
                         }
 
                         // find correct position for new moduleElement ----------------------------------------------------
-                        let position = getModulePosition(this.parentElement, defaultPosition);
+                        let position = getModulePosition(this.parentElement, '.' + config.moduleClass, defaultPosition);
 
                         this.moduleElement.attr('data-position', defaultPosition);
                         this.moduleElement.attr('data-module', Module.config.moduleName);
 
                         // insert at correct position ---------------------------------------------------------------------
-                        let prevModuleElement = this.parentElement.find('.' + config.moduleClass + ':nth-child(' + position + ')');
+                        // -> no :nth-child or :nth-of-type here because there might be temporary "spacer" div "modules"
+                        // that should be ignored for positioning
+                        let prevModuleElement = this.parentElement.find('.' + config.moduleClass).filter(i => ++i === position);
                         if(prevModuleElement.length) {
                             this.moduleElement.insertAfter(prevModuleElement);
                         } else {
@@ -639,13 +641,14 @@ define([
     /**
      * get module position
      * @param parentElement
+     * @param childSelector
      * @param defaultPosition
      * @returns {number}
      */
-    let getModulePosition = (parentElement, defaultPosition) => {
+    let getModulePosition = (parentElement, childSelector, defaultPosition) => {
         let position = 0;
         if(defaultPosition > 0){
-            parentElement.children().each((i, moduleElement) => {
+            parentElement.children(childSelector).each((i, moduleElement) => {
                 position = i + 1;
                 let tempPosition = parseInt(moduleElement.getAttribute('data-position')) || 0;
                 if(tempPosition >= defaultPosition){
@@ -1006,7 +1009,7 @@ define([
                 }
 
                 // find correct position for new tabs -----------------------------------------------------------------
-                let position = getModulePosition(tabBar, defaultPosition);
+                let position = getModulePosition(tabBar, '.' + config.mapTabClass, defaultPosition);
                 tabListElement.attr('data-position', defaultPosition);
 
                 // insert at correct position -------------------------------------------------------------------------

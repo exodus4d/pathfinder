@@ -175,12 +175,12 @@ class Universe extends Controller {
              * @var $system Model\Universe\SystemModel
              */
             $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
-            $systems = $system->find();
-            $systemIds = $systems->getAll('id');
-
-            if(count($systemIds)){
-                sort($systemIds, SORT_NUMERIC);
-                $f3->set(self::SESSION_KEY_SYSTEM_IDS, $systemIds);
+            if($systems = $system->find()){
+                $systemIds = $systems->getAll('id');
+                if(count($systemIds)){
+                    sort($systemIds, SORT_NUMERIC);
+                    $f3->set(self::SESSION_KEY_SYSTEM_IDS, $systemIds);
+                }
             }
         }
 

@@ -115,6 +115,10 @@
     position: relative;
     width: 100%;
     height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    @include transition(height .18s ease-out); // height is reduced when no graph shown
   }
 }
 

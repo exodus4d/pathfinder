@@ -1249,8 +1249,8 @@ input[type="email"]{
     border-radius: 5px;
     padding: 5px;
     color: #666;
-    background: rgba(red( $gray-darkest), green($gray-darkest), blue($gray-darkest), 0.9);
-    border: solid 2px $teal-dark;
+    background: rgba($gray-darkest, 0.85);
+    //border: solid 2px $teal-dark;
     font-family: 'Oxygen Bold';
     font-size: 10px;
     text-align: left;

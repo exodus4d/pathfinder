@@ -33,7 +33,7 @@
   z-index: 999999;
   overflow: hidden;
   background: #000;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.3);
   opacity: 0;
   display: none;
   direction: ltr;
@@ -77,11 +77,11 @@
 }
 .blueimp-gallery,
 .blueimp-gallery > .slides > .slide > .slide-content {
-  -webkit-transition: opacity 0.5s linear;
-     -moz-transition: opacity 0.5s linear;
-      -ms-transition: opacity 0.5s linear;
-       -o-transition: opacity 0.5s linear;
-          transition: opacity 0.5s linear;
+  -webkit-transition: opacity 0.15s linear;
+     -moz-transition: opacity 0.15s linear;
+      -ms-transition: opacity 0.15s linear;
+       -o-transition: opacity 0.15s linear;
+          transition: opacity 0.15s linear;
 }
 .blueimp-gallery > .slides > .slide-loading {
  // background: url(../img/loading.gif) center no-repeat;

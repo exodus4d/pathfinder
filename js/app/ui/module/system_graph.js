@@ -73,20 +73,21 @@ define([
      * @param eventLine
      */
     let initGraph = function(graphElement, graphKey, graphData, eventLine){
-        if(graphData.length > 0){
-            let labelYFormat = function(y){
-                return Math.round(y);
-            };
+        if(
+            graphData.logExists &&
+            graphData.data &&
+            graphData.data.length
+        ){
 
             let graphConfig = {
                 element: graphElement,
-                data: graphData,
+                data: graphData.data,
                 xkey: 'x',
                 ykeys: getInfoForGraph(graphKey, 'ykeys'),
                 labels: getInfoForGraph(graphKey, 'labels'),
                 parseTime: false,
                 ymin: 0,
-                yLabelFormat: labelYFormat,
+                yLabelFormat: value => Math.round(value),
                 padding: 10,
                 hideHover: true,
                 pointSize: 3,
@@ -115,6 +116,9 @@ define([
             }
 
             Morris.Area(graphConfig);
+        }else{
+            // make container a bit smaller -> no graph shown
+            graphElement.css('height', '22px').text('No data');
         }
     };
 
@@ -161,8 +165,8 @@ define([
 
         let timeInHours = Math.floor(timeSinceUpdate / 3600);
         let timeInMinutes = Math.floor((timeSinceUpdate % 3600) / 60);
-        let timeInMinutesPercent = ( timeInMinutes / 60 ).toFixed(2);
-        let eventLine = timeInHours + timeInMinutesPercent;
+        let timeInMinutesPercent = parseFloat((timeInMinutes / 60).toFixed(2));
+        let eventLine = timeInHours * timeInMinutesPercent;
 
         // graph is from right to left -> convert event line
         eventLine = 23 - eventLine;
