@@ -449,16 +449,7 @@ define([
         showVisibleElements();
 
         // event listener for navigation links
-        $('.page-scroll').on('click', function(){
-            // get element to scroll
-            let anchorTag = $(this).attr('data-anchor');
-
-            // scroll to container
-            $(anchorTag).velocity('scroll', {
-                duration: 300,
-                easing: 'swing'
-            });
-        });
+        Util.initPageScroll('#' + config.navigationElementId);
     };
 
     /**

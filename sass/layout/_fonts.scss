@@ -7,6 +7,7 @@
   url('#{$pf-font-path}/triglavian-regular.woff2') format('woff2'),
   url('#{$pf-font-path}/triglavian-regular.woff') format('woff'),
   url('#{$pf-font-path}/triglavian-regular.ttf') format('truetype');
+  font-display: swap;
 }
 
 .pf-triglivian {

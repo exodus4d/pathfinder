@@ -562,7 +562,6 @@ define([
             Util.showNotify({title: 'Map tracking: ' + tracking, text: trackingText, type: trackingType}, false);
         });
 
-
         // init all tooltips
         let tooltipElements = $('#' + config.pageHeaderId).find('[title]');
         tooltipElements.tooltip({

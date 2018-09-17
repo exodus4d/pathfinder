@@ -48,6 +48,9 @@ define([
     let setPageObserver = () => {
         let body = $('body');
 
+        // navigation (scroll) ----------------------------------------------------------------------------------------
+        Util.initPageScroll(body);
+
         // collapse ---------------------------------------------------------------------------------------------------
         body.find('[data-toggle="collapse"]').css({cursor: 'pointer'}).on('click', function(){
             $(this).find('.pf-animate-rotate').toggleClass('right');

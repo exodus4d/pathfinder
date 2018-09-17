@@ -1,11 +1,38 @@
 {* splash page *}
 <include href="templates/ui/splash.html"/>
 
+<include href="img/logo.svg"/>
+
 {* counter for DB warnings (all databases) *}
 <set dbWarnings="0" />
 
-<section id="pf-setup">
+<nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
+    <div class="container col-sm-12">
+        <div id="pf-head" class="navbar-header">
+            <span class="navbar-brand pf-head-menu">
+                <svg class="pf-head-menu-logo" width="24px" height="24px">
+                    <use xlink:href="#pf-logo"/>
+                </svg>
+                &nbsp;&nbsp;Setup
+            </span>
+        </div>
+        <div class="navbar-collapse">
+            <ul class="nav navbar-nav navbar-right" role="tablist">
+                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-server" href="#"><i class="fas fa-fw fa-home"></i>&nbsp;Server</a></li>
+                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-environment" href="#"><i class="fas fa-fw fa-server"></i>&nbsp;Environment</a></li>
+                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-settings" href="#"><i class="fas fa-fw fa-sliders-h"></i>&nbsp;Settings</a></li>
+                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-database" href="#"><i class="fas fa-fw fa-database"></i>&nbsp;Database</a></li>
+                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-socket" href="#"><i class="fas fa-fw fa-exchange-alt"></i>&nbsp;Socket</a></li>
+                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-administration" href="#"><i class="fas fa-fw fa-wrench"></i>&nbsp;Administration</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section id="pf-setup-server">
     <div class="container">
+
+        <div class="row"></div>
 
         <div class="row text-center">
             <div class="col-md-6 col-md-offset-3">
@@ -192,6 +219,12 @@
 
         </div>
 
+    </div>
+</section>
+
+<section id="pf-setup-environment">
+    <div class="container">
+
         <h4><i class="fas fa-fw fa-server"></i> Environment</h4>
 
         <div class="row text-center">
@@ -270,6 +303,12 @@
                 </check>
             </div>
         </div>
+
+    </div>
+</section>
+
+<section id="pf-setup-settings">
+    <div class="container">
 
         <h4><i class="fas fa-fw fa-sliders-h"></i> Settings</h4>
 
@@ -415,10 +454,15 @@
                 </div>
             </div>
 
-
         </div>
 
-        <h4 id="pf-setup-database"><i class="fas fa-fw fa-database"></i> Database</h4>
+    </div>
+</section>
+
+<section id="pf-setup-database">
+    <div class="container">
+
+        <h4><i class="fas fa-fw fa-database"></i> Database</h4>
 
         <div class="row text-center">
 
@@ -872,6 +916,12 @@
 
         </div>
 
+    </div>
+</section>
+
+<section id="pf-setup-socket">
+    <div class="container">
+
         <h4><i class="fas fa-fw fa-exchange-alt"></i> Socket configuration <span class="txt-color txt-color-gray">[advanced]</span></h4>
 
         <div class="row text-center">
@@ -925,7 +975,13 @@
 
         </div>
 
-        <h4 id="pf-setup-administration"><i class="fas fa-fw fa-wrench"></i> Administration</h4>
+    </div>
+</section>
+
+<section id="pf-setup-administration">
+    <div class="container">
+
+        <h4><i class="fas fa-fw fa-wrench"></i> Administration</h4>
 
         <div class="row text-center">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">

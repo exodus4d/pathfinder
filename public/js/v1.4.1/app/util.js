@@ -992,11 +992,25 @@ define([
     };
 
     /**
+     *
+     * @param element
+     */
+    let initPageScroll = (element) => {
+        $(element).on('click', '.page-scroll', function(){
+            // scroll to ancor element
+            $($(this).attr('data-anchor')).velocity('scroll', {
+                duration: 300,
+                easing: 'swing'
+            });
+        });
+    };
+
+    /**
      * flatten XEditable array for select fields
      * @param dataArray
      * @returns {{}}
      */
-    let flattenXEditableSelectArray = (dataArray) => {
+    let flattenXEditableSelectArray = dataArray => {
         let flatten = {};
 
         for(let data of dataArray){
@@ -2926,6 +2940,7 @@ define([
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
+        initPageScroll: initPageScroll,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,
         getNearBySystemData: getNearBySystemData,
