@@ -45,6 +45,7 @@ define([
 
         // footer
         footerId: 'pf-footer',                                                  // id for page footer
+        footerCenterClass: 'pf-footer-center',                                  // class for footer "center" element
         globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
 
         settingsMessageVelocityOptions: {
@@ -1441,7 +1442,7 @@ define([
                     id: config.globalInfoPanelId
                 };
                 let content = $(Mustache.render(template, data));
-                content.insertBefore('#' + config.footerId);
+                $('#' + config.footerId).find('.' + config.footerCenterClass).append(content);
             });
         }else if (!show && infoPanel.length){
             infoPanel.remove();
