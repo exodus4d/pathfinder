@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'app/map/util'
-], function($, Init, Util, MapUtil){
+], ($, Init, Util, MapUtil) => {
     'use strict';
 
     let config = {
@@ -43,7 +43,7 @@ define([
      * @param mapElement
      * @returns {*}
      */
-    let getMapObjectFromMapElement = (mapElement) => {
+    let getMapObjectFromMapElement = mapElement => {
         let Map = require('app/map/map');
         return Map.getMapInstance( mapElement.data('id') );
     };
@@ -53,7 +53,7 @@ define([
      * @param overlayIcon
      * @returns {*}
      */
-    let getMapObjectFromOverlayIcon = (overlayIcon) => {
+    let getMapObjectFromOverlayIcon = overlayIcon => {
         let mapElement = Util.getMapElementFromOverlay(overlayIcon);
 
         return getMapObjectFromMapElement( mapElement );
@@ -173,7 +173,7 @@ define([
      * @param parts
      * @returns {string}
      */
-    let formatTimeParts = (parts) => {
+    let formatTimeParts = parts => {
         let label = '';
         if(parts.days){
             label += parts.days + 'd ';
@@ -187,7 +187,7 @@ define([
      * hide default icon and replace it with "loading" icon
      * @param iconElement
      */
-    let showLoading = (iconElement) => {
+    let showLoading = iconElement => {
         iconElement = $(iconElement);
         let dataName = 'default-icon';
         let defaultIconClass = iconElement.data(dataName);
@@ -206,7 +206,7 @@ define([
      * hide "loading" icon and replace with default icon
      * @param iconElement
      */
-    let hideLoading = (iconElement) => {
+    let hideLoading = iconElement => {
         iconElement = $(iconElement);
         let dataName = 'default-icon';
         let defaultIconClass = iconElement.data(dataName);

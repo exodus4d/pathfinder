@@ -250,18 +250,6 @@ define([
     };
 
     /**
-     * Access a nested JSON object by "dot.notation" syntax
-     * @param obj
-     * @param selector
-     * @returns {*}
-     */
-    let getDescendantProp = (obj, selector) => {
-        return selector.split('.').reduce(function(a, b){
-            return a[b];
-        }, obj);
-    };
-
-    /**
      * init tooltip for a "DataTables" Cell
      * @param api
      * @param cell
@@ -274,7 +262,7 @@ define([
 
             $(this).tooltip({
                 container: 'body',
-                title: String( getDescendantProp(rowData, titleSelector) ),
+                title: Util.getObjVal(rowData, titleSelector),
                 placement: 'left',
                 delay: 100
             }).tooltip('show');
@@ -393,7 +381,7 @@ define([
                     info: false,
                     searching: false,
                     hover: false,
-                    autoWidth: false,
+                    responsive: false,          // true "hides" some columns on init (why?)
                     rowId: function(rowData){
                         return 'pf-local-row_' + rowData.id; // characterId
                     },
@@ -409,7 +397,7 @@ define([
                             className: [Util.config.helpDefaultClass, 'text-center'].join(' '),
                             data: 'jumps',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data;
                                     if(type === 'display'){
                                         if(value === 0){
@@ -431,7 +419,7 @@ define([
                             className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
                             data: 'log.ship',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data.typeName;
                                     if(type === 'display'){
                                         value = '<img src="' + Init.url.ccpImageServer + '/Render/' + data.typeId + '_32.png"/>';
@@ -450,7 +438,7 @@ define([
                             width: '80px',
                             data: 'log.ship',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data.name;
                                     if(type === 'display'){
                                         value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
@@ -465,7 +453,7 @@ define([
                             title: 'pilot',
                             data: 'name',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data;
                                     if(type === 'display'){
                                         value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis90Class + '">' + data + '</div>';
@@ -481,7 +469,7 @@ define([
                             className: [Util.config.helpDefaultClass].join(' '),
                             data: 'log',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = '';
                                     if(type === 'display'){
                                         if(data.station && data.station.id > 0){
@@ -511,7 +499,7 @@ define([
                             className: [config.tableCellActionClass].join(' '),
                             data: 'id',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data;
                                     if(type === 'display'){
                                         value = '<i class="fas fa-id-card ' + config.tableCellActionIconClass + '"></i>';

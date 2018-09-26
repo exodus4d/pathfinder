@@ -1389,6 +1389,10 @@ code {
   .badge{
     background-color: $gray;
     color: $gray-lighter;
+
+    &:empty{
+      display: none;
+    }
   }
 
   small{

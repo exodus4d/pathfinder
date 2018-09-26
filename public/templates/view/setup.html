@@ -4,30 +4,7 @@
 <include href="img/logo.svg"/>
 
 {* counter for DB warnings (all databases) *}
-<set dbWarnings="0" />
-
-<nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
-    <div class="container col-sm-12">
-        <div id="pf-head" class="navbar-header">
-            <span class="navbar-brand pf-head-menu">
-                <svg class="pf-head-menu-logo" width="24px" height="24px">
-                    <use xlink:href="#pf-logo"/>
-                </svg>
-                &nbsp;&nbsp;Setup
-            </span>
-        </div>
-        <div class="navbar-collapse">
-            <ul class="nav navbar-nav navbar-right" role="tablist">
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-server" href="#"><i class="fas fa-fw fa-home"></i>&nbsp;Server</a></li>
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-environment" href="#"><i class="fas fa-fw fa-server"></i>&nbsp;Environment</a></li>
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-settings" href="#"><i class="fas fa-fw fa-sliders-h"></i>&nbsp;Settings</a></li>
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-database" href="#"><i class="fas fa-fw fa-database"></i>&nbsp;Database</a></li>
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-socket" href="#"><i class="fas fa-fw fa-exchange-alt"></i>&nbsp;Socket</a></li>
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-setup-administration" href="#"><i class="fas fa-fw fa-wrench"></i>&nbsp;Administration</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
+{{ @tplCounter('reset', 'database_warning_all') }}
 
 <section id="pf-setup-server">
     <div class="container">
@@ -213,6 +190,7 @@
                             </check>
                         </div>
                     </div>
+                    {{ @tplCounter('add', 'server_warning', @tplCounter('get')) }}
                     {{ @tplCounter('reset') }}
                 </check>
             </div>
@@ -250,6 +228,7 @@
                         </check>
                     </div>
                 </div>
+                {{ @tplCounter('add', 'environment_warning', @tplCounter('get')) }}
                 {{ @tplCounter('reset') }}
             </div>
 
@@ -275,6 +254,7 @@
                         </check>
                     </div>
                 </div>
+                {{ @tplCounter('add', 'environment_warning', @tplCounter('get')) }}
                 {{ @tplCounter('reset') }}
 
                 {* Redis requirements *}
@@ -299,6 +279,7 @@
                             </check>
                         </div>
                     </div>
+                    {{ @tplCounter('add', 'environment_warning', @tplCounter('get')) }}
                     {{ @tplCounter('reset') }}
                 </check>
             </div>
@@ -437,7 +418,7 @@
                                                         <kbd class="txt-color txt-color-success">enabled</kbd>
                                                     </case>
                                                     <case value="0" break="true">
-                                                        <kbd class="txt-color txt-color-warning">disabled</kbd>
+                                                        <kbd>disabled</kbd>
                                                     </case>
                                                     <default>
                                                         <kbd>{{ @mapTypeConfValue }}</kbd>
@@ -471,20 +452,20 @@
                 <set dbConnectionStatus="OK" />
                 <set dbStatusCheck="OK" />
 
-
                 <check if="{{ @dbInformation.info.dbCreate }}">
                     <true>
                         <set dbConnectionStatus="Database not found" />
-                        <set dbWarnings="{{ @dbWarnings }} + 1" />
+                        {{ @tplCounter('increment', 'database_danger') }}
+                        {{ @tplCounter('increment', 'database_warning_all') }}
                     </true>
                     <false>
                         <check if="{{ !@dbInformation.info.connected }}">
                             <set dbConnectionStatus="Connection failed" />
-                            <set dbWarnings="{{ @dbWarnings }} + 1" />
+                            {{ @tplCounter('increment', 'database_danger') }}
+                            {{ @tplCounter('increment', 'database_warning_all') }}
                         </check>
                     </false>
                 </check>
-
 
 
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -857,7 +838,8 @@
                                 <check if="{{ @dbInformation.info.statusCheckCount > 0 }}">
                                     <true>
                                         <h3 class="panel-title txt-color txt-color-warning">{{ @dbInformation.info.statusCheckCount }} warning</h3>
-                                        <set dbWarnings="{{ @dbWarnings }} + {{ @dbInformation.info.statusCheckCount }}" />
+                                        {{ @tplCounter('add', 'database_warning', @dbInformation.info.statusCheckCount) }}
+                                        {{ @tplCounter('add', 'database_warning_all', @dbInformation.info.statusCheckCount) }}
                                     </true>
                                     <false>
                                         <h3 class="panel-title txt-color txt-color-success">{{ @dbConnectionStatus }}</h3>
@@ -894,7 +876,7 @@
                         <div class="panel-footer btn-group btn-group-justified">
                             <check if="{{ @dbInformation.info.dbCreate }}">
                                 <true>
-                                    <a href="?action=createDB&db={{ @dbKey }}#pf-setup-database" class="btn btn-success {{ true ?'':'disabled' }}" title="Try to create new '{{ @dbInformation.info.name }}' database.">
+                                    <a href="?action=createDB&db={{ @dbKey }}#pf-setup-database" class="btn btn-success {{ true ?'':'disabled' }}" title="Try to create new '{{ @dbInformation.info.name }}' database." data-container="body">
                                         <i class="fas fa-fw fa-plus"></i> Create database
                                     </a>
                                 </true>
@@ -922,7 +904,7 @@
 <section id="pf-setup-socket">
     <div class="container">
 
-        <h4><i class="fas fa-fw fa-exchange-alt"></i> Socket configuration <span class="txt-color txt-color-gray">[advanced]</span></h4>
+        <h4><i class="fas fa-fw fa-exchange-alt"></i> Socket configuration <span class="txt-color txt-color-gray">[optional]</span></h4>
 
         <div class="row text-center">
 
@@ -949,6 +931,7 @@
                                                     </true>
                                                     <false>
                                                         <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
+                                                        {{ @tplCounter('increment', 'socket_warning') }}
                                                     </false>
                                                 </check>
                                             </td>
@@ -965,6 +948,7 @@
                                 </true>
                                 <false>
                                     <h3 class="panel-title txt-color txt-color-danger">INIT CONNECTION...</h3>
+                                    {{ @tplCounter('increment', 'socket_danger') }}
                                 </false>
                             </check>
                         </div>
@@ -994,7 +978,7 @@
                             Index data
                             <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="
                             Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
-                            Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
+                            Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts." data-container="body"></i>
                         </h3>
                     </div>
 
@@ -1011,12 +995,14 @@
                                         </check>
                                         <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
                                             <kbd class="txt-color txt-color-warning">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                            {{ @tplCounter('increment', 'administration_warning') }}
                                         </check>
                                         <check if="{{ @indexData.countBuild <= 0 }}">
                                             <kbd class="txt-color txt-color-danger">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                            {{ @tplCounter('increment', 'administration_danger') }}
                                         </check>
                                         <check if="{{ @indexData.tooltip }}">
-                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}"></i>
+                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}" data-container="body"></i>
                                         </check>
                                     </check>
                                 </div>
@@ -1026,7 +1012,7 @@
                                             <a href="?action={{ @taskData.action }}&model={{ @type }}#pf-setup-administration"
                                                data-type="{{ @type }}" data-action="{{ @taskData.action }}"
                                                data-loading-text="<i class='fas fa-sync fa-spin'></i>&nbsp;&nbsp;wait&hellip;<div class='btn-progress'></div>" autocomplete="off"
-                                               class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.countBuild ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
+                                               class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.countBuild ?'disabled':'' }} {{ @tplCounter('get', 'database_warning_all') ?'disabled':'' }}" role="button">
                                                 <i class="fas {{ @taskData.icon }}"></i>&nbsp;&nbsp;{{ @taskData.label }}
                                             </a>
                                         </repeat>
@@ -1133,5 +1119,31 @@
     </div>
 </section>
 
+{* Top navigation *}
+<nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
+    <div class="container col-sm-12">
+        <div id="pf-head" class="navbar-header">
+            <span class="navbar-brand pf-head-menu">
+                <svg class="pf-head-menu-logo" width="24px" height="24px">
+                    <use xlink:href="#pf-logo"/>
+                </svg>
+                &nbsp;&nbsp;Setup
+            </span>
+        </div>
+        <div class="navbar-collapse">
+            <ul class="nav navbar-nav navbar-right" role="tablist">
+                <repeat group="{{ @tplNavigation }}" key="{{ @navKey }}" value="{{ @navConfig }}">
+                    <li class="hide-before">
+                        <a class="page-scroll" data-anchor="#pf-setup-{{ @navKey }}" href="#"><i class="fas fa-fw {{ @navConfig.icon }}"></i>&nbsp;{{ lcfirst(@navKey) }}
+                            <span class="badge txt-color txt-color-warning" title="warning" data-placement="bottom">{{ @tplCounter('get', @navKey . '_warning') }}</span>
+                            <span class="badge txt-color txt-color-danger" title="error" data-placement="bottom">{{ @tplCounter('get', @navKey . '_danger') }}</span>
+                        </a>
+                    </li>
+                </repeat>
+            </ul>
+        </div>
+    </div>
+</nav>
+TREST: {{ @tplCounter('get', 'database_warning_all') }}
 {* footer *}
 <include href="templates/ui/footer.html"/>

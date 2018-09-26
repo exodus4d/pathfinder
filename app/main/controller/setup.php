@@ -154,6 +154,9 @@ class Setup extends Controller {
         // body element class
         $f3->set('tplBodyClass', 'pf-landing');
 
+        // top navigation configuration
+        $f3->set('tplNavigation', $this->getNavigationConfig());
+
         return true;
     }
 
@@ -169,13 +172,16 @@ class Setup extends Controller {
         $f3->set('cacheType', $this->getCacheType($f3));
 
         // simple counter (called within template)
-        $counter = 0;
-        $f3->set('tplCounter', function(string $action = 'add') use (&$counter){
+        $counter = [];
+        $f3->set('tplCounter', function(string $action = 'increment', string $type = 'default', $val = 0) use (&$counter){
+            $return = null;
             switch($action){
-                case 'add': $counter++; break;
-                case 'get': return $counter; break;
-                case 'reset': $counter = 0; break;
+                case 'increment': $counter[$type]++; break;
+                case 'add': $counter[$type] += (int)$val; break;
+                case 'get': $return = $counter[$type]? : null; break;
+                case 'reset': unset($counter[$type]); break;
             }
+            return $return;
         });
 
         // render view
@@ -265,6 +271,35 @@ class Setup extends Controller {
 
         // set Redis config check information
         $f3->set('checkRedisConfig', $this->checkRedisConfig($f3));
+    }
+
+    /**
+     * get top navigation configuration
+     * @return array
+     */
+    protected function getNavigationConfig() : array {
+        $config = [
+            'server' => [
+                'icon' => 'fa-home'
+            ],
+            'environment' => [
+                'icon' => 'fa-server'
+            ],
+            'settings' => [
+                'icon' => 'fa-sliders-h'
+            ],
+            'database' => [
+                'icon' => 'fa-database'
+            ],
+            'socket' => [
+                'icon' => 'fa-exchange-alt'
+            ],
+            'administration' => [
+                'icon' => 'fa-wrench'
+            ],
+        ];
+
+        return $config;
     }
 
     /**
