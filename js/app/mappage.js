@@ -39,7 +39,6 @@ define([
         Util.initDefaultEditableConfig();
 
         // load page
-        // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure().setGlobalShortcuts();
 
         // show app information in browser console
@@ -61,7 +60,7 @@ define([
          * -> stop program from working -> shutdown
          */
         let clearUpdateTimeouts = () => {
-            for(let intervalKey in updateTimeouts) {
+            for(let intervalKey in updateTimeouts){
                 if(updateTimeouts.hasOwnProperty(intervalKey)){
                     clearTimeout(updateTimeouts[intervalKey]);
                 }
@@ -194,16 +193,14 @@ define([
         let initMapModule = (payload) => {
 
             let initMapModuleExecutor = (resolve, reject) => {
-                // init tab change observer, Once the timers are available
+                // init browser tab change observer, Once the timers are available
                 Page.initTabChangeObserver();
 
-                // init map module
-                mapModule.initMapModule() ;
+                // init hidden context menu elements
+                Page.initMapContextMenus();
 
-                // load info (maintenance) info panel (if scheduled)
-                if(Init.programMode.maintenance){
-                    $('body').showGlobalInfoPanel();
-                }
+                // init map module
+                mapModule.initMapModule();
 
                 resolve({
                     action: 'initMapModule',
@@ -250,7 +247,7 @@ define([
                                 },
                                 onOpen: (MsgWorkerMessage) => {
                                     Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
-                                    MapWorker.send( 'subscribe', response.data);
+                                    MapWorker.send('subscribe', response.data);
 
                                     resolve(getPayload(MsgWorkerMessage.command));
                                 },
@@ -393,7 +390,7 @@ define([
                         }else{
                             $(document).setProgramStatus('online');
 
-                            if(data.userData !== undefined) {
+                            if(data.userData !== undefined){
                                 // store current user data global (cache)
                                 Util.setCurrentUserData(data.userData);
                             }
@@ -523,7 +520,7 @@ define([
 
             // Send map update request on tab close/reload, in order to save map changes that
             // haven´t been saved through default update trigger
-            window.addEventListener('beforeunload', function(e) {
+            window.addEventListener('beforeunload', function(e){
                 // save unsaved map changes ...
                 triggerMapUpdatePing();
 

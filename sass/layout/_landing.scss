@@ -313,6 +313,10 @@
   padding-top: 40px;
   padding-bottom: 30px;
 
+  @media (max-width: $screen-sm-max) {
+    padding-top: 10px;
+  }
+
   .row{
     margin-bottom: 0;
   }
@@ -569,6 +573,7 @@
 }
 
 .pricing-big{
+  position: relative;
   @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
 
   .panel-heading{
@@ -679,6 +684,31 @@
   }
 }
 
+// setup page -----------------------------------------------------------------
+.pf-body[data-script='setup']{
+  .navbar-brand:hover{
+    color: #777; // overwrite default
+  }
+
+  section {
+    padding-bottom: 0; // overwrite default
+    border-bottom: 0; // overwrite default
+
+    &:first-of-type{
+      padding-top: 60px;
+    }
+
+    &:last-of-type{
+      padding-bottom: 60px;
+    }
+
+    .container{
+      & > .row{
+        margin-bottom: 0; // overwrite default
+      }
+    }
+  }
+}
 
 // TEST ---
 /*

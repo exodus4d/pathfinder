@@ -905,7 +905,8 @@ abstract class BasicModel extends \DB\Cortex {
      * @return bool
      */
     public static function existsCacheValue(string $key, &$val = null){
-        return self::getF3()->exists($key, $val);
+        $cache = \Cache::instance();
+        return $cache->exists(self::getF3()->hash($key).'.var',$val);
     }
 
     /**

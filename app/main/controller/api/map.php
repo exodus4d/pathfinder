@@ -210,6 +210,10 @@ class Map extends Controller\AccessController {
                 foreach($rows as $rowData){
                     $wormholesData[$rowData->name] = $rowData->getData();
                 }
+
+                $wormhole->reset();
+                $wormhole->name = 'K162';
+                $wormholesData[$wormhole->name] = $wormhole->getData();
             }
             $return->wormholes = $wormholesData;
 
@@ -980,7 +984,7 @@ class Map extends Controller\AccessController {
                     $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
 
                     // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId( $targetSystemId, ['active' => 1]);
+                    $targetSystem = $map->getSystemByCCPId($targetSystemId, ['active' => 1]);
                 }
 
                 // if systems don´t already exists on map -> get "blank" system

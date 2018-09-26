@@ -31,55 +31,81 @@
   }
 }
 
-// signature table module ==================================================
-.pf-signature-table-module{
+// system signature module ==================================================
+.pf-system-signature-module{
+
+  .progress-label-right{
+    margin-right: 20px;
+    vertical-align: middle;
+    font-size: 11px;
+  }
+
+  // progress bar
+  .pf-system-progress-scanned{
+    display: inline-block;
+    margin-left: 20px;
+    width: calc(100% - 225px);
+
+    .progress{
+      margin-bottom: 3px; // overwrite default
+    }
+  }
 
   // delete signature button
   .pf-sig-table-clear-button{
     will-change: opacity, transform;
     display: none;
+    color: $red-darker;
   }
 
   .pf-sig-table{
     font-size: 10px;
 
-    .pf-sig-table-edit-desc-text{
-      white-space: normal;
-
-      &.editable-empty{
-        border-bottom: none;
-        @extend .pf-dialog-icon-button;
-      }
-    }
-
-    .fa-plus{
-       @extend .pf-dialog-icon-button;
-    }
-
-    // textarea field
-    .pf-editable-description{
-      background-color: $gray-darker;
-      max-height: 50px;
-    }
-
     .pf-sig-table-edit-name-input{
       text-transform: uppercase;
     }
 
-    // table filter fields
-    .pf-editable-filter{
-      // overwrites default xEditable style
-      color: $gray-light;
-      border: none;
-      font-style: normal;
+    // textarea field
+    // overwrite some styles in order to make <textarea> 100% width
+    .editable-container.editable-inline {
+      display: inline;
+      .control-group{
+        display: inline;
+        .editable-input{
+          display: inline;
+        }
+      }
+    }
+
+    .pf-editable-description{
+      width: 100%;
+      background-color: $gray-darker;
+      max-height: 50px;
+      font-size: 11px;
+      line-height: 14px;
+      padding: 3px 6px;
+    }
+
+    .fa-plus{
+      @extend .pf-dialog-icon-button;
     }
   }
-}
 
-// table filter (active) select (popover)
-// -> popover is child from <body>
-.pf-editable-filter-active{
-  min-width: 100px;
+  .pf-sig-table-secondary{
+    // columns should be "inline" with primary table
+    // -> therefore "sortable" must be true even if columns should not be sortable -> now "disable" sortable by CSS
+    th{
+      pointer-events: none;
+
+      &:after{
+        display: none !important;
+      }
+
+      &.pf-table-counter-cell{
+        color: transparent; // hide label for counter columns -> no data here
+      }
+    }
+  }
 }
 
 // system graph module =====================================================
@@ -89,6 +115,10 @@
     position: relative;
     width: 100%;
     height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    @include transition(height .18s ease-out); // height is reduced when no graph shown
   }
 }
 
@@ -106,7 +136,7 @@
         font-size: 10px;
       }
 
-      .fa-sync, .fa-search-plus{
+      .fa-sync, .fa-search{
         @extend .pf-dialog-icon-button;
       }
 

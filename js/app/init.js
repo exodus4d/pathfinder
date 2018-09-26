@@ -60,10 +60,12 @@ define(['jquery'], ($) => {
             gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
         },
         breakpoints: [
-            { name: 'desktop', width: Infinity },
-            { name: 'tablet',  width: 1200 },
-            { name: 'fablet',  width: 780 },
-            { name: 'phone',   width: 480 }
+            { name: 'screen-xl', width: Infinity },
+            { name: 'screen-l', width: 1600 },
+            { name: 'screen-m', width: 1200 },
+            { name: 'screen-d', width: 1000 },
+            { name: 'screen-s', width: 780 },
+            { name: 'screen-xs', width: 480 }
         ],
         animationSpeed: {
             splashOverlay: 300,                                             // "splash" loading overlay
@@ -148,6 +150,10 @@ define(['jquery'], ($) => {
                 class: 'fa-heart',
                 label: 'heart',
                 unicode: '&#xf004;'
+            },{
+                class: 'fa-poop',
+                label: 'poop',
+                unicode: '&#xf619;'
             }
         ],
 
@@ -280,6 +286,36 @@ define(['jquery'], ($) => {
                     label: 'rally point'
                 }
             },
+            // planets
+            planets: {
+                barren: {
+                    class: 'pf-planet-barren'
+                },
+                gas: {
+                    class: 'pf-planet-gas'
+                },
+                ice: {
+                    class: 'pf-planet-ice'
+                },
+                lava: {
+                    class: 'pf-planet-lava'
+                },
+                oceanic: {
+                    class: 'pf-planet-oceanic'
+                },
+                plasma: {
+                    class: 'pf-planet-plasma'
+                },
+                shattered: {
+                    class: 'pf-planet-shattered'
+                },
+                storm: {
+                    class: 'pf-planet-storm'
+                },
+                temperate: {
+                    class: 'pf-planet-temperate'
+                }
+            },
             // easy-pie-charts
             pieChart: {
                 class: 'pf-pie-chart',                                      // class for all pie charts
@@ -402,7 +438,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             },
             2: {    // C2
                 1: 'E004 - C1',
@@ -412,7 +448,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             },
             3: {    // C3
                 1: 'E004 - C1',
@@ -422,7 +458,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             },
             4: {    // C4
                 1: 'E004 - C1',
@@ -432,7 +468,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             },
             5: {    // C5
                 1: 'E004 - C1',
@@ -442,7 +478,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             },
             6: {    // C6
                 1: 'E004 - C1',
@@ -452,7 +488,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             },
             13: {   // Shattered Wormholes (some of them are static)
                 1: 'E004 - C1',
@@ -462,7 +498,7 @@ define(['jquery'], ($) => {
                 5: 'C008 - C5',
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
-                8: 'A009 - (shattered)'
+                8: 'A009 - C13'
             }
         },
         // incoming wormholes
@@ -470,8 +506,8 @@ define(['jquery'], ($) => {
             1: 'K162 - C1/2/3 (unknown)',
             2: 'K162 - C4/5 (dangerous)',
             3: 'K162 - C6 (deadly)',
-            4: 'K162 - HS',
-            5: 'K162 - LS',
+            4: 'K162 - H',
+            5: 'K162 - L',
             6: 'K162 - 0.0',
             7: 'K162 - Thera'
         }

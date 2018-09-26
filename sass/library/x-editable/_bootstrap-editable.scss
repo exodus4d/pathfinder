@@ -57,6 +57,10 @@
   height: 25px;
   width: auto;
   min-width: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .editable-inline .editableform-loading {
@@ -167,7 +171,7 @@
 a.editable-click,
 a.editable-click:hover {
   text-decoration: none;
-  border-bottom: dashed 1px $teal-lighter;
+  // border-bottom: dashed 1px $teal-lighter;
 }
 
 .editable-click.editable-disabled,

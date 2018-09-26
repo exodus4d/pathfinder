@@ -29,7 +29,7 @@ window.MsgWorker = class MessageWorker {
         return this.cmd;
     }
 
-    task(task) {
+    task(task){
         if(task){
             this.msgTask = task;
         }
@@ -37,7 +37,7 @@ window.MsgWorker = class MessageWorker {
         return this.msgTask;
     }
 
-    meta(metaData) {
+    meta(metaData){
         if(metaData){
             this.msgMeta = metaData;
         }
@@ -45,7 +45,7 @@ window.MsgWorker = class MessageWorker {
         return this.msgMeta;
     }
 
-    data(data) {
+    data(data){
         if(data){
             this.msgBody = data;
         }

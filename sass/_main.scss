@@ -44,7 +44,7 @@ label {
 	font-weight:normal;
 }
 
-*:focus {
+*:not(td):focus {
     outline: 0 !important;
 }
 
@@ -599,8 +599,8 @@ input[type="email"]{
 	margin-bottom: 20px;
 	overflow: hidden;
 	height: 18px;
-	background: $gray-lighter;
-	@include box-shadow( 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset);
+	background: $gray-light;
+	@include box-shadow( 0 1px 0 transparent, 0 0 0 1px $gray-light inset);
 	@include border-radius($progressbar-radius);
 }
 
@@ -613,10 +613,7 @@ input[type="email"]{
 	text-align: center;
 	background-color: $blue;
 	font-weight: bold;
-	text-shadow: 0 -1px 0 rgba(red($black), green($black), blue($black), 0.25);
-	//background-image:url("#{$base-url}/overlay-pattern.png");
-	@include box-shadow( inset 0 -1px 0 rgba(red($black), green($black), blue($black), 0.15));
-	@include transition(width 1s ease-in-out) ;
+	@include transition(width 1s ease-in-out, background-color 1s ease-in-out) ;
 }
 
 .progress-striped .progress-bar {
@@ -981,8 +978,8 @@ input[type="email"]{
 		border-style: solid;
 		border-width: 5px 0 5px 5px;
 		border-left-color: $gray-darker;
-		margin-top: 5px;
-		margin-right: -10px;
+		margin-top: 4px;
+		margin-right: 3px;
 	}
 
 	&:hover{
@@ -1252,8 +1249,8 @@ input[type="email"]{
     border-radius: 5px;
     padding: 5px;
     color: #666;
-    background: rgba(red( $gray-darkest), green($gray-darkest), blue($gray-darkest), 0.9);
-    border: solid 2px $teal-dark;
+    background: rgba($gray-darkest, 0.85);
+    //border: solid 2px $teal-dark;
     font-family: 'Oxygen Bold';
     font-size: 10px;
     text-align: left;

@@ -33,13 +33,14 @@ $pf-font-path:            "../../fonts" !default;
 
 @font-face {
   font-family: 'Oxygen';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
   src: url('#{$pf-font-path}/oxygen-regular-webfont.eot');
   src: url('#{$pf-font-path}/oxygen-regular-webfont.eot') format('embedded-opentype'),
   url('#{$pf-font-path}/oxygen-regular-webfont.woff2') format('woff2'),
   url('#{$pf-font-path}/oxygen-regular-webfont.woff') format('woff'),
   url('#{$pf-font-path}/oxygen-regular-webfont.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
 }
 
 /* not used jet
@@ -56,13 +57,14 @@ $pf-font-path:            "../../fonts" !default;
 
 @font-face {
   font-family: 'Oxygen Bold';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
   src: url('#{$pf-font-path}/oxygen-bold-webfont.eot');
   src: url('#{$pf-font-path}/oxygen-bold-webfont.eot') format('embedded-opentype'),
   url('#{$pf-font-path}/oxygen-bold-webfont.woff2') format('woff2'),
   url('#{$pf-font-path}/oxygen-bold-webfont.woff') format('woff'),
   url('#{$pf-font-path}/oxygen-bold-webfont.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
 }
 
 

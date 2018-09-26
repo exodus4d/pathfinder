@@ -2,7 +2,7 @@ define([
     'jquery',
     'app/init',
     'app/util'
-], function($, Init, Util) {
+], ($, Init, Util) => {
     'use strict';
 
     let config = {
@@ -16,7 +16,7 @@ define([
      * @param tempDate
      * @param round
      */
-    let updateDateDiff = function(element, tempDate, round){
+    let updateDateDiff = (element, tempDate, round) => {
         let diff = Util.getTimeDiffParts(tempDate, new Date());
         let days = diff.days;
         let hrs = diff.hours;
@@ -65,17 +65,21 @@ define([
     /**
      * destroy all active counter recursive
      */
-    $.fn.destroyTimestampCounter = function(){
+    $.fn.destroyTimestampCounter = function(recursive){
         return this.each(function(){
-            let parentElement = $(this);
-            parentElement.find('[data-counter="init"]').each(function(){
+            let element = $(this);
+            let counterSelector = '[data-counter="init"]';
+            let counterElements = element.filter(counterSelector);
+            if(recursive){
+                counterElements = counterElements.add(element.find(counterSelector));
+            }
+
+            counterElements.each(function(){
                 let element = $(this);
                 let interval = element.data('interval');
                 if(interval){
                     clearInterval(interval);
-                    element.removeAttr('data-counter')
-                        .removeData('interval')
-                        .removeClass('stopCounter');
+                    element.removeAttr('data-counter').removeData('interval').removeClass('stopCounter');
                 }
             });
         });
@@ -102,18 +106,55 @@ define([
                 // show element (if invisible) after first update
                 element.css({'visibility': 'initial'});
 
-                let refreshIntervalId = window.setInterval(function(){
+                // calc ms until next second
+                // -> makes sure all counter update in sync no matter when init
+                let msUntilSecond = 1500 - new Date().getMilliseconds();
+                setTimeout(function(){
+                    let refreshIntervalId = window.setInterval(function(){
 
-                    // update element with current time
-                    if( !element.hasClass('stopCounter')){
-                        updateDateDiff(element, date, round);
-                    }else{
-                        clearInterval( element.data('interval') );
-                    }
-                }, 500);
+                        // update element with current time
+                        if( !element.hasClass('stopCounter')){
+                            updateDateDiff(element, date, round);
+                        }else{
+                            clearInterval( element.data('interval') );
+                        }
+                    }, 500);
 
-                element.data('interval', refreshIntervalId);
+                    element.data('interval', refreshIntervalId);
+                }, msUntilSecond);
             }
         });
+    };
+
+    /**
+     * init global timestamp counter or DataTable for specific columns
+     * @param tableElement
+     * @param columnSelector
+     * @param round
+     */
+    let initTableCounter = (tableElement, columnSelector, round) => {
+        let tableApi = tableElement.api();
+
+        // mark as init
+        tableElement.attr('data-counter', 'init');
+        let refreshIntervalId = window.setInterval(() => {
+            tableApi.cells(null, columnSelector).every(function(rowIndex, colIndex, tableLoopCount, cellLoopCount){
+                let cell = this;
+                let node = cell.node();
+                let data = cell.data();
+                if(data && Number.isInteger(data) && !node.classList.contains('stopCounter')){
+                    // timestamp expected int > 0
+                    let date = new Date(data * 1000);
+                    updateDateDiff( cell.nodes().to$(), date, round);
+                }
+            });
+        }, 500);
+
+        tableElement.data('interval', refreshIntervalId);
+    };
+
+    return {
+        updateDateDiff: updateDateDiff,
+        initTableCounter: initTableCounter
     };
 });

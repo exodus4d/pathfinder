@@ -13,6 +13,18 @@ use Model;
 
 class System extends Controller\AccessController {
 
+    // cache keys
+    const CACHE_KEY_GRAPH                           = 'CACHED_SYSTEM_GRAPH_%s';
+
+    /**
+     * get system graph cache key
+     * @param int $systemId
+     * @return string
+     */
+    protected function getSystemGraphCacheKey(int $systemId): string {
+        return sprintf(self::CACHE_KEY_GRAPH, 'SYSTEM_' . $systemId);
+    }
+
     /**
      * save a new system to a a map
      * @param \Base $f3
@@ -34,12 +46,8 @@ class System extends Controller\AccessController {
             $mapData = (array)$postData['mapData'];
             $systemModel = null;
 
-            if( isset($systemData['statusId']) ){
-                if( (int)$systemData['statusId'] <= 0){
-                    unset($systemData['statusId']);
-                }else{
-                    $systemData['statusId'] = (int)$systemData['statusId'];
-                }
+            if( (int)$systemData['statusId'] <= 0 ){
+                unset($systemData['statusId']);
             }
 
             if( isset($systemData['id']) ){
@@ -72,7 +80,7 @@ class System extends Controller\AccessController {
 
             if( !is_null($systemModel) ){
                 // set/update system custom data
-                $systemModel->copyfrom($systemData, ['locked', 'rallyUpdated', 'position', 'description']);
+                $systemModel->copyfrom($systemData, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
 
                 if($systemModel->save($activeCharacter)){
                     // get data from "fresh" model (e.g. some relational data has changed: "statusId")
@@ -102,11 +110,16 @@ class System extends Controller\AccessController {
      * @throws \Exception
      */
     public function graphData(\Base $f3){
-        $graphData = [];
-        $systemIds = $f3->get('POST.systemIds');
+        $graphsData = [];
+        $systemIds = (array)$f3->get('GET.systemIds');
+
+        // valid response (data found) should be cached by server + client
+        $cacheResponse = false;
 
         // number of log entries in each table per system (24 = 24h)
         $logEntryCount = 24;
+
+        $ttl = 60 * 10;
 
         // table names with system data
         $logTables = [
@@ -117,34 +130,62 @@ class System extends Controller\AccessController {
         ];
 
         foreach($systemIds as $systemId){
-            foreach($logTables as $label => $ModelClass){
-                $systemLogModel = Model\BasicModel::getNew($ModelClass);
+            $cacheKey = $this->getSystemGraphCacheKey($systemId);
+            if( !$f3->exists($cacheKey, $graphData )){
+                $graphData = [];
+                $cacheSystem = false;
 
-                // 10min cache (could be up to 1h cache time)
-                $systemLogModel->getByForeignKey('systemId', $systemId, [], 60 * 10);
+                foreach($logTables as $label => $ModelClass){
+                    $systemLogModel = Model\BasicModel::getNew($ModelClass);
+                    $systemLogExists = false;
 
-                if( !$systemLogModel->dry() ){
+                    // 10min cache (could be up to 1h cache time)
+                    $systemLogModel->getByForeignKey('systemId', $systemId);
+                    if( !$systemLogModel->dry() ){
+                        $systemLogExists = true;
+                        $cacheSystem = true;
+                        $cacheResponse = true;
+                    }
+
+                    // podKills share graph with shipKills -> skip
+                    if($label != 'podKills'){
+                        $graphData[$label]['logExists'] = $systemLogExists;
+                    }
+
                     $counter = 0;
                     for( $i = $logEntryCount; $i >= 1; $i--){
                         $column = 'value' . $i;
+                        $value = $systemLogExists ? $systemLogModel->$column : 0;
 
                         // ship and pod kills should be merged into one table
                         if($label == 'podKills'){
-                            $graphData[$systemId]['shipKills'][$counter]['z'] = $systemLogModel->$column;
+                            $graphData['shipKills']['data'][$counter]['z'] = $value;
                         }else{
                             $dataSet = [
                                 'x' => ($i - 1) . 'h',
-                                'y' => $systemLogModel->$column
+                                'y' => $value
                             ];
-                            $graphData[$systemId][$label][] = $dataSet;
+                            $graphData[$label]['data'][] = $dataSet;
                         }
                         $counter++;
                     }
                 }
+                if($cacheSystem){
+                    $f3->set($cacheKey, $graphData, $ttl);
+                }
+            }else{
+                // server cache data exists -> client should cache as well
+                $cacheResponse = true;
             }
+            $graphsData[$systemId] = $graphData;
         }
 
-        echo json_encode($graphData);
+        if($cacheResponse){
+            // send client cache header
+            $f3->expire($ttl);
+        }
+
+        echo json_encode($graphsData);
     }
 
     /**

@@ -58,6 +58,10 @@ fieldset[disabled]{
   }
 }
 
+#select2-pf-map-dialog-edit-icon-select-container,  //select2 head
+#select2-pf-map-dialog-new-icon-select-container,   //select2 head
+#select2-pf-map-dialog-new-icon-select-results,     //Select2 body
+#select2-pf-map-dialog-edit-icon-select-results,    //Select2 body
 .pf-form-icon-field {
   font-family: "Font Awesome 5 Free";
   font-weight: bold;
@@ -115,7 +119,7 @@ fieldset[disabled]{
     cursor: default;
     opacity: 1 !important;
     color: $gray-light !important;
-    background-color: $gray !important;
+    background-color: transparent !important;
   }
 
   // progress bar inside button

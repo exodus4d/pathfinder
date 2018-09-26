@@ -4,7 +4,7 @@
 
 define([
     'app/util'
-], function(Util) {
+], function(Util){
     'use strict';
 
     let config = {

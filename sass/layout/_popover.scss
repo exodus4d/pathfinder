@@ -20,7 +20,7 @@
 
   // image in popover
   img{
-    @include border-radius(5px);
+    @include border-radius(3px);
   }
 
   h4{
@@ -34,9 +34,15 @@
     font-size: 11px;
 
     td{
-      padding: 0 5px;
+      padding: 0 4px; // 10px popover padding + 4px table cell padding == 14px -> same as popover title
       vertical-align: middle !important;
     }
+  }
+
+  .select2-container{
+    // Select2 within popover (xEditable field)
+    margin-top: -1px;   // strange UI bug 1px off
+    margin-left: -1px;  // strange UI bug 1px off
   }
 }
 
@@ -96,5 +102,21 @@
         margin-right: 20px;
       }
     }
+  }
+}
+
+// character popover --------------------------------------------------------------------------------------------------
+.pf-popover-character{
+  .table>tbody>tr>td{
+    border: none;
+
+    &:first-child + td{
+      // 2nd column
+      padding: 0 5px;
+    }
+  }
+
+  .well{
+    margin-bottom: 0; // overwrite default
   }
 }

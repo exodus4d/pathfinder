@@ -33,7 +33,6 @@ define([
 
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
-        headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
         headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
 
         // menu
@@ -43,6 +42,11 @@ define([
         menuButtonEndpointId: 'pf-menu-button-endpoint',                        // id for menu button "endpoint" overlays
         menuButtonCompactId: 'pf-menu-button-compact',                          // id for menu button "compact" UI map view
         menuButtonMapDeleteId: 'pf-menu-button-map-delete',                     // id for menu button "delete map"
+
+        // footer
+        footerId: 'pf-footer',                                                  // id for page footer
+        footerCenterClass: 'pf-footer-center',                                  // class for footer "center" element
+        globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
 
         settingsMessageVelocityOptions: {
             duration: 180
@@ -66,10 +70,16 @@ define([
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
         animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
+        animationPulseDangerClass: 'pf-animation-pulse-danger',                 // animation class
 
         // popover
-        popoverSmallClass: 'pf-popover-small',                                  // class for "small" popover
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
+        popoverSmallClass: 'pf-popover-small',                                  // class for small "popover"
+        popoverCharacterClass: 'pf-popover-character',                          // class for character "popover"
+
+        // help
+        helpDefaultClass: 'pf-help-default',                                    // class for "help" tooltip elements
+        helpClass: 'pf-help',                                                   // class for "help" tooltip elements
 
         // fonts
         fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
@@ -205,33 +215,6 @@ define([
                 }
             });
         });
-    };
-
-    /**
-     * request a captcha image
-     * @param reason
-     * @param callback
-     */
-    let getCaptchaImage = function(reason, callback){
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.getCaptcha,
-            data: {
-                reason: reason
-            },
-            dataType: 'json'
-        }).done(function(responseData){
-            if(responseData.error.length > 0){
-                showNotify({title: 'getCaptchaImage', text: 'Captcha image gneration failed', type: 'error'});
-            }else{
-                callback(responseData.img);
-            }
-        }).fail(function( jqXHR, status, error) {
-            let reason = status + ' ' + error;
-            showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
-        });
-
     };
 
     /**
@@ -420,7 +403,7 @@ define([
             let width = element.offsetWidth;
             let height = element.offsetHeight;
 
-            while(element.offsetParent) {
+            while(element.offsetParent){
                 element = element.offsetParent;
                 top += element.offsetTop;
                 left += element.offsetLeft;
@@ -432,7 +415,7 @@ define([
                 (top + height) > window.pageYOffset &&
                 (left + width) > window.pageXOffset
             ){
-                visibleElement.push( this );
+                visibleElement.push(this);
             }
         });
 
@@ -490,7 +473,7 @@ define([
      * @returns {*}
      */
     $.fn.destroyTooltip = function(recursive){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
             let tooltipSelector = '[title]';
             let tooltipElements = element.filter(tooltipSelector);
@@ -498,18 +481,20 @@ define([
                 tooltipElements = tooltipElements.add(element.find(tooltipSelector));
             }
 
-            tooltipElements.each(function() {
+            tooltipElements.each(function(){
                 $(this).tooltip('destroy');
             });
         });
     };
 
     /**
-     * adds a popup tooltip with character information (created/updated)
+     * add a popup tooltip with character information (created/updated)
      * @param tooltipData
+     * @param options
+     * @returns {*}
      */
-    $.fn.addCharacterInfoTooltip = function(tooltipData){
-        let element = $(this);
+    $.fn.addCharacterInfoTooltip = function(tooltipData, options){
+        let data = {};
 
         if(
             tooltipData.created.character &&
@@ -518,59 +503,58 @@ define([
             let createdData = tooltipData.created;
             let updatedData = tooltipData.updated;
 
-            // check if data has changed
-            if(
-                element.data('created') !== createdData.created ||
-                element.data('updated') !== updatedData.updated
-            ){
-                // data changed
-                // set new data for next check
-                element.data('created', createdData.created);
-                element.data('updated', updatedData.updated);
+            let statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
+            let statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
 
-                let statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
-                let statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
+            // convert timestamps
+            let dateCreated = new Date(createdData.created * 1000);
+            let dateUpdated = new Date(updatedData.updated * 1000);
+            let dateCreatedUTC = convertDateToUTC(dateCreated);
+            let dateUpdatedUTC = convertDateToUTC(dateUpdated);
 
-                // convert timestamps
-                let dateCreated = new Date(createdData.created * 1000);
-                let dateUpdated = new Date(updatedData.updated * 1000);
-                let dateCreatedUTC = convertDateToUTC(dateCreated);
-                let dateUpdatedUTC = convertDateToUTC(dateUpdated);
-
-                let data = {
-                    created: createdData,
-                    updated: updatedData,
-                    createdTime: convertDateToString(dateCreatedUTC),
-                    updatedTime: convertDateToString(dateUpdatedUTC),
-                    createdStatusClass: statusCreatedClass,
-                    updatedStatusClass: statusUpdatedClass
-                };
-
-                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
-                    let content = Mustache.render(template, data);
-
-                    element.popover({
-                        placement: 'top',
-                        html: true,
-                        trigger: 'hover',
-                        content: '',
-                        container: 'body',
-                        title: 'Created / Updated',
-                        delay: {
-                            show: 250,
-                            hide: 0
-                        }
-                    });
-
-                    // set new popover content
-                    let popover = element.data('bs.popover');
-                    popover.options.content = content;
-                });
-
-            }
+            data = {
+                popoverClass: config.popoverCharacterClass,
+                ccpImageServerUrl: Init.url.ccpImageServer,
+                created: createdData,
+                updated: updatedData,
+                createdTime: convertDateToString(dateCreatedUTC),
+                updatedTime: convertDateToString(dateUpdatedUTC),
+                createdStatusClass: statusCreatedClass,
+                updatedStatusClass: statusUpdatedClass
+            };
         }
 
-        return element;
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: 'Created / Updated',
+            delay: {
+                show: 150,
+                hide: 0
+            }
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            let element = $(this);
+
+            requirejs(['text!templates/tooltip/character_info.html', 'mustache'], (template, Mustache) => {
+                let content = Mustache.render(template, data);
+
+                element.popover(options);
+
+                // set new popover content
+                let popover = element.data('bs.popover');
+                popover.options.content = content;
+
+                if(options.show){
+                    element.popover('show');
+                }
+            });
+        });
     };
 
     /**
@@ -581,10 +565,10 @@ define([
         let elements = $(this);
         let eventNamespace = 'hideCharacterPopup';
 
-        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
+        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function(template, Mustache){
 
             let data = {
-                id: config.headCharacterSwitchId,
+                popoverClass: config.popoverCharacterClass,
                 browserTabId: getBrowserTabId(),
                 routes:  Init.routes,
                 userData: userData,
@@ -604,7 +588,7 @@ define([
 
             let content = Mustache.render(template, data);
 
-            return elements.each(function() {
+            return elements.each(function(){
                 let element = $(this);
 
                 // check if popover already exists -> remove it
@@ -612,7 +596,7 @@ define([
                     element.off('click').popover('destroy');
                 }
 
-                element.on('click', function(e) {
+                element.on('click', function(e){
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -627,7 +611,7 @@ define([
 
                     if(popoverData === undefined){
 
-                        button.on('shown.bs.popover', function (e) {
+                        button.on('shown.bs.popover', function(e){
                             let tmpPopupElement = $(this).data('bs.popover').tip();
                             tmpPopupElement.find('.btn').on('click', function(e){
                                 // close popover
@@ -658,7 +642,7 @@ define([
                             // character switch detected
                             $('body').data('characterSwitch', true);
                             // ... and remove "characterSwitch" data again! after "unload"
-                            setTimeout(function() {
+                            setTimeout(function(){
                                 $('body').removeData('characterSwitch');
                             }, 500);
                         });
@@ -686,7 +670,7 @@ define([
      * @returns {*}
      */
     $.fn.destroyPopover = function(recursive){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
             let popoverSelector = '.' + config.popoverTriggerClass;
             let popoverElements = element.filter(popoverSelector);
@@ -694,7 +678,7 @@ define([
                 popoverElements = popoverElements.add(element.find(popoverSelector));
             }
 
-            popoverElements.each(function() {
+            popoverElements.each(function(){
                 let popoverElement = $(this);
                 if(popoverElement.data('bs.popover')){
                     popoverElement.popover('destroy');
@@ -709,9 +693,9 @@ define([
      * @returns {*}
      */
     $.fn.initPopoverClose = function(eventNamespace){
-        return this.each(function() {
-            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
-                $('.' + config.popoverTriggerClass).each(function () {
+        return this.each(function(){
+            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function(e){
+                $('.' + config.popoverTriggerClass).each(function(){
                     let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
                     //the 'has' for icons within a button that triggers a popup
@@ -739,7 +723,7 @@ define([
      * @returns {*}
      */
     $.fn.setPopoverSmall = function(){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
             let popover = element.data('bs.popover');
             if(popover){
@@ -756,7 +740,7 @@ define([
     $.fn.showMessage = function(config){
         let containerElement = $(this);
 
-        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache){
 
             let messageTypeClass = 'alert-danger';
             let messageTextClass = 'txt-color-danger';
@@ -805,7 +789,7 @@ define([
      * add/remove css class for keyframe animation
      * @returns {any|JQuery|*}
      */
-    $.fn.pulseTableRow = function(status, clear){
+    $.fn.pulseBackgroundColor = function(status, clear){
 
         let animationClass = '';
         switch(status){
@@ -815,9 +799,12 @@ define([
             case 'changed':
                 animationClass = config.animationPulseWarningClass;
                 break;
+            case 'deleted':
+                animationClass = config.animationPulseDangerClass;
+                break;
         }
 
-        let clearTimer =  function(element) {
+        let clearTimer = element => {
             element.removeClass( animationClass );
             let currentTimer = element.data('animationTimer');
 
@@ -837,13 +824,33 @@ define([
             }
 
             if(clear !== true){
-                element.addClass( animationClass );
+                element.addClass(animationClass);
                 let timer = setTimeout(clearTimer, 1500, element);
                 element.data('animationTimer', timer);
                 animationTimerCache[timer] = true;
             }
 
         });
+    };
+
+    /**
+     * get all mapTabElements (<a> tags)
+     * or search for a specific tabElement within mapModule
+     * @param mapId
+     * @returns {JQuery|*|{}|T}
+     */
+    $.fn.getMapTabElements = function(mapId){
+        let mapModule = $(this);
+        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
+
+        if(mapId){
+            // search for a specific tab element
+            mapTabElements = mapTabElements.filter(function(i, el){
+                return ( $(el).data('mapId') === mapId );
+            });
+        }
+
+        return mapTabElements;
     };
 
     /*
@@ -856,14 +863,14 @@ define([
      * get current Pathfinder version number
      * @returns {*|jQuery}
      */
-    let getVersion = function(){
+    let getVersion = () => {
         return $('body').data('version');
     };
 
     /**
      * show current program version information in browser console
      */
-    let showVersionInfo = function(){
+    let showVersionInfo = () => {
         console.info('PATHFINDER ' + getVersion());
     };
 
@@ -883,7 +890,7 @@ define([
             'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
         ];
         const getDefaultPassiveOption = (passive, eventName) => {
-            if (passive !== undefined) return passive;
+            if(passive !== undefined) return passive;
 
             return supportedPassiveTypes.indexOf(eventName) === -1 ? false : defaultOptions.passive;
         };
@@ -897,15 +904,15 @@ define([
         };
 
         const prepareSafeListener = (listener, passive) => {
-            if (!passive) return listener;
-            return function (e) {
+            if(!passive) return listener;
+            return function(e){
                 e.preventDefault = () => {};
                 return listener.call(this, e);
             };
         };
 
         const overwriteAddEvent = (superMethod) => {
-            EventTarget.prototype.addEventListener = function (type, listener, options) { // jshint ignore:line
+            EventTarget.prototype.addEventListener = function(type, listener, options){ // jshint ignore:line
                 const usesListenerOptions = typeof options === 'object';
                 const useCapture          = usesListenerOptions ? options.capture : options;
 
@@ -923,20 +930,20 @@ define([
 
             try {
                 const opts = Object.defineProperty({}, 'passive', {
-                    get() {
+                    get(){
                         supported = true;
                     }
                 });
 
                 window.addEventListener('test', null, opts);
                 window.removeEventListener('test', null, opts);
-            } catch (e) {}
+            } catch (e){}
 
             return supported;
         };
 
         let supportsPassive = eventListenerOptionsSupported ();
-        if (supportsPassive) {
+        if(supportsPassive){
             const addEvent = EventTarget.prototype.addEventListener; // jshint ignore:line
             overwriteAddEvent(addEvent);
         }
@@ -949,8 +956,8 @@ define([
         // Array diff
         // [1,2,3,4,5,6].diff( [3,4,5] );
         // => [1, 2, 6]
-        Array.prototype.diff = function(a) {
-            return this.filter(function(i) {return a.indexOf(i) < 0;});
+        Array.prototype.diff = function(a){
+            return this.filter(function(i){return a.indexOf(i) < 0;});
         };
 
         /**
@@ -958,7 +965,7 @@ define([
          * @param p
          * @returns {Array.<T>}
          */
-        Array.prototype.sortBy = function(p) {
+        Array.prototype.sortBy = function(p){
             return this.slice(0).sort((a,b) => {
                 return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
             });
@@ -968,10 +975,10 @@ define([
          * get hash from string
          * @returns {number}
          */
-        String.prototype.hashCode = function() {
+        String.prototype.hashCode = function(){
             let hash = 0, i, chr;
-            if (this.length === 0) return hash;
-            for (i = 0; i < this.length; i++) {
+            if(this.length === 0) return hash;
+            for(i = 0; i < this.length; i++){
                 chr   = this.charCodeAt(i);
                 hash  = ((hash << 5) - hash) + chr;
                 hash |= 0; // Convert to 32bit integer
@@ -983,11 +990,25 @@ define([
     };
 
     /**
+     *
+     * @param element
+     */
+    let initPageScroll = (element) => {
+        $(element).on('click', '.page-scroll', function(){
+            // scroll to ancor element
+            $($(this).attr('data-anchor')).velocity('scroll', {
+                duration: 300,
+                easing: 'swing'
+            });
+        });
+    };
+
+    /**
      * flatten XEditable array for select fields
      * @param dataArray
      * @returns {{}}
      */
-    let flattenXEditableSelectArray = (dataArray) => {
+    let flattenXEditableSelectArray = dataArray => {
         let flatten = {};
 
         for(let data of dataArray){
@@ -1017,6 +1038,15 @@ define([
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
+
+        $.fn.select2.defaults.set('language', {
+            searching: params => '&nbsp;<i class="fas fa-sync fa-spin"></i>&nbsp;&nbsp;searching...'
+        });
+
+        $.fn.select2.defaults.set('escapeMarkup', markup => {
+            // required for HTML in options
+            return markup;
+        });
 
         let initScrollbar = (resultsWrapper) => {
             // default 'mousewheel' event set by select2 needs to be disabled
@@ -1055,10 +1085,9 @@ define([
 
         let getResultsWrapper = (selectElement) => {
             let wrapper = null;
-            let selectElementId = selectElement.getAttribute('data-select2-id');
-            if(selectElementId){
-                let resultsOptions = $('#select2-' + selectElementId + '-results');
-                if(resultsOptions.length) {
+            if($(selectElement).data('select2')){
+                let resultsOptions = $(selectElement).data('select2').$results;
+                if(resultsOptions.length){
                     let resultsWrapper = resultsOptions.parents('.select2-results');
                     if(resultsWrapper.length){
                         wrapper = resultsWrapper;
@@ -1082,6 +1111,12 @@ define([
             if(resultsWrapper){
                 resultsWrapper.mCustomScrollbar('destroy');
             }
+
+            // select2 sets :focus to the select2 <input> field. This is bad!
+            // we want to keep the focus where it is (e.g. signature table cell)
+            // the only way to prevent this is to remove the element
+            // https://stackoverflow.com/questions/17995057/prevent-select2-from-autmatically-focussing-its-search-input-when-dropdown-is-op
+            $(this).parents('.editableform').find(this).next().find('.select2-selection').remove();
         });
     };
 
@@ -1089,7 +1124,7 @@ define([
      * set default configuration for "xEditable"
      */
     let initDefaultEditableConfig = () => {
-        // use fontAwesome buttons
+        // use fontAwesome buttons template
         $.fn.editableform.buttons =
             '<button type="submit" class="btn btn-primary btn-sm editable-submit">'+
             '<i class="fa fa-fw fa-check"></i>'+
@@ -1097,6 +1132,35 @@ define([
             '<button type="button" class="btn btn-default btn-sm editable-cancel">'+
             '<i class="fa fa-fw fa-times"></i>'+
             '</button>';
+
+        // loading spinner template
+        $.fn.editableform.loading =
+            '<div class="editableform-loading"><i class="fas fa-lg fa-sync fa-spin"></i></div>';
+    };
+
+    /**
+     * request a captcha image
+     * @param reason
+     * @param callback
+     */
+    let getCaptchaImage = (reason, callback) => {
+        $.ajax({
+            type: 'POST',
+            url: Init.path.getCaptcha,
+            data: {
+                reason: reason
+            },
+            dataType: 'json'
+        }).done(function(responseData){
+            if(responseData.error.length > 0){
+                showNotify({title: 'getCaptchaImage', text: 'Captcha image generation failed', type: 'error'});
+            }else{
+                callback(responseData.img);
+            }
+        }).fail(function(jqXHR, status, error){
+            let reason = status + ' ' + error;
+            showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
+        });
     };
 
     /**
@@ -1196,7 +1260,6 @@ define([
      * @param timerName
      */
     let timeStart = timerName => {
-
         if(typeof performance === 'object'){
             stopTimerCache[timerName] = performance.now();
         }else{
@@ -1210,7 +1273,6 @@ define([
      * @returns {number}
      */
     let timeStop = timerName => {
-
         let duration = 0;
 
         if( stopTimerCache.hasOwnProperty(timerName) ){
@@ -1246,7 +1308,7 @@ define([
         // line breaks are 2 characters!
         let newLines = value.match(/(\r\n|\n|\r)/g);
         let addition = 0;
-        if (newLines != null) {
+        if(newLines != null){
             addition = newLines.length;
         }
         inputLength += addition;
@@ -1272,19 +1334,19 @@ define([
     /**
      * trigger a notification (on screen or desktop)
      * @param customConfig
-     * @param desktop
+     * @param settings
      */
-    let showNotify = (customConfig, desktop) => {
+    let showNotify = (customConfig, settings) => {
         requirejs(['notification'], Notification => {
-            Notification.showNotify(customConfig, desktop);
+            Notification.showNotify(customConfig, settings);
         });
     };
 
     /**
      * stop browser tab title "blinking"
      */
-    let stopTabBlink = function(){
-        requirejs(['notification'], function(Notification) {
+    let stopTabBlink = () => {
+        requirejs(['notification'], Notification => {
             Notification.stopTabBlink();
         });
     };
@@ -1368,11 +1430,31 @@ define([
     };
 
     /**
+     * show information panel to active users (on bottom)
+     * @param show
+     */
+    let toggleGlobalInfoPanel = (show = true) => {
+        let infoPanel = $('#' + config.globalInfoPanelId);
+        if( show && !infoPanel.length){
+            // info panel not already shown
+            requirejs(['text!templates/ui/info_panel.html', 'mustache'], (template, Mustache) => {
+                let data = {
+                    id: config.globalInfoPanelId
+                };
+                let content = $(Mustache.render(template, data));
+                $('#' + config.footerId).find('.' + config.footerCenterClass).append(content);
+            });
+        }else if (!show && infoPanel.length){
+            infoPanel.remove();
+        }
+    };
+
+    /**
      * set default jQuery AJAX configuration
      */
     let ajaxSetup = () => {
         $.ajaxSetup({
-            beforeSend: function(jqXHR, settings) {
+            beforeSend: function(jqXHR, settings){
                 // store request URL for later use (e.g. in error messages)
                 jqXHR.url = location.protocol + '//' + location.host + settings.url;
 
@@ -1381,8 +1463,13 @@ define([
                 if(settings.crossDomain === false){
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    jqXHR.setRequestHeader('Pf-Character', getCurrentCharacterId());
+                    jqXHR.setRequestHeader('pf-character', getCurrentCharacterId());
                 }
+            },
+            complete: function(jqXHR, textStatus){
+                // show "maintenance information panel -> if scheduled
+                let isMaintenance = parseInt(jqXHR.getResponseHeader('pf-maintenance')) || 0;
+                toggleGlobalInfoPanel(isMaintenance);
             }
         });
     };
@@ -1519,26 +1606,6 @@ define([
     };
 
     /**
-     * get all mapTabElements (<a> tags)
-     * or search for a specific tabElement within mapModule
-     * @param mapId
-     * @returns {JQuery|*|{}|T}
-     */
-    $.fn.getMapTabElements = function(mapId){
-        let mapModule = $(this);
-        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
-
-        if(mapId){
-            // search for a specific tab element
-            mapTabElements = mapTabElements.filter(function(i, el){
-                return ( $(el).data('map-id') === mapId );
-            });
-        }
-
-        return mapTabElements;
-    };
-
-    /**
      * get mapElement from overlay or any child of that
      * @param mapOverlay
      * @returns {jQuery}
@@ -1563,11 +1630,13 @@ define([
     };
 
     /**
-     * get Area ID by security string
+     * get areaId by security string
+     * areaId is required as a key for signature names
+     * if areaId is 0, no signature data is available for this system
      * @param security
      * @returns {number}
      */
-    let getAreaIdBySecurity = (security) => {
+    let getAreaIdBySecurity = security => {
         let areaId = 0;
         switch(security){
             case 'H':
@@ -1630,7 +1699,6 @@ define([
      * @returns {string}
      */
     let getStatusInfoForCharacter = (characterData, option) => {
-
         let statusInfo = '';
 
         // character status can not be checked if there are no reference data
@@ -1675,6 +1743,20 @@ define([
     };
 
     /**
+     * get planet info e.g. class by type e.g. "barren"
+     * @param type
+     * @param option
+     * @returns {string}
+     */
+    let getPlanetInfo = (type, option = 'class') => {
+        let info = '';
+        if( Init.classes.planets.hasOwnProperty(type) ){
+            info = Init.classes.planets[type][option];
+        }
+        return info;
+    };
+
+    /**
      * get a HTML table with system effect information
      * e.g. for popover
      * @param data
@@ -1709,14 +1791,26 @@ define([
     let getSystemPlanetsTable = planets => {
         let table = '';
         if(planets.length > 0){
+            let regex = /\(([^)]+)\)/;
             table += '<table>';
             for(let planet of planets){
+                let typeName = planet.type.name;
+                let typeClass = '';
+                let matches = regex.exec(typeName.toLowerCase());
+                if(matches && matches[1]){
+                    typeName = matches[1].charAt(0).toUpperCase() + matches[1].slice(1);
+                    typeClass = getPlanetInfo(matches[1]);
+                }
+
                 table += '<tr>';
                 table += '<td>';
                 table += planet.name;
                 table += '</td>';
+                table += '<td class="' + typeClass + '">';
+                table += '<i class="fas fa-circle"></i>';
+                table += '</td>';
                 table += '<td class="text-right">';
-                table += planet.type.name;
+                table += typeName;
                 table += '</td>';
                 table += '</tr>';
             }
@@ -1814,6 +1908,9 @@ define([
      */
     let getSecurityClassForSystem = sec => {
         let secClass = '';
+        if(sec === 'C13'){
+            sec = 'SH';
+        }
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
         }
@@ -1825,7 +1922,7 @@ define([
      * @param trueSec
      * @returns {string}
      */
-    let getTrueSecClassForSystem = function(trueSec){
+    let getTrueSecClassForSystem = (trueSec) => {
         let trueSecClass = '';
 
         trueSec = parseFloat(trueSec);
@@ -1855,8 +1952,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getStatusInfoForSystem = function(status, option){
-
+    let getStatusInfoForSystem = (status, option) => {
         let statusInfo = '';
 
         if( Init.systemStatus.hasOwnProperty(status) ){
@@ -1879,20 +1975,17 @@ define([
     /**
      * get signature group information
      * @param option
-     * @returns {{}}
+     * @returns {Array}
      */
-    let getSignatureGroupInfo = function(option){
-
-        let groupInfo = {};
-
-        for (let prop in Init.signatureGroups) {
-            if(Init.signatureGroups.hasOwnProperty(prop)){
-                prop = parseInt(prop);
-                groupInfo[prop] = Init.signatureGroups[prop][option];
-            }
+    let getSignatureGroupOptions = option => {
+        let options = [];
+        for(let [key, data] of Object.entries(Init.signatureGroups)){
+            options.push({
+                value: parseInt(key),
+                text: data[option]
+            });
         }
-
-        return groupInfo;
+        return options;
     };
 
     /**
@@ -1902,10 +1995,8 @@ define([
      * @param sigGroupId
      * @returns {{}}
      */
-    let getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
-
+    let getAllSignatureNames = (systemTypeId, areaId, sigGroupId) => {
         let signatureNames = {};
-
         if(
             SignatureType[systemTypeId] &&
             SignatureType[systemTypeId][areaId] &&
@@ -1924,28 +2015,22 @@ define([
      * @param name
      * @returns {number}
      */
-    let getSignatureTypeIdByName = function(systemData, sigGroupId, name){
-
+    let getSignatureTypeIdByName = (systemData, sigGroupId, name) => {
         let signatureTypeId = 0;
-
         let areaId = getAreaIdBySecurity(systemData.security);
-
         if(areaId > 0){
-            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
+            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId);
             name = name.toLowerCase();
-
-            for(let prop in signatureNames) {
-
+            for(let prop in signatureNames){
                 if(
                     signatureNames.hasOwnProperty(prop) &&
                     signatureNames[prop].toLowerCase() === name
                 ){
-                    signatureTypeId = parseInt( prop );
+                    signatureTypeId = parseInt(prop);
                     break;
                 }
             }
         }
-
         return signatureTypeId;
     };
 
@@ -1976,9 +2061,8 @@ define([
      * to keep the data always up2data
      * @param mapUserData
      */
-    let setCurrentMapUserData = (mapUserData) => {
+    let setCurrentMapUserData = mapUserData => {
         Init.currentMapUserData = mapUserData;
-
         return getCurrentMapUserData();
     };
 
@@ -1987,7 +2071,7 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    let getCurrentMapUserData = (mapId) => {
+    let getCurrentMapUserData = mapId => {
         let currentMapUserData = false;
 
         if(Init.currentMapUserData){
@@ -2022,7 +2106,7 @@ define([
      * @param mapId
      * @returns {boolean|int}
      */
-    let getCurrentMapUserDataIndex = (mapId) => {
+    let getCurrentMapUserDataIndex = mapId => {
         return getDataIndexByMapId(Init.currentMapUserData, mapId);
     };
 
@@ -2030,7 +2114,7 @@ define([
      * update cached mapUserData for a single map
      * @param mapUserData
      */
-    let updateCurrentMapUserData = (mapUserData) => {
+    let updateCurrentMapUserData = mapUserData => {
         let mapUserDataIndex = getCurrentMapUserDataIndex( mapUserData.config.id );
 
         if( !Array.isArray(Init.currentMapUserData) ){
@@ -2053,7 +2137,7 @@ define([
      * to keep the data always up2data
      * @param mapData
      */
-    let setCurrentMapData = (mapData) => {
+    let setCurrentMapData = mapData => {
         Init.currentMapData = mapData;
 
         return getCurrentMapData();
@@ -2064,7 +2148,7 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    let getCurrentMapData = (mapId) => {
+    let getCurrentMapData = mapId => {
         let currentMapData = false;
 
         if( mapId === parseInt(mapId, 10) ){
@@ -2088,7 +2172,7 @@ define([
      * @param mapId
      * @returns {boolean|int}
      */
-    let getCurrentMapDataIndex = (mapId) => {
+    let getCurrentMapDataIndex = mapId => {
         return getDataIndexByMapId(Init.currentMapData, mapId);
     };
 
@@ -2096,7 +2180,7 @@ define([
      * update cached mapData for a single map
      * @param mapData
      */
-    let updateCurrentMapData = (mapData) => {
+    let updateCurrentMapData = mapData => {
         let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
 
         if(mapDataIndex !== false){
@@ -2127,7 +2211,7 @@ define([
      * delete map data by mapId from currentMapData
      * @param mapId
      */
-    let deleteCurrentMapData = (mapId) => {
+    let deleteCurrentMapData = mapId => {
         Init.currentMapData = Init.currentMapData.filter((mapData) => {
             return (mapData.config.id !== mapId);
         });
@@ -2137,7 +2221,7 @@ define([
      * get the current log data for the current user character
      * @returns {boolean}
      */
-    let getCurrentCharacterLog = function(){
+    let getCurrentCharacterLog = () => {
         let characterLog = false;
         let currentUserData = getCurrentUserData();
 
@@ -2157,7 +2241,7 @@ define([
      * @param option
      * @returns {boolean}
      */
-    let getCurrentUserInfo = (option) => {
+    let getCurrentUserInfo = option => {
         let currentUserData = getCurrentUserData();
         let userInfo = false;
 
@@ -2278,7 +2362,7 @@ define([
             characterData = characterData.filter(function(tmpCharacterData, index, allData){
                 let keepData = true;
 
-                for(let tmpJump in data) {
+                for(let tmpJump in data){
                     // just scan systems with > jumps than current system
                     if(tmpJump > jumps){
                         let filteredFinalData = data[tmpJump].filter(filterFinalCharData, tmpCharacterData);
@@ -2306,7 +2390,7 @@ define([
         }
 
         jumps++;
-        for(let prop in nearBySystems.tree) {
+        for(let prop in nearBySystems.tree){
             if( nearBySystems.tree.hasOwnProperty(prop) ){
                 let tmpSystemData = nearBySystems.tree[prop];
                 data = getNearByCharacterData(tmpSystemData, userData, jumps, data);
@@ -2321,7 +2405,7 @@ define([
      * @param systemData
      * @param type
      */
-    let setDestination = function(systemData, type){
+    let setDestination = (systemData, type) => {
         let description = '';
         switch(type){
             case 'set_destination':
@@ -2355,7 +2439,7 @@ define([
                 responseData.systemData &&
                 responseData.systemData.length > 0
             ){
-                for (let j = 0; j < responseData.systemData.length; j++) {
+                for(let j = 0; j < responseData.systemData.length; j++){
                     showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
                 }
             }
@@ -2369,10 +2453,104 @@ define([
                 }
             }
 
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
         });
+    };
+
+
+    /**
+     * write clipboard text
+     * @param text
+     * @returns {Promise<any>}
+     */
+    let copyToClipboard = (text) => {
+
+        let copyToClipboardExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'copyToClipboard',
+                data: false
+            };
+
+            if(navigator.clipboard){
+                // get current permission status
+                navigator.permissions.query({
+                    name: 'clipboard-write'
+                }).then(permissionStatus => {
+                    // will be 'granted', 'denied' or 'prompt'
+                    if(
+                        permissionStatus.state === 'granted' ||
+                        permissionStatus.state === 'prompt'
+                    ){
+                        navigator.clipboard.writeText(text)
+                            .then(() => {
+                                payload.data = true;
+                                resolve(payload);                        })
+                            .catch(err => {
+                                let errorMsg = 'Failed to write clipboard content';
+                                console.error(errorMsg, err);
+                                showNotify({title: 'Clipboard API', text: errorMsg, type: 'error'});
+                                resolve(payload);
+                            });
+                    }else{
+                        showNotify({title: 'Clipboard API', text: 'You denied write access', type: 'warning'});
+                        resolve(payload);
+                    }
+                });
+            }else{
+                console.warn('Clipboard API not supported by your browser');
+                resolve(payload);
+            }
+        };
+
+        return new Promise(copyToClipboardExecutor);
+    };
+
+    /**
+     * read clipboard text
+     * @returns {Promise<any>}
+     */
+    let readFromClipboard = () => {
+
+        let readFromClipboardExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'readFromClipboard',
+                data: false
+            };
+
+            if(navigator.clipboard){
+                // get current permission status
+                navigator.permissions.query({
+                    name: 'clipboard-read'
+                }).then(permissionStatus => {
+                    // will be 'granted', 'denied' or 'prompt'
+                    if(
+                        permissionStatus.state === 'granted' ||
+                        permissionStatus.state === 'prompt'
+                    ){
+                        navigator.clipboard.readText()
+                            .then(text => {
+                                payload.data = text;
+                                resolve(payload);                        })
+                            .catch(err => {
+                                let errorMsg = 'Failed to read clipboard content';
+                                console.error(errorMsg, err);
+                                showNotify({title: 'Clipboard API', text: errorMsg, type: 'error'});
+                                resolve(payload);
+                            });
+                    }else{
+                        showNotify({title: 'Clipboard API', text: 'You denied read access', type: 'warning'});
+                        resolve(payload);
+                    }
+                });
+            }else{
+                console.warn('Clipboard API not supported by your browser');
+                resolve(payload);
+            }
+        };
+
+        return new Promise(readFromClipboardExecutor);
     };
 
     /**
@@ -2396,7 +2574,7 @@ define([
      * -> system data where current user is located
      * @returns {{id: *, name: *}}
      */
-    let getCurrentLocationData = function(){
+    let getCurrentLocationData = () => {
         let currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
         return {
             id: currentLocationLink.data('systemId'),
@@ -2408,7 +2586,7 @@ define([
      * get all "open" dialog elements
      * @returns {*|jQuery}
      */
-    let getOpenDialogs = function(){
+    let getOpenDialogs = () => {
         return $('.' + config.dialogClass).filter(':visible');
     };
 
@@ -2433,7 +2611,7 @@ define([
                 }else{
                     showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
                 }
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function(jqXHR, status, error){
                 let reason = status + ' ' + error;
                 showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
             });
@@ -2566,11 +2744,11 @@ define([
 
             element.off(eventName).on(eventName, function(e){
                 clicks++;
-                if (clicks === 1) {
+                if(clicks === 1){
                     setTimeout(element => {
-                        if(clicks === 1) {
+                        if(clicks === 1){
                             singleClickCallback.call(element, e);
-                        } else {
+                        }else{
                             doubleClickCallback.call(element, e);
                         }
                         clicks = 0;
@@ -2578,6 +2756,33 @@ define([
                 }
             });
         }
+    };
+
+    /**
+     * get dataTable id
+     * @param prefix
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {string}
+     */
+    let getTableId = (prefix, mapId, systemId, tableType) => prefix + [mapId, systemId, tableType].join('-');
+
+    /**
+     * get a dataTableApi instance from global cache
+     * @param prefix
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstance = (prefix, mapId, systemId, tableType) => {
+        let instance = null;
+        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(prefix, mapId, systemId, tableType));
+        if(table.node()){
+            instance = table;
+        }
+        return instance;
     };
 
     /**
@@ -2647,7 +2852,7 @@ define([
             if(data.reroute){
                 redirect(data.reroute, ['logout']);
             }
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
@@ -2690,13 +2895,13 @@ define([
         let name = cname + '=';
         let ca = document.cookie.split(';');
 
-        for(let i = 0; i <ca.length; i++) {
+        for(let i = 0; i <ca.length; i++){
             let c = ca[i];
-            while (c.charAt(0) === ' ') {
+            while(c.charAt(0) === ' '){
                 c = c.substring(1);
             }
 
-            if (c.indexOf(name) === 0) {
+            if(c.indexOf(name) === 0){
                 return c.substring(name.length,c.length);
             }
         }
@@ -2738,7 +2943,7 @@ define([
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
-        getSignatureGroupInfo: getSignatureGroupInfo,
+        getSignatureGroupOptions: getSignatureGroupOptions,
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
@@ -2758,11 +2963,14 @@ define([
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
+        initPageScroll: initPageScroll,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,
         getNearBySystemData: getNearBySystemData,
         getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
+        copyToClipboard: copyToClipboard,
+        readFromClipboard: readFromClipboard,
         convertDateToUTC: convertDateToUTC,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
@@ -2773,6 +2981,8 @@ define([
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,
+        getTableId: getTableId,
+        getDataTableInstance: getDataTableInstance,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

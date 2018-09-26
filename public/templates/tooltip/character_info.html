@@ -1,31 +1,31 @@
-<div class="pf-popover">
-
-    <img class="pull-right" src="//image.eveonline.com/Character/{{created.character.id}}_32.jpg">
-
-    <h6>
-        <small>
-            <i class="fas fa-fw fa-circle pf-user-status {{createdStatusClass}}"></i>
-        </small> {{created.character.name}}
-    </h6>
-
-
-    <div class="well well-sm text-center">
-        {{createdTime}}
-    </div>
-
-    <div style="height: 1px">&nbsp;</div>
-
-    <img class="pull-right" src="//image.eveonline.com/Character/{{updated.character.id}}_32.jpg">
-
-    <h6>
-        <small>
-            <i class="fas fa-fw fa-circle pf-user-status {{updatedStatusClass}}"></i>
-        </small> {{updated.character.name}}
-    </h6>
-
-
-    <div class="well well-sm text-center">
-        {{updatedTime}}
-    </div>
+<div class="{{popoverClass}}">
+    <table class="table table-condensed">
+        <tbody>
+        <tr>
+            <td>
+                <img src="{{ccpImageServerUrl}}/Character/{{created.character.id}}_32.jpg" alt="{{created.character.name}}">
+            </td>
+            <td>
+                <i class="fas fa-fw fa-circle pf-user-status {{createdStatusClass}}"></i>
+                {{created.character.name}}
+            </td>
+            <td>
+                <div class="well well-sm text-center"><i class="fas fa-fw fa-plus"></i>&nbsp;{{createdTime}}</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <img src="{{ccpImageServerUrl}}/Character/{{updated.character.id}}_32.jpg" alt="{{updated.character.name}}">
+            </td>
+            <td>
+                <i class="fas fa-fw fa-circle pf-user-status {{updatedStatusClass}}"></i>
+                {{updated.character.name}}
+            </td>
+            <td>
+                <div class="well well-sm text-center"><i class="fas fa-fw fa-pen"></i>&nbsp;{{updatedTime}}</div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 

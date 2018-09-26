@@ -16,11 +16,22 @@ define([
     let config = {
         // map dialog
         newMapDialogId: 'pf-map-dialog',                                                // id for map settings dialog
-        dialogMapCreateContainerId: 'pf-map-dialog-create',                             // id for the "new map" container
+        dialogMapNewContainerId: 'pf-map-dialog-new',                                   // id for the "new map" container
         dialogMapEditContainerId: 'pf-map-dialog-edit',                                 // id for the "edit" container
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
         dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
+        // new map form
+        newIconSelectId: 'pf-map-dialog-new-icon-select',                               // id for "icon" select
+        newScopeSelectId: 'pf-map-dialog-new-scope-select',                             // id for "scope" select
+        newTypeSelectId: 'pf-map-dialog-new-type-select',                               // id for "type" select
+
+        // edit map form
+        editIconSelectId: 'pf-map-dialog-edit-icon-select',                             // id for "icon" select
+        editScopeSelectId: 'pf-map-dialog-edit-scope-select',                           // id for "scope" select
+        editTypeSelectId: 'pf-map-dialog-edit-type-select',                             // id for "type" select
+
+        // settings map form
         deleteExpiredConnectionsId: 'pf-map-dialog-delete-connections-expired',         // id for "deleteExpiredConnections" checkbox
         deleteEolConnectionsId: 'pf-map-dialog-delete-connections-eol',                 // id for "deleteEOLConnections" checkbox
         persistentAliasesId: 'pf-map-dialog-persistent-aliases',                        // id for "persistentAliases" checkbox
@@ -111,6 +122,7 @@ define([
                 let mapTypes = MapUtil.getMapTypes(true);
 
                 let mapFormData = {
+                    select2Class: Util.config.select2Class,
                     scope: MapUtil.getMapScopes(),
                     type: mapTypes,
                     icon: MapUtil.getMapIcons(),
@@ -121,13 +133,19 @@ define([
 
                 // render "new map" tab content -----------------------------------------------------------------------
                 let mapFormDataNew = $.extend({}, mapFormData, {
-                    hasRightMapForm: hasRightMapCreate
+                    hasRightMapForm: hasRightMapCreate,
+                    iconSelectId: config.newIconSelectId,
+                    scopeSelectId: config.newScopeSelectId,
+                    typeSelectId: config.newTypeSelectId
                 });
                 let contentNewMap = Mustache.render(templateMapForm, mapFormDataNew);
 
                 // render "edit map" tab content ----------------------------------------------------------------------
                 let mapFormDataEdit = $.extend({}, mapFormData, {
-                    hasRightMapForm: hasRightMapUpdate
+                    hasRightMapForm: hasRightMapUpdate,
+                    iconSelectId: config.editIconSelectId,
+                    scopeSelectId: config.editScopeSelectId,
+                    typeSelectId: config.editTypeSelectId
                 });
                 let contentEditMap = Mustache.render(templateMapForm, mapFormDataEdit);
                 contentEditMap = $(contentEditMap);
@@ -220,7 +238,7 @@ define([
                     openTabSettings: options.tab === 'settings',
                     openTabDownload: options.tab === 'download',
 
-                    dialogMapCreateContainerId: config.dialogMapCreateContainerId,
+                    dialogMapNewContainerId: config.dialogMapNewContainerId,
                     dialogMapEditContainerId: config.dialogMapEditContainerId,
                     dialogMapSettingsContainerId: config.dialogMapSettingsContainerId,
                     dialogMapDownloadContainerId: config.dialogMapDownloadContainerId,
@@ -297,7 +315,7 @@ define([
 
                     formatFilename: function(){
                         // format filename from "map name" (initial)
-                        return function (mapName, render) {
+                        return function(mapName, render){
                             let filename = render(mapName);
                             return formatFilename(filename);
                         };
@@ -308,7 +326,7 @@ define([
                 contentDialog = $(contentDialog);
 
                 // set tab content
-                $('#' + config.dialogMapCreateContainerId, contentDialog).html(contentNewMap);
+                $('#' + config.dialogMapNewContainerId, contentDialog).html(contentNewMap);
                 $('#' + config.dialogMapEditContainerId, contentDialog).html(contentEditMap);
 
                 let mapInfoDialog = bootbox.dialog({
@@ -322,7 +340,7 @@ define([
                         success: {
                             label: '<i class="fas fa-check fa-fw"></i>&nbsp;save',
                             className: 'btn-success',
-                            callback: function() {
+                            callback: function(){
 
                                 // get the current active form
                                 let form = $('#' + config.newMapDialogId).find('form').filter(':visible');
@@ -406,12 +424,12 @@ define([
                                             $(mapInfoDialog).modal('hide');
                                             $(document).trigger('pf:closeMenu', [{}]);
                                         }
-                                    }).fail(function( jqXHR, status, error) {
+                                    }).fail(function(jqXHR, status, error){
                                         let reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
                                         $(document).setProgramStatus('problem');
 
-                                    }).always(function() {
+                                    }).always(function(){
                                         dialogContent.hideLoadingAnimation();
                                     });
                                 }
@@ -422,7 +440,6 @@ define([
                     }
                 });
 
-
                 // after modal is shown ===============================================================================
                 mapInfoDialog.on('shown.bs.modal', function(e){
                     mapInfoDialog.initTooltips();
@@ -432,10 +449,19 @@ define([
 
                     // prevent "disabled" tabs from being clicked... "bootstrap" bugFix...
                     mapInfoDialog.find('.navbar a[data-toggle=tab]').on('click', function(e){
-                        if ($(this).hasClass('disabled')){
+                        if($(this).hasClass('disabled')){
                             e.preventDefault();
                             return false;
                         }
+                    });
+
+                    // make <select>s to Select2 fields
+                    mapInfoDialog.find(
+                        '#' + config.dialogMapNewContainerId + ' .' + Util.config.select2Class + ', ' +
+                        '#' + config.dialogMapEditContainerId + ' .' + Util.config.select2Class
+                    ).select2({
+                        minimumResultsForSearch: -1,
+                        width: '100%'
                     });
 
                     // set form validator
@@ -475,11 +501,12 @@ define([
                                         getAll: true
                                     });
 
+                                    let exportButton = $(this);
                                     // set map data right before download
-                                    $(this).setExportMapData(exportMapData);
+                                    setExportMapData(exportButton, exportMapData);
 
                                     // disable button
-                                    $(this).attr('disabled', true);
+                                    exportButton.attr('disabled', true);
                                 }else{
                                     console.error('Map not found');
                                 }
@@ -505,7 +532,7 @@ define([
                                 let output = [];
                                 let files = e.target.files;
 
-                                for (let i = 0, f; !!(f = files[i]); i++) {
+                                for(let i = 0, f; !!(f = files[i]); i++){
                                     output.push(( i + 1 ) + '. file: ' + f.name + ' - ' +
                                         f.size + ' bytes; last modified: ' +
                                         f.lastModifiedDate.toLocaleDateString() );
@@ -526,7 +553,7 @@ define([
                             let filesCountFail = 0;
 
                             // onLoad for FileReader API
-                            let readerOnLoad = function(readEvent) {
+                            let readerOnLoad = function(readEvent){
 
                                 // get file content
                                 try{
@@ -547,7 +574,7 @@ define([
                                 }
                             };
 
-                            let handleDragOver = function(dragEvent) {
+                            let handleDragOver = function(dragEvent){
                                 dragEvent.stopPropagation();
                                 dragEvent.preventDefault();
                                 dragEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
@@ -564,7 +591,7 @@ define([
 
                                 files = evt.dataTransfer.files; // FileList object.
 
-                                for (let file; !!(file = files[filesCount]); filesCount++){
+                                for(let file; !!(file = files[filesCount]); filesCount++){
                                     let reader = new FileReader();
                                     reader.onload = readerOnLoad;
                                     reader.readAsText(file);
@@ -578,7 +605,7 @@ define([
                             }
 
                             // import "button"
-                            downloadTabElement.find('#' + config.buttonImportId).on('click', function(e) {
+                            downloadTabElement.find('#' + config.buttonImportId).on('click', function(e){
 
                                 importFormElement.validator('validate');
                                 let validImportForm = importFormElement.isValidForm();
@@ -592,7 +619,7 @@ define([
                                     filesCount = 0;
                                     filesCountFail = 0;
 
-                                    for (let file; !!(file = files[filesCount]); filesCount++){
+                                    for(let file; !!(file = files[filesCount]); filesCount++){
                                         let reader = new FileReader();
                                         reader.onload = readerOnLoad;
                                         reader.readAsText(file);
@@ -652,9 +679,9 @@ define([
     /**
      * import new map(s) data
      * @param importData
+     * @param callback
      */
     let importMaps = (importData, callback) => {
-
         let importForm = $('#' + config.dialogMapImportFormId);
         importForm.hideFormMessage('all');
 
@@ -683,10 +710,10 @@ define([
 
                 Util.showNotify({title: 'Import finished', text: 'Map(s) imported', type: 'success'});
             }
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': importMap', text: reason, type: 'error'});
-        }).always(function() {
+        }).always(function(){
             importForm.find('input, select').resetFormFields().trigger('change');
             dialogContent.hideLoadingAnimation();
         });
@@ -694,10 +721,10 @@ define([
 
     /**
      * set json map data for export to an element (e.g. <a>-Tag or button) for download
+     * @param element
      * @param mapData
-     * @returns {*}
      */
-    $.fn.setExportMapData = function(mapData){
+    let setExportMapData = (element, mapData) => {
 
         let fieldExport = $('#' + config.fieldExportId);
         let filename = '';
@@ -711,19 +738,15 @@ define([
             }
         }
 
-        return this.each(function(){
-            let exportButton = $(this);
-            exportButton.attr('href', 'data:' + mapDataEncoded);
-            exportButton.attr('download', filename + '.json');
-        });
+        element.attr('href', 'data:' + mapDataEncoded);
+        element.attr('download', filename + '.json');
     };
-
 
     /**
      * init select2 fields within the settings dialog
      * @param mapInfoDialog
      */
-    let initSettingsSelectFields = function(mapInfoDialog){
+    let initSettingsSelectFields = mapInfoDialog => {
 
         let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
         let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
@@ -775,11 +798,11 @@ define([
                         dataType: 'json'
                     }).done(function(data){
                         Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
-                    }).fail(function( jqXHR, status, error) {
+                    }).fail(function(jqXHR, status, error){
                         let reason = status + ' ' + error;
                         Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
                         $(document).setProgramStatus('problem');
-                    }).always(function() {
+                    }).always(function(){
                         $(mapDeleteDialog).modal('hide');
                     });
 

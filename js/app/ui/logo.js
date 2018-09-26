@@ -5,12 +5,11 @@
 define([
     'jquery',
     'lazylinepainter'
-], function($) {
+], ($) => {
 
     'use strict';
 
     let config = {
-
         staticLogoId: 'pf-static-logo-svg',                                     // id for "static" logo
 
         logoPartTopRightClass: 'logo-ploygon-top-right',                        // class for logo part "top right"
@@ -60,7 +59,7 @@ define([
         };
 
         // load Logo svg
-        requirejs(['text!templates/ui/logo.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/ui/logo.html', 'mustache'], function(template, Mustache){
             let logoData = {
                 staticLogoId: config.staticLogoId,
                 logoPartTopRightClass: config.logoPartTopRightClass,

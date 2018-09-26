@@ -25,7 +25,7 @@ define([
         requirejs(['text!templates/dialog/jump_info.html', 'mustache'], (template, Mustache) => {
             let data = {
                 config: config,
-                wormholes: Object.keys(Init.wormholes).map(function(k) { return Init.wormholes[k]; }), // convert Json to array
+                wormholes: Object.keys(Init.wormholes).map(function(k){ return Init.wormholes[k]; }), // convert Json to array
                 securityClass: function(){
                     return function(value, render){
                         return this.Util.getSecurityClassForSystem( render(value) );
@@ -55,6 +55,12 @@ define([
                         }
                     };
                 },
+                formatTime: function(){
+                    return function(value, render){
+                        let time = render(value);
+                        return time.length ? time + '&nbsp;h' : 'unknown';
+                    };
+                },
                 sigStrengthValue: function(){
                     return function(value, render){
                         let float = render(value);
@@ -71,7 +77,7 @@ define([
                 show: false
             });
 
-            jumpDialog.on('show.bs.modal', function(e) {
+            jumpDialog.on('show.bs.modal', function(e){
                 // init dataTable
                 $(this).find('.' + config.wormholeInfoMassTableClass).DataTable({
                     pageLength: 25,
@@ -83,7 +89,8 @@ define([
                         lengthMenu:  'Show _MENU_ wormholes',
                         info:        'Showing _START_ to _END_ of _TOTAL_ wormholes'
                     },
-                    columnDefs: []
+                    columnDefs: [],
+                    data: null      // use DOM data overwrites [] default -> data.loader.js
                 });
 
                 $(this).find('.' + config.wormholeInfoJumpTableClass).DataTable({
@@ -100,7 +107,8 @@ define([
                         lengthMenu:  'Show _MENU_ wormholes',
                         info:        'Showing _START_ to _END_ of _TOTAL_ wormholes'
                     },
-                    columnDefs: []
+                    columnDefs: [],
+                    data: null      // use DOM data overwrites [] default -> data.loader.js
                 });
             });
 

@@ -133,10 +133,15 @@ em{
 
 .pf-module-icon-button{
   cursor: pointer;
+  color: $gray-light; // overwrite xEditable button style
   @include transition(color 0.15s ease-out);
 
   &:hover, &.active{
     color: $orange !important;
+  }
+
+  &.editable{
+    border-bottom: none !important; // overwrite xEditable button style
   }
 }
 
@@ -162,6 +167,11 @@ a{
 
 // form fields custom styles ======================================================================
 .editable-input{
+
+  .pf-editable-name{
+    text-transform: uppercase;
+  }
+
   optgroup[label]{
     background-color: $gray;
     color: $gray-light;
@@ -170,6 +180,27 @@ a{
       background-color: $gray-dark;
       color: $gray-lighter;
       font-family: $font-family-monospace;
+    }
+  }
+
+  .editable-checklist{
+    & > div > label {
+      @extend .checkbox;
+      display: block !important;
+      padding-left: 20px !important; // overwrite inline-form styles
+      color: $gray-lighter;
+
+      & > span {
+        @extend label;
+
+        &:after{
+          top: -2px;
+        }
+      }
+    }
+
+    .pf-editable-unknown[value='0'] + span {
+      color: $red;
     }
   }
 }
@@ -184,11 +215,21 @@ select:active, select:hover {
 
 // select2 custom template ========================================================================
 .select2-results{
+  // <optgroup> options
+  .select2-results__options--nested{
+    .select2-results__option{
+      padding-left: 15px;  // more padding for nested options
+    }
+  }
+
   [class*="col-"]{
     // smaller and less padding
-    line-height: 22px;
     padding-left: 3px;
     padding-right: 3px;
+  }
+
+  .clearfix.pf-result-image [class*="col-"]{
+    line-height: 22px;  // options with images need more height
   }
 }
 
@@ -209,6 +250,29 @@ select:active, select:hover {
 }
 
 // global dataTable styles ========================================================================
+.dataTables_wrapper{
+
+  .dataTables_length select{
+    margin: 0 3px;  // <select> for page size
+    padding: 1px;
+  }
+  
+  .dt-buttons{
+    .dt-button{
+      line-height: 22px;
+      padding: 0 5px; // overwrite default
+
+      &:not(:last-child){
+        margin-right: 10px;
+      }
+
+      .fa{
+        margin-right: 5px;
+      }
+    }
+  }
+}
+
 .dataTable{
   th{
     &.pf-table-image-cell,
@@ -227,12 +291,32 @@ select:active, select:hover {
     }
   }
 
-  tr.group{
-    background-color: rgba($gray-darker, 0.4);
+  tr {
+    &.group{
+      background-color: rgba($gray-darker, 0.4);
+    }
   }
 
   // "special" column styles
   td{
+
+    &.editable-disabled:focus{
+      // disabled xEditable td´s should not get focus style
+      // -> "pointer-events = none" would be nicer but does not work because "mousedown" should work -> select row function
+      outline: none;
+      background-color: transparent;
+    }
+
+    &.editable-click:not(.editable-disabled){
+      cursor: pointer;
+    }
+
+    &:focus, &.editable-open{
+      // set td as :focus even is td content is focused
+      outline: 1px solid $orange-dark;
+      outline-offset: -1px;
+      background-color: rgba($orange-dark, .08);
+    }
 
     > .fa-circle{
       font-size: 9px !important; // should not be "so big" (10px default)
@@ -403,11 +487,11 @@ table{
 }
 
 .pf-table-tools-action{
-  will-change: height, opacity, display;
+  will-change: height, opacity;
   opacity: 0; // triggered by js
   display: none; // triggered by js
   height: 0;
-  visibility: hidden;
+  overflow: hidden;
 }
 
 // landing indicator overlay ======================================================================
@@ -626,7 +710,7 @@ table{
       top: 0;
       left: 0;
       border-style: solid;
-      border-width: 0 0 8px 8px;
+      border-width: 0 0 9px 9px;
       border-color: transparent transparent transparent $gray;
       cursor: ns-resize;
     }
@@ -677,6 +761,11 @@ table{
       font-size: 11px;
       white-space: nowrap;
     }
+  }
+
+  // "Fake" spacer module -> preserves height during hide -> show animation for a module
+  .pf-module-spacer{
+    margin-bottom: 10px;  // same as .pf-module -> no UI jump
   }
 
 }
@@ -736,26 +825,30 @@ table{
 }
 
 // system info status =============================================================================
-.pf-system-info-rally{
-  .pf-system-head{
-    background-color: $pink-darker;
+.pf-rally{
+  text-shadow: 1px 1px 2px $gray-darkest; // improve text contrast
+  background-color: $pink-darker;
 
-    @include background-image(linear-gradient(-45deg,
-      $purple-dark 25%,
-      transparent 25%,
-      transparent 50%,
-      $purple-dark 50%,
-      $purple-dark 75%,
-      transparent 75%,
-      transparent));
-    background-size:25px 25px;
-    -webkit-animation:move 3s linear infinite;
-    -moz-animation:move 3s linear infinite;
-    -ms-animation:move 3s linear infinite;
-    animation:move 3s linear infinite;
-  }
+  @include background-image(linear-gradient(-45deg,
+          $purple-dark 25%,
+          transparent 25%,
+          transparent 50%,
+          $purple-dark 50%,
+          $purple-dark 75%,
+          transparent 75%,
+          transparent));
+  background-size: 25px 25px;
+  -webkit-animation: move 2.5s linear infinite;
+  -moz-animation: move 2.5s linear infinite;
+  -ms-animation: move 2.5s linear infinite;
+  animation: move 2.5s linear infinite;
 }
 
+.pf-system-info-rally{
+  .pf-system-head{
+    @extend .pf-rally;
+  }
+}
 
 // system security status =========================================================================
 
@@ -914,6 +1007,43 @@ table{
       text-transform: capitalize;
     }
   }
+}
+
+// planet types ===================================================================================
+.pf-planet-barren{
+  color: $planet-color-barren;
+}
+
+.pf-planet-gas{
+  color: $planet-color-gas;
+}
+
+.pf-planet-ice{
+  color: $planet-color-ice;
+}
+
+.pf-planet-lava{
+  color: $planet-color-lava;
+}
+
+.pf-planet-oceanic{
+  color: $planet-color-oceanic;
+}
+
+.pf-planet-plasma{
+  color: $planet-color-plasma;
+}
+
+.pf-planet-shattered{
+  color: $planet-color-shattered;
+}
+
+.pf-planet-storm{
+  color: $planet-color-storm;
+}
+
+.pf-planet-temperate{
+  color: $planet-color-temperate;
 }
 
 // "fake connection" classes for the map manual
@@ -1259,6 +1389,10 @@ code {
   .badge{
     background-color: $gray;
     color: $gray-lighter;
+
+    &:empty{
+      display: none;
+    }
   }
 
   small{
@@ -1266,26 +1400,16 @@ code {
   }
 }
 
-// character switch popover
-#pf-head-character-switch{
-  td{
-    border: none;
-
-    &:first-child + td{
-      // 2nd column
-      padding: 0 5px;
-    }
-  }
-}
-
 // footer (map) ===================================================================================
 #pf-footer{
+  display: flex;
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
   margin: 0;
   background: rgba($gray, 0.3);
+  padding: 1px 0;
 
   a{
     font-family: $font-family-bold;
@@ -1295,6 +1419,24 @@ code {
       color: $teal;
       text-decoration: none;
     }
+  }
+
+  .pf-footer-left{
+    display: flex;
+    flex: none;          // shorthand for: flex-grow: 0, flex-shrink: 0, flex-basis: auto
+    justify-content: flex-start;
+  }
+
+  .pf-footer-center{
+    display: flex;
+    flex: 1;          // shorthand for: flex-grow: 1, flex-shrink: 1, flex-basis: 0
+    padding: 0 20px;
+  }
+
+  .pf-footer-right{
+    display: flex;
+    flex: none;          // shorthand for: flex-grow: 0, flex-shrink: 0, flex-basis: auto
+    justify-content: flex-end;
   }
 }
 
@@ -1319,12 +1461,14 @@ code {
 
 // global info panel ==============================================================================
 #pf-global-info{
-  position: absolute;
-  left: 0;
-  bottom: 32px;
   width: 100%;
-  height: 32px;
-  margin-bottom: 0; // overwrite default "alert" style
+  margin-bottom: 0;     // overwrite default "alert" style
+  border: none;
+  padding: 9px 10px;
+
+  .ui-pnotify-title{
+    margin-bottom: 0;   // overwrite default "alert" style
+  }
 }
 
 // reverse order (reverse render order)

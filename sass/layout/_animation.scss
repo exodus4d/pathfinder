@@ -69,6 +69,16 @@
   }
 }
 
+.pf-animation-pulse-danger{
+  @include animation( pulseBackgroundDanger 1s 1 );
+  @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+
+  .sorting_1{
+    @include animation( pulseBackgroundDangerActive 1s 1 );
+    @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+  }
+}
+
 @include keyframes(pulseBackgroundSuccess){
   0%   {}
   10%  {
@@ -98,6 +108,23 @@
   0%   {}
   10%  {
     background-color: darken($orange, 5%);
+    color: $gray-darker;
+  }
+  100% {}
+};
+
+@include keyframes(pulseBackgroundDanger){
+  0%   {}
+  10%  {
+    background-color: $red;
+    color: $gray-darker;
+  }
+  100% {}
+};
+@include keyframes(pulseBackgroundDangerActive){
+  0%   {}
+  10%  {
+    background-color: darken($red, 5%);
     color: $gray-darker;
   }
   100% {}

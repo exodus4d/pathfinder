@@ -177,8 +177,11 @@
 
 // shortcuts dialog ===========================================================
 #pf-shortcuts-dialog{
-  td kbd:last-of-type{
+  td kbd{
     & + i {
+      width: 16px;
+    }
+    &:last-of-type + i{
       display: none
     }
   }

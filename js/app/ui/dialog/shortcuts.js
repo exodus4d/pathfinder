@@ -9,7 +9,7 @@ define([
     'app/render',
     'bootbox',
     'app/key',
-], function($, Init, Util, Render, bootbox, Key) {
+], function($, Init, Util, Render, bootbox, Key){
 
     'use strict';
 

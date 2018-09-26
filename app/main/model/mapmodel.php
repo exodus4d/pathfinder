@@ -474,9 +474,10 @@ class MapModel extends AbstractMapTrackingModel {
         $system = $this->getSystemByCCPId($systemId);
         if(is_null($system)){
             /**
+             * NO ->rel() here! we work with unsaved models
              * @var $system SystemModel
              */
-            $system = $this->rel('systems');
+            $system = self::getNew('SystemModel');
             $system->systemId = $systemId;
             $system->mapId = $this;
             $system->setType();
@@ -492,12 +493,13 @@ class MapModel extends AbstractMapTrackingModel {
      * @param SystemModel $sourceSystem
      * @param SystemModel $targetSystem
      * @return ConnectionModel
+     * @throws \Exception
      */
     public function getNewConnection(SystemModel $sourceSystem, SystemModel $targetSystem) : ConnectionModel {
         /**
          * @var $connection ConnectionModel
          */
-        $connection = $this->rel('connections');
+        $connection = self::getNew('ConnectionModel');
         $connection->mapId = $this;
         $connection->source = $sourceSystem;
         $connection->target = $targetSystem;
@@ -509,7 +511,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param int $id
      * @return null|SystemModel
      */
-    public function getSystemById($id){
+    public function getSystemById(int $id){
         /**
          * @var $system SystemModel
          */
@@ -530,7 +532,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param array $filter
      * @return null|SystemModel
      */
-    public function getSystemByCCPId($systemId, $filter = []){
+    public function getSystemByCCPId(int $systemId, array $filter = []){
         /**
          * @var $system SystemModel
          */
@@ -538,7 +540,7 @@ class MapModel extends AbstractMapTrackingModel {
 
         $query = [
             'mapId = :mapId AND systemId = :systemId',
-            ':mapId' => $this->id,
+            ':mapId' => $this->_id,
             ':systemId' => $systemId
         ];
 
@@ -576,7 +578,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return \stdClass[]
      * @throws \Exception
      */
-    public function getSystemsData(){
+    public function getSystemsData() : array{
         $systemData = [];
         $systems  = $this->getSystems();
 
@@ -595,7 +597,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param int $id
      * @return null|ConnectionModel
      */
-    public function getConnectionById($id){
+    public function getConnectionById(int $id){
         /**
          * @var $connection ConnectionModel
          */
@@ -1208,7 +1210,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether this map is private map
      * @return bool
      */
-    public function isPrivate(){
+    public function isPrivate() : bool {
         return ($this->typeId->id === 2);
     }
 
@@ -1216,7 +1218,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether this map is corporation map
      * @return bool
      */
-    public function isCorporation(){
+    public function isCorporation() : bool {
         return ($this->typeId->id === 3);
     }
 
@@ -1224,7 +1226,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether this map is alliance map
      * @return bool
      */
-    public function isAlliance(){
+    public function isAlliance() : bool {
         return ($this->typeId->id === 4);
     }
 
@@ -1238,6 +1240,22 @@ class MapModel extends AbstractMapTrackingModel {
             $scope = $this->scopeId;
         }
         return $scope;
+    }
+
+    /**
+     * get deeplink url for map
+     * -> optional return link for map + system
+     * @param int $systemId
+     * @return string
+     */
+    public function getDeeplinkUrl(int $systemId = 0) : string {
+        $url = '';
+        if( !$this->dry() ){
+            $param =  rawurlencode(base64_encode($this->_id));
+            $param .=  $systemId ? '_' . rawurlencode(base64_encode($systemId)) : '';
+            $url = $this->getF3()->get('SCHEME') . '://' . $this->getF3()->get('HOST') . $this->getF3()->alias('map', ['*' => '/' . $param]);
+        }
+        return $url;
     }
 
     /**

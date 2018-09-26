@@ -46,6 +46,7 @@
 
   .select2-results__option {
     padding: 3px 6px;
+    min-height: 24px;  // options with empty string '' should not collapse
 
     &[role=group] {
       padding: 0;

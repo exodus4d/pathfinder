@@ -46,9 +46,13 @@
         <div class="row">
             <div class="col-xs-8">
                 <div class="form-group">
-                    <label class="col-sm-2 control-label" for="form_status">Status</label>
-                    <div class="col-sm-6" style="min-height: 32px;">
-                        <a class="pf-editable pf-editable-system-status" href="#" id="form_status" data-type="select" data-name="statusId"></a>
+                    <label class="col-sm-2 control-label" for="{{statusSelectId}}">Status</label>
+                    <div class="col-sm-6">
+                        <select name="statusId" id="{{statusSelectId}}" class="form-control {{select2Class}}">
+                            {{#statusData}}
+                            <option value="{{id}}">{{text}}</option>
+                            {{/statusData}}
+                        </select>
                     </div>
                 </div>
             </div>

@@ -4,6 +4,7 @@
   border-radius: 5px;
   padding: 7px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  z-index: 100; // over "gallery slider"
   background: {
     color: rgba(43, 43, 43, 0.7);
   }

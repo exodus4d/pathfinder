@@ -9,6 +9,7 @@ define([
     'app/logging',
     'mustache',
     'app/map/util',
+    'app/map/contextmenu',
     'text!img/logo.svg!strip',
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
@@ -26,7 +27,7 @@ define([
     'xEditable',
     'slidebars',
     'app/module_map'
-], ($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) => {
+], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, TplLogo, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -57,19 +58,17 @@ define([
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
 
         // footer
-        pageFooterId: 'pf-footer',                                              // id for page footer
         footerLicenceLinkClass: 'pf-footer-licence',                            // class for "licence" link
-        globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
         menuClockClass: 'pf-menu-clock',                                        // class for EVE-Time clock
 
         // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper',
+        dynamicElementWrapperId: 'pf-dialog-wrapper',                           // class for container element that holds hidden "context menus"
 
         // system signature module
-        systemSignatureModuleClass: 'pf-signature-table-module',                // module wrapper (signatures)
+        systemSignatureModuleClass: 'pf-system-signature-module',               // module wrapper (signatures)
         systemIntelModuleClass: 'pf-system-intel-module',                       // module wrapper (intel)
     };
 
@@ -105,8 +104,7 @@ define([
                     id: config.pageId,
                     class: config.pageClass
                 }).append(
-                    Util.getMapModule()
-                ).append(
+                    Util.getMapModule(),
                     $('<div>', {
                         id: config.dynamicElementWrapperId
                     })
@@ -136,6 +134,15 @@ define([
 
             body.watchKey('tabReload', (body) => {
                 location.reload();
+            });
+
+            body.watchKey('newSignature', (body) => {
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    let mapContentElement = MapUtil.getTabContentElementByMapElement(activeMap);
+                    let signatureModuleElement = mapContentElement.find('.' + config.systemSignatureModuleClass);
+                    signatureModuleElement.trigger('pf:showSystemSignatureModuleAddNew');
+                }
             });
 
             body.watchKey('clipboardPaste', (e) => {
@@ -256,7 +263,7 @@ define([
                     })
                 ).on('click', function(){
                     let fullScreenElement = $('body');
-                    requirejs(['jquery', 'fullScreen'], function($) {
+                    requirejs(['jquery', 'fullScreen'], function($){
 
                         if($.fullscreen.isFullScreen()){
                             $.fullscreen.exit();
@@ -304,7 +311,7 @@ define([
             )
         );
 
-        requirejs(['fullScreen'], function() {
+        requirejs(['fullScreen'], function(){
             if($.fullscreen.isNativelySupported() === true){
                 $('#' + Util.config.menuButtonFullScreenId).removeClass('hide');
             }
@@ -408,7 +415,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Manual').prepend(
                     $('<i>',{
-                        class: 'fas fa-book fa-fw'
+                        class: 'fas fa-book-reader fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Manual');
@@ -492,12 +499,12 @@ define([
         });
 
         // main menus
-        $('.' + config.headMenuClass).on('click', function(e) {
+        $('.' + config.headMenuClass).on('click', function(e){
             e.preventDefault();
             slideMenu.slidebars.toggle('left');
         });
 
-        $('.' + config.headMapClass).on('click', function(e) {
+        $('.' + config.headMapClass).on('click', function(e){
             e.preventDefault();
             slideMenu.slidebars.toggle('right');
         });
@@ -539,7 +546,7 @@ define([
         // -> always "enable"
         mapTrackingCheckbox.bootstrapToggle('on');
 
-        mapTrackingCheckbox.on('change', function(e) {
+        mapTrackingCheckbox.on('change', function(e){
             let value = $(this).is(':checked');
             let tracking = 'off';
             let trackingText = 'Your current location will not actually be added';
@@ -552,7 +559,6 @@ define([
 
             Util.showNotify({title: 'Map tracking: ' + tracking, text: trackingText, type: trackingType}, false);
         });
-
 
         // init all tooltips
         let tooltipElements = $('#' + config.pageHeaderId).find('[title]');
@@ -574,7 +580,7 @@ define([
         let pageElement = $(this);
 
         let moduleData = {
-            id: config.pageFooterId,
+            id: Util.config.footerId,
             footerLicenceLinkClass: config.footerLicenceLinkClass,
             currentYear: new Date().getFullYear()
         };
@@ -725,7 +731,7 @@ define([
         // END menu events =============================================================================
 
         // global "popover" callback (for all popovers)
-        $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e) {
+        $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e){
             let popoverElement = $(this).data('bs.popover').tip();
 
             // destroy all active tooltips inside this popover
@@ -733,8 +739,14 @@ define([
         });
 
         // global "modal" callback (for all modals)
-        $('body').on('hide.bs.modal', '> .modal', function(e) {
-            $(this).destroyTimestampCounter();
+        $('body').on('hide.bs.modal', '> .modal', function(e){
+            let modalElement = $(this);
+            modalElement.destroyTimestampCounter(true);
+
+            // destroy all Select2
+            modalElement.find('.' + Util.config.select2Class)
+                .filter((i, element) => $(element).data('select2'))
+                .select2('destroy');
         });
 
         // disable menu links based on current map config
@@ -954,7 +966,7 @@ define([
             animateHeaderElement(userInfoElement, (userInfoElement) => {
                 if(currentCharacterChanged){
                     userInfoElement.find('span').text( newCharacterName );
-                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + newCharacterId + '_32.jpg' );
+                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + newCharacterId + '_32.jpg');
                 }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
@@ -975,7 +987,7 @@ define([
             // toggle element
             animateHeaderElement(userShipElement, (userShipElement) => {
                 userShipElement.find('span').text( newShipData.typeName );
-                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipData.typeId + '_32.png' );
+                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipData.typeId + '_32.png');
                 // trigger ship change event
                 $(document).trigger('pf:activeShip', {
                     shipData: newShipData
@@ -1081,7 +1093,7 @@ define([
     /**
      * shows a test notification for desktop messages
      */
-    let notificationTest = function(){
+    let notificationTest = () => {
         Util.showNotify({
                 title: 'Test Notification',
                 text: 'Accept browser security question'},
@@ -1096,7 +1108,7 @@ define([
      *  set event listener if the program tab is active or not
      *  this is used to lower the update ping cycle to reduce server load
      */
-    let initTabChangeObserver = function(){
+    let initTabChangeObserver = () => {
 
         // increase the timer if a user is inactive
         let increaseTimer = 5000;
@@ -1107,30 +1119,30 @@ define([
 
         // Set the name of the hidden property and the change event for visibility
         let hidden, visibilityChange;
-        if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
+        if(typeof document.hidden !== 'undefined'){ // Opera 12.10 and Firefox 18 and later support
             hidden = 'hidden';
             visibilityChange = 'visibilitychange';
-        } else if (typeof document.mozHidden !== 'undefined') {
+        }else if(typeof document.mozHidden !== 'undefined'){
             hidden = 'mozHidden';
             visibilityChange = 'mozvisibilitychange';
-        } else if (typeof document.msHidden !== 'undefined') {
+        }else if(typeof document.msHidden !== 'undefined'){
             hidden = 'msHidden';
             visibilityChange = 'msvisibilitychange';
-        } else if (typeof document.webkitHidden !== 'undefined') {
+        }else if(typeof document.webkitHidden !== 'undefined'){
             hidden = 'webkitHidden';
             visibilityChange = 'webkitvisibilitychange';
         }
 
         // function is called if the tab becomes active/inactive
-        function handleVisibilityChange() {
-            if (document[hidden]) {
+        let handleVisibilityChange = () => {
+            if(document[hidden]){
                 // tab is invisible
                 // globally store current visibility status
                 window.isVisible = false;
 
                 Util.getCurrentTriggerDelay( mapUpdateKey, increaseTimer );
                 Util.getCurrentTriggerDelay( mapUserUpdateKey, increaseTimer );
-            } else {
+            }else{
                 // tab is visible
                 // globally store current visibility status
                 window.isVisible = true;
@@ -1141,9 +1153,9 @@ define([
                 // stop blinking tab from previous notifications
                 Util.stopTabBlink();
             }
-        }
+        };
 
-        if (
+        if(
             typeof document.addEventListener !== 'undefined' &&
             typeof document[hidden] !== 'undefined'
         ){
@@ -1156,6 +1168,17 @@ define([
             document.addEventListener(visibilityChange, handleVisibilityChange, false);
         }
 
+    };
+
+    /**
+     * add "hidden" context menu elements to page
+     */
+    let initMapContextMenus = () => {
+        $('#' + config.dynamicElementWrapperId).append(
+            MapContextMenu.initMapContextMenu(),
+            MapContextMenu.initConnectionContextMenu(),
+            MapContextMenu.initSystemContextMenu(Init.systemStatus)
+        );
     };
 
     /**
@@ -1239,25 +1262,6 @@ define([
     };
 
     /**
-     * show information panel to active users (on bottom)
-     * @returns {*|jQuery|HTMLElement}
-     */
-    $.fn.showGlobalInfoPanel = function (){
-        let body = $(this);
-        let infoTemplate = 'text!templates/ui/info_panel.html';
-
-        requirejs([infoTemplate, 'mustache'], function(template, Mustache) {
-            let data = {
-                id: config.globalInfoPanelId
-            };
-            let content = $( Mustache.render(template, data) );
-            content.insertBefore( '#' + config.pageFooterId );
-        });
-
-        return body;
-    };
-
-    /**
      * get all form Values as object
      * this includes all xEditable fields
      * @returns {{}}
@@ -1270,7 +1274,7 @@ define([
         // add "unchecked" checkboxes as well
         values = values.concat(
             form.find('input[type=checkbox]:not(:checked)').map(
-                function() {
+                function(){
                     return {name: this.name, value: 0};
                 }).get()
         );
@@ -1302,8 +1306,8 @@ define([
     };
 
     return {
-        initTabChangeObserver: initTabChangeObserver
+        initTabChangeObserver: initTabChangeObserver,
+        initMapContextMenus: initMapContextMenus
     };
-
 
 });

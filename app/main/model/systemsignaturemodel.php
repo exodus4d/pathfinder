@@ -218,14 +218,17 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
     /**
      * delete signature
      * @param CharacterModel $characterModel
+     * @return bool
      */
-    public function delete(CharacterModel $characterModel){
+    public function delete(CharacterModel $characterModel) : bool {
+        $deleted = false;
         if( !$this->dry() ){
             // check if character has access
             if($this->hasAccess($characterModel)){
-                $this->erase();
+                $deleted = $this->erase();
             }
         }
+        return $deleted;
     }
 
     /**
@@ -236,6 +239,22 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      */
     public function afterInsertEvent($self, $pkeys){
         $self->logActivity('signatureCreate');
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeUpdateEvent($self, $pkeys){
+        // "updated" column should always be updated if no changes made this signature
+        // -> makes it easier to see what signatures have not been updated
+        $this->touch('updated');
+
+        return parent::beforeUpdateEvent($self, $pkeys);
     }
 
     /**
@@ -275,6 +294,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         $status = parent::setup($db,$table,$fields);

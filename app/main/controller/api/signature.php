@@ -68,8 +68,8 @@ class Signature extends Controller\AccessController {
                         $signature = $system->getSignatureByName($activeCharacter, $data['name']);
                     }
 
-                    if( is_null($signature) ){
-                        $signature = $system->rel('signatures');
+                    if(is_null($signature)){
+                        $signature = $system->getNewSignature();
                     }
 
                     if($signature->dry()){
@@ -173,8 +173,11 @@ class Signature extends Controller\AccessController {
      * @throws \Exception
      */
     public function delete(\Base $f3){
-        $signatureIds = $f3->get('POST.signatureIds');
+        $signatureIds = array_unique(array_map('intval', (array)$f3->get('POST.signatureIds')));
         $activeCharacter = $this->getCharacter();
+
+        $return = (object) [];
+        $return->deletedSignatureIds = [];
 
         /**
          * @var Model\SystemSignatureModel $signature
@@ -182,11 +185,13 @@ class Signature extends Controller\AccessController {
         $signature = Model\BasicModel::getNew('SystemSignatureModel');
         foreach($signatureIds as $signatureId){
             $signature->getById($signatureId);
-            $signature->delete( $activeCharacter );
+            if($signature->delete($activeCharacter)){
+                $return->deletedSignatureIds[] = $signatureId;
+            }
             $signature->reset();
         }
 
-        echo json_encode([]);
+        echo json_encode($return);
     }
 
 } 

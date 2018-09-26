@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'bootbox'
-], function($, Init, Util, bootbox) {
+], ($, Init, Util, bootbox) => {
     'use strict';
 
     let config = {
@@ -24,8 +24,7 @@ define([
      */
     $.fn.showDeleteAccountDialog = function(){
 
-
-        requirejs(['text!templates/dialog/delete_account.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/delete_account.html', 'mustache'], (template, Mustache) => {
 
             let data = {
                 deleteAccountId: config.deleteAccountId,
@@ -39,6 +38,7 @@ define([
             let deleteAccountDialog = bootbox.dialog({
                 title: 'Delete account',
                 message: content,
+                show: false,
                 buttons: {
                     close: {
                         label: 'cancel',
@@ -47,7 +47,7 @@ define([
                     success: {
                         label: '<i class="fas fa-user-times fa-fw"></i>&nbsp;delete account',
                         className: 'btn-danger',
-                        callback: function() {
+                        callback: function(){
                             let dialogElement = $(this);
                             let form = dialogElement.find('form');
 
@@ -88,7 +88,7 @@ define([
                                             });
                                         }
 
-                                    }).fail(function( jqXHR, status, error) {
+                                    }).fail(function(jqXHR, status, error){
                                         dialogElement.find('.modal-content').hideLoadingAnimation();
 
                                         let reason = status + ' ' + error;
@@ -104,12 +104,26 @@ define([
                 }
             });
 
-            // after modal is shown =======================================================================
-            deleteAccountDialog.on('shown.bs.modal', function(e) {
+            deleteAccountDialog.on('show.bs.modal', function(e){
                 // request captcha image and show
-                $('#' + config.captchaImageWrapperId).showCaptchaImage(config.captchaKeyDeleteAccount);
+                let captchaImageWrapperContainer = $('#' + config.captchaImageWrapperId);
+                captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyDeleteAccount);
+
+                // init captcha refresh button
+                captchaImageWrapperContainer.find('i').on('click', function(){
+                    captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyDeleteAccount);
+                });
             });
 
+            // after modal is shown =======================================================================
+            deleteAccountDialog.on('shown.bs.modal', function(e){
+                let dialogElement = $(this);
+
+                dialogElement.initTooltips();
+            });
+
+            // show dialog
+            deleteAccountDialog.modal('show');
         });
 
     };

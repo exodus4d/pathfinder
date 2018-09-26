@@ -24,15 +24,16 @@ table.dataTable thead th.sorting_desc:after {
 
 table.dataTable thead th.sorting:after {
   content: "\f0dc";
-  color: $green;
   font-size: 0.8em;
   margin-top: -8px;
 }
 table.dataTable thead th.sorting_asc:after {
   content: "\f0de";
+  color: $green;
 }
 table.dataTable thead th.sorting_desc:after {
   content: "\f0dd";
+  color: $green;
 }
 
 div.dataTables_scrollBody table.dataTable thead th.sorting:after,
@@ -59,7 +60,7 @@ div.dataTables_paginate a.paginate_button.last {
 div.dataTables_paginate a.first:before,
 div.dataTables_paginate a.previous:before {
   position: absolute;
-  top: 6px;
+  top: 4px;
   left: 10px;
   display: block;
   font-weight: bold;
@@ -69,7 +70,7 @@ div.dataTables_paginate a.previous:before {
 div.dataTables_paginate a.next:after,
 div.dataTables_paginate a.last:after {
   position: absolute;
-  top: 6px;
+  top: 4px;
   right: 10px;
   display: block;
   font-weight: bold;

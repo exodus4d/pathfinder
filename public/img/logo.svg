@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <svg id="pf-logo-wrapper" xmlns="http://www.w3.org/2000/svg" version="1.2" width="0" height="0" shape-rendering="geometricPrecision">
     <filter id="LogoFilterShadow" width="150%" height="150%">
         <feOffset result="offOut" in="SourceAlpha" dx="-3" dy="3"/>

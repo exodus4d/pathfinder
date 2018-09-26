@@ -10,7 +10,7 @@ define([
     'app/render',
     'bootbox',
     'app/map/util'
-], function($, Init, Util, Render, bootbox, MapUtil) {
+], function($, Init, Util, Render, bootbox, MapUtil){
     'use strict';
 
     let config = {
@@ -36,7 +36,7 @@ define([
 
             let systemEffectData = Util.getSystemEffectData();
 
-            $.each( systemEffectData.wh, function( effectName, effectData ) {
+            $.each( systemEffectData.wh, function(effectName, effectData ){
 
                 let table = $('<table>', {
                     class: ['table', 'table-condensed'].join(' ')
@@ -51,7 +51,7 @@ define([
                 let systemEffectName = MapUtil.getEffectInfoForSystem(effectName, 'name');
                 let systemEffectClass = MapUtil.getEffectInfoForSystem(effectName, 'class');
 
-                $.each( effectData, function( areaId, areaData ) {
+                $.each( effectData, function(areaId, areaData ){
 
                     let systemType = 'C' + areaId;
                     let securityClass = Util.getSecurityClassForSystem( systemType );
@@ -61,7 +61,7 @@ define([
                         thead.append( rows[0] );
 
                         rows[0].append(
-                            $('<td>').html( '&nbsp;&nbsp;' + systemEffectName).prepend(
+                            $('<td>').html('&nbsp;&nbsp;' + systemEffectName).prepend(
                                 $('<i>', {
                                     class: ['fas', 'fa-square', 'fa-fw', systemEffectClass].join(' ')
                                 })
@@ -73,7 +73,7 @@ define([
                         class: ['text-right', 'col-xs-1', securityClass].join(' ')
                     }).text( systemType ));
 
-                    $.each( areaData, function( i, data ) {
+                    $.each( areaData, function(i, data ){
 
                         if(areaId === '1'){
                             rows.push( $('<tr>') );
@@ -92,7 +92,7 @@ define([
 
                 });
 
-                dialogWrapperElement.append( table.append( thead ).append( tbody ) );
+                dialogWrapperElement.append(table.append(thead).append(tbody));
 
                 cache.systemEffectDialog = dialogWrapperElement;
             });

@@ -69,7 +69,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       bottom: 0;
       right: 0;
       border-style: solid;
-      border-width: 12px 12px 0 0 ;
+      border-width: 14px 14px 0 0 ;
       border-color:  transparent $gray-dark transparent transparent;
       cursor: nwse-resize;
     }
@@ -764,6 +764,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // context menu =======================================================================================================
 .dropdown-menu{
+  min-width: 150px; // overwrite default
   font-family: $font-family-bold;
   z-index: 1050; // over tooltips
   will-change: opacity, top, left, transform;
@@ -785,20 +786,36 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   }
 
   // top menu
-  &[role]>li{
-    position: relative; // otherwise :before indicator gets to height
-    &:before{
-      @include navigation-active-indicator(left);
-      width: 2px;
-      height: 100%;
-      left: 0;
-    }
+  &[role] > li{
 
-    &:hover:before{
-      left: -4px;
-      opacity: 1;
+    &:not(.disabled){
+      position: relative; // otherwise :before indicator gets to height
+      &:before{
+        @include navigation-active-indicator(left);
+        width: 2px;
+        height: 100%;
+        left: 0;
+      }
+
+      &:hover:before{
+        left: -4px;
+        opacity: 1;
+      }
     }
   }
+
+  & > li {
+
+    &.disabled{
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    & > a {
+      padding: 3px 8px; // overwrite default
+    }
+  }
+
 }
 
 // tooltip for a system with active user (they are not positioned within the system element)

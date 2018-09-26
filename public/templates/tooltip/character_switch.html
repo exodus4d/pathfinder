@@ -1,16 +1,17 @@
-<table id="{{id}}" class="table table-condensed">
-    <tbody>
+<div class="{{popoverClass}}">
+    <table class="table table-condensed">
+        <tbody>
         {{#otherCharacters}}
         <tr>
             <td><img src="{{image}}" alt="{{name}}"></td>
             <td>{{name}}</td>
             <td class="text-right text-nowrap">
-                    <a class="btn btn-sm btn-default" href="{{routes.ssoLogin}}?characterId={{id}}" target="_blank" title="new tab" rel="noopener">
-                        <i class="fas fa-fw fa-external-link-alt"></i>
-                    </a>
-                    <a class="btn btn-sm btn-primary" href="{{routes.ssoLogin}}?characterId={{id}}&tabId={{browserTabId}}" target="_self" title="switch&nbsp;character">
-                        <i class="fas fa-fw fa-exchange-alt"></i>
-                    </a>
+                <a class="btn btn-sm btn-default" href="{{routes.ssoLogin}}?characterId={{id}}" target="_blank" title="new tab" rel="noopener">
+                    <i class="fas fa-fw fa-external-link-alt"></i>
+                </a>
+                <a class="btn btn-sm btn-primary" href="{{routes.ssoLogin}}?characterId={{id}}&tabId={{browserTabId}}" target="_self" title="switch&nbsp;character">
+                    <i class="fas fa-fw fa-exchange-alt"></i>
+                </a>
             </td>
         </tr>
         {{/otherCharacters}}
@@ -24,5 +25,6 @@
                 </a>
             </td>
         </tr>
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>

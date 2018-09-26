@@ -8,7 +8,7 @@ define([
     'app/init',
     'app/util',
     'app/map/util'
-], function($, Init, Util, MapUtil) {
+], function($, Init, Util, MapUtil){
     'use strict';
 
     let config = {
@@ -122,7 +122,7 @@ define([
      * @param checkExistence
      */
     let filterRows = (table, data = 'id', values = [], checkExistence = true) => {
-        return table.rows().eq(0).filter( function (rowIdx) {
+        return table.rows().eq(0).filter( function(rowIdx){
             let rowExists = values.indexOf( table.row(rowIdx ).data()[data] ) !== -1;
 
             if( !checkExistence ){
@@ -157,17 +157,17 @@ define([
 
         // update userCount for "near by" count -------------------------------------------------------------------
         if( characterAll > 0){
-            userCountElement.toggleClass( 'txt-color-green', true).toggleClass( 'txt-color-red', false);
+            userCountElement.toggleClass('txt-color-green', true).toggleClass('txt-color-red', false);
         }else{
-            userCountElement.toggleClass( 'txt-color-green', false).toggleClass( 'txt-color-red', true);
+            userCountElement.toggleClass('txt-color-green', false).toggleClass('txt-color-red', true);
         }
         userCountElement.text(characterAll);
 
         // update userCount in current system ---------------------------------------------------------------------
         if( characterLocal > 0){
-            childElements.eq(3).toggleClass( 'txt-color-green', true).toggleClass( 'txt-color-red', false);
+            childElements.eq(3).toggleClass('txt-color-green', true).toggleClass('txt-color-red', false);
         }else{
-            childElements.eq(3).toggleClass( 'txt-color-green', false).toggleClass( 'txt-color-red', true);
+            childElements.eq(3).toggleClass('txt-color-green', false).toggleClass('txt-color-red', true);
         }
         childElements.eq(3).text(characterLocal);
     };
@@ -188,7 +188,7 @@ define([
             let characterLocalIds = [];
 
             // system is on map (just for security check)
-            for(let jumps in userData) {
+            for(let jumps in userData){
                 if( userData.hasOwnProperty(jumps) ){
                     jumps = parseInt(jumps);
 
@@ -237,7 +237,7 @@ define([
             // open Overlay -------------------------------------------------------------------------------------------
             if( !isOpen(overlay) ){
                 let promiseStore = MapUtil.getLocaleData('map', mapId);
-                promiseStore.then(function(dataStore) {
+                promiseStore.then(function(dataStore){
                     if(
                         dataStore &&
                         dataStore.showLocal
@@ -247,18 +247,6 @@ define([
                 });
             }
         });
-    };
-
-    /**
-     * Access a nested JSON object by "dot.notation" syntax
-     * @param obj
-     * @param selector
-     * @returns {*}
-     */
-    let getDescendantProp = (obj, selector) => {
-        return selector.split('.').reduce(function(a, b) {
-            return a[b];
-        }, obj);
     };
 
     /**
@@ -274,7 +262,7 @@ define([
 
             $(this).tooltip({
                 container: 'body',
-                title: String( getDescendantProp(rowData, titleSelector) ),
+                title: Util.getObjVal(rowData, titleSelector),
                 placement: 'left',
                 delay: 100
             }).tooltip('show');
@@ -376,7 +364,7 @@ define([
                 });
 
                 // table init complete
-                table.on( 'init.dt', function (){
+                table.on('init.dt', function(){
                     // init table head tooltips
                     $(this).initTooltips({
                         container: 'body',
@@ -393,8 +381,8 @@ define([
                     info: false,
                     searching: false,
                     hover: false,
-                    autoWidth: false,
-                    rowId: function(rowData) {
+                    responsive: false,          // true "hides" some columns on init (why?)
+                    rowId: function(rowData){
                         return 'pf-local-row_' + rowData.id; // characterId
                     },
                     language: {
@@ -406,10 +394,10 @@ define([
                             orderable: true,
                             title: '<span title="jumps" data-toggle="tooltip">&nbsp;</span>',
                             width: '1px',
-                            className: ['pf-help-default', 'text-center'].join(' '),
+                            className: [Util.config.helpDefaultClass, 'text-center'].join(' '),
                             data: 'jumps',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data;
                                     if(type === 'display'){
                                         if(value === 0){
@@ -428,10 +416,10 @@ define([
                             orderable: false,
                             title: '',
                             width: '26px',
-                            className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
+                            className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
                             data: 'log.ship',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data.typeName;
                                     if(type === 'display'){
                                         value = '<img src="' + Init.url.ccpImageServer + '/Render/' + data.typeId + '_32.png"/>';
@@ -450,7 +438,7 @@ define([
                             width: '80px',
                             data: 'log.ship',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data.name;
                                     if(type === 'display'){
                                         value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
@@ -465,7 +453,7 @@ define([
                             title: 'pilot',
                             data: 'name',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data;
                                     if(type === 'display'){
                                         value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis90Class + '">' + data + '</div>';
@@ -478,10 +466,10 @@ define([
                             orderable: false,
                             title: '',
                             width: '10px',
-                            className: ['pf-help-default'].join(' '),
+                            className: [Util.config.helpDefaultClass].join(' '),
                             data: 'log',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = '';
                                     if(type === 'display'){
                                         if(data.station && data.station.id > 0){
@@ -511,7 +499,7 @@ define([
                             className: [config.tableCellActionClass].join(' '),
                             data: 'id',
                             render: {
-                                _: function(data, type, row, meta){
+                                _: (data, type, row, meta) => {
                                     let value = data;
                                     if(type === 'display'){
                                         value = '<i class="fas fa-id-card ' + config.tableCellActionIconClass + '"></i>';

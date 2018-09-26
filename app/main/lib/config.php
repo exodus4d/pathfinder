@@ -8,7 +8,6 @@
 
 namespace lib;
 
-
 use controller\LogController;
 use Exception;
 
@@ -269,7 +268,7 @@ class Config extends \Prefab {
      */
     static function getMapsDefaultConfig($mapType = ''){
         if( $mapConfig = self::getPathfinderData('map' . ($mapType ? '.' . $mapType : '')) ){
-            $mapConfig = Util::arrayChangeKeyCaseRecursive( $mapConfig );
+            $mapConfig = Util::arrayChangeKeyCaseRecursive($mapConfig);
         }
 
         return $mapConfig;

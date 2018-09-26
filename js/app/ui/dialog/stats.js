@@ -10,7 +10,7 @@ define([
     'app/render',
     'bootbox',
     'peityInlineChart'
-], function($, Init, Util, Render, bootbox) {
+], function($, Init, Util, Render, bootbox){
     'use strict';
 
     let config = {
@@ -27,6 +27,7 @@ define([
         statsContainerId: 'pf-stats-dialog-container',                          // class for statistics container (dynamic ajax content)
         statsTableId: 'pf-stats-table',                                         // id for statistics table element
         tableCellImageClass: 'pf-table-image-cell',                             // class for table "image" cells
+        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
 
         // charts
         statsLineChartClass: 'pf-line-chart'                                    // class for inline chart elements
@@ -74,6 +75,26 @@ define([
         let table = dialogElement.find('#' + config.statsTableId);
 
         let  statsTable = table.DataTable({
+            dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
+                '<"row"<"col-xs-12"tr>>' +
+                '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+            buttons: {
+                name: 'tableTools',
+                buttons: [
+                    {
+                        extend: 'copy',
+                        className: config.moduleHeadlineIconClass,
+                        text: '<i class="fas fa-fw fa-copy"></i> copy',
+                        exportOptions: { orthogonal: 'filter' }
+                    },
+                    {
+                        extend: 'csv',
+                        className: config.moduleHeadlineIconClass,
+                        text: '<i class="fas fa-fw fa-download"></i> csv',
+                        exportOptions: { orthogonal: 'filter' }
+                    }
+                ]
+            },
             pageLength: 30,
             lengthMenu: [[10, 20, 30, 50], [10, 20, 30, 50]],
             paging: true,
@@ -82,7 +103,6 @@ define([
             info: true,
             searching: true,
             hover: false,
-            autoWidth: false,
             language: {
                 emptyTable:  'No statistics found',
                 zeroRecords: 'No characters found',
@@ -335,7 +355,7 @@ define([
                     });
                 });
             },
-            footerCallback: function ( row, data, start, end, display ) {
+            footerCallback: function(row, data, start, end, display ){
                 let api = this.api();
                 let sumColumnIndexes = [7, 11, 15, 19, 20];
 
@@ -397,7 +417,7 @@ define([
             this.dynamicArea.hideLoadingAnimation();
 
             this.callback(data);
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': loadStatistics', text: reason, type: 'warning'});
         });
@@ -733,7 +753,7 @@ define([
      * show activity stats dialog
      */
     $.fn.showStatsDialog = function(){
-        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache){
             // get current statistics map settings
             let logActivityEnabled = false;
             let activeMap = Util.getMapModule().getActiveMap();
@@ -796,20 +816,20 @@ define([
             });
 
             // model events
-            statsDialog.on('show.bs.modal', function(e) {
+            statsDialog.on('show.bs.modal', function(e){
                 let dialogElement = $(e.target);
                 initStatsTable(dialogElement);
             });
 
             // Tab module events
-            statsDialog.find('a[data-toggle="tab"]').on('show.bs.tab', function (e, b, c) {
+            statsDialog.find('a[data-toggle="tab"]').on('show.bs.tab', function(e, b, c){
                 if( $(e.target).parent().hasClass('disabled') ){
                     // no action on "disabled" tabs
                     return false;
                 }
             });
 
-            statsDialog.find('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            statsDialog.find('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
                 let requestData = getRequestDataFromTabPanels(statsDialog);
                 let tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
 

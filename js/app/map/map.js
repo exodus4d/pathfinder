@@ -14,7 +14,6 @@ define([
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
-    'app/map/contextmenu',
     'app/map/overlay',
     'app/map/local'
 ], ($, Init, Util, Render, bootbox, MapUtil, System, Layout, MagnetizerWrapper) => {
@@ -58,6 +57,7 @@ define([
         // dialogs
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
+        systemDialogStatusSelectId: 'pf-system-dialog-status-select',   // id for "status" select
 
         // system security classes
         systemSec: 'pf-system-sec'
@@ -335,8 +335,8 @@ define([
         let statusId = Util.getStatusInfoForSystem(status, 'id');
         let statusClass = Util.getStatusInfoForSystem(status, 'class');
 
-        for(let property in Init.systemStatus) {
-            if (Init.systemStatus.hasOwnProperty(property)) {
+        for(let property in Init.systemStatus){
+            if(Init.systemStatus.hasOwnProperty(property)){
                 system.removeClass( Init.systemStatus[property].class );
             }
         }
@@ -502,7 +502,7 @@ define([
         system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
         // locked system
-        if( Boolean( system.data( 'locked') ) !== data.locked ){
+        if( Boolean( system.data('locked') ) !== data.locked ){
             system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
         }
 
@@ -528,13 +528,17 @@ define([
         let connectionCanvas = $(connection.canvas);
 
         // if the connection already exists -> do not set it twice
-        connection.unbind('contextmenu').bind('contextmenu', function(component, e) {
+        connection.unbind('contextmenu').bind('contextmenu', function(component, e){
             e.preventDefault();
             e.stopPropagation();
 
             // trigger menu "open
-            Promise.all([getHiddenContextMenuOptions(component), getActiveContextMenuOptions(component)]).then(payload => {
-                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1]]);
+            Promise.all([
+                getHiddenContextMenuOptions(component),
+                getActiveContextMenuOptions(component),
+                getDisabledContextMenuOptions(component)
+            ]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1], payload[2]]);
             });
 
             return false;
@@ -546,7 +550,7 @@ define([
          */
         connectionCanvas.contextMenu({
             menuSelector: '#' + config.connectionContextMenuId,
-            menuSelected: function (params){
+            menuSelected: function(params){
 
                 let action = params.selectedMenu.attr('data-action');
                 let activeConnection = params.component;
@@ -558,7 +562,7 @@ define([
                         // delete a single connection
 
                         // confirm dialog
-                        bootbox.confirm('Is this connection really gone?', function(result) {
+                        bootbox.confirm('Is this connection really gone?', function(result){
                             if(result){
                                 $().deleteConnections([activeConnection]);
                             }
@@ -588,7 +592,7 @@ define([
                         let newScope = action.split('_')[1];
                         let newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
 
-                        bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
+                        bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result){
                             if(result){
 
                                 mapElement.getMapOverlay('timer').startMapUpdateCounter();
@@ -617,8 +621,8 @@ define([
                     let activeConnections = MapUtil.getConnectionsByType(map, 'active');
                     if(activeConnections.length >= config.maxActiveConnections && !connection.hasType('active')){
                         Util.showNotify({title: 'Connection select limit', text: 'You can´t select more connections', type: 'warning'});
-                    }else {
-                        if(activeConnections.length > 0) {
+                    }else{
+                        if(activeConnections.length > 0){
                             MapUtil.toggleConnectionActive(map, [connection]);
                         }else{
                             MapUtil.showConnectionInfo(map, [connection]);
@@ -835,7 +839,7 @@ define([
             if(entry.constructor.name === 'HTMLDivElement'){
                 width = entry.style.width;
                 height = entry.style.height;
-            }else if (entry.constructor.name === 'ResizeObserverEntry'){
+            }else if(entry.constructor.name === 'ResizeObserverEntry'){
                 width = entry.target.style.width;
                 height = entry.target.style.height;
             }
@@ -847,16 +851,16 @@ define([
             promiseStore.then((data) => {
                 let storeData = true;
 
-                if (
+                if(
                     data && data.style &&
                     data.style.width === width &&
                     data.style.height === height
-                ) {
+                ){
                     // no style changes
                     storeData = false;
                 }
 
-                if (storeData) {
+                if(storeData){
                     MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
                         width: width,
                         height: height
@@ -866,14 +870,14 @@ define([
         };
 
         // map resize observer ----------------------------------------------------------------------------------------
-        if(window.ResizeObserver) {
+        if(window.ResizeObserver){
             // ResizeObserver() supported
             let resizeTimer;
             let wrapperResize = new ResizeObserver(entries => { // jshint ignore:line
                 let checkMapSize = (entry) => {
                     return setTimeout(saveMapSize, 100, entry);
                 };
-                for (let entry of entries){
+                for(let entry of entries){
                     // use timeout to "throttle" save actions
                     clearTimeout(resizeTimer);
                     resizeTimer = checkMapSize(entry);
@@ -1055,7 +1059,7 @@ define([
 
                     // jsPlumb batch() is used, otherwise there are some "strange" visual bugs
                     // when switching maps (Endpoints are not displayed correctly)
-                    mapConfig.map.batch(function() {
+                    mapConfig.map.batch(function(){
 
                         for(let j = 0; j < mapConfig.data.connections.length; j++){
                             let connectionData = mapConfig.data.connections[j];
@@ -1360,7 +1364,7 @@ define([
                     Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
                 }
             }
-        }).fail(function( jqXHR, status, error) {
+        }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
@@ -1378,21 +1382,13 @@ define([
      * @param map
      * @param options
      */
-    let showNewSystemDialog = function(map, options){
+    let showNewSystemDialog = (map, options) => {
         let mapContainer = $(map.getContainer());
 
         // format system status for form select -----------------------------------------------------------------------
-        let systemStatus = {};
         // "default" selection (id = 0) prevents status from being overwritten
         // -> e.g. keep status information if system was just inactive (active = 0)
-        systemStatus[0] = 'default';
-
-        $.each(Init.systemStatus, function(status, statusData){
-            systemStatus[statusData.id] = statusData.label;
-        });
-
-        // default system status -> first status entry
-        let defaultSystemStatus = 0;
+        let statusData = [{id: 0, text: 'auto'}];
 
         // get current map data ---------------------------------------------------------------------------------------
         let mapData = mapContainer.getMapDataFromClient({forceData: true});
@@ -1416,7 +1412,10 @@ define([
         // dialog data ------------------------------------------------------------------------------------------------
         let data = {
             id: config.systemDialogId,
-            selectClass: config.systemDialogSelectClass
+            select2Class: Util.config.select2Class,
+            selectClass: config.systemDialogSelectClass,
+            statusSelectId: config.systemDialogStatusSelectId,
+            statusData: statusData
         };
 
         // set current position as "default" system to add ------------------------------------------------------------
@@ -1431,13 +1430,14 @@ define([
             data.currentSystem = currentCharacterLog.system;
         }
 
-        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache){
 
             let content = Mustache.render(template, data);
 
             let systemDialog = bootbox.dialog({
                 title: 'Add new system',
                 message: content,
+                show: false,
                 buttons: {
                     close: {
                         label: 'cancel',
@@ -1446,7 +1446,7 @@ define([
                     success: {
                         label: '<i class="fas fa-fw fa-check"></i> save',
                         className: 'btn-success',
-                        callback: function (e) {
+                        callback: function(e){
                             // get form Values
                             let form = $('#' + config.systemDialogId).find('form');
 
@@ -1517,9 +1517,21 @@ define([
                 }
             });
 
-            // init dialog
-            systemDialog.on('shown.bs.modal', function(e) {
+            systemDialog.on('show.bs.modal', function(e){
+                let modalContent = $('#' + config.systemDialogId);
 
+                // init "status" select2
+                for(let [statusName, data] of Object.entries(Init.systemStatus)){
+                    statusData.push({id: data.id, text: data.label, class: data.class});
+                }
+
+                modalContent.find('#' + config.systemDialogStatusSelectId).initStatusSelect({
+                    data: statusData,
+                    iconClass: 'fa-tag'
+                });
+            });
+
+            systemDialog.on('shown.bs.modal', function(e){
                 let modalContent = $('#' + config.systemDialogId);
 
                 // init system select live search  - some delay until modal transition has finished
@@ -1530,18 +1542,8 @@ define([
                 });
             });
 
-            // init system status select
-            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
-
-            modalFields.editable({
-                mode: 'inline',
-                emptytext: 'unknown',
-                onblur: 'submit',
-                showbuttons: false,
-                source: systemStatus,
-                value: defaultSystemStatus,
-                inputclass: config.systemDialogSelectClass
-            });
+            // show dialog
+            systemDialog.modal('show');
         });
     };
 
@@ -1566,12 +1568,12 @@ define([
             showbuttons: false
         });
 
-        headElement.on('save', function(e, params) {
+        headElement.on('save', function(e, params){
             // system alias changed -> mark system as updated
             system.markAsChanged();
         });
 
-        headElement.on('shown', function(e, editable) {
+        headElement.on('shown', function(e, editable){
             // hide tooltip when xEditable is visible
             system.toggleSystemTooltip('hide', {});
 
@@ -1584,7 +1586,7 @@ define([
             }, 0, inputElement);
         });
 
-        headElement.on('hidden', function(e, editable) {
+        headElement.on('hidden', function(e, editable){
             // show tooltip "again" on xEditable hidden
             system.toggleSystemTooltip('show', {show: true});
 
@@ -1692,7 +1694,7 @@ define([
                         Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
                     }
                 }
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function(jqXHR, status, error){
                 // remove this connection from map
                 this.map.detach(this.connection, {fireEvent: false});
 
@@ -1756,7 +1758,7 @@ define([
                     if(callback){
                         callback();
                     }
-                }).fail(function( jqXHR, status, error) {
+                }).fail(function(jqXHR, status, error){
                     let reason = status + ' ' + error;
                     Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
                     $(document).setProgramStatus('problem');
@@ -1766,124 +1768,11 @@ define([
     };
 
     /**
-     * load context menu template for map
-     */
-    let initMapContextMenu = function(){
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
-        let moduleData = {
-            id: config.mapContextMenuId,
-            items: [
-                {icon: 'fa-plus', action: 'add_system', text: 'add system'},
-                {icon: 'fa-object-ungroup', action: 'select_all', text: 'select all'},
-                {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
-                    {subIcon: '', subAction: 'filter_wh', subText: 'wormhole'},
-                    {subIcon: '', subAction: 'filter_stargate', subText: 'stargate'},
-                    {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'},
-                    {subIcon: '', subAction: 'filter_abyssal', subText: 'abyssal'}
-                ]},
-                {icon: 'fa-sitemap', action: 'map', text: 'map', subitems: [
-                    {subIcon: 'fa-edit', subAction: 'map_edit', subText: 'edit map'},
-                    {subIcon: 'fa-street-view', subAction: 'map_info', subText: 'map info'},
-                ]},
-                {divider: true, action: 'delete_systems'},
-                {icon: 'fa-trash', action: 'delete_systems', text: 'delete systems'}
-            ]
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-    };
-
-    /**
-     * load contextmenu template for connections
-     */
-    let initConnectionContextMenu = function(){
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
-        let moduleData = {
-            id: config.connectionContextMenuId,
-            items: [
-                {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
-                {icon: 'fa-exclamation-triangle', action: 'preserve_mass', text: 'preserve mass'},
-                {icon: 'fa-crosshairs', action: 'change_scope', text: 'change scope', subitems: [
-                    {subIcon: 'fa-minus-circle', subIconClass: '', subAction: 'scope_wh', subText: 'wormhole'},
-                    {subIcon: 'fa-minus-circle', subIconClass: 'txt-color  txt-color-indigoDarkest', subAction: 'scope_stargate', subText: 'stargate'},
-                    {subIcon: 'fa-minus-circle', subIconClass: 'txt-color  txt-color-tealLighter', subAction: 'scope_jumpbridge', subText: 'jumpbridge'}
-
-                ]},
-                {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'change status', subitems: [
-                    {subIcon: 'fa-clock', subAction: 'wh_eol', subText: 'toggle EOL'},
-                    {subDivider: true},
-                    {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 1 (fresh)'},
-                    {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 2 (reduced)'},
-                    {subIcon: 'fa-circle', subAction: 'status_critical', subText: 'stage 3 (critical)'}
-
-                ]},
-                {divider: true, action: 'separator'} ,
-                {icon: 'fa-unlink', action: 'delete_connection', text: 'detach'}
-            ]
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-
-    };
-
-    /**
-     * load contextmenu template for systems
-     */
-    let initSystemContextMenu = function(){
-        let systemStatus = [];
-
-        $.each(Init.systemStatus, function(status, statusData){
-            let tempStatus = {
-                subIcon: 'fa-tag',
-                subIconClass: statusData.class,
-                subAction: 'change_status_' + status,
-                subText: statusData.label
-            };
-            systemStatus.push(tempStatus);
-        });
-
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
-        let moduleData = {
-            id: config.systemContextMenuId,
-            items: [
-                {icon: 'fa-plus', action: 'add_system', text: 'add system'},
-                {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
-                {icon: 'fa-volume-up', action: 'set_rally', text: 'set rally point'},
-                {icon: 'fa-object-group', action: 'select_connections', text: 'select connections'},
-                {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
-                {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
-                    {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
-                    {subDivider: true, action: ''},
-                    {subIcon: 'fa-step-backward', subAction: 'add_first_waypoint', subText: 'add new [start]'},
-                    {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
-                ]},
-                {divider: true, action: 'delete_system'},
-                {icon: 'fa-trash', action: 'delete_system', text: 'delete system(s)'}
-            ]
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-
-    };
-
-    /**
      * get hidden menu entry options for a context menu
      * @param component
      * @returns {Promise<any>}
      */
-    let getHiddenContextMenuOptions = function(component){
+    let getHiddenContextMenuOptions = component => {
 
         let getHiddenContextMenuOptionsExecutor = (resolve, reject) => {
             let hiddenOptions = [];
@@ -1916,6 +1805,11 @@ define([
                 // disable system menu entries
                 if(component.data('locked') === true){
                     hiddenOptions.push('delete_system');
+                }
+
+                let mapElement = component.parents('.' + config.mapClass);
+                if( !mapElement.find('.' + config.systemActiveClass).length ){
+                    hiddenOptions.push('find_route');
                 }
             }
 
@@ -1981,6 +1875,29 @@ define([
         };
 
         return new Promise(getActiveContextMenuOptionsExecutor);
+    };
+
+    /**
+     * get disabled menu entry options for a context menu
+     * @param component
+     * @returns {Promise<any>}
+     */
+    let getDisabledContextMenuOptions = component => {
+
+        let getDisabledContextMenuOptionsExecutor = (resolve, reject) => {
+            let disabledOptions = [];
+
+            if( component.hasClass(config.systemClass) ){
+                // disable system menu entries
+                if( component.hasClass(config.systemActiveClass) ){
+                    disabledOptions.push('find_route');
+                }
+            }
+
+            resolve(disabledOptions);
+        };
+
+        return new Promise(getDisabledContextMenuOptionsExecutor);
     };
 
     /**
@@ -2110,8 +2027,12 @@ define([
             let systemElement = $(this);
 
             // trigger menu "open
-            Promise.all([getHiddenContextMenuOptions(systemElement), getActiveContextMenuOptions(systemElement)]).then(payload => {
-                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1]]);
+            Promise.all([
+                getHiddenContextMenuOptions(systemElement),
+                getActiveContextMenuOptions(systemElement),
+                getDisabledContextMenuOptions(systemElement)
+            ]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1], payload[2]]);
             });
 
             return false;
@@ -2120,7 +2041,7 @@ define([
         // init context menu
         system.contextMenu({
             menuSelector: '#' + config.systemContextMenuId,
-            menuSelected: function (params) {
+            menuSelected: function(params){
 
                 // click action
                 let action = params.selectedMenu.attr('data-action');
@@ -2150,13 +2071,21 @@ define([
                         break;
                     case 'set_rally':
                         // toggle rally point
-                        if( !currentSystem.data( 'rallyUpdated' ) ){
+                        if( !currentSystem.data('rallyUpdated') ){
                             $.fn.showRallyPointDialog(currentSystem);
                         }else{
                             // remove rally point
                             currentSystem.setSystemRally(0);
                             currentSystem.markAsChanged();
                         }
+                        break;
+                    case 'find_route':
+                        // show find route dialog
+                        systemData = system.getSystemData();
+                        MapUtil.showFindRouteDialog(mapContainer, {
+                            systemId: systemData.systemId,
+                            name: systemData.name
+                        });
                         break;
                     case 'select_connections':
                         let connections = MapUtil.searchConnectionsBySystems(map, [currentSystem], '*');
@@ -2222,13 +2151,11 @@ define([
                 if( !system.hasClass('no-click') ){
                     // left mouse button
                     if(e.which === 1){
-                        if(! system.hasClass('no-click')){
-                            if(e.ctrlKey === true){
-                                // select system
-                                MapUtil.toggleSystemsSelect(map, [system]);
-                            }else{
-                                MapUtil.showSystemInfo(map, system);
-                            }
+                        if(e.ctrlKey === true){
+                            // select system
+                            MapUtil.toggleSystemsSelect(map, [system]);
+                        }else{
+                            MapUtil.showSystemInfo(map, system);
                         }
                     }
                 }
@@ -2323,7 +2250,7 @@ define([
 
         let systemName = system.getSystemInfo( ['alias'] );
 
-        if( system.data( 'locked' ) === true ){
+        if( system.data('locked') === true ){
             system.data('locked', false);
             system.removeClass( config.systemLockedClass );
 
@@ -2386,33 +2313,22 @@ define([
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
             // event after a new connection is established --------------------------
-            newJsPlumbInstance.bind('connection', function(info, e) {
+            newJsPlumbInstance.bind('connection', function(info, e){
                 // set connection observer
                 setConnectionObserver(newJsPlumbInstance, info.connection);
             });
 
             // event after connection moved ---------------------------------------------------------------------------
-            newJsPlumbInstance.bind('connectionMoved', function(info, e) {
+            newJsPlumbInstance.bind('connectionMoved', function(info, e){
 
             });
 
             // event after DragStop a connection or new connection ----------------------------------------------------
-            newJsPlumbInstance.bind('beforeDrop', function(info) {
+            newJsPlumbInstance.bind('beforeDrop', function(info){
                 let connection = info.connection;
                 let dropEndpoint = info.dropEndpoint;
                 let sourceId = info.sourceId;
                 let targetId = info.targetId;
-
-                // lock the target system for "click" events
-                // to prevent loading system information
-                let sourceSystem = $('#' + sourceId);
-                let targetSystem = $('#' + targetId);
-                sourceSystem.addClass('no-click');
-                targetSystem.addClass('no-click');
-                setTimeout(function(){
-                    sourceSystem.removeClass('no-click');
-                    targetSystem.removeClass('no-click');
-                }, Init.timer.DBL_CLICK + 50);
 
                 // loop connection not allowed
                 if(sourceId === targetId){
@@ -2425,6 +2341,18 @@ define([
                     console.warn('Endpoint already occupied');
                     return false;
                 }
+
+                // lock the target system for "click" events
+                // to prevent loading system information
+                let sourceSystem = $('#' + sourceId);
+                let targetSystem = $('#' + targetId);
+                sourceSystem.addClass('no-click');
+                targetSystem.addClass('no-click');
+
+                setTimeout(() => {
+                    sourceSystem.removeClass('no-click');
+                    targetSystem.removeClass('no-click');
+                }, Init.timer.DBL_CLICK + 50);
 
                 // switch connection type to "abyss" in case source OR target system belongs to "a-space"
                 if(sourceSystem.data('typeId') === 3 || targetSystem.data('typeId') === 3){
@@ -2439,7 +2367,7 @@ define([
                 // prevent multiple connections between same systems
                 let connections = MapUtil.checkForConnection(newJsPlumbInstance, sourceId, targetId);
                 if(connections.length > 1){
-                    bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
+                    bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result){
                         if(!result && connection._jsPlumb){
                             // connection._jsPlumb might be "undefined" in case connection was removed in the meantime
                             connection._jsPlumb.instance.detach(connection);
@@ -2454,12 +2382,12 @@ define([
             });
 
             // event before detach (existing connection) --------------------------------------------------------------
-            newJsPlumbInstance.bind('beforeStartDetach', function(info) {
+            newJsPlumbInstance.bind('beforeStartDetach', function(info){
                 return true;
             });
 
             // event before detach connection -------------------------------------------------------------------------
-            newJsPlumbInstance.bind('beforeDetach', function(info) {
+            newJsPlumbInstance.bind('beforeDetach', function(info){
                 return true;
             });
 
@@ -2501,8 +2429,12 @@ define([
                 let mapElement = $(this);
 
                 // trigger menu "open
-                Promise.all([getHiddenContextMenuOptions(mapElement), getActiveContextMenuOptions(mapElement)]).then(payload => {
-                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1]]);
+                Promise.all([
+                    getHiddenContextMenuOptions(mapElement),
+                    getActiveContextMenuOptions(mapElement),
+                    getDisabledContextMenuOptions(mapElement)
+                ]).then(payload => {
+                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1], payload[2]]);
                 });
             }
 
@@ -2511,7 +2443,7 @@ define([
 
         mapContainer.contextMenu({
             menuSelector: '#' + config.mapContextMenuId,
-            menuSelected: function (params) {
+            menuSelected: function(params){
 
                 // click action
                 let action = params.selectedMenu.attr('data-action');
@@ -2608,7 +2540,7 @@ define([
         mapContainer.dragToSelect({
             selectOnMove: true,
             selectables: '.' + config.systemClass,
-            onHide: function (selectBox, deselectedSystems) {
+            onHide: function(selectBox, deselectedSystems){
                 let selectedSystems = mapContainer.getSelectedSystems();
 
                 if(selectedSystems.length > 0){
@@ -2777,7 +2709,7 @@ define([
             let data = MapUtil.mapOptions[mapOption.option];
 
             let promiseStore = MapUtil.getLocaleData('map', mapElement.data('id') );
-            promiseStore.then(function(dataStore) {
+            promiseStore.then(function(dataStore){
                 let notificationText = 'disabled';
                 let button = $('#' + this.data.buttonId);
                 let dataExists = false;
@@ -2801,7 +2733,7 @@ define([
 
                     // call optional jQuery extension on mapElement
                     if(this.data.onDisable){
-                        $.fn[ this.data.onDisable ].apply( this.mapElement );
+                        $.fn[ this.data.onDisable ].apply(this.mapElement);
                     }
 
                     // show map overlay info icon
@@ -2820,7 +2752,7 @@ define([
 
                     // call optional jQuery extension on mapElement
                     if(this.data.onEnable){
-                        $.fn[ this.data.onEnable ].apply( this.mapElement );
+                        $.fn[ this.data.onEnable ].apply(this.mapElement);
                     }
 
                     // hide map overlay info icon
@@ -2900,7 +2832,7 @@ define([
                     currentCharacterLog &&
                     currentCharacterLog.system
                 ){
-                    let currentSystemData = currentMapData.data.systems.filter(function (system) {
+                    let currentSystemData = currentMapData.data.systems.filter(function(system){
                         return system.systemId === currentCharacterLog.system.id;
                     });
 
@@ -3025,11 +2957,11 @@ define([
                 let j = userData.data.systems.length;
 
                 // search backwards to avoid decrement the counter after splice()
-                while (j--) {
+                while(j--){
                     let systemData = userData.data.systems[j];
 
                     // check if any user is in this system
-                    if (systemId === systemData.id) {
+                    if(systemId === systemData.id){
                         tempUserData = systemData;
 
                         // add  "user count" to "total map user count"
@@ -3281,11 +3213,6 @@ define([
          * @param reject
          */
         let loadMapExecutor = (resolve, reject) => {
-            // add context menus to dom (if not already
-            initMapContextMenu();
-            initConnectionContextMenu();
-            initSystemContextMenu();
-
             // init jsPlumb
             jsPlumb.ready(function(){
                 // get new map instance or load existing

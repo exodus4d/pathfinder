@@ -121,7 +121,7 @@ define([
 
             for(let i = 0; i < checkMapTypes.length; i++){
                 let objectId = Util.getCurrentUserInfo(checkMapTypes[i] + 'Id');
-                if(objectId > 0) {
+                if(objectId > 0){
                     // check if User could add new map with a mapType
                     let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, checkMapTypes[i] + '.id'));
                     let maxCountObject = Util.getObjVal(mapTypes, checkMapTypes[i] + '.defaultConfig.max_count');
@@ -131,7 +131,7 @@ define([
                 }
             }
 
-            for(let mapType in mapTypes) {
+            for(let mapType in mapTypes){
                 if(authorizedMapTypes.indexOf(mapType) < 0){
                     delete( mapTypes[mapType] );
                 }
@@ -367,7 +367,7 @@ define([
             connection &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('app/ui/system_signature');
+            let SystemSignatures = require('app/ui/module/system_signature');
 
             let connectionId        = connection.getParameter('connectionId');
             let sourceEndpoint      = connection.endpoints[0];
@@ -570,6 +570,7 @@ define([
     /**
      * set system visibility e.g. or filtered systems
      * @param system
+     * @param map
      * @param visible
      */
     let setSystemVisible = (system, map, visible) => {
@@ -668,9 +669,8 @@ define([
 
         // get parent Tab Content and fire update event
         let mapContainer = $(map.getContainer());
-        let tabContentElement = getTabContentElementByMapElement(mapContainer);
 
-        $(tabContentElement).trigger('pf:drawConnectionModules', {
+        getTabContentElementByMapElement(mapContainer).trigger('pf:drawConnectionModules', {
             connections: connections,
             mapId: parseInt(mapContainer.data('id'))
         });
@@ -689,6 +689,33 @@ define([
         $(document).trigger('pf:updateConnectionInfoModule', {
             connectionsUpdate: selectedConnections,
             connectionsRemove: deselectedConnections,
+            mapId: parseInt(mapContainer.data('id'))
+        });
+    };
+
+    /**
+     * show "find route" dialog -> trigger route panel
+     * @param mapContainer
+     * @param systemToData
+     */
+    let showFindRouteDialog = (mapContainer, systemToData) => {
+        // get parent Tab Content and fire update event
+        getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
+            task: 'showFindRouteDialog',
+            systemToData: systemToData,
+            mapId: parseInt(mapContainer.data('id'))
+        });
+    };
+
+    /**
+     * performs a new route search -> trigger route panel
+     * @param mapContainer
+     * @param systemToData
+     */
+    let findRoute = (mapContainer, systemToData) => {
+        getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
+            task: 'findRoute',
+            systemToData: systemToData,
             mapId: parseInt(mapContainer.data('id'))
         });
     };
@@ -887,17 +914,18 @@ define([
     };
 
     /**
-     * store mapId for current user (IndexedDB)
-     * @param mapId
+     * store local data for current user (IndexDB)
+     * @param key
+     * @param value
      */
-    let storeDefaultMapId = (mapId) => {
-        if(mapId > 0){
+    let storeLocaleCharacterData = (key, value) => {
+        if(key.length && value){
             let userData = Util.getCurrentUserData();
             if(
                 userData &&
                 userData.character
             ){
-                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
+                storeLocalData('character', userData.character.id, key, value);
             }
         }
     };
@@ -943,7 +971,7 @@ define([
         if(objectId > 0){
             // get current map config
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data){
                 // This code runs once the value has been loaded
                 // from the offline store.
                 data = (data === null) ? {} : data;
@@ -954,7 +982,7 @@ define([
                 key: key,
                 value: value,
                 storageKey: storageKey
-            })).catch(function(err) {
+            })).catch(function(err){
                 // This code runs if there were any errors
                 console.error('Map local storage can not be accessed!');
             });
@@ -1152,7 +1180,7 @@ define([
         if(objectId > 0){
             // get current map config
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data){
                 if(
                     data &&
                     data.hasOwnProperty(key)
@@ -1180,8 +1208,8 @@ define([
 
         let defaultOptions = {
             poke: false,
-            hideNotification: false,
-            hideCounter: false,
+            hideNotification: false,    // do not show notification
+            hideCounter: false          // do not start map update counter
         };
         options = $.extend({}, defaultOptions, options);
 
@@ -1199,8 +1227,8 @@ define([
 
                 if(rallyUpdated > 0){
                     // new rally point set OR update system with rally information
+                    system.addClass(rallyClass);
 
-                    system.addClass( rallyClass );
                     // rallyUpdated > 0 is required for poke!
                     rallyPoke = options.poke;
 
@@ -1220,7 +1248,7 @@ define([
                         let mapId = system.data('mapid');
                         let systemId = system.data('id');
                         let promiseStore = getLocaleData('map', mapId);
-                        promiseStore.then(function(data) {
+                        promiseStore.then(function(data){
                             // This code runs once the value has been loaded
                             // from the offline store.
                             let rallyPokeData = {};
@@ -1241,7 +1269,11 @@ define([
                                 storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
 
                                 notificationOptions.type = 'info';
-                                Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
+                                Util.showNotify(notificationOptions, {
+                                    desktop: true,
+                                    stack: 'barBottom',
+                                    click: e => {window.location.href = getMapDeeplinkUrl(mapId, systemId);}
+                                });
                             }
                         }.bind({
                             mapId: mapId,
@@ -1249,9 +1281,17 @@ define([
                             rallyUpdated: rallyUpdated
                         }));
                     }
+
+                    // update active "route" module -> add rally point row --------------------------------------------
+                    let mapContainer = system.parents('.' + config.mapClass);
+                    findRoute(mapContainer, {
+                        systemId: system.data('systemId'),
+                        name: system.data('name'),
+                        rally: 1
+                    });
                 }else{
                     // rally point removed
-                    system.removeClass( rallyClass );
+                    system.removeClass(rallyClass);
 
                     if( !options.hideNotification ){
                         Util.showNotify({title: 'Rally point removed', type: 'success'});
@@ -1384,13 +1424,22 @@ define([
         options = $.extend({}, defaultOptions, options);
 
         return this.each(function(){
-            $(this).popover(options);
+            if(planets.length){
+                // Abyss systems don´t have planets -> no tooltip
+                let element = $(this);
+                element.popover(options);
+
+                if(options.show){
+                    element.popover('show');
+                }
+            }
         });
     };
 
     /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
+     * @param options
      * @returns {*}
      */
     $.fn.addWormholeInfoTooltip = function(tooltipData, options){
@@ -1403,9 +1452,13 @@ define([
                 let data = {};
                 if(tooltipData.massTotal){
                     data.massTotal = Util.formatMassValue(tooltipData.massTotal);
+                }else{
+                    data.massTotal = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
                 if(tooltipData.massIndividual){
                     data.massIndividual = Util.formatMassValue(tooltipData.massIndividual);
+                }else{
+                    data.massIndividual = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
                 if(tooltipData.massRegeneration){
                     data.massRegeneration = Util.formatMassValue(tooltipData.massRegeneration);
@@ -1416,14 +1469,21 @@ define([
                 if(tooltipData.signatureStrength){
                     data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString() + '&nbsp;&#37;';
                 }else{
-                    data.signatureStrength = 'unknown';
-                }
-                if(!tooltipData.class){
-                    tooltipData.class = Util.getSecurityClassForSystem(tooltipData.security);
+                    data.signatureStrength = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
 
-                let title = tooltipData.name +
-                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
+                let title = tooltipData.name;
+
+                if(tooltipData.security){
+                    // K162 has no security
+
+                    if(!tooltipData.class){
+                        tooltipData.class = Util.getSecurityClassForSystem(tooltipData.security);
+                    }
+
+                    title += '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
+                }
+
                 let content = Mustache.render(template, data);
 
                 let defaultOptions = {
@@ -1538,12 +1598,13 @@ define([
     /**
      * get a unique map url for deeplinking
      * @param mapId
+     * @param systemId
      * @returns {string}
      */
-    let getMapDeeplinkUrl = (mapId) => {
+    let getMapDeeplinkUrl = (mapId, systemId) => {
         let url = location.protocol + '//' + location.host + '/map';
         url += mapId ? '/' + encodeURIComponent(window.btoa(mapId)) : '';
-
+        url += systemId ? '_' + encodeURIComponent(window.btoa(systemId)) : '';
         return url;
     };
 
@@ -1572,7 +1633,7 @@ define([
                 }else{
                     console.warn('Missing systemData in response!', requestData);
                 }
-            }).fail(function( jqXHR, status, error) {
+            }).fail(function(jqXHR, status, error){
                 console.warn('Fail request systemData!', requestData);
             });
         };
@@ -1601,6 +1662,7 @@ define([
         setSystemActive: setSystemActive,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
+        showFindRouteDialog: showFindRouteDialog,
         getConnectionsByType: getConnectionsByType,
         getDataByConnection: getDataByConnection,
         searchConnectionsBySystems: searchConnectionsBySystems,
@@ -1617,7 +1679,7 @@ define([
         getTabContentElementByMapElement: getTabContentElementByMapElement,
         hasActiveConnection: hasActiveConnection,
         filterMapByScopes: filterMapByScopes,
-        storeDefaultMapId: storeDefaultMapId,
+        storeLocaleCharacterData: storeLocaleCharacterData,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
         deleteLocalData: deleteLocalData,

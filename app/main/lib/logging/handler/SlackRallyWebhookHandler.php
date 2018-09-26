@@ -98,9 +98,19 @@ class SlackRallyWebhookHandler extends AbstractSlackWebhookHandler {
                             $attachment['fields'][] = $this->generateAttachmentField('TrueSec', $objectData['objTrueSec']);
                         }
 
+                        if(!empty($objectData['objCountPlanets'])){
+                            // System planet count
+                            $attachment['fields'][] = $this->generateAttachmentField('Planets', $objectData['objCountPlanets']);
+                        }
+
                         if(!empty($objectData['objDescription'])){
                             // System trueSec
                             $attachment['fields'][] = $this->generateAttachmentField('System description', '```' . $objectData['objDescription'] . '```', false, false);
+                        }
+
+                        if(!empty($objectData['objUrl'])){
+                            // System deeeplink
+                            $attachment['fields'][] = $this->generateAttachmentField('', $objectData['objUrl'] , false, false);
                         }
                     }
                 }

@@ -77,4 +77,26 @@ class SystemStatusModel extends BasicModel {
         ]
     ];
 
+    /**
+     * get system status data
+     * @return \stdClass
+     */
+    public function getData(){
+
+        $statusData                 = (object)[];
+        $statusData->id             = $this->_id;
+        $statusData->name           = $this->name;
+
+        return $statusData;
+    }
+
+    /**
+     * get status by id
+     * @param int $statusId
+     * @return self|null
+     */
+    public static function getStatusById(int $statusId = 1){
+        $status = (new self())->getById($statusId);
+        return $status->dry() ? null : $status;
+    }
 } 

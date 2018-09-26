@@ -34,7 +34,7 @@ define([
                 let targetElement = $('[data-id="' + targetId + '"]');
                 let targetFormFields = targetElement.find('input[type="radio"]');
                 let checkFormFields = [];
-                for(let formField of targetFormFields) {
+                for(let formField of targetFormFields){
                     if(this.checked){
                         if(formField.hasAttribute('data-default') || formField.getAttribute('data-default-value')){
                             checkFormFields.push(formField);
@@ -47,7 +47,7 @@ define([
                     }
                 }
 
-                for(let checkFormField of checkFormFields) {
+                for(let checkFormField of checkFormFields){
                     checkFormField.checked = true;
                 }
             }
@@ -73,7 +73,7 @@ define([
 
         setPageObserver();
 
-        let temp = $('.dataTable').dataTable( {
+        let temp = $('.dataTable').dataTable({
             pageLength: 100,
             paging: true,
             ordering: true,
@@ -84,7 +84,8 @@ define([
                 zeroRecords: 'No entries found',
                 lengthMenu:  'Show _MENU_ entries',
                 info:        'Showing _START_ to _END_ of _TOTAL_ entries'
-            }
+            },
+            data: null      // use DOM data overwrites [] default -> data.loader.js
         });
 
 

@@ -21,7 +21,11 @@
                     <label class="col-sm-2 col-xs-2 control-label" for="to_system">To</label>
                     <div class="col-sm-10 col-xs-10">
                         <div class="input-group">
-                            <select id="to_system" name="systemToData" class="form-control {{selectClass}}" data-error="Choose a valid system" required/>
+                            <select id="to_system" name="systemToData" class="form-control {{selectClass}}" data-error="Choose a valid system" required>
+                                {{#systemToData}}
+                                <option value="{{systemId}}">{{name}}</option>
+                                {{/systemToData}}
+                            </select>
                             <span class="help-block with-errors"></span>
                         </div>
                     </div>

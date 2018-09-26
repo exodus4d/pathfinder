@@ -1,5 +1,5 @@
 <div class="pf-module-head">
-    <h5 class="pull-right {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
+    <h5 class="pull-right {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" title="alias">
         {{#system.alias}}
         {{system.alias}}
         {{/system.alias}}
@@ -10,25 +10,26 @@
 
     <h5 class="pf-module-handler-drag"></h5>
 
-    <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="type">{{systemTypeName}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5><span class="{{systemRegionLinkClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="region">{{system.region.name}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5><a href="javascript:void(0);" data-url="{{ajaxConstellationInfoUrl}}/{{system.constellation.id}}" class="{{systemConstellationLinkClass}} popup-ajax {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
+    <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" title="type">{{systemTypeName}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
+    <h5><span class="{{systemRegionLinkClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" title="region">{{system.region.name}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
+    <h5><a href="javascript:void(0);" data-url="{{ajaxConstellationInfoUrl}}/{{system.constellation.id}}" class="{{systemConstellationLinkClass}} popup-ajax {{popoverTriggerClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
     <h5>
-        <span data-toggle="tooltip" data-placement="top" data-container="body" title="system" class="{{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
+        <span data-toggle="tooltip" title="system" class="{{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
+        <i class="fas fa-fw fa-copy {{moduleHeadlineIconClass}} {{systemUrlLinkClass}}" data-toggle="tooltip" title="copy link" data-url="{{systemUrl}}"></i>
         {{#system.locked}}
-        <i class="fas fa-fw fa-lock"></i>
+        <i class="fas fa-fw fa-lock" data-toggle="tooltip" title="locked"></i>
         {{/system.locked}}
     </h5>
 
     {{#systemIsWormhole}}
-        <a href="{{#formatUrl}}http://evemaps.dotlan.net/system/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
+        <a href="{{#formatUrl}}http://evemaps.dotlan.net/system/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" title="dotlan" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
     {{^systemIsWormhole}}
-        <a href="{{#formatUrl}}http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
+        <a href="{{#formatUrl}}http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" title="dotlan" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
 
     {{#systemIsWormhole}}
-        <a href="{{#formatUrl}}http://anoik.is/systems/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" data-placement="top" data-container="body" title="anoik" target="_blank" rel="noopener"></a>
+        <a href="{{#formatUrl}}http://anoik.is/systems/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" title="anoik" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
 </div>
 
@@ -37,7 +38,7 @@
     {{! info text ================================================================================================ }}
     <div class="col-xs-12 col-sm-7">
         <div class="pf-dynamic-area pf-system-info-description-area">
-            <i class="fas fa-fw fa-lg fa-pencil-alt pull-right pf-module-icon-button {{descriptionButtonClass}}" data-toggle="tooltip" data-container="body" title="edit description"></i>
+            <i class="fas fa-fw fa-lg fa-pen pull-right {{moduleHeadlineIconClass}} {{descriptionButtonClass}}" data-toggle="tooltip" title="edit description"></i>
 
             <div class="{{tableToolsActionClass}}">
                 <a href="#" class="{{descriptionTextareaClass}}"></a>
@@ -48,7 +49,7 @@
     {{! info table ================================================================================================ }}
     <div class="col-xs-12 col-sm-5">
 
-        <span data-toggle="tooltip" data-placement="top" data-container="body" title="status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
+        <span data-toggle="tooltip" title="status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
             {{systemStatusLabel}}
         </span>
 
@@ -60,7 +61,7 @@
                     <th>Name</th>
                     <th class="text-right">
                         {{#system.shattered}}
-                            <i class="fas fa-fw fa-skull {{shatteredClass}}" data-toggle="tooltip" data-container="body" title="shattered"></i>&nbsp;
+                            <i class="fas fa-fw fa-skull {{shatteredClass}}" data-toggle="tooltip" title="shattered"></i>&nbsp;
                         {{/system.shattered}}
                         <span class="pf-help-default {{nameInfoClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
                     </th>

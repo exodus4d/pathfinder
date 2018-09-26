@@ -8,7 +8,7 @@ define([
     'app/util',
     'app/render',
     'bootbox',
-], function($, Init, Util, Render, bootbox) {
+], ($, Init, Util, Render, bootbox) => {
 
     'use strict';
 
@@ -26,7 +26,7 @@ define([
      */
     $.fn.showMapManual = function(){
 
-        requirejs(['text!templates/dialog/map_manual.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/map_manual.html', 'mustache'], (template, Mustache) => {
 
             let data = {
                 dialogNavigationClass: config.dialogNavigationClass,
@@ -47,7 +47,7 @@ define([
                     success: {
                         label: 'close',
                         className: 'btn-default',
-                        callback: function() {
+                        callback: function(){
                             $(mapManualDialog).modal('hide');
                         }
                     }
@@ -66,7 +66,7 @@ define([
             // scroll navigation links
             let scrollNavLiElements = null;
 
-            mapManualDialog.on('shown.bs.modal', function(e) {
+            mapManualDialog.on('shown.bs.modal', function(e){
                 // modal on open
                 scrolLBreakpointElements = $('.pf-manual-scroll-break');
                 scrollNavLiElements = $('.' + config.dialogNavigationListItemClass);

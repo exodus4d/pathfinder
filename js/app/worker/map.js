@@ -95,7 +95,7 @@ let broadcastPorts = (load) => {
         sentToPorts = getPortsByCharacterIds(meta.characterIds);
     }
 
-    for (let i = 0; i < sentToPorts.length; i++) {
+    for(let i = 0; i < sentToPorts.length; i++){
         sentToPorts[i].postMessage(load);
     }
 };
