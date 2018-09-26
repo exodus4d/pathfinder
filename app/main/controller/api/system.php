@@ -173,6 +173,9 @@ class System extends Controller\AccessController {
                 if($cacheSystem){
                     $f3->set($cacheKey, $graphData, $ttl);
                 }
+            }else{
+                // server cache data exists -> client should cache as well
+                $cacheResponse = true;
             }
             $graphsData[$systemId] = $graphData;
         }

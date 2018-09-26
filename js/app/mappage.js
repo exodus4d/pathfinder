@@ -39,7 +39,6 @@ define([
         Util.initDefaultEditableConfig();
 
         // load page
-        // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure().setGlobalShortcuts();
 
         // show app information in browser console
@@ -202,11 +201,6 @@ define([
 
                 // init map module
                 mapModule.initMapModule();
-
-                // load info (maintenance) info panel (if scheduled)
-                if(Init.programMode.maintenance){
-                    $('body').showGlobalInfoPanel();
-                }
 
                 resolve({
                     action: 'initMapModule',

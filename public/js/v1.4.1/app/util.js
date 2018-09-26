@@ -43,6 +43,10 @@ define([
         menuButtonCompactId: 'pf-menu-button-compact',                          // id for menu button "compact" UI map view
         menuButtonMapDeleteId: 'pf-menu-button-map-delete',                     // id for menu button "delete map"
 
+        // footer
+        footerId: 'pf-footer',                                                  // id for page footer
+        globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
+
         settingsMessageVelocityOptions: {
             duration: 180
         },
@@ -210,33 +214,6 @@ define([
                 }
             });
         });
-    };
-
-    /**
-     * request a captcha image
-     * @param reason
-     * @param callback
-     */
-    let getCaptchaImage = function(reason, callback){
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.getCaptcha,
-            data: {
-                reason: reason
-            },
-            dataType: 'json'
-        }).done(function(responseData){
-            if(responseData.error.length > 0){
-                showNotify({title: 'getCaptchaImage', text: 'Captcha image gneration failed', type: 'error'});
-            }else{
-                callback(responseData.img);
-            }
-        }).fail(function(jqXHR, status, error){
-            let reason = status + ' ' + error;
-            showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
-        });
-
     };
 
     /**
@@ -855,6 +832,26 @@ define([
         });
     };
 
+    /**
+     * get all mapTabElements (<a> tags)
+     * or search for a specific tabElement within mapModule
+     * @param mapId
+     * @returns {JQuery|*|{}|T}
+     */
+    $.fn.getMapTabElements = function(mapId){
+        let mapModule = $(this);
+        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
+
+        if(mapId){
+            // search for a specific tab element
+            mapTabElements = mapTabElements.filter(function(i, el){
+                return ( $(el).data('mapId') === mapId );
+            });
+        }
+
+        return mapTabElements;
+    };
+
     /*
      *  ===============================================================================================================
      *   Util functions that are global available for all modules
@@ -865,14 +862,14 @@ define([
      * get current Pathfinder version number
      * @returns {*|jQuery}
      */
-    let getVersion = function(){
+    let getVersion = () => {
         return $('body').data('version');
     };
 
     /**
      * show current program version information in browser console
      */
-    let showVersionInfo = function(){
+    let showVersionInfo = () => {
         console.info('PATHFINDER ' + getVersion());
     };
 
@@ -1141,6 +1138,31 @@ define([
     };
 
     /**
+     * request a captcha image
+     * @param reason
+     * @param callback
+     */
+    let getCaptchaImage = (reason, callback) => {
+        $.ajax({
+            type: 'POST',
+            url: Init.path.getCaptcha,
+            data: {
+                reason: reason
+            },
+            dataType: 'json'
+        }).done(function(responseData){
+            if(responseData.error.length > 0){
+                showNotify({title: 'getCaptchaImage', text: 'Captcha image generation failed', type: 'error'});
+            }else{
+                callback(responseData.img);
+            }
+        }).fail(function(jqXHR, status, error){
+            let reason = status + ' ' + error;
+            showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
+        });
+    };
+
+    /**
      * get the current main trigger delay for the main trigger functions
      * optional in/decrease the delay
      * @param updateKey
@@ -1237,7 +1259,6 @@ define([
      * @param timerName
      */
     let timeStart = timerName => {
-
         if(typeof performance === 'object'){
             stopTimerCache[timerName] = performance.now();
         }else{
@@ -1251,7 +1272,6 @@ define([
      * @returns {number}
      */
     let timeStop = timerName => {
-
         let duration = 0;
 
         if( stopTimerCache.hasOwnProperty(timerName) ){
@@ -1324,8 +1344,8 @@ define([
     /**
      * stop browser tab title "blinking"
      */
-    let stopTabBlink = function(){
-        requirejs(['notification'], function(Notification){
+    let stopTabBlink = () => {
+        requirejs(['notification'], Notification => {
             Notification.stopTabBlink();
         });
     };
@@ -1409,6 +1429,26 @@ define([
     };
 
     /**
+     * show information panel to active users (on bottom)
+     * @param show
+     */
+    let toggleGlobalInfoPanel = (show = true) => {
+        let infoPanel = $('#' + config.globalInfoPanelId);
+        if( show && !infoPanel.length){
+            // info panel not already shown
+            requirejs(['text!templates/ui/info_panel.html', 'mustache'], (template, Mustache) => {
+                let data = {
+                    id: config.globalInfoPanelId
+                };
+                let content = $(Mustache.render(template, data));
+                content.insertBefore('#' + config.footerId);
+            });
+        }else if (!show && infoPanel.length){
+            infoPanel.remove();
+        }
+    };
+
+    /**
      * set default jQuery AJAX configuration
      */
     let ajaxSetup = () => {
@@ -1422,8 +1462,13 @@ define([
                 if(settings.crossDomain === false){
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    jqXHR.setRequestHeader('Pf-Character', getCurrentCharacterId());
+                    jqXHR.setRequestHeader('pf-character', getCurrentCharacterId());
                 }
+            },
+            complete: function(jqXHR, textStatus){
+                // show "maintenance information panel -> if scheduled
+                let isMaintenance = parseInt(jqXHR.getResponseHeader('pf-maintenance')) || 0;
+                toggleGlobalInfoPanel(isMaintenance);
             }
         });
     };
@@ -1557,26 +1602,6 @@ define([
             class: ['label', 'label-' + role.style].join(' '),
             text: role.label
         });
-    };
-
-    /**
-     * get all mapTabElements (<a> tags)
-     * or search for a specific tabElement within mapModule
-     * @param mapId
-     * @returns {JQuery|*|{}|T}
-     */
-    $.fn.getMapTabElements = function(mapId){
-        let mapModule = $(this);
-        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
-
-        if(mapId){
-            // search for a specific tab element
-            mapTabElements = mapTabElements.filter(function(i, el){
-                return ( $(el).data('mapId') === mapId );
-            });
-        }
-
-        return mapTabElements;
     };
 
     /**
@@ -1896,7 +1921,7 @@ define([
      * @param trueSec
      * @returns {string}
      */
-    let getTrueSecClassForSystem = function(trueSec){
+    let getTrueSecClassForSystem = (trueSec) => {
         let trueSecClass = '';
 
         trueSec = parseFloat(trueSec);
@@ -1926,8 +1951,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getStatusInfoForSystem = function(status, option){
-
+    let getStatusInfoForSystem = (status, option) => {
         let statusInfo = '';
 
         if( Init.systemStatus.hasOwnProperty(status) ){
@@ -1970,10 +1994,8 @@ define([
      * @param sigGroupId
      * @returns {{}}
      */
-    let getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
-
+    let getAllSignatureNames = (systemTypeId, areaId, sigGroupId) => {
         let signatureNames = {};
-
         if(
             SignatureType[systemTypeId] &&
             SignatureType[systemTypeId][areaId] &&
@@ -2198,7 +2220,7 @@ define([
      * get the current log data for the current user character
      * @returns {boolean}
      */
-    let getCurrentCharacterLog = function(){
+    let getCurrentCharacterLog = () => {
         let characterLog = false;
         let currentUserData = getCurrentUserData();
 
@@ -2382,7 +2404,7 @@ define([
      * @param systemData
      * @param type
      */
-    let setDestination = function(systemData, type){
+    let setDestination = (systemData, type) => {
         let description = '';
         switch(type){
             case 'set_destination':
@@ -2551,7 +2573,7 @@ define([
      * -> system data where current user is located
      * @returns {{id: *, name: *}}
      */
-    let getCurrentLocationData = function(){
+    let getCurrentLocationData = () => {
         let currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
         return {
             id: currentLocationLink.data('systemId'),
@@ -2563,7 +2585,7 @@ define([
      * get all "open" dialog elements
      * @returns {*|jQuery}
      */
-    let getOpenDialogs = function(){
+    let getOpenDialogs = () => {
         return $('.' + config.dialogClass).filter(':visible');
     };
 

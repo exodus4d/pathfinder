@@ -76,7 +76,12 @@ class Controller {
         $this->initSession($f3);
 
         if($f3->get('AJAX')){
-            header('Content-type: application/json');
+            header('Content-Type: application/json');
+
+            // send "maintenance" Header -> e.g. before server update
+            if($modeMaintenance = (int)Config::getPathfinderData('login.mode_maintenance')){
+                header('Pf-Maintenance: ' . $modeMaintenance);
+            }
         }else{
             $this->initResource($f3);
 

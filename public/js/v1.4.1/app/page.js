@@ -58,9 +58,7 @@ define([
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
 
         // footer
-        pageFooterId: 'pf-footer',                                              // id for page footer
         footerLicenceLinkClass: 'pf-footer-licence',                            // class for "licence" link
-        globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
@@ -582,7 +580,7 @@ define([
         let pageElement = $(this);
 
         let moduleData = {
-            id: config.pageFooterId,
+            id: Util.config.footerId,
             footerLicenceLinkClass: config.footerLicenceLinkClass,
             currentYear: new Date().getFullYear()
         };
@@ -1264,25 +1262,6 @@ define([
     };
 
     /**
-     * show information panel to active users (on bottom)
-     * @returns {*|jQuery|HTMLElement}
-     */
-    $.fn.showGlobalInfoPanel = function(){
-        let body = $(this);
-        let infoTemplate = 'text!templates/ui/info_panel.html';
-
-        requirejs([infoTemplate, 'mustache'], function(template, Mustache){
-            let data = {
-                id: config.globalInfoPanelId
-            };
-            let content = $( Mustache.render(template, data) );
-            content.insertBefore('#' + config.pageFooterId );
-        });
-
-        return body;
-    };
-
-    /**
      * get all form Values as object
      * this includes all xEditable fields
      * @returns {{}}
@@ -1330,6 +1309,5 @@ define([
         initTabChangeObserver: initTabChangeObserver,
         initMapContextMenus: initMapContextMenus
     };
-
 
 });

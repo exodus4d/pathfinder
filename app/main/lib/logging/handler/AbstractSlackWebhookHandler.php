@@ -141,7 +141,7 @@ abstract class AbstractSlackWebhookHandler extends Handler\AbstractProcessingHan
             CURLOPT_URL => $this->webhookUrl,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-type: application/json'],
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_POSTFIELDS => $postString
         ];
         if (defined('CURLOPT_SAFE_UPLOAD')) {
