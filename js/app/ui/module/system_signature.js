@@ -606,7 +606,12 @@ define([
                             let signatureOptions = {
                                 deleteOld: (formData.deleteOld) ? 1 : 0
                             };
-                            updateSignatureTableByClipboard(moduleElement, systemData, formData.clipboard, signatureOptions);
+
+                            let mapId = moduleElement.data('mapId');
+                            let systemId = moduleElement.data('systemId');
+                            let tableApi = getDataTableInstance(mapId, systemId, 'primary');
+
+                            updateSignatureTableByClipboard(tableApi, systemData, formData.clipboard, signatureOptions);
                         }
                     }
                 }
