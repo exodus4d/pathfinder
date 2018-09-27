@@ -969,17 +969,17 @@ input[type="email"]{
 
 .dropdown-submenu>a {
 	&:after{
-		display: block;
 		content: " ";
-		float: right;
+		display: block;
+		position: absolute;
+		right: 5px;
+		top: 7px;
 		width: 0;
 		height: 0;
 		border-color: transparent;
 		border-style: solid;
 		border-width: 5px 0 5px 5px;
 		border-left-color: $gray-darker;
-		margin-top: 4px;
-		margin-right: 3px;
 	}
 
 	&:hover{
