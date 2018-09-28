@@ -136,7 +136,6 @@ define([
                     Init.structureStatus    = response.structureStatus;
                     Init.universeCategories = response.universeCategories;
                     Init.routeSearch        = response.routeSearch;
-                    Init.programMode        = response.programMode;
 
                     resolve({
                         action: 'initData',

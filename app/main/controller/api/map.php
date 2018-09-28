@@ -231,13 +231,6 @@ class Map extends Controller\AccessController {
             }
         }
 
-        // Add data that should not be cached =========================================================================
-
-        // program mode (e.g. "maintenance") --------------------------------------------------------------------------
-        $return->programMode = [
-            'maintenance' => Config::getPathfinderData('login.mode_maintenance')
-        ];
-
         // get SSO error messages that should be shown immediately ----------------------------------------------------
         // -> e.g. errors while character switch from previous HTTP requests
         if($f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR, $message)){
