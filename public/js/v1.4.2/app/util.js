@@ -25,6 +25,9 @@ define([
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
 
+        // page
+        noScrollClass: 'no-scroll',
+
         // form
         formEditableFieldClass: 'pf-editable',                                  // class for all xEditable fields
         formErrorContainerClass: 'pf-dialog-error-container',                   // class for "error" containers in dialogs
@@ -1074,7 +1077,12 @@ define([
                 callbacks: {
                     alwaysTriggerOffsets: false,    // only trigger callback.onTotalScroll() once
                     onTotalScrollOffset: 300,       // trigger callback.onTotalScroll() 100px before end
-                    onTotalScroll: function(a){
+                    onInit: function(){
+                        // disable page scroll -> otherwise page AND customScrollbars will scroll
+                        // -> this is because the initPassiveEvents() delegates the mouseWheel events
+                        togglePageScroll(false);
+                    },
+                    onTotalScroll: function(){
                         // we want to "trigger" Select2´s 'scroll' event
                         // in order to make its "infinite scrolling" function working
                         this.mcs.content.find(':first-child').trigger('scroll');
@@ -1117,6 +1125,10 @@ define([
             // the only way to prevent this is to remove the element
             // https://stackoverflow.com/questions/17995057/prevent-select2-from-autmatically-focussing-its-search-input-when-dropdown-is-op
             $(this).parents('.editableform').find(this).next().find('.select2-selection').remove();
+
+            // re-enable page scroll -> might be disabled before by mCustomScrollbar onInit() event
+            // -> in case there is a custom <select> with scrollable options
+            togglePageScroll(true);
         });
     };
 
@@ -1136,6 +1148,14 @@ define([
         // loading spinner template
         $.fn.editableform.loading =
             '<div class="editableform-loading"><i class="fas fa-lg fa-sync fa-spin"></i></div>';
+    };
+
+    /**
+     * prevent page from scrolling
+     * @param enable
+     */
+    let togglePageScroll = (enable = true) => {
+        $('html').toggleClass(config.noScrollClass, !enable);
     };
 
     /**

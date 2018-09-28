@@ -5,7 +5,7 @@ define([
     'jquery',
     'app/init',
     'app/util'
-], function($, Init, Util){
+], ($, Init, Util) => {
     'use strict';
 
     /**

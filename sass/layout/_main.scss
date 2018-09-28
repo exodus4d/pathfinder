@@ -31,9 +31,7 @@ a, .pf-link{
   }
 }
 
-// emphasized text
 em{
-
   font-style: italic;
 
   &.pf-brand{
@@ -47,6 +45,10 @@ em{
 
 .pf-font-line-through{
   text-decoration: line-through;
+}
+
+.no-scroll{
+  overflow: hidden;
 }
 
 .no-padding{
