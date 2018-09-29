@@ -273,13 +273,14 @@ class System extends Controller\AccessController {
         $requestData = (array)$f3->get('POST');
         $mapId = (int)$requestData['mapId'];
         $systemId = (int)$requestData['systemId'];
+        $isCcpId = (bool)$requestData['isCcpId'];
         $activeCharacter = $this->getCharacter();
 
         $return = (object) [];
 
         if(
             !is_null($map = $activeCharacter->getMap($mapId)) &&
-            !is_null($system = $map->getSystemById($systemId))
+            !is_null($system = $isCcpId ? $map->getSystemByCCPId($systemId) : $map->getSystemById($systemId))
         ){
             $return->system = $system->getData();
             $return->system->signatures = $system->getSignaturesData();

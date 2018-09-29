@@ -1314,10 +1314,11 @@ define([
 
             // dynamic require Map module -> otherwise there is a require(), loop
             let Map = require('app/map/map');
+            let System = require('app/map/system');
             let map = Map.getMapInstance( mapElement.data('id'));
 
             mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
-                Map.showNewSystemDialog(map, {position: {x: 0, y: 0}});
+                System.showNewSystemDialog(map, {position: {x: 0, y: 0}}, Map.saveSystemCallback);
             },{focus: true});
 
             mapWrapper.watchKey('mapSystemsSelect', (mapWrapper) => {
@@ -1617,6 +1618,10 @@ define([
     let requestSystemData = (requestData, context) => {
 
         let requestSystemDataExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'systemData'
+            };
+
             $.ajax({
                 url: Init.path.getSystemData,
                 type: 'POST',
@@ -1624,17 +1629,20 @@ define([
                 data: requestData,
                 context: context
             }).done(function(data){
+                payload.context = this;
+
                 if(data.system){
-                    resolve({
-                        action: 'systemData',
-                        context: this,
-                        data: data.system
-                    });
+                    // system data found
+                    payload.data = data.system;
+                    resolve(payload);
                 }else{
-                    console.warn('Missing systemData in response!', requestData);
+                    // no system data returned/found
+                    reject(payload);
                 }
             }).fail(function(jqXHR, status, error){
                 console.warn('Fail request systemData!', requestData);
+                payload.context = this;
+                reject(payload);
             });
         };
 

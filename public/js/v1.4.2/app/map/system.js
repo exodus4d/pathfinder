@@ -29,8 +29,21 @@ define([
         systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',                         // id prefix for system tooltip content
         systemTooltipInnerClass: 'pf-system-tooltip-inner',                             // class for system tooltip content
 
-        dialogRallyId: 'pf-rally-dialog',                                               // id for "Rally point" dialog
+        // dialogs
+        dialogSystemId: 'pf-system-dialog',                                             // id for system dialog
+        dialogSystemSelectClass: 'pf-system-dialog-select',                             // class for system select element
+        dialogSystemStatusSelectId: 'pf-system-dialog-status-select',                   // id for "status" select
+        dialogSystemLockId: 'pf-system-dialog-lock',                                    // id for "locked" checkbox
+        dialogSystemRallyId: 'pf-system-dialog-rally',                                  // id for "rally" checkbox
 
+        dialogSystemSectionInfoId: 'pf-system-dialog-section-info',                     // id for "info" section element
+        dialogSystemSectionInfoStatusId: 'pf-system-dialog-section-info-status',        // id for "status" message in "info" element
+        dialogSystemAliasId: 'pf-system-dialog-alias',                                  // id for "alias" static element
+        dialogSystemDescriptionId: 'pf-system-dialog-description',                      // id for "description" static element
+        dialogSystemCreatedId: 'pf-system-dialog-created',                              // id for "created" static element
+        dialogSystemUpdatedId: 'pf-system-dialog-updated',                              // id for "updated" static element
+
+        dialogRallyId: 'pf-rally-dialog',                                               // id for "Rally point" dialog
         dialogRallyPokeDesktopId: 'pf-rally-dialog-poke-desktop',                       // id for "desktop" poke checkbox
         dialogRallyPokeSlackId: 'pf-rally-dialog-poke-slack',                           // id for "Slack" poke checkbox
         dialogRallyPokeDiscordId: 'pf-rally-dialog-poke-discord',                       // id for "Discord" poke checkbox
@@ -41,6 +54,301 @@ define([
             'I need some help!\n\n' +
             '- Potential PvP options around\n' +
             '- DPS and Logistic ships needed'
+    };
+
+
+    /**
+     * save a new system and add it to the map
+     * @param requestData
+     * @param context
+     * @param callback
+     */
+    let saveSystem = (requestData, context, callback) => {
+        $.ajax({
+            type: 'POST',
+            url: Init.path.saveSystem,
+            data: requestData,
+            dataType: 'json',
+            context: context
+        }).done(function(responseData){
+            let newSystemData = responseData.systemData;
+
+            if( !$.isEmptyObject(newSystemData) ){
+                Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
+
+                callback(newSystemData);
+            }
+
+            // show errors
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(let i = 0; i < responseData.error.length; i++){
+                    let error = responseData.error[i];
+                    Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
+                }
+            }
+        }).fail(function(jqXHR, status, error){
+            let reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
+            $(document).setProgramStatus('problem');
+        }).always(function(){
+            this.systemDialog.find('.modal-content').hideLoadingAnimation();
+        });
+    };
+
+    /**
+     * open "new system" dialog and add the system to map
+     * optional the new system is connected to a "sourceSystem" (if available)
+     * @param map
+     * @param options
+     * @param callback
+     */
+    let showNewSystemDialog = (map, options, callback) => {
+        let mapContainer = $(map.getContainer());
+        let mapId = mapContainer.data('id');
+
+        // format system status for form select -----------------------------------------------------------------------
+        // "default" selection (id = 0) prevents status from being overwritten
+        // -> e.g. keep status information if system was just inactive (active = 0)
+        let statusData = [{id: 0, text: 'auto'}];
+
+        // get current map data ---------------------------------------------------------------------------------------
+        let mapData = mapContainer.getMapDataFromClient({forceData: true});
+        let mapSystems = mapData.data.systems;
+        let mapSystemCount = mapSystems.length;
+        let mapTypeName = mapContainer.data('typeName');
+        let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
+
+        // show error if system max count reached ---------------------------------------------------------------------
+        if(mapSystemCount >= maxAllowedSystems){
+            Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
+            return;
+        }
+
+        // disable systems that are already on it ---------------------------------------------------------------------
+        let mapSystemIds = mapSystems.map(systemData => systemData.systemId);
+
+        // dialog data ------------------------------------------------------------------------------------------------
+        let data = {
+            id: config.dialogSystemId,
+            select2Class: Util.config.select2Class,
+            systemSelectClass: config.dialogSystemSelectClass,
+            statusSelectId: config.dialogSystemStatusSelectId,
+            lockId: config.dialogSystemLockId,
+            rallyId: config.dialogSystemRallyId,
+
+            sectionInfoId: config.dialogSystemSectionInfoId,
+            sectionInfoStatusId: config.dialogSystemSectionInfoStatusId,
+            aliasId: config.dialogSystemAliasId,
+            descriptionId: config.dialogSystemDescriptionId,
+            createdId: config.dialogSystemCreatedId,
+            updatedId: config.dialogSystemUpdatedId,
+            statusData: statusData
+        };
+
+        // set current position as "default" system to add ------------------------------------------------------------
+        let currentCharacterLog = Util.getCurrentCharacterLog();
+
+        if(
+            currentCharacterLog !== false &&
+            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
+        ){
+            // current system is NOT already on this map
+            // set current position as "default" system to add
+            data.currentSystem = currentCharacterLog.system;
+        }
+
+        requirejs(['text!templates/dialog/system.html', 'mustache'], (template, Mustache) => {
+
+            let content = Mustache.render(template, data);
+
+            let systemDialog = bootbox.dialog({
+                title: 'Add new system',
+                message: content,
+                show: false,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fas fa-fw fa-check"></i> save',
+                        className: 'btn-success',
+                        callback: function(e){
+                            // get form Values
+                            let form = this.find('form');
+
+                            let systemDialogData = $(form).getFormValues();
+
+                            // validate form
+                            form.validator('validate');
+
+                            // check whether the form is valid
+                            let formValid = form.isValidForm();
+
+                            // don't close dialog on invalid data
+                            if(formValid === false) return false;
+
+                            // calculate new system position ----------------------------------------------------------
+                            let newPosition = {
+                                x: 0,
+                                y: 0
+                            };
+
+                            // add new position
+                            let sourceSystem = null;
+                            if(options.sourceSystem !== undefined){
+                                sourceSystem = options.sourceSystem;
+
+                                // get new position
+                                newPosition = calculateNewSystemPosition(sourceSystem);
+                            }else{
+                                // check mouse cursor position (add system to map)
+                                newPosition = {
+                                    x: options.position.x,
+                                    y: options.position.y
+                                };
+                            }
+
+                            systemDialogData.position = newPosition;
+
+                            // ----------------------------------------------------------------------------------------
+
+                            let requestData = {
+                                systemData: systemDialogData,
+                                mapData: {
+                                    id: mapId
+                                }
+                            };
+
+                            this.find('.modal-content').showLoadingAnimation();
+
+                            saveSystem(requestData, {
+                                systemDialog: this
+                            }, (newSystemData) => {
+                                // success callback
+                                callback(map, newSystemData, sourceSystem);
+
+                                bootbox.hideAll();
+                            });
+                            return false;
+                        }
+                    }
+                }
+            });
+
+            systemDialog.on('show.bs.modal', function(e){
+                let dialogElement = $(this);
+
+                // init "status" select2
+                for(let [statusName, data] of Object.entries(Init.systemStatus)){
+                    statusData.push({id: data.id, text: data.label, class: data.class});
+                }
+
+                dialogElement.find('#' + config.dialogSystemStatusSelectId).initStatusSelect({
+                    data: statusData,
+                    iconClass: 'fa-tag'
+                });
+            });
+
+            systemDialog.on('shown.bs.modal', function(e){
+                let dialogElement = $(this);
+
+                // no system selected
+                updateDialog(dialogElement, false);
+
+                dialogElement.initTooltips();
+
+                // init system select live search  - some delay until modal transition has finished
+                let selectElement = dialogElement.find('.' + config.dialogSystemSelectClass);
+                selectElement.delay(240).initSystemSelect({
+                    key: 'id',
+                    disabledOptions: mapSystemIds,
+                    onChange: (systemId) => {
+                        // on system select -> update dialog with persistent system data
+                        if(systemId){
+                            // show loading animation
+                            dialogElement.find('[data-type="spinner"]').addClass('in');
+
+                            MapUtil.requestSystemData({
+                                mapId: mapId,
+                                systemId: systemId,
+                                isCcpId: 1
+                            }, {
+                                dialogElement: dialogElement
+                            }).then(payload => updateDialog(payload.context.dialogElement, payload.data))
+                                .catch(payload => updateDialog(payload.context.dialogElement));
+                        }else{
+                            // no system selected
+                            updateDialog(dialogElement, false);
+                        }
+                    }
+                });
+            });
+
+            // show dialog
+            systemDialog.modal('show');
+
+            /**
+             * update new system dialog with some "additional" data
+             * -> if system was mapped before
+             * @param dialogElement
+             * @param systemData
+             */
+            let updateDialog = (dialogElement, systemData = null) => {
+                let labelEmpty = '<span class="editable-empty">empty</span>';
+                let labelUnknown = '<span class="editable-empty">unknown</span>';
+                let labelExist = '<span class="txt-color txt-color-success">loaded</span>';
+
+                let showInfoHeadline = 'fadeOut';
+                let showInfoSection = 'hide';
+                let info = labelEmpty;
+
+                let statusId = false;   // -> no value change
+                let alias = labelEmpty;
+                let description = labelEmpty;
+                let createdTime = labelUnknown;
+                let updatedTime = labelUnknown;
+
+                if(systemData){
+                    // system data found for selected system
+                    showInfoHeadline = 'fadeIn';
+                    showInfoSection = 'show';
+                    info = labelExist;
+                    statusId = parseInt(Util.getObjVal(systemData, 'status.id')) || statusId;
+                    alias = systemData.alias.length ? Util.htmlEncode(systemData.alias) : alias;
+                    description = systemData.description.length ? systemData.description : description;
+
+                    let dateCreated = new Date(systemData.created.created * 1000);
+                    let dateUpdated = new Date(systemData.updated.updated * 1000);
+                    let dateCreatedUTC = Util.convertDateToUTC(dateCreated);
+                    let dateUpdatedUTC = Util.convertDateToUTC(dateUpdated);
+
+                    createdTime = Util.convertDateToString(dateCreatedUTC);
+                    updatedTime = Util.convertDateToString(dateUpdatedUTC);
+
+                }else if(systemData === null){
+                    // no system found for selected system
+                    showInfoHeadline = 'fadeIn';
+                }
+
+                // update new system dialog with new default data
+                dialogElement.find('#' + config.dialogSystemSectionInfoStatusId).html(info);
+                if(statusId !== false){
+                    dialogElement.find('#' + config.dialogSystemStatusSelectId).val(statusId).trigger('change');
+                }
+                dialogElement.find('#' + config.dialogSystemAliasId).html(alias);
+                dialogElement.find('#' + config.dialogSystemDescriptionId).html(description);
+                dialogElement.find('#' + config.dialogSystemCreatedId).html('<i class="fas fa-fw fa-plus"></i>&nbsp' + createdTime);
+                dialogElement.find('#' + config.dialogSystemUpdatedId).html('<i class="fas fa-fw fa-pen"></i>&nbsp' + updatedTime);
+                dialogElement.find('#' + config.dialogSystemSectionInfoId).collapse(showInfoSection);
+                dialogElement.find('[data-target="#' + config.dialogSystemSectionInfoId + '"]').velocity(showInfoHeadline);
+                dialogElement.find('[data-type="spinner"]').removeClass('in');
+            };
+
+        });
     };
 
     /**
@@ -535,9 +843,9 @@ define([
     };
 
     return {
+        showNewSystemDialog: showNewSystemDialog,
         deleteSystems: deleteSystems,
         removeSystems: removeSystems,
-        calculateNewSystemPosition: calculateNewSystemPosition,
         getHeadInfoElement: getHeadInfoElement
     };
 });

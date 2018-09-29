@@ -41,6 +41,7 @@
         color: $orange;
         top: 10px;
         right: 6px;
+        will-change: transform, color;
 
         @extend .pf-animate-rotate;
         @extend .fa-fw;

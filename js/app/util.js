@@ -781,9 +781,7 @@ define([
                 default: console.error('insertElement: %s is not specified!', defaultOptions.insertElement);
             }
 
-            //containerElement.children().first().velocity('stop').velocity('fadeIn');
             $('#' + defaultOptions.messageId).velocity('stop').velocity('fadeIn');
-
         });
     };
 
@@ -2806,6 +2804,20 @@ define([
     };
 
     /**
+     * HTML encode string
+     * @param value
+     * @returns {jQuery}
+     */
+    let htmlEncode = value => $('<div>').text(value).html();
+
+    /**
+     * HTML decode string
+     * @param value
+     * @returns {jQuery}
+     */
+    let htmlDecode = value => $('<div>').html(value).text();
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3003,6 +3015,8 @@ define([
         singleDoubleClick: singleDoubleClick,
         getTableId: getTableId,
         getDataTableInstance: getDataTableInstance,
+        htmlEncode: htmlEncode,
+        htmlDecode: htmlDecode,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,
