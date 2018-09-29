@@ -1254,7 +1254,7 @@ define([
      */
     $.fn.showMapInfoDialog = function(options){
         let activeMap = Util.getMapModule().getActiveMap();
-        let mapData = activeMap.getMapDataFromClient({forceData: true});
+        let mapData = activeMap ? activeMap.getMapDataFromClient({forceData: true}) : false;
 
         if(mapData !== false){
             // "log" tab -> get "Origin", not all config options are set in mapData
@@ -1351,6 +1351,13 @@ define([
                 });
 
             });
+        }else{
+            // no active map found (e.g. not loaded yet, or no map exists)
+            Util.showNotify({
+                title: 'Map data not found',
+                text: 'No map initialized at this point',
+                type: 'warning'}
+            );
         }
 
     };

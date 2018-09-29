@@ -109,6 +109,83 @@ define([
         let mapContainer = $(map.getContainer());
         let mapId = mapContainer.data('id');
 
+        /**
+         * update new system dialog with some "additional" data
+         * -> if system was mapped before
+         * @param dialogElement
+         * @param systemData
+         */
+        let updateDialog = (dialogElement, systemData = null) => {
+            let labelEmpty = '<span class="editable-empty">empty</span>';
+            let labelUnknown = '<span class="editable-empty">unknown</span>';
+            let labelExist = '<span class="txt-color txt-color-success">loaded</span>';
+
+            let showInfoHeadline = 'fadeOut';
+            let showInfoSection = 'hide';
+            let info = labelEmpty;
+
+            let statusId = false;   // -> no value change
+            let alias = labelEmpty;
+            let description = labelEmpty;
+            let createdTime = labelUnknown;
+            let updatedTime = labelUnknown;
+
+            if(systemData){
+                // system data found for selected system
+                showInfoHeadline = 'fadeIn';
+                showInfoSection = 'show';
+                info = labelExist;
+                statusId = parseInt(Util.getObjVal(systemData, 'status.id')) || statusId;
+                alias = systemData.alias.length ? Util.htmlEncode(systemData.alias) : alias;
+                description = systemData.description.length ? systemData.description : description;
+
+                let dateCreated = new Date(systemData.created.created * 1000);
+                let dateUpdated = new Date(systemData.updated.updated * 1000);
+                let dateCreatedUTC = Util.convertDateToUTC(dateCreated);
+                let dateUpdatedUTC = Util.convertDateToUTC(dateUpdated);
+
+                createdTime = Util.convertDateToString(dateCreatedUTC);
+                updatedTime = Util.convertDateToString(dateUpdatedUTC);
+
+            }else if(systemData === null){
+                // no system found for selected system
+                showInfoHeadline = 'fadeIn';
+            }
+
+            // update new system dialog with new default data
+            dialogElement.find('#' + config.dialogSystemSectionInfoStatusId).html(info);
+            if(statusId !== false){
+                dialogElement.find('#' + config.dialogSystemStatusSelectId).val(statusId).trigger('change');
+            }
+            dialogElement.find('#' + config.dialogSystemAliasId).html(alias);
+            dialogElement.find('#' + config.dialogSystemDescriptionId).html(description);
+            dialogElement.find('#' + config.dialogSystemCreatedId).html('<i class="fas fa-fw fa-plus"></i>&nbsp' + createdTime);
+            dialogElement.find('#' + config.dialogSystemUpdatedId).html('<i class="fas fa-fw fa-pen"></i>&nbsp' + updatedTime);
+            dialogElement.find('[data-target="#' + config.dialogSystemSectionInfoId + '"]').velocity('stop').velocity(showInfoHeadline, {duration: 120});
+            dialogElement.find('[data-type="spinner"]').removeClass('in');
+            dialogElement.find('#' + config.dialogSystemSectionInfoId).collapse(showInfoSection);
+        };
+
+        /**
+         * request system data from server for persistent data -> update dialog
+         * @param dialogElement
+         * @param mapId
+         * @param systemId
+         */
+        let requestSystemData = (dialogElement, mapId, systemId) => {
+            // show loading animation
+            dialogElement.find('[data-type="spinner"]').addClass('in');
+
+            MapUtil.requestSystemData({
+                mapId: mapId,
+                systemId: systemId,
+                isCcpId: 1
+            }, {
+                dialogElement: dialogElement
+            }).then(payload => updateDialog(payload.context.dialogElement, payload.data))
+                .catch(payload => updateDialog(payload.context.dialogElement));
+        };
+
         // format system status for form select -----------------------------------------------------------------------
         // "default" selection (id = 0) prevents status from being overwritten
         // -> e.g. keep status information if system was just inactive (active = 0)
@@ -242,7 +319,7 @@ define([
             systemDialog.on('show.bs.modal', function(e){
                 let dialogElement = $(this);
 
-                // init "status" select2
+                // init "status" select2 ------------------------------------------------------------------------------
                 for(let [statusName, data] of Object.entries(Init.systemStatus)){
                     statusData.push({id: data.id, text: data.label, class: data.class});
                 }
@@ -251,6 +328,13 @@ define([
                     data: statusData,
                     iconClass: 'fa-tag'
                 });
+
+                // initial dialog update with persistent system data --------------------------------------------------
+                // -> only if system is preselected (e.g. current active system)
+                let systemId = parseInt(dialogElement.find('.' + config.dialogSystemSelectClass).val()) || 0;
+                if(systemId){
+                    requestSystemData(dialogElement, mapId, systemId);
+                }
             });
 
             systemDialog.on('shown.bs.modal', function(e){
@@ -266,20 +350,10 @@ define([
                 selectElement.delay(240).initSystemSelect({
                     key: 'id',
                     disabledOptions: mapSystemIds,
-                    onChange: (systemId) => {
+                    onChange: systemId => {
                         // on system select -> update dialog with persistent system data
                         if(systemId){
-                            // show loading animation
-                            dialogElement.find('[data-type="spinner"]').addClass('in');
-
-                            MapUtil.requestSystemData({
-                                mapId: mapId,
-                                systemId: systemId,
-                                isCcpId: 1
-                            }, {
-                                dialogElement: dialogElement
-                            }).then(payload => updateDialog(payload.context.dialogElement, payload.data))
-                                .catch(payload => updateDialog(payload.context.dialogElement));
+                            requestSystemData(dialogElement, mapId, systemId);
                         }else{
                             // no system selected
                             updateDialog(dialogElement, false);
@@ -290,64 +364,6 @@ define([
 
             // show dialog
             systemDialog.modal('show');
-
-            /**
-             * update new system dialog with some "additional" data
-             * -> if system was mapped before
-             * @param dialogElement
-             * @param systemData
-             */
-            let updateDialog = (dialogElement, systemData = null) => {
-                let labelEmpty = '<span class="editable-empty">empty</span>';
-                let labelUnknown = '<span class="editable-empty">unknown</span>';
-                let labelExist = '<span class="txt-color txt-color-success">loaded</span>';
-
-                let showInfoHeadline = 'fadeOut';
-                let showInfoSection = 'hide';
-                let info = labelEmpty;
-
-                let statusId = false;   // -> no value change
-                let alias = labelEmpty;
-                let description = labelEmpty;
-                let createdTime = labelUnknown;
-                let updatedTime = labelUnknown;
-
-                if(systemData){
-                    // system data found for selected system
-                    showInfoHeadline = 'fadeIn';
-                    showInfoSection = 'show';
-                    info = labelExist;
-                    statusId = parseInt(Util.getObjVal(systemData, 'status.id')) || statusId;
-                    alias = systemData.alias.length ? Util.htmlEncode(systemData.alias) : alias;
-                    description = systemData.description.length ? systemData.description : description;
-
-                    let dateCreated = new Date(systemData.created.created * 1000);
-                    let dateUpdated = new Date(systemData.updated.updated * 1000);
-                    let dateCreatedUTC = Util.convertDateToUTC(dateCreated);
-                    let dateUpdatedUTC = Util.convertDateToUTC(dateUpdated);
-
-                    createdTime = Util.convertDateToString(dateCreatedUTC);
-                    updatedTime = Util.convertDateToString(dateUpdatedUTC);
-
-                }else if(systemData === null){
-                    // no system found for selected system
-                    showInfoHeadline = 'fadeIn';
-                }
-
-                // update new system dialog with new default data
-                dialogElement.find('#' + config.dialogSystemSectionInfoStatusId).html(info);
-                if(statusId !== false){
-                    dialogElement.find('#' + config.dialogSystemStatusSelectId).val(statusId).trigger('change');
-                }
-                dialogElement.find('#' + config.dialogSystemAliasId).html(alias);
-                dialogElement.find('#' + config.dialogSystemDescriptionId).html(description);
-                dialogElement.find('#' + config.dialogSystemCreatedId).html('<i class="fas fa-fw fa-plus"></i>&nbsp' + createdTime);
-                dialogElement.find('#' + config.dialogSystemUpdatedId).html('<i class="fas fa-fw fa-pen"></i>&nbsp' + updatedTime);
-                dialogElement.find('#' + config.dialogSystemSectionInfoId).collapse(showInfoSection);
-                dialogElement.find('[data-target="#' + config.dialogSystemSectionInfoId + '"]').velocity(showInfoHeadline);
-                dialogElement.find('[data-type="spinner"]').removeClass('in');
-            };
-
         });
     };
 

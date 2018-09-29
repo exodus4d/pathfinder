@@ -2809,7 +2809,7 @@ define([
         let interval = mapElement.getMapOverlayInterval();
 
         if(
-            ! interval ||
+            !interval ||
             options.forceData === true
         ){
 
