@@ -6,9 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
-    'app/map/util'
-], ($, Init, Util, Render, MapUtil) => {
+    'app/map/util',
+    'summernote'
+], ($, Init, Util, MapUtil) => {
     'use strict';
 
     let config = {
@@ -40,49 +40,223 @@ define([
         // description field
         descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
-        moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
-        tableToolsActionClass: 'pf-table-tools-action',                         // class for "edit" action
-
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
-        descriptionTextareaCharCounter: 'pf-form-field-char-count',             // class for "character counter" element for form field
 
         // fonts
-        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
+        fontTriglivianClass: 'pf-triglivian',                                   // class for "Triglivian" names (e.g. Abyssal systems)
+
+        // Summernote
+        defaultBgColor: '#e2ce48'
     };
-
-    // disable Module update temporary (in case e.g. textarea is currently active)
-    let disableModuleUpdate = false;
-
-    // animation speed values
-    let animationSpeedToolbarAction = 200;
 
     // max character length for system description
     let maxDescriptionLength = 512;
 
-    /**
-     * shows the tool action element by animation
-     * @param toolsActionElement
-     */
-    let showToolsActionElement = (toolsActionElement) => {
-        toolsActionElement.velocity('stop').velocity({
-            opacity: 1,
-            height: '100%'
-        },{
-            duration: animationSpeedToolbarAction,
-            display: 'block',
-            visibility: 'visible'
-        });
-    };
 
-    /**
-     * hides the tool action element by animation
-     * @param toolsActionElement
-     */
-    let hideToolsActionElement = (toolsActionElement) => {
-        toolsActionElement.velocity('stop').velocity('reverse', {
-            display: 'none',
-            visibility: 'hidden'
+    let initTextEditor = (element, options) => {
+
+        // "length" hint plugin ---------------------------------------------------------------------------------------
+        $.extend($.summernote.plugins, {
+            /**
+             * @param {Object} context - context object has status of editor.
+             */
+            lengthField: function (context){
+                let self = this;
+                let ui = $.summernote.ui;
+
+                // add counter
+                context.memo('button.lengthField', () => {
+                    return $('<kbd>', {
+                        class: ['text-right', 'txt-color'].join(' ')
+                    });
+                });
+
+                /**
+                 * update counter element with left chars
+                 * @param contents
+                 */
+                let updateCounter = (contents) => {
+                    let maxTextLength = context.options.maxTextLength;
+                    let textLength = contents.length;
+                    let counter = context.layoutInfo.toolbar.find('kbd');
+                    let counterLeft = maxTextLength - textLength;
+
+                    counter.text(counterLeft).data('charCount', counterLeft);
+                    counter.toggleClass('txt-color-red', maxTextLength <= textLength);
+
+                    // disable "save" button
+                    let saveBtn = context.layoutInfo.toolbar.find('.btn-save');
+                    saveBtn.prop('disabled', maxTextLength < textLength);
+                };
+
+                // events
+                this.events = {
+                    'summernote.init': function (we, e) {
+                        updateCounter(context.$note.summernote('code'));
+                    },
+                    'summernote.change': function(we, contents){
+                        updateCounter(contents);
+
+                    }
+                };
+            }
         });
+
+        // "discard" button plugin ------------------------------------------------------------------------------------
+        $.extend($.summernote.plugins, {
+            /**
+             * @param {Object} context - context object has status of editor.
+             */
+            discardBtn: function (context){
+                let self = this;
+                let ui = $.summernote.ui;
+
+                // add button
+                context.memo('button.discardBtn', () => {
+                    let button = ui.button({
+                        contents: '<i class="fas fw fa-times"/>',
+                        container: 'body',
+                        click: function(){
+                            // show confirmation dialog
+                            $(this).confirmation('show');
+                        }
+                    });
+                    let $button = button.render();
+
+                    // show "discard" changes confirmation
+                    let confirmationSettings = {
+                        container: 'body',
+                        placement: 'top',
+                        btnCancelClass: 'btn btn-sm btn-default',
+                        btnCancelLabel: 'cancel',
+                        btnCancelIcon: 'fas fa-fw fa-ban',
+                        title: 'discard changes',
+                        btnOkClass: 'btn btn-sm btn-warning',
+                        btnOkLabel: 'discard',
+                        btnOkIcon: 'fas fa-fw fa-times',
+                        onConfirm: (e, target) => {
+                            // discard all changes
+                            context.$note.summernote('reset');
+                            context.$note.summernote('destroy');
+                        }
+                    };
+                    $button.confirmation(confirmationSettings);
+
+                    return $button;
+                });
+            }
+        });
+
+        // "save button -----------------------------------------------------------------------------------------------
+        let saveBtn = context => {
+            let ui = $.summernote.ui;
+            let button = ui.button({
+                contents: '<i class="fas fw fa-check"/>',
+                container: 'body',
+                className: ['btn-success', 'btn-save'],
+                click: e => {
+                    // save changes
+                    if( !context.$note.summernote('isEmpty') ){
+                        // get current code
+                        let description = context.$note.summernote('code');
+                        console.log('code to save: ', description)
+                    }
+
+                    context.$note.summernote('destroy');
+                }
+            });
+
+            return button.render();
+        };
+
+        let defaultOptions = {
+            height: 68,                 // set editor height
+            minHeight: 68,              // set minimum height of editor
+            maxHeight: 500,             // set maximum height of editor
+            dialogsInBody: true,
+            dialogsFade: true,
+
+            //textareaAutoSync: false,
+            //hintDirection: 'right',
+            //tooltip: 'right',
+            //container: 'body',
+
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'strikethrough', 'clear']],
+                ['color', ['color']],
+                //['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'hr']],
+                //['view', ['codeview', 'help']],
+                ['misc', ['undo', 'redo']],
+                ['lengthField'],
+                ['customBtn', [ 'discardBtn', 'saveBtn']]
+            ],
+            buttons: {
+                saveBtn: saveBtn
+            },
+            insertTableMaxSize: {
+                col: 4,
+                row: 4
+            },
+            icons: {
+                //'align': 'note-icon-align',
+                'alignCenter': 'fas fa-align-center',
+                'alignJustify': 'fas fa-align-justify',
+                'alignLeft': 'fas fa-align-left',
+                'alignRight': 'fas fa-align-right',
+                //'rowBelow': 'note-icon-row-below',
+                //'colBefore': 'note-icon-col-before',
+                //'colAfter': 'note-icon-col-after',
+                //'rowAbove': 'note-icon-row-above',
+                //'rowRemove': 'note-icon-row-remove',
+                //'colRemove': 'note-icon-col-remove',
+                'indent': 'fas fa-indent',
+                'outdent': 'fas fa-outdent',
+                'arrowsAlt': 'fas fa-expand-arrows-alt',
+                'bold': 'fas fa-bold',
+                'caret': 'fas fa-caret-down',
+                'circle': 'fas fa-circle',
+                'close': 'fas fa-time',
+                'code': 'fas fa-code',
+                'eraser': 'fas fa-eraser',
+                'font': 'fas fa-font',
+                //'frame': 'note-icon-frame',
+                'italic': 'fas fa-italic',
+                'link': 'fas fa-link',
+                'unlink': 'fas fa-unlink',
+                'magic': 'fas fa-magic',
+                'menuCheck': 'fas fa-check',
+                'minus': 'fas fa-minus',
+                'orderedlist': 'fas fa-list-ol',
+                'pencil': 'fa-pen',
+                'picture': 'fas fa-image',
+                'question': 'fas fa-question',
+                'redo': 'fas fa-redo',
+                'square': 'fas fa-square',
+                'strikethrough': 'fas fa-strikethrough',
+                'subscript': 'fas fa-subscript',
+                'superscript': 'fas fa-superscript',
+                'table': 'fas fa-table',
+                'textHeight': 'fas fa-text-height',
+                'trash': 'fas fa-trash',
+                'underline': 'fas fa-underline',
+                'undo': 'fas fa-undo',
+                'unorderedlist': 'fas fa-list-ul',
+                'video': 'fab fa-youtube'
+            },
+            colors: [
+                ['#5cb85c', '#e28a0d', '#d9534f', '#e06fdf', '#9fa8da', '#e2ce48', '#428bca']
+            ],
+            colorsName: [
+                ['Green', 'Orange', 'Red', 'Pink', 'Indigo', 'Yellow', 'Blue']
+            ],
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        element.summernote(options);
     };
 
     /**
@@ -112,42 +286,19 @@ define([
 
             // update description textarea ----------------------------------------------------------------------------
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
-            let description = descriptionTextareaElement.editable('getValue', true);
-
-            if(
-                !disableModuleUpdate &&                 // don´t update if field is active
-                description !== systemData.description
-            ){
-                // description changed
-                let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
-
-                // set new value
-                descriptionTextareaElement.editable('setValue', systemData.description);
-
-                let actionElement = descriptionButton.siblings('.' + config.tableToolsActionClass);
-
-                if(systemData.description.length === 0){
-                    // show/activate description field
-                    // show button if value is empty
-                    descriptionButton.show();
-                    hideToolsActionElement(actionElement);
-                }else{
-                    // hide/disable description field
-                    // hide tool button
-                    descriptionButton.hide();
-                    showToolsActionElement(actionElement);
+            if(typeof descriptionTextareaElement.data().summernote === 'object'){
+                // "Summernote" editor is currently open
+                console.log('Open');
+            }else{
+                // not open
+                console.log('NOT open');
+                let description = descriptionTextareaElement.html();
+                console.log(description);
+                console.log('update: ', description === systemData.description);
+                if(description !== systemData.description){
+                    descriptionTextareaElement.html(systemData.description);
                 }
             }
-
-            // created/updated tooltip --------------------------------------------------------------------------------
-            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
-
-            let tooltipData = {
-                created: systemData.created,
-                updated: systemData.updated
-            };
-
-            nameRowElement.addCharacterInfoTooltip( tooltipData );
         }
 
         moduleElement.find('.' + config.descriptionArea).hideLoadingAnimation();
@@ -181,188 +332,7 @@ define([
         let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
         let effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
 
-        // systemInfo template config
-        let moduleConfig = {
-            name: 'modules/system_info',
-            position: moduleElement,
-            link: 'append',
-            functions: {
-                after: function(conf){
-                    let tempModuleElement = conf.position;
-                    // lock "description" field until first update
-                    tempModuleElement.find('.' + config.descriptionArea).showLoadingAnimation();
-                    // "add description" button
-                    let descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
-                    // description textarea element
-                    let descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
-
-                    // init description textarea
-                    descriptionTextareaElement.editable({
-                        url: Init.path.saveSystem,
-                        dataType: 'json',
-                        pk: systemData.id,
-                        type: 'textarea',
-                        mode: 'inline',
-                        emptytext: '',
-                        onblur: 'cancel',
-                        showbuttons: true,
-                        value: '',  // value is set by trigger function updateModule()
-                        rows: 5,
-                        name: 'description',
-                        inputclass: config.descriptionTextareaElementClass,
-                        tpl: '<textarea maxlength="' + maxDescriptionLength + '"></textarea>',
-                        params: function(params){
-                            params.mapData = {
-                                id: mapId
-                            };
-
-                            params.systemData = {};
-                            params.systemData.id = params.pk;
-                            params.systemData[params.name] = params.value;
-
-                            // clear unnecessary data
-                            delete params.pk;
-                            delete params.name;
-                            delete params.value;
-
-                            return params;
-                        },
-                        validate: function(value){
-                            if(value.length > 0 && $.trim(value).length === 0){
-                                return {newValue: ''};
-                            }
-                        },
-                        success: function(response, newValue){
-                            Util.showNotify({title: 'System updated', text: 'Name: ' + response.name, type: 'success'});
-                        },
-                        error: function(jqXHR, newValue){
-                            let reason = '';
-                            let status = '';
-                            if(jqXHR.name){
-                                // save error new sig (mass save)
-                                reason = jqXHR.name;
-                                status = 'Error';
-                            }else{
-                                reason = jqXHR.responseJSON.text;
-                                status = jqXHR.status;
-                            }
-
-                            Util.showNotify({title: status + ': save system information', text: reason, type: 'warning'});
-                            $(document).setProgramStatus('problem');
-                            return reason;
-                        }
-                    });
-
-                    // on xEditable open ------------------------------------------------------------------------------
-                    descriptionTextareaElement.on('shown', function(e, editable){
-                        let textarea = editable.input.$input;
-
-                        // disable module update until description field is open
-                        disableModuleUpdate = true;
-
-                        // create character counter
-                        let charCounter = $('<kbd>', {
-                            class: [config.descriptionTextareaCharCounter, 'txt-color', 'text-right'].join(' ')
-                        });
-                        textarea.parent().next().append(charCounter);
-
-                        // update character counter
-                        Util.updateCounter(textarea, charCounter, maxDescriptionLength);
-
-                        textarea.on('keyup', function(){
-                            Util.updateCounter($(this), charCounter, maxDescriptionLength);
-                        });
-                    });
-
-                    // on xEditable close -----------------------------------------------------------------------------
-                    descriptionTextareaElement.on('hidden', function(e){
-                        let value = $(this).editable('getValue', true);
-                        if(value.length === 0){
-                            // show button if value is empty
-                            hideToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
-                            descriptionButton.show();
-                        }
-
-                        // enable module update
-                        disableModuleUpdate = false;
-                    });
-
-                    // enable xEditable field on Button click ---------------------------------------------------------
-                    descriptionButton.on('click', function(e){
-                        e.stopPropagation();
-                        let descriptionButton = $(this);
-
-                        // hide tool buttons
-                        descriptionButton.hide();
-
-                        // show field *before* showing the element
-                        descriptionTextareaElement.editable('show');
-
-                        showToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
-                    });
-
-                    // init tooltips ----------------------------------------------------------------------------------
-                    let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
-                    tooltipElements.tooltip({
-                        container: 'body',
-                        placement: 'top'
-                    });
-
-                    // init system effect popover ---------------------------------------------------------------------
-                    tempModuleElement.find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
-
-                    // init planets popover ---------------------------------------------------------------------------
-                    tempModuleElement.find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
-
-                    // init static wormhole information ---------------------------------------------------------------
-                    for(let staticData of staticsData){
-                        let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
-                        staticRowElement.addWormholeInfoTooltip(staticData);
-                    }
-
-                    // copy system deeplink URL -----------------------------------------------------------------------
-                    tempModuleElement.find('.' + config.urlLinkClass).on('click', function(){
-                        let mapUrl = $(this).attr('data-url');
-                        Util.copyToClipboard(mapUrl).then(payload => {
-                            if(payload.data){
-                                Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
-                            }
-                        });
-                    });
-
-                    // constellation popover --------------------------------------------------------------------------
-                    tempModuleElement.find('a.popup-ajax').popover({
-                        html: true,
-                        trigger: 'hover',
-                        placement: 'top',
-                        delay: 200,
-                        container: 'body',
-                        content: function(){
-                            return details_in_popup(this);
-                        }
-                    });
-
-                    function details_in_popup(popoverElement){
-                        popoverElement = $(popoverElement);
-                        let popover = popoverElement.data('bs.popover');
-
-                        $.ajax({
-                            url: popoverElement.data('url'),
-                            success: function(data){
-                                let systemEffectTable = Util.getSystemsInfoTable( data.systemsData );
-                                popover.options.content = systemEffectTable;
-                                // reopen popover (new content size)
-                                popover.show();
-                            }
-                        });
-                        return 'Loading...';
-                    }
-
-                }
-            }
-        };
-
-        let moduleData = {
+        let data = {
             system: systemData,
             static: staticsData,
             moduleHeadlineIconClass: config.moduleHeadlineIconClass,
@@ -385,9 +355,7 @@ define([
             trueSecClass: Util.getTrueSecClassForSystem( systemData.trueSec ),
             effectName: effectName,
             effectClass: effectClass,
-            moduleToolbarClass: config.moduleElementToolbarClass,
             descriptionButtonClass: config.addDescriptionButtonClass,
-            tableToolsActionClass: config.tableToolsActionClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
             systemNameClass: () => {
                 return (val, render) => {
@@ -409,7 +377,109 @@ define([
             systemUrlLinkClass: config.urlLinkClass
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        requirejs(['text!templates/modules/system_info.html', 'mustache'], (template, Mustache) => {
+            let content = Mustache.render(template, data);
+            moduleElement.append(content);
+
+            // lock "description" field until first update
+            moduleElement.find('.' + config.descriptionArea).showLoadingAnimation();
+
+            // WYSIWYG init on button click ---------------------------------------------------------------------------
+            let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
+            let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
+
+            descriptionButton.on('click', function(e){
+                e.stopPropagation();
+                let descriptionButton = $(this);
+                // hide edit button
+                descriptionButton.hide();
+
+                initTextEditor(descriptionTextareaElement, {
+                    focus: true,
+                    placeholder: false,
+                    maxTextLength: maxDescriptionLength,
+                    disableDragAndDrop: true,
+                    shortcuts: false,
+                    callbacks: {
+                        onInit: function(context){
+                            // set default background color
+                            // -> could not figure out how to set by API as default color
+                            context.toolbar.find('.note-current-color-button').attr('data-backcolor', config.defaultBgColor)
+                                .find('.note-recent-color').css('background-color', config.defaultBgColor);
+                        },
+                        onDestroy: function(context){
+                            descriptionButton.show();
+                        }
+                    }
+                });
+            });
+
+            // init system effect popover -----------------------------------------------------------------------------
+            moduleElement.find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
+
+            // init planets popover -----------------------------------------------------------------------------------
+            moduleElement.find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
+
+            // init static wormhole information -----------------------------------------------------------------------
+            for(let staticData of staticsData){
+                let staticRowElement = moduleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                staticRowElement.addWormholeInfoTooltip(staticData);
+            }
+
+            // copy system deeplink URL -------------------------------------------------------------------------------
+            moduleElement.find('.' + config.urlLinkClass).on('click', function(){
+                let mapUrl = $(this).attr('data-url');
+                Util.copyToClipboard(mapUrl).then(payload => {
+                    if(payload.data){
+                        Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
+                    }
+                });
+            });
+
+            // created/updated tooltip --------------------------------------------------------------------------------
+            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
+
+            let tooltipData = {
+                created: systemData.created,
+                updated: systemData.updated
+            };
+
+            nameRowElement.addCharacterInfoTooltip( tooltipData );
+
+            // constellation popover ----------------------------------------------------------------------------------
+            moduleElement.find('a.popup-ajax').popover({
+                html: true,
+                trigger: 'hover',
+                placement: 'top',
+                delay: 200,
+                container: 'body',
+                content: function(){
+                    return details_in_popup(this);
+                }
+            });
+
+            let details_in_popup = popoverElement => {
+                popoverElement = $(popoverElement);
+                let popover = popoverElement.data('bs.popover');
+
+                $.ajax({
+                    url: popoverElement.data('url'),
+                    success: function(data){
+                        popover.options.content = Util.getSystemsInfoTable(data.systemsData);
+                        // reopen popover (new content size)
+                        popover.show();
+                    }
+                });
+                return 'Loading...';
+            };
+
+            // init tooltips ------------------------------------------------------------------------------------------
+            let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip({
+                container: 'body',
+                placement: 'top'
+            });
+        });
 
         return moduleElement;
     };
@@ -418,10 +488,8 @@ define([
      * efore module destroy callback
      * @param moduleElement
      */
-    let beforeDestroy = (moduleElement) => {
-        // remove xEditable description textarea
-        let descriptionTextareaElement = moduleElement.find('.' + config.descriptionTextareaElementClass);
-        descriptionTextareaElement.editable('destroy');
+    let beforeDestroy = moduleElement => {
+        moduleElement.find('.' +  config.descriptionTextareaElementClass).summernote('destroy');
 
         moduleElement.destroyPopover(true);
     };
@@ -433,6 +501,3 @@ define([
         beforeDestroy: beforeDestroy
     };
 });
-
-
-

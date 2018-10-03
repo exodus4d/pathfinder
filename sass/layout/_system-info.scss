@@ -9,24 +9,33 @@
   // dynamic area specific for the description field
   .pf-system-info-description-area{
     min-height: 124px;
+    padding: 0; // overwrite default "pf-dynamic-area"
 
-    // textarea system description
-    .editable-container{
-      width: 100%;
-      .editableform{
-        width: 100%;
-        .form-group{
-          width: 100%;
-          .editable-input{
-            width: calc(100% - 75px);
-            textarea{
-              width: 100%;
-              max-height: 200px;
-              resize: vertical;
-            }
-          }
-        }
+    // custom WYSIWYG style
+    hr{
+      border-top: 1px solid $gray-dark;
+    }
+
+    .pf-system-info-description-button{
+      position: absolute;
+      right: 10px;
+      top: 13px;
+    }
+
+    .pf-system-info-description{
+      padding: 10px;
+    }
+
+    .note-toolbar{
+      kbd{
+        padding: 3px 5px;
       }
+
+      .note-customBtn{
+        float: right; // customBtn group should be right
+      }
+
+      @include clearfix(); // because of "floating" right button group
     }
   }
 }

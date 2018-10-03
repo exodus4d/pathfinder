@@ -500,6 +500,8 @@ define([
         let data = {};
 
         if(
+            tooltipData.created &&
+            tooltipData.updated &&
             tooltipData.created.character &&
             tooltipData.updated.character
         ){
@@ -525,39 +527,41 @@ define([
                 createdStatusClass: statusCreatedClass,
                 updatedStatusClass: statusUpdatedClass
             };
-        }
 
-        let defaultOptions = {
-            placement: 'top',
-            html: true,
-            trigger: 'hover',
-            container: 'body',
-            title: 'Created / Updated',
-            delay: {
-                show: 150,
-                hide: 0
-            }
-        };
-
-        options = $.extend({}, defaultOptions, options);
-
-        return this.each(function(){
-            let element = $(this);
-
-            requirejs(['text!templates/tooltip/character_info.html', 'mustache'], (template, Mustache) => {
-                let content = Mustache.render(template, data);
-
-                element.popover(options);
-
-                // set new popover content
-                let popover = element.data('bs.popover');
-                popover.options.content = content;
-
-                if(options.show){
-                    element.popover('show');
+            let defaultOptions = {
+                placement: 'top',
+                html: true,
+                trigger: 'hover',
+                container: 'body',
+                title: 'Created / Updated',
+                delay: {
+                    show: 150,
+                    hide: 0
                 }
+            };
+
+            options = $.extend({}, defaultOptions, options);
+
+            return this.each(function(){
+                let element = $(this);
+
+                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], (template, Mustache) => {
+                    let content = Mustache.render(template, data);
+
+                    element.popover(options);
+
+                    // set new popover content
+                    let popover = element.data('bs.popover');
+                    popover.options.content = content;
+
+                    if(options.show){
+                        element.popover('show');
+                    }
+                });
             });
-        });
+        }else{
+            return this;
+        }
     };
 
     /**
@@ -1777,7 +1781,7 @@ define([
     /**
      * get a HTML table with system effect information
      * e.g. for popover
-     * @param data
+     * @param effects
      * @returns {string}
      */
     let getSystemEffectTable = effects => {
