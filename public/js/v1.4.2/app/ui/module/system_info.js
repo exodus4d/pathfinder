@@ -6,8 +6,7 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/map/util',
-    'summernote'
+    'app/map/util'
 ], ($, Init, Util, MapUtil) => {
     'use strict';
 
@@ -38,7 +37,7 @@ define([
         systemInfoWormholeClass: 'pf-system-info-wormhole-',                    // class prefix for static wormhole element
 
         // description field
-        descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
+        descriptionAreaClass: 'pf-system-info-description-area',                // class for "description" area
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
 
@@ -50,213 +49,44 @@ define([
     };
 
     // max character length for system description
-    let maxDescriptionLength = 512;
+    let maxDescriptionLength = 9000;
 
+    /**
+     * save system (description)
+     * @param requestData
+     * @param context
+     * @param callback
+     */
+    let saveSystem = (requestData, context, callback) => {
+        context.descriptionArea.showLoadingAnimation();
 
-    let initTextEditor = (element, options) => {
+        $.ajax({
+            type: 'POST',
+            url: Init.path.saveSystem,
+            data: requestData,
+            dataType: 'json',
+            context: context
+        }).done(function(responseData){
+            let newSystemData = responseData.systemData;
 
-        // "length" hint plugin ---------------------------------------------------------------------------------------
-        $.extend($.summernote.plugins, {
-            /**
-             * @param {Object} context - context object has status of editor.
-             */
-            lengthField: function (context){
-                let self = this;
-                let ui = $.summernote.ui;
-
-                // add counter
-                context.memo('button.lengthField', () => {
-                    return $('<kbd>', {
-                        class: ['text-right', 'txt-color'].join(' ')
-                    });
-                });
-
-                /**
-                 * update counter element with left chars
-                 * @param contents
-                 */
-                let updateCounter = (contents) => {
-                    let maxTextLength = context.options.maxTextLength;
-                    let textLength = contents.length;
-                    let counter = context.layoutInfo.toolbar.find('kbd');
-                    let counterLeft = maxTextLength - textLength;
-
-                    counter.text(counterLeft).data('charCount', counterLeft);
-                    counter.toggleClass('txt-color-red', maxTextLength <= textLength);
-
-                    // disable "save" button
-                    let saveBtn = context.layoutInfo.toolbar.find('.btn-save');
-                    saveBtn.prop('disabled', maxTextLength < textLength);
-                };
-
-                // events
-                this.events = {
-                    'summernote.init': function (we, e) {
-                        updateCounter(context.$note.summernote('code'));
-                    },
-                    'summernote.change': function(we, contents){
-                        updateCounter(contents);
-
-                    }
-                };
+            if( !$.isEmptyObject(newSystemData) ){
+                callback(newSystemData);
             }
-        });
 
-        // "discard" button plugin ------------------------------------------------------------------------------------
-        $.extend($.summernote.plugins, {
-            /**
-             * @param {Object} context - context object has status of editor.
-             */
-            discardBtn: function (context){
-                let self = this;
-                let ui = $.summernote.ui;
-
-                // add button
-                context.memo('button.discardBtn', () => {
-                    let button = ui.button({
-                        contents: '<i class="fas fw fa-times"/>',
-                        container: 'body',
-                        click: function(){
-                            // show confirmation dialog
-                            $(this).confirmation('show');
-                        }
-                    });
-                    let $button = button.render();
-
-                    // show "discard" changes confirmation
-                    let confirmationSettings = {
-                        container: 'body',
-                        placement: 'top',
-                        btnCancelClass: 'btn btn-sm btn-default',
-                        btnCancelLabel: 'cancel',
-                        btnCancelIcon: 'fas fa-fw fa-ban',
-                        title: 'discard changes',
-                        btnOkClass: 'btn btn-sm btn-warning',
-                        btnOkLabel: 'discard',
-                        btnOkIcon: 'fas fa-fw fa-times',
-                        onConfirm: (e, target) => {
-                            // discard all changes
-                            context.$note.summernote('reset');
-                            context.$note.summernote('destroy');
-                        }
-                    };
-                    $button.confirmation(confirmationSettings);
-
-                    return $button;
-                });
-            }
-        });
-
-        // "save button -----------------------------------------------------------------------------------------------
-        let saveBtn = context => {
-            let ui = $.summernote.ui;
-            let button = ui.button({
-                contents: '<i class="fas fw fa-check"/>',
-                container: 'body',
-                className: ['btn-success', 'btn-save'],
-                click: e => {
-                    // save changes
-                    if( !context.$note.summernote('isEmpty') ){
-                        // get current code
-                        let description = context.$note.summernote('code');
-                        console.log('code to save: ', description)
-                    }
-
-                    context.$note.summernote('destroy');
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(let error of responseData.error){
+                    Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
                 }
-            });
-
-            return button.render();
-        };
-
-        let defaultOptions = {
-            height: 68,                 // set editor height
-            minHeight: 68,              // set minimum height of editor
-            maxHeight: 500,             // set maximum height of editor
-            dialogsInBody: true,
-            dialogsFade: true,
-
-            //textareaAutoSync: false,
-            //hintDirection: 'right',
-            //tooltip: 'right',
-            //container: 'body',
-
-            toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'underline', 'strikethrough', 'clear']],
-                ['color', ['color']],
-                //['para', ['ul', 'ol', 'paragraph']],
-                ['table', ['table']],
-                ['insert', ['link', 'hr']],
-                //['view', ['codeview', 'help']],
-                ['misc', ['undo', 'redo']],
-                ['lengthField'],
-                ['customBtn', [ 'discardBtn', 'saveBtn']]
-            ],
-            buttons: {
-                saveBtn: saveBtn
-            },
-            insertTableMaxSize: {
-                col: 4,
-                row: 4
-            },
-            icons: {
-                //'align': 'note-icon-align',
-                'alignCenter': 'fas fa-align-center',
-                'alignJustify': 'fas fa-align-justify',
-                'alignLeft': 'fas fa-align-left',
-                'alignRight': 'fas fa-align-right',
-                //'rowBelow': 'note-icon-row-below',
-                //'colBefore': 'note-icon-col-before',
-                //'colAfter': 'note-icon-col-after',
-                //'rowAbove': 'note-icon-row-above',
-                //'rowRemove': 'note-icon-row-remove',
-                //'colRemove': 'note-icon-col-remove',
-                'indent': 'fas fa-indent',
-                'outdent': 'fas fa-outdent',
-                'arrowsAlt': 'fas fa-expand-arrows-alt',
-                'bold': 'fas fa-bold',
-                'caret': 'fas fa-caret-down',
-                'circle': 'fas fa-circle',
-                'close': 'fas fa-time',
-                'code': 'fas fa-code',
-                'eraser': 'fas fa-eraser',
-                'font': 'fas fa-font',
-                //'frame': 'note-icon-frame',
-                'italic': 'fas fa-italic',
-                'link': 'fas fa-link',
-                'unlink': 'fas fa-unlink',
-                'magic': 'fas fa-magic',
-                'menuCheck': 'fas fa-check',
-                'minus': 'fas fa-minus',
-                'orderedlist': 'fas fa-list-ol',
-                'pencil': 'fa-pen',
-                'picture': 'fas fa-image',
-                'question': 'fas fa-question',
-                'redo': 'fas fa-redo',
-                'square': 'fas fa-square',
-                'strikethrough': 'fas fa-strikethrough',
-                'subscript': 'fas fa-subscript',
-                'superscript': 'fas fa-superscript',
-                'table': 'fas fa-table',
-                'textHeight': 'fas fa-text-height',
-                'trash': 'fas fa-trash',
-                'underline': 'fas fa-underline',
-                'undo': 'fas fa-undo',
-                'unorderedlist': 'fas fa-list-ul',
-                'video': 'fab fa-youtube'
-            },
-            colors: [
-                ['#5cb85c', '#e28a0d', '#d9534f', '#e06fdf', '#9fa8da', '#e2ce48', '#428bca']
-            ],
-            colorsName: [
-                ['Green', 'Orange', 'Red', 'Pink', 'Indigo', 'Yellow', 'Blue']
-            ],
-        };
-
-        options = $.extend({}, defaultOptions, options);
-
-        element.summernote(options);
+            }
+        }).fail(function(jqXHR, status, error){
+            let reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
+        }).always(function(){
+            this.descriptionArea.hideLoadingAnimation();
+        });
     };
 
     /**
@@ -267,8 +97,24 @@ define([
      */
     let updateModule = (moduleElement, systemData) => {
         let systemId = moduleElement.data('id');
+        let updated = moduleElement.data('updated');
 
-        if(systemId === systemData.id){
+        if(
+            systemId === systemData.id &&
+            updated !== systemData.updated.updated
+        ){
+            let setUpdated = true;
+
+            // created/updated tooltip --------------------------------------------------------------------------------
+            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
+
+            let tooltipData = {
+                created: systemData.created,
+                updated: systemData.updated
+            };
+
+            nameRowElement.addCharacterInfoTooltip( tooltipData );
+
             // update system status -----------------------------------------------------------------------------------
             let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
             let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
@@ -286,22 +132,33 @@ define([
 
             // update description textarea ----------------------------------------------------------------------------
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
-            if(typeof descriptionTextareaElement.data().summernote === 'object'){
-                // "Summernote" editor is currently open
-                console.log('Open');
-            }else{
-                // not open
-                console.log('NOT open');
+            if(descriptionTextareaElement.length){
                 let description = descriptionTextareaElement.html();
-                console.log(description);
-                console.log('update: ', description === systemData.description);
                 if(description !== systemData.description){
-                    descriptionTextareaElement.html(systemData.description);
+                    // description has changed
+                    if(typeof descriptionTextareaElement.data().summernote === 'object'){
+                        // "Summernote" editor is currently open
+                        setUpdated = false;
+                    }else{
+                        // not open
+                        let newDescription = systemData.description;
+                        if( !Util.isValidHtml(newDescription) ){
+                            // try to convert raw text into valid html
+                            newDescription = newDescription.replace(/(\r\n|\n|\r)/g, '<br>');
+                            newDescription = '<p>' + newDescription + '</p>';
+                        }
+
+                        descriptionTextareaElement.html(newDescription);
+                    }
                 }
+            }
+
+            if(setUpdated){
+                moduleElement.data('updated', systemData.updated.updated);
             }
         }
 
-        moduleElement.find('.' + config.descriptionArea).hideLoadingAnimation();
+        moduleElement.find('.' + config.descriptionAreaClass).hideLoadingAnimation();
     };
 
     /**
@@ -355,6 +212,7 @@ define([
             trueSecClass: Util.getTrueSecClassForSystem( systemData.trueSec ),
             effectName: effectName,
             effectClass: effectClass,
+            descriptionAreaClass: config.descriptionAreaClass,
             descriptionButtonClass: config.addDescriptionButtonClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
             systemNameClass: () => {
@@ -377,35 +235,125 @@ define([
             systemUrlLinkClass: config.urlLinkClass
         };
 
-        requirejs(['text!templates/modules/system_info.html', 'mustache'], (template, Mustache) => {
+        requirejs(['text!templates/modules/system_info.html', 'mustache', 'summernote.loader'], (template, Mustache, Summernote) => {
             let content = Mustache.render(template, data);
             moduleElement.append(content);
 
-            // lock "description" field until first update
-            moduleElement.find('.' + config.descriptionArea).showLoadingAnimation();
-
-            // WYSIWYG init on button click ---------------------------------------------------------------------------
+            let descriptionArea = moduleElement.find('.' + config.descriptionAreaClass);
             let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
 
+            // lock "description" field until first update
+            descriptionArea.showLoadingAnimation();
+
+            // WYSIWYG init on button click ---------------------------------------------------------------------------
             descriptionButton.on('click', function(e){
                 e.stopPropagation();
                 let descriptionButton = $(this);
                 // hide edit button
                 descriptionButton.hide();
 
-                initTextEditor(descriptionTextareaElement, {
+                // content has changed
+                let descriptionChanged = false;
+
+                Summernote.initSummernote(descriptionTextareaElement, {
+                    height: 68,                 // set editor height
+                    minHeight: 68,              // set minimum height of editor
+                    maxHeight: 500,             // set maximum height of editor
                     focus: true,
                     placeholder: false,
                     maxTextLength: maxDescriptionLength,
                     disableDragAndDrop: true,
                     shortcuts: false,
+                    toolbar: [
+                        ['style', ['style']],
+                        ['font', ['underline', 'strikethrough', 'clear']],
+                        ['color', ['color']],
+                        ['para', ['ul', 'ol', 'paragraph']],
+                        ['table', ['table']],
+                        ['insert', ['link', 'hr']],
+                        //['view', ['codeview', 'help']],
+                        ['misc', ['undo', 'redo']],
+                        ['lengthField'],
+                        ['customBtn', ['discardBtn', 'saveBtn']]
+                    ],
+                    buttons: {
+                        saveBtn: context => {
+                            let ui = $.summernote.ui;
+                            let button = ui.button({
+                                contents: '<i class="fas fa-fw fa-check"/>',
+                                container: 'body',
+                                className: ['btn-success', 'btn-save'],
+                                click: e => {
+                                    context.layoutInfo.editable.removeClass('has-error');
+
+                                    // save changes
+                                    if(descriptionChanged){
+                                        let validDescription = true;
+                                        let description = '';
+
+                                        if( context.$note.summernote('isEmpty') ){
+                                            // ... isEmpty -> clear empty default tags as well
+                                            context.$note.summernote('code', '');
+                                        }else{
+                                            description = context.$note.summernote('code');
+                                            if( !Util.isValidHtml(description) ){
+                                                // ... not valid HTML
+                                                validDescription = false;
+                                                context.layoutInfo.editable.addClass('has-error');
+                                                Util.showNotify({title: 'Validation failed', text: 'HTML not valid', type: 'error'});
+                                            }
+                                        }
+
+                                        if(validDescription){
+                                            // ... valid -> save()
+                                            saveSystem({
+                                                mapData: {
+                                                    id: mapId
+                                                },
+                                                systemData: {
+                                                    id: systemData.id,
+                                                    description: description
+                                                }
+                                            }, {
+                                                descriptionArea: descriptionArea
+                                            }, (systemData) => {
+                                                // .. save callback
+                                                context.$note.summernote('destroy');
+                                                updateModule(moduleElement, systemData);
+                                            });
+                                        }
+                                    }else{
+                                        // ... no changes -> no save()
+                                        context.$note.summernote('destroy');
+                                    }
+                                }
+                            });
+
+                            return button.render();
+                        }
+                    },
                     callbacks: {
                         onInit: function(context){
+                            // make editable field a big larger
+                            context.editable.css('height', '150px');
+
                             // set default background color
                             // -> could not figure out how to set by API as default color
                             context.toolbar.find('.note-current-color-button').attr('data-backcolor', config.defaultBgColor)
                                 .find('.note-recent-color').css('background-color', config.defaultBgColor);
+                        },
+                        onChange: function(contents){
+                            descriptionChanged = true;
+                        },
+                        onPaste: function (e) {
+                            let bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
+                            e.preventDefault();
+
+                            // Firefox fix
+                            setTimeout(() => {
+                                document.execCommand('insertText', false, bufferText);
+                            }, 10);
                         },
                         onDestroy: function(context){
                             descriptionButton.show();
@@ -435,16 +383,6 @@ define([
                     }
                 });
             });
-
-            // created/updated tooltip --------------------------------------------------------------------------------
-            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
-
-            let tooltipData = {
-                created: systemData.created,
-                updated: systemData.updated
-            };
-
-            nameRowElement.addCharacterInfoTooltip( tooltipData );
 
             // constellation popover ----------------------------------------------------------------------------------
             moduleElement.find('a.popup-ajax').popover({

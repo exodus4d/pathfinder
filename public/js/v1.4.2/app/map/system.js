@@ -79,7 +79,6 @@ define([
                 callback(newSystemData);
             }
 
-            // show errors
             if(
                 responseData.error &&
                 responseData.error.length > 0

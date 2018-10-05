@@ -6,15 +6,19 @@
     text-transform: capitalize;
   }
 
+  // system "name" cell should truncate on long names
+  .pf-system-info-name-cell{
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: all;
+  }
+
   // dynamic area specific for the description field
   .pf-system-info-description-area{
     min-height: 124px;
     padding: 0; // overwrite default "pf-dynamic-area"
-
-    // custom WYSIWYG style
-    hr{
-      border-top: 1px solid $gray-dark;
-    }
 
     .pf-system-info-description-button{
       position: absolute;
@@ -24,11 +28,12 @@
 
     .pf-system-info-description{
       padding: 10px;
+      user-select: text;
     }
 
     .note-toolbar{
       kbd{
-        padding: 3px 5px;
+        padding: 3px 4px;
       }
 
       .note-customBtn{
@@ -37,6 +42,76 @@
 
       @include clearfix(); // because of "floating" right button group
     }
+  }
+
+  // custom wysiwyg editor styles
+  .pf-system-info-description, .note-editable{
+
+    &>h2:first-child, &>h3:first-child{
+      margin-top: 0 !important;  // no margin if first element
+    }
+
+    h2, h3{
+      &:before{
+        font-family: "Font Awesome 5 Free";
+        content: "\f105";
+        font-weight: bold;
+        display: inline-block;
+        margin-right: 3px;
+      }
+    }
+
+    h2{
+      font-size: 16px;
+      margin: 15px 0;
+    }
+
+    h3{
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    a{
+      &:after{
+        font-family: "Font Awesome 5 Free";
+        content: "\f35d";
+        font-size: 70%;
+        vertical-align: top;
+        font-weight: bold;
+        display: inline-block;
+        margin-left: 2px;
+      }
+    }
+
+    // custom WYSIWYG style
+    hr{
+      border-top: 1px solid $gray-dark;
+    }
+
+    blockquote {
+      padding: 5px 10px;
+      margin: 0 0 10px;
+      font-size: 13px;
+      border-left: 3px solid $teal;
+    }
+
+    ol, ul{
+      padding-left: 20px;
+    }
+
+    ul{
+      list-style: disc;
+    }
+
+    ol{
+      list-style: decimal;
+    }
+  }
+}
+
+.modal.link-dialog{
+  .checkbox{
+    display: none;  // hide checkbox for "target" link attribute -> always _blank
   }
 }
 

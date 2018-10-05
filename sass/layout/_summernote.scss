@@ -2,7 +2,17 @@
 
 .panel-heading{
   &.note-toolbar{
-    background-color: $gray-dark
+    background-color: $gray-dark;
+
+    .dropdown-toggle>i+span{
+      margin-left: 3px; // some more spacing (sugar)
+    }
+
+    .dropdown-menu{
+      > .note-btn-group:first-child{
+        margin-bottom: 3px; // some more spacing (sugar)
+      }
+    }
   }
 }
 
@@ -16,6 +26,12 @@
       .note-editable{
         color: $gray-light;
         background-color: transparent;
+        will-change: height;
+        border: 1px solid transparent; // overwrite form-control default
+
+        &.has-error{
+          border-color: $red;
+        }
       }
     }
 

@@ -56,7 +56,9 @@ requirejs.config({
         bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0   Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
         lazyload: 'lib/jquery.lazyload.min',                            // v1.9.5   LazyLoader images - http://www.appelsiini.net/projects/lazyload
         sortable: 'lib/sortable.min',                                   // v1.6.0   Sortable - drag&drop reorder - https://github.com/rubaxa/Sortable
-        summernote: 'lib/summernote/summernote.min',                    // v0.8.10  Summernote WYSIWYG editor
+
+        'summernote.loader': './app/summernote.loader',                 // v0.8.10  Summernote WYSIWYG editor -https://summernote.org
+        'summernote': 'lib/summernote/summernote.min',
 
         // header animation
         easePack: 'lib/EasePack.min',

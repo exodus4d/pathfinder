@@ -367,9 +367,10 @@
 
 .note-editor.note-frame .note-status-output:empty {
   height: 0;
-  border-top: 0 solid transparent
+  border-top: 0 solid transparent;
+  padding-top: 0;
 }
-
+/*
 .note-editor.note-frame .note-status-output .pull-right {
   float: right !important
 }
@@ -429,7 +430,7 @@
   color: #a94442 !important;
   background-color: #f2dede !important
 }
-
+*/
 .note-editor.note-frame .note-statusbar {
   background-color: #f5f5f5;
   border-top: 1px solid #ddd;
@@ -472,7 +473,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  vertical-align: middle
+  vertical-align: middle;
+  margin-top: 5px; // horizontal align link preview text in popover
 }
 
 .note-popover.popover .arrow {
@@ -517,6 +519,7 @@
   z-index: 1;
   width: 5em;
   height: 5em;
+  opacity: 0.75;
   background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASAgMAAAAroGbEAAAACVBMVEUAAIj4+Pjp6ekKlAqjAAAAAXRSTlMAQObYZgAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfYAR0BKhmnaJzPAAAAG0lEQVQI12NgAAOtVatWMTCohoaGUY+EmIkEAEruEzK2J7tvAAAAAElFTkSuQmCC') repeat
 }
 
@@ -561,7 +564,7 @@
   margin: 2px 7px;
   font-size: 12px;
   text-align: center;
-  border-bottom: 1px solid #eee
+  border-bottom: 1px solid #63676a
 }
 
 .note-popover .popover-content .note-color .dropdown-menu .note-palette .note-color-reset, .panel-heading.note-toolbar .note-color .dropdown-menu .note-palette .note-color-reset {
@@ -593,7 +596,11 @@
 }
 
 .note-popover .popover-content .dropdown-menu, .panel-heading.note-toolbar .dropdown-menu {
-  min-width: 90px
+  min-width: 90px;
+  &:not(.dropdown-style){
+    color: #adadad;
+    background-color: #3c3f41;
+  }
 }
 
 .note-popover .popover-content .dropdown-menu.right, .panel-heading.note-toolbar .dropdown-menu.right {
@@ -633,11 +640,12 @@
   height: 20px;
   padding: 0;
   margin: 0;
-  border: 1px solid #fff
+  border: 1px solid #63676a;
+  cursor: pointer;
 }
 
 .note-popover .popover-content .note-color-palette div .note-color-btn:hover, .panel-heading.note-toolbar .note-color-palette div .note-color-btn:hover {
-  border: 1px solid #000
+  border: 1px solid #3c3f41
 }
 
 .note-dialog > div {

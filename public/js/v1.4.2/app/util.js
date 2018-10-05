@@ -2822,6 +2822,17 @@ define([
     let htmlDecode = value => $('<div>').html(value).text();
 
     /**
+     * checks if html is valid
+     * -> see https://stackoverflow.com/a/15458968/4329969
+     * @param html
+     * @returns {boolean}
+     */
+    let isValidHtml = html => {
+        let doc = new DOMParser().parseFromString(html, 'text/html');
+        return Array.from(doc.body.childNodes).some(node => node.nodeType === 1);
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3021,6 +3032,7 @@ define([
         getDataTableInstance: getDataTableInstance,
         htmlEncode: htmlEncode,
         htmlDecode: htmlDecode,
+        isValidHtml: isValidHtml,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,
