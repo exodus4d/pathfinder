@@ -980,7 +980,6 @@ define([
     let activateNextCell = (tableApi, cell, columnSelectors) => {
         let nextCell = searchNextCell(tableApi, cell, columnSelectors);
         activateCell(nextCell);
-        let test;
     };
 
     /**
@@ -1152,6 +1151,22 @@ define([
     let editableDisable = element => {
         element.editable('disable');
         // xEditable sets 'tabindex = -1'
+    };
+
+    /**
+     * en/disables xEditable element (select)
+     * -> disables if there are no source options found
+     * @param element
+     */
+    let editableSelectCheck = element => {
+        if(element.data('editable')){
+            let options = element.data('editable').options.source();
+            if(options.length > 0){
+                editableEnable(element);
+            }else{
+                editableDisable(element);
+            }
+        }
     };
 
     /**
@@ -1333,31 +1348,16 @@ define([
                                 }
                                 tableApi.draw();
 
-                                // find related "type" select (same row) and change options
+                                // find related "type" select (same row) and change options ---------------------------
                                 let signatureTypeCell = getNeighboringCell(tableApi, cell, 'type:name');
                                 let signatureTypeField = signatureTypeCell.nodes().to$();
+                                editableSelectCheck(signatureTypeField);
 
-                                let typeOptions = getAllSignatureNames(
-                                    systemData,
-                                    systemData.type.id,
-                                    Util.getAreaIdBySecurity(systemData.security),
-                                    newValue
-                                );
-                                signatureTypeField.editable('option', 'source', typeOptions);
-
-                                if(
-                                    newValue > 0 &&
-                                    typeOptions.length > 0
-                                ){
-                                    editableEnable(signatureTypeField);
-                                }else{
-                                    editableDisable(signatureTypeField);
-                                }
                                 signatureTypeCell.data(0);
                                 signatureTypeField.editable('setValue', 0);
 
 
-                                // find "connection" select (same row) and change "enabled" flag
+                                // find "connection" select (same row) and change "enabled" flag ----------------------
                                 let signatureConnectionCell = getNeighboringCell(tableApi, cell, 'connection:name');
                                 let signatureConnectionField = signatureConnectionCell.nodes().to$();
 
@@ -2260,6 +2260,26 @@ define([
                 // xEditable is active -> should always be active!
                 // set new value even if no change -> e.g. render selected Ids as text labels
                 let oldValue = node.editable('getValue', true);
+
+                // ... some editable cells depend on each other (e.g. group->type, group->connection)
+                switch(node.data('editable').options.name){
+                    case 'typeId':
+                        // ... disable if no type options found
+                        editableSelectCheck(node);
+                        break;
+                    case 'connectionId':
+                        // disables if no wormhole group set
+                        let groupId = cell.cell(rowIndex, 'group:name').data();
+                        if(groupId === 5){
+                            // wormhole
+                            editableEnable(node);
+                        }else{
+                            editableDisable(node);
+                        }
+                        break;
+                }
+
+                // values should be set AFTER en/disabling of a field
                 node.editable('setValue', cell.data());
 
                 if(oldValue !== cell.data()){
@@ -2344,6 +2364,9 @@ define([
             if(payloads.length){
                 // table data changed -> draw() table changes
                 tableApi.draw();
+
+                // check for "leads to" conflicts -> important if there are just "update" (no add/delete) changes
+                checkConnectionConflicts();
 
                 if(!updateEmptyTable){
                     // no notifications if table was empty just progressbar notification is needed
