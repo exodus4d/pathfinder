@@ -257,8 +257,8 @@ define([
                 let descriptionChanged = false;
 
                 Summernote.initSummernote(descriptionTextareaElement, {
-                    height: 68,                 // set editor height
-                    minHeight: 68,              // set minimum height of editor
+                    height: 75,                 // set editor height
+                    minHeight: 75,              // set minimum height of editor
                     maxHeight: 500,             // set maximum height of editor
                     focus: true,
                     placeholder: false,
