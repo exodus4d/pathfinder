@@ -22,7 +22,6 @@ define([
 
         // system killboard module
         moduleTypeClass: 'pf-system-killboard-module',                          // class for this module
-        systemKillboardGraphKillsClass: 'pf-system-killboard-graph-kills',      // class for system kill graph
 
         // system killboard list
         systemKillboardListClass: 'pf-system-killboard-list',                   // class for a list with kill entries
@@ -30,12 +29,18 @@ define([
         systemKillboardListImgShip: 'pf-system-killboard-img-ship',             // class for all ship images
         systemKillboardListImgChar: 'pf-system-killboard-img-char',             // class for all character logos
         systemKillboardListImgAlly: 'pf-system-killboard-img-ally',             // class for all alliance logos
-        systemKillboardListImgCorp: 'pf-system-killboard-img-corp'              // class for all corp logos
+        systemKillboardListImgCorp: 'pf-system-killboard-img-corp',             // class for all corp logos
+
+        labelRecentKillsClass: 'pf-system-killboard-label-recent',              // class for "recent kills" label
+        dynamicAreaClass: 'pf-dynamic-area',                                    // class for "dynamic" areas
+        controlAreaClass: 'pf-module-control-area',                             // class for "control" areas
+
+        minCountKills: 5,
+        chunkCountKills: 5,
+        maxCountKills: 43
     };
 
-    let cache = {
-        systemKillsGraphData: {} // data for system kills info graph
-    };
+    let cache = {};
 
     /**
      *
@@ -43,81 +48,143 @@ define([
      * @param options
      * @returns {jQuery}
      */
-    let getLabel = (text, options) => {
-        let label = $('<span>', {
-            class: ['label', options.type, options.align].join(' ')
-        }).text( text );
+    let getLabel = (text, options) => $('<span>', {
+        class: ['label', options.type, options.align, options.class].join(' ')
+    }).text(text);
 
-        return label;
+    /**
+     * get killmail data from ESI
+     * @param requestData
+     * @param context
+     * @param callback
+     */
+    let loadKillmailData = (requestData, context, callback) => {
+        let cacheKey = 'killmail_' + requestData.killId;
+        if(cache[cacheKey]){
+            // ... already cached -> return from cache
+            callback(context, cache[cacheKey])
+                .then(payload => showKills(payload.data.killboardElement, payload.data.systemId, payload.data.chunkSize));
+        }else{
+            // ...not cached -> request data
+            let url = 'https://esi.evetech.net/latest/killmails/' + requestData.killId + '/' + requestData.hash + '/';
+
+            $.ajax({
+                type: 'GET',
+                url: url,
+                dataType: 'json',
+                context: context
+            }).done(function(responseData){
+                cache[cacheKey] = responseData;
+
+                callback(this, responseData)
+                    .then(payload => showKills(payload.data.killboardElement, payload.data.systemId, payload.data.chunkSize));
+            }).fail(function(jqXHR, status, error){
+                // request failed -> skip this and load next
+                showKills(this.killboardElement, this.systemId, this.chunkSize);
+            });
+        }
+
     };
 
     /**
-     * show killMails
-     * @param moduleElement
-     * @param killboardData
+     * load a chunk of killmails and render them
+     * @param killboardElement
+     * @param systemId
+     * @param chunkSize
      */
-    let showKillmails = (moduleElement, killboardData) => {
+    let showKills = (killboardElement, systemId, chunkSize) => {
+        if(chunkSize){
+            if(
+                killboardElement.children().length < config.maxCountKills &&
+                cache['zkb_' + systemId].length
+            ){
+                // next killmail to load
+                let nextZkb = cache['zkb_' + systemId].shift();
 
-        // show number of killMails
-        let killMailCounterMax = 20;
-        let killMailCounter = 0;
-
-        // change order (show right to left)
-        killboardData.tableData.reverse();
-
-        let data = {
-            tableData: killboardData.tableData,
-            systemKillboardListClass: config.systemKillboardListClass,
-            systemKillboardListEntryClass: config.systemKillboardListEntryClass,
-            systemKillboardListImgShip: config.systemKillboardListImgShip,
-            systemKillboardListImgChar: config.systemKillboardListImgChar,
-            systemKillboardListImgAlly: config.systemKillboardListImgAlly,
-            systemKillboardListImgCorp: config.systemKillboardListImgCorp,
-            zKillboardUrl: 'https://zkillboard.com',
-            ccpImageServerUrl: Init.url.ccpImageServer,
-
-            dateFormat: () => {
-                return (val, render) => {
-                    let killDate = Util.convertDateToUTC(new Date(render(val)));
-                    return  Util.convertDateToString(killDate);
-                };
-            },
-            iskFormat: () => {
-                return (val, render) => {
-                    return Util.formatPrice(render(val));
-                };
-            },
-            checkRender : () => {
-                return (val, render) => {
-                    if(killMailCounter < killMailCounterMax){
-                        return render(val);
-                    }
-                };
-            },
-            increaseCount : () => {
-                return (val, render) => {
-                    killMailCounter++;
-                };
+                loadKillmailData({
+                    killId: parseInt(nextZkb.killmail_id) || 0,
+                    hash: nextZkb.zkb.hash
+                }, {
+                    chunkSize: --chunkSize,
+                    zkb: nextZkb.zkb,
+                    systemId: systemId,
+                    killboardElement: killboardElement
+                }, renderKillmail);
+            }else{
+                // no more kills available OR max kills reached
+                killboardElement.closest('.' + config.moduleTypeClass).find('.' + config.controlAreaClass).hide();
             }
+
+        }
+    };
+
+    /**
+     * render a single killmail
+     * @param context
+     * @param killmailData
+     * @returns {Promise<any>}
+     */
+    let renderKillmail = (context, killmailData) => {
+
+        let renderKillmailExecutor = (resolve, reject) => {
+            // calculate time diff in hours
+            let serverDate= Util.getServerTime();
+            let killDate = Util.convertDateToUTC(new Date(killmailData.killmail_time));
+
+            // get time diff
+            let timeDiffMin = Math.round((serverDate - killDate) / 1000 / 60);
+            let timeDiffHour = Math.floor(timeDiffMin / 60);
+
+            let data = {
+                zkb: context.zkb,
+                killmail: killmailData,
+                systemKillboardListEntryClass: config.systemKillboardListEntryClass,
+                systemKillboardListImgShip: config.systemKillboardListImgShip,
+                systemKillboardListImgChar: config.systemKillboardListImgChar,
+                systemKillboardListImgCorp: config.systemKillboardListImgCorp,
+                systemKillboardListImgAlly: config.systemKillboardListImgAlly,
+                zKillboardUrl: 'https://zkillboard.com',
+                ccpImageServerUrl: Init.url.ccpImageServer,
+                dateFormat: () => {
+                    return (val, render) => {
+                        let killDate = Util.convertDateToUTC(new Date(render(val)));
+                        return  Util.convertDateToString(killDate);
+                    };
+                },
+                iskFormat: () => {
+                    return (val, render) => {
+                        return Util.formatPrice(render(val));
+                    };
+                },
+            };
+
+            requirejs(['text!templates/modules/killmail.html', 'mustache'], (template, Mustache) => {
+                // show hint for recent kills -------------------------------------------------------------------------
+                if(timeDiffHour === 0){
+                    context.killboardElement.siblings('.' + config.labelRecentKillsClass).css('display', 'block');
+                }
+
+                // render killmail entry ------------------------------------------------------------------------------
+                let content = Mustache.render(template, data);
+                context.killboardElement.append(content);
+
+                // animate kill li-element ----------------------------------------------------------------------------
+                context.killboardElement.children().last().velocity('transition.expandIn', {
+                    complete: function(){
+                        $(this).find('[title]').tooltip({
+                            container: 'body'
+                        });
+                    }
+                });
+
+                resolve({
+                    action: 'renderKillmail',
+                    data: context
+                });
+            });
         };
 
-        requirejs(['text!templates/modules/killboard.html', 'mustache'], function(template, Mustache){
-            let content = Mustache.render(template, data);
-
-            moduleElement.append(content);
-
-            // animate kill li-elements
-            $('.' + config.systemKillboardListEntryClass).velocity('transition.expandIn', {
-                stagger: 50,
-                complete: function(){
-                    // init tooltips
-                    moduleElement.find('[title]').tooltip({
-                        container: 'body'
-                    });
-
-                }
-            });
-        });
+        return new Promise(renderKillmailExecutor);
     };
 
     /**
@@ -127,213 +194,68 @@ define([
     $.fn.updateSystemInfoGraphs = function(systemData){
         let moduleElement = $(this);
 
-        let killboardGraphElement = $('<div>', {
-            class: config.systemKillboardGraphKillsClass
-        });
-
-        moduleElement.append(killboardGraphElement);
-
-        let showHours = 24;
-        let maxKillmailCount = 200; // limited by API
-
         let labelOptions = {
             align: 'center-block'
         };
         let label = '';
 
-        // private function draws a "system kills" graph
-        let drawGraph = function(data){
-            let tableData = data.tableData;
+        // get kills within the last 24h
+        let timeFrameInSeconds = 60 * 60 * 24;
 
-            // change order (show right to left)
-            tableData.reverse();
-
-             if(data.count === 0){
-                 labelOptions.type = 'label-success';
-                 label = getLabel('No kills found within the last 24h', labelOptions );
-                 killboardGraphElement.append( label );
-
-                 minifyKillboardGraphElement(killboardGraphElement);
-                 return;
-             }
-
-            let labelYFormat = function(y){
-                return Math.round(y);
-            };
-
-            // draw chart
-            Morris.Bar({
-                element: killboardGraphElement,
-                resize: true,
-                redraw: true,
-                grid: true,
-                gridStrokeWidth: 0.3,
-                gridTextSize: 9,
-                gridTextColor: '#63676a',
-                gridTextFamily: 'Oxygen Bold',
-                hideHover: true,
-                data: tableData,
-                xkey: 'label',
-                ykeys: ['kills'],
-                labels: ['Kills'],
-                yLabelFormat: labelYFormat,
-                xLabelMargin: 10,
-                padding: 10,
-                parseTime: false,
-                barOpacity: 0.8,
-                barRadius: [2, 2, 0, 0],
-                barSizeRatio: 0.5,
-                barGap: 3,
-                barColors: function(row, series, type){
-                    if(type === 'bar'){
-                        // highlight last row -> recent kills found
-                        if(this.xmax === row.x){
-                            return '#c2760c';
-                        }
-                    }
-
-                    return '#375959';
-                }
-            });
-
-            // show hint for recent kills
-            if(tableData[tableData.length - 1].kills > 0){
-                labelOptions.type = 'label-warning';
-                label = getLabel( tableData[tableData.length - 1].kills + ' kills within the last hour', labelOptions );
-                killboardGraphElement.prepend( label );
-            }
-        };
-
-        // get recent KB stats (last 24h))
-        let localDate = new Date();
-
-        // cache result for 5min
-        let cacheKey = systemData.systemId + '_' + localDate.getHours() + '_' + ( Math.ceil( localDate.getMinutes() / 5 ) * 5);
-
-        if(cache.systemKillsGraphData.hasOwnProperty(cacheKey) ){
-            // cached results
-
-            drawGraph( cache.systemKillsGraphData[cacheKey] );
-
-            // show killmail information
-            showKillmails(moduleElement, cache.systemKillsGraphData[cacheKey]);
-        }else{
-
-            // chart data
-            let chartData = [];
-
-            for(let i = 0; i < showHours; i++){
-                let tempData = {
-                    label: i + 'h',
-                    kills: 0
-                };
-
-                chartData.push(tempData);
-            }
-
-            // get kills within the last 24h
-            let timeFrameInSeconds = 60 * 60 * 24;
-
-            // get current server time
-            let serverDate= Util.getServerTime();
-
-            // if system is w-space system -> add link modifier
-            let wSpaceLinkModifier = '';
-            if(systemData.type.id === 1){
-                wSpaceLinkModifier = 'w-space/';
-            }
-
-            let url = Init.url.zKillboard + '/';
-            url += 'no-items/' + wSpaceLinkModifier + 'no-attackers/solarSystemID/' + systemData.systemId + '/pastSeconds/' + timeFrameInSeconds + '/';
-
-            killboardGraphElement.showLoadingAnimation();
-
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json'
-            }).done(function(kbData){
-
-                // the API wont return more than 200KMs ! - remember last bar block with complete KM information
-                let lastCompleteDiffHourData = 0;
-
-                // loop kills and count kills by hour
-                for(let i = 0; i < kbData.length; i++){
-                    let killmailData = kbData[i];
-                    let killDate = Util.convertDateToUTC(new Date(killmailData.killmail_time));
-
-                    // get time diff
-                    let timeDiffMin = Math.round(( serverDate - killDate ) / 1000 / 60);
-                    let timeDiffHour = Math.floor(timeDiffMin / 60);
-
-                    // update chart data
-                    if(chartData[timeDiffHour]){
-                        chartData[timeDiffHour].kills++;
-
-                        // add kill mail data
-                        if(chartData[timeDiffHour].killmails === undefined){
-                            chartData[timeDiffHour].killmails = [];
-                        }
-                        chartData[timeDiffHour].killmails.push(killmailData);
-
-                        if(timeDiffHour > lastCompleteDiffHourData){
-                            lastCompleteDiffHourData = timeDiffHour;
-                        }
-                    }
-
-                }
-
-                // remove empty chart Data
-                if(kbData.length >= maxKillmailCount){
-                    chartData = chartData.splice(0, lastCompleteDiffHourData + 1);
-                }
-
-                // fill cache
-                cache.systemKillsGraphData[cacheKey] = {};
-                cache.systemKillsGraphData[cacheKey].tableData = chartData;
-                cache.systemKillsGraphData[cacheKey].count = kbData.length;
-
-                // draw table
-                drawGraph(cache.systemKillsGraphData[cacheKey]);
-
-                // show killmail information
-                showKillmails(moduleElement, cache.systemKillsGraphData[cacheKey]);
-
-                killboardGraphElement.hideLoadingAnimation();
-            }).fail(function(e){
-
-                labelOptions.type = 'label-danger';
-                label = getLabel(  'zKillboard is not responding', labelOptions );
-                killboardGraphElement.prepend( label );
-
-                killboardGraphElement.hideLoadingAnimation();
-
-                minifyKillboardGraphElement(killboardGraphElement);
-
-                Util.showNotify({title: e.status + ': Get system kills', text: 'Loading failed', type: 'error'});
-            });
+        // if system is w-space system -> add link modifier
+        let wSpaceLinkModifier = '';
+        if(systemData.type.id === 1){
+            wSpaceLinkModifier = 'w-space/';
         }
 
+        let url = Init.url.zKillboard + '/';
+        url += 'no-items/' + wSpaceLinkModifier + 'no-attackers/npc/0/solarSystemID/' + systemData.systemId + '/pastSeconds/' + timeFrameInSeconds + '/';
 
+        moduleElement.showLoadingAnimation();
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json'
+        }).done(function(result){
+            // zkb result needs to be cached and becomes reduced on "load more"
+            let cacheKey = 'zkb_' + systemData.systemId;
+            cache[cacheKey] = result;
+
+            if(result.length){
+                // kills found -> insert hidden warning for recent kills
+                labelOptions.type = 'label-warning';
+                labelOptions.class = config.labelRecentKillsClass;
+                let label = getLabel('recent kills within the last hour', labelOptions);
+                moduleElement.append(label);
+
+                let killboardElement = $('<ul>', {
+                    class: config.systemKillboardListClass
+                });
+                moduleElement.append(killboardElement);
+                moduleElement.append(getControlElement());
+
+                showKills(killboardElement, systemData.systemId, config.chunkCountKills);
+            }else{
+                // no kills found
+                labelOptions.type = 'label-success';
+                label = getLabel('No kills found within the last 24h', labelOptions);
+                moduleElement.append(label);
+            }
+        }).fail(function(e){
+            labelOptions.type = 'label-danger';
+            label = getLabel('zKillboard is not responding', labelOptions);
+            moduleElement.find('.' + config.moduleHeadClass).after(label);
+
+            Util.showNotify({title: e.status + ': Get system kills', text: 'Loading failed', type: 'error'});
+        }).always(function(){
+            moduleElement.hideLoadingAnimation();
+        });
 
         // init tooltips
         let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
         tooltipElements.tooltip({
             container: 'body'
-        });
-
-    };
-
-    /**
-     * minify the killboard graph element e.g. if no kills where found, or on error
-     * @param killboardGraphElement
-     */
-    let minifyKillboardGraphElement = (killboardGraphElement) => {
-        killboardGraphElement.velocity({
-            height: '20px',
-            marginBottom: '0px'
-        },{
-            duration: Init.animationSpeed.mapModule
         });
     };
 
@@ -362,6 +284,29 @@ define([
         });
 
         return headlineToolbar;
+    };
+
+    /**
+     * get info control element
+     * @returns {void|jQuery|*}
+     */
+    let getControlElement = () => {
+        let controlElement = $('<div>', {
+            class: [config.dynamicAreaClass, config.controlAreaClass, config.moduleHeadlineIconClass].join(' '),
+            html: '<i class="fas fa-sync"></i>&nbsp;&nbsp;load more'
+        });
+        return controlElement;
+    };
+
+    /**
+     * @param moduleElement
+     * @param systemData
+     */
+    let setModuleObserver = (moduleElement, systemData) => {
+        moduleElement.on('click', '.' + config.controlAreaClass, function(){
+            let killboardElement = moduleElement.find('.' + config.systemKillboardListClass);
+            showKills(killboardElement, systemData.systemId, config.chunkCountKills);
+        });
     };
 
     /**
@@ -395,6 +340,8 @@ define([
                 getHeadlineToolbar(systemData)
             )
         );
+
+        setModuleObserver(moduleElement, systemData);
 
         return moduleElement;
     };

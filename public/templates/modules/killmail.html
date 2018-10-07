@@ -1,0 +1,40 @@
+<li class="media {{systemKillboardListEntryClass}}">
+    <a href="{{{zKillboardUrl}}}/kill/{{killmail.killmail_id}}/" target="_blank" rel="noopener">
+        <img src="{{{ccpImageServerUrl}}}/Type/{{killmail.victim.ship_type_id}}_64.png" class="media-object pull-left {{systemKillboardListImgShip}}" title="killmail">
+    </a>
+
+    {{#killmail.victim.character_id}}
+    <a href="{{{zKillboardUrl}}}/character/{{killmail.victim.character_id}}/" target="_blank" rel="noopener">
+        <img src="{{{ccpImageServerUrl}}}/Character/{{killmail.victim.character_id}}_32.jpg" class="media-object pull-left {{systemKillboardListImgChar}}" title="pilot KB">
+    </a>
+    {{/killmail.victim.character_id}}
+    {{^killmail.victim.character_id}}
+    <a href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" target="_blank" rel="noopener">
+        <img src="{{{ccpImageServerUrl}}}/Corporation/{{killmail.victim.corporation_id}}_32.jpg" class="media-object pull-left {{systemKillboardListImgChar}}" title="corporation KB">
+    </a>
+    {{/killmail.victim.character_id}}
+
+    <div class="media-body pull-right text-right">
+        <h5 class="media-heading">
+            <small>{{#dateFormat}}{{killmail.killmail_time}}{{/dateFormat}}</small>
+        </h5>
+        <h3 class="media-heading">
+            <small class="txt-color txt-color-green">{{#iskFormat}}{{zkb.totalValue}}{{/iskFormat}}</small>
+        </h3>
+    </div>
+
+    <div class="media-body">
+        <h5 class="media-heading">
+            <a href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" title="corporation KB" target="_blank" rel="noopener">
+                <img src="{{{ccpImageServerUrl}}}/Corporation/{{killmail.victim.corporation_id}}_32.png" class="{{systemKillboardListImgCorp}}">
+            </a>
+        </h5>
+        {{#killmail.victim.alliance_id}}
+        <h5 class="media-heading">
+            <a href="{{{zKillboardUrl}}}/alliance/{{killmail.victim.alliance_id}}/" title="alliance KB" target="_blank" rel="noopener">
+                <img src="{{{ccpImageServerUrl}}}/Alliance/{{killmail.victim.alliance_id}}_32.png" class="{{systemKillboardListImgAlly}}">
+            </a>
+        </h5>
+        {{/killmail.victim.alliance_id}}
+    </div>
+</li>
