@@ -23,6 +23,7 @@
     "php-64bit": ">=7.0",
     "ext-curl": "*",
     "ext-json": "*",
+    "ext-mbstring": "*",
     "ext-ctype": "*",
     "ext-zmq": ">=1.1.3",
     "react/zmq": "0.3.*",

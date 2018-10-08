@@ -25,37 +25,40 @@ requirejs.config({
         admin: './app/admin',                                           // initial start "admin page" view
         notification: './app/notification',                             // "notification" view
 
-        jquery: 'lib/jquery-3.3.1.min',                                 // v3.3.1 jQuery
-        bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript
-        text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
-        mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io
-        localForage: 'lib/localforage.min',                             // v1.4.2 localStorage library - https://mozilla.github.io/localForage
-        velocity: 'lib/velocity.min',                                   // v1.5.1 animation engine - http://julian.com/research/velocity
-        velocityUI: 'lib/velocity.ui.min',                              // v5.2.0 plugin for velocity - http://julian.com/research/velocity/#uiPack
-        slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars
-        jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
-        farahey: 'lib/farahey-0.5',                                     // v0.5 jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
-        customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5 Custom scroll bars - http://manos.malihu.gr
-        mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13 Mousewheel - https://github.com/jquery/jquery-mousewheel
-        xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing
-        morris: 'lib/morris.min',                                       // v0.5.1 Morris.js - graphs and charts
-        raphael: 'lib/raphael-min',                                     // v2.1.2 Raphaël - required for morris (dependency)
-        bootbox: 'lib/bootbox.min',                                     // v4.4.0 Bootbox.js - custom dialogs - http://bootboxjs.com
-        easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6 Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
-        peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1 Inline Chart - http://benpickles.github.io/peity/
-        dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1 Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
-        hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.9.0 Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
-        fullScreen: 'lib/jquery.fullscreen.min',                        // v0.6.0 Full screen mode - https://github.com/private-face/jquery.fullscreen
-        select2: 'lib/select2.min',                                     // v4.0.3 Drop Down customization - https://select2.github.io
-        validator: 'lib/validator.min',                                 // v0.10.1 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
-        lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1 SVG line animation plugin - http://lazylinepainter.info
-        blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3 Image Gallery - https://github.com/blueimp/Gallery
-        blueImpGalleryHelper: 'lib/blueimp-helper',                     // helper function for Blue Imp Gallery
-        blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.4.2 Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
-        bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.5 Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
-        bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0 Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
-        lazyload: 'lib/jquery.lazyload.min',                            // v1.9.5 LazyLoader images - http://www.appelsiini.net/projects/lazyload
-        sortable: 'lib/sortable.min',                                   // v1.6.0 Sortable - drag&drop reorder - https://github.com/rubaxa/Sortable
+        jquery: 'lib/jquery-3.3.1.min',                                 // v3.3.1   jQuery
+        bootstrap: 'lib/bootstrap.min',                                 // v3.3.0   Bootstrap js code - http://getbootstrap.com/javascript
+        text: 'lib/requirejs/text',                                     // v2.0.12  A RequireJS/AMD loader plugin for loading text resources.
+        mustache: 'lib/mustache.min',                                   // v1.0.0   Javascript template engine - http://mustache.github.io
+        localForage: 'lib/localforage.min',                             // v1.4.2   localStorage library - https://mozilla.github.io/localForage
+        velocity: 'lib/velocity.min',                                   // v1.5.1   animation engine - http://julian.com/research/velocity
+        velocityUI: 'lib/velocity.ui.min',                              // v5.2.0   plugin for velocity - http://julian.com/research/velocity/#uiPack
+        slidebars: 'lib/slidebars',                                     // v0.10    Slidebars - side menu plugin http://plugins.adchsm.me/slidebars
+        jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6   jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
+        farahey: 'lib/farahey-0.5',                                     // v0.5     jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
+        customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5   Custom scroll bars - http://manos.malihu.gr
+        mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13  Mousewheel - https://github.com/jquery/jquery-mousewheel
+        xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1   X-editable - in placed editing
+        morris: 'lib/morris.min',                                       // v0.5.1   Morris.js - graphs and charts
+        raphael: 'lib/raphael-min',                                     // v2.1.2   Raphaël - required for morris (dependency)
+        bootbox: 'lib/bootbox.min',                                     // v4.4.0   Bootbox.js - custom dialogs - http://bootboxjs.com
+        easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
+        peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1   Inline Chart - http://benpickles.github.io/peity/
+        dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1     Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
+        hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.9.0   Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
+        fullScreen: 'lib/jquery.fullscreen.min',                        // v0.6.0   Full screen mode - https://github.com/private-face/jquery.fullscreen
+        select2: 'lib/select2.min',                                     // v4.0.3   Drop Down customization - https://select2.github.io
+        validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
+        lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1   SVG line animation plugin - http://lazylinepainter.info
+        blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3  Image Gallery - https://github.com/blueimp/Gallery
+        blueImpGalleryHelper: 'lib/blueimp-helper',                     //          helper function for Blue Imp Gallery
+        blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.4.2   Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
+        bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.5   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
+        bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0   Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
+        lazyload: 'lib/jquery.lazyload.min',                            // v1.9.5   LazyLoader images - http://www.appelsiini.net/projects/lazyload
+        sortable: 'lib/sortable.min',                                   // v1.6.0   Sortable - drag&drop reorder - https://github.com/rubaxa/Sortable
+
+        'summernote.loader': './app/summernote.loader',                 // v0.8.10  Summernote WYSIWYG editor -https://summernote.org
+        'summernote': 'lib/summernote/summernote.min',
 
         // header animation
         easePack: 'lib/EasePack.min',
@@ -135,44 +138,47 @@ requirejs.config({
             }
         },
         pnotify: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         easyPieChart: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         peityInlineChart: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         dragToSelect: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         hoverIntent: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         fullScreen: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         select2: {
-            deps : ['jquery', 'mousewheel'],
+            deps: ['jquery', 'mousewheel'],
             exports: 'Select2'
         },
         validator: {
-            deps : ['jquery', 'bootstrap']
+            deps: ['jquery', 'bootstrap']
         },
         lazylinepainter: {
-            deps : ['jquery', 'bootstrap']
+            deps: ['jquery', 'bootstrap']
         },
         blueImpGallery: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         bootstrapConfirmation: {
-            deps : ['bootstrap']
+            deps: ['bootstrap']
         },
         bootstrapToggle: {
-            deps : ['jquery']
+            deps: ['jquery']
         },
         lazyload: {
-            deps : ['jquery']
+            deps: ['jquery']
+        },
+        summernote: {
+            deps: ['jquery']
         }
     }
 });

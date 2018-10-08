@@ -109,6 +109,7 @@
 .pf-popover-character{
   .table>tbody>tr>td{
     border: none;
+    white-space: nowrap;
 
     &:first-child + td{
       // 2nd column

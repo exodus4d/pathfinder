@@ -31,9 +31,7 @@ a, .pf-link{
   }
 }
 
-// emphasized text
 em{
-
   font-style: italic;
 
   &.pf-brand{
@@ -47,6 +45,10 @@ em{
 
 .pf-font-line-through{
   text-decoration: line-through;
+}
+
+.no-scroll{
+  overflow: hidden;
 }
 
 .no-padding{
@@ -768,6 +770,23 @@ table{
     margin-bottom: 10px;  // same as .pf-module -> no UI jump
   }
 
+  .pf-module-control-area{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    min-height: inherit;
+
+    &:hover{
+      .fa-sync{
+        @include transform(rotateZ(720deg));
+      }
+    }
+
+    .fa-sync{
+      @include transition(transform 1.6s ease-out);
+    }
+  }
 }
 
 // User status ====================================================================================

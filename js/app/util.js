@@ -25,6 +25,9 @@ define([
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
 
+        // page
+        noScrollClass: 'no-scroll',
+
         // form
         formEditableFieldClass: 'pf-editable',                                  // class for all xEditable fields
         formErrorContainerClass: 'pf-dialog-error-container',                   // class for "error" containers in dialogs
@@ -497,6 +500,8 @@ define([
         let data = {};
 
         if(
+            tooltipData.created &&
+            tooltipData.updated &&
             tooltipData.created.character &&
             tooltipData.updated.character
         ){
@@ -522,39 +527,41 @@ define([
                 createdStatusClass: statusCreatedClass,
                 updatedStatusClass: statusUpdatedClass
             };
-        }
 
-        let defaultOptions = {
-            placement: 'top',
-            html: true,
-            trigger: 'hover',
-            container: 'body',
-            title: 'Created / Updated',
-            delay: {
-                show: 150,
-                hide: 0
-            }
-        };
-
-        options = $.extend({}, defaultOptions, options);
-
-        return this.each(function(){
-            let element = $(this);
-
-            requirejs(['text!templates/tooltip/character_info.html', 'mustache'], (template, Mustache) => {
-                let content = Mustache.render(template, data);
-
-                element.popover(options);
-
-                // set new popover content
-                let popover = element.data('bs.popover');
-                popover.options.content = content;
-
-                if(options.show){
-                    element.popover('show');
+            let defaultOptions = {
+                placement: 'top',
+                html: true,
+                trigger: 'hover',
+                container: 'body',
+                title: 'Created / Updated',
+                delay: {
+                    show: 150,
+                    hide: 0
                 }
+            };
+
+            options = $.extend({}, defaultOptions, options);
+
+            return this.each(function(){
+                let element = $(this);
+
+                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], (template, Mustache) => {
+                    let content = Mustache.render(template, data);
+
+                    element.popover(options);
+
+                    // set new popover content
+                    let popover = element.data('bs.popover');
+                    popover.options.content = content;
+
+                    if(options.show){
+                        element.popover('show');
+                    }
+                });
             });
-        });
+        }else{
+            return this;
+        }
     };
 
     /**
@@ -778,9 +785,7 @@ define([
                 default: console.error('insertElement: %s is not specified!', defaultOptions.insertElement);
             }
 
-            //containerElement.children().first().velocity('stop').velocity('fadeIn');
             $('#' + defaultOptions.messageId).velocity('stop').velocity('fadeIn');
-
         });
     };
 
@@ -1074,7 +1079,12 @@ define([
                 callbacks: {
                     alwaysTriggerOffsets: false,    // only trigger callback.onTotalScroll() once
                     onTotalScrollOffset: 300,       // trigger callback.onTotalScroll() 100px before end
-                    onTotalScroll: function(a){
+                    onInit: function(){
+                        // disable page scroll -> otherwise page AND customScrollbars will scroll
+                        // -> this is because the initPassiveEvents() delegates the mouseWheel events
+                        togglePageScroll(false);
+                    },
+                    onTotalScroll: function(){
                         // we want to "trigger" Select2´s 'scroll' event
                         // in order to make its "infinite scrolling" function working
                         this.mcs.content.find(':first-child').trigger('scroll');
@@ -1117,6 +1127,10 @@ define([
             // the only way to prevent this is to remove the element
             // https://stackoverflow.com/questions/17995057/prevent-select2-from-autmatically-focussing-its-search-input-when-dropdown-is-op
             $(this).parents('.editableform').find(this).next().find('.select2-selection').remove();
+
+            // re-enable page scroll -> might be disabled before by mCustomScrollbar onInit() event
+            // -> in case there is a custom <select> with scrollable options
+            togglePageScroll(true);
         });
     };
 
@@ -1136,6 +1150,14 @@ define([
         // loading spinner template
         $.fn.editableform.loading =
             '<div class="editableform-loading"><i class="fas fa-lg fa-sync fa-spin"></i></div>';
+    };
+
+    /**
+     * prevent page from scrolling
+     * @param enable
+     */
+    let togglePageScroll = (enable = true) => {
+        $('html').toggleClass(config.noScrollClass, !enable);
     };
 
     /**
@@ -1759,7 +1781,7 @@ define([
     /**
      * get a HTML table with system effect information
      * e.g. for popover
-     * @param data
+     * @param effects
      * @returns {string}
      */
     let getSystemEffectTable = effects => {
@@ -2786,6 +2808,31 @@ define([
     };
 
     /**
+     * HTML encode string
+     * @param value
+     * @returns {jQuery}
+     */
+    let htmlEncode = value => $('<div>').text(value).html();
+
+    /**
+     * HTML decode string
+     * @param value
+     * @returns {jQuery}
+     */
+    let htmlDecode = value => $('<div>').html(value).text();
+
+    /**
+     * checks if html is valid
+     * -> see https://stackoverflow.com/a/15458968/4329969
+     * @param html
+     * @returns {boolean}
+     */
+    let isValidHtml = html => {
+        let doc = new DOMParser().parseFromString(html, 'text/html');
+        return Array.from(doc.body.childNodes).some(node => node.nodeType === 1);
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -2983,6 +3030,9 @@ define([
         singleDoubleClick: singleDoubleClick,
         getTableId: getTableId,
         getDataTableInstance: getDataTableInstance,
+        htmlEncode: htmlEncode,
+        htmlDecode: htmlDecode,
+        isValidHtml: isValidHtml,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

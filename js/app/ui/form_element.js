@@ -333,11 +333,14 @@ define([
                 dropdownParent: selectElement.parents('.modal-body'),
                 minimumInputLength: 3,
                 templateResult: formatResultData,
-                placeholder: 'System name',
+                placeholder: 'Name or ID',
                 allowClear: true,
                 maximumSelectionLength: options.maxSelectionLength
             }).on('change', function(e){
                 // select changed
+                if(options.onChange){
+                    options.onChange(parseInt($(this).val()) || 0);
+                }
             }).on('select2:open', function(){
                 // clear selected system (e.g. default system)
                 // => improves usability (not necessary). There is a small "x" if field can be cleared manually

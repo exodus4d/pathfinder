@@ -36,18 +36,15 @@
 <div class="row">
 
     {{! info text ================================================================================================ }}
-    <div class="col-xs-12 col-sm-7">
-        <div class="pf-dynamic-area pf-system-info-description-area">
+    <div class="col-xs-12 col-sm-9">
+        <div class="pf-dynamic-area {{descriptionAreaClass}}">
+            <div class="{{descriptionTextareaClass}}"></div>
             <i class="fas fa-fw fa-lg fa-pen pull-right {{moduleHeadlineIconClass}} {{descriptionButtonClass}}" data-toggle="tooltip" title="edit description"></i>
-
-            <div class="{{tableToolsActionClass}}">
-                <a href="#" class="{{descriptionTextareaClass}}"></a>
-            </div>
         </div>
     </div>
 
     {{! info table ================================================================================================ }}
-    <div class="col-xs-12 col-sm-5">
+    <div class="col-xs-12 col-sm-3">
 
         <span data-toggle="tooltip" title="status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
             {{systemStatusLabel}}
@@ -59,7 +56,7 @@
                 <thead>
                 <tr>
                     <th>Name</th>
-                    <th class="text-right">
+                    <th class="text-right pf-system-info-name-cell">
                         {{#system.shattered}}
                             <i class="fas fa-fw fa-skull {{shatteredClass}}" data-toggle="tooltip" title="shattered"></i>&nbsp;
                         {{/system.shattered}}

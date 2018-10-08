@@ -1,0 +1,57 @@
+// custom styles for Summernote WYSIWYG editor
+
+.panel-heading{
+  &.note-toolbar{
+    background-color: $gray-dark;
+
+    .dropdown-toggle>i+span{
+      margin-left: 3px; // some more spacing (sugar)
+    }
+
+    .dropdown-menu{
+      > .note-btn-group:first-child{
+        margin-bottom: 3px; // some more spacing (sugar)
+      }
+    }
+  }
+}
+
+.note-editor{
+  &.note-frame{
+    border: none;
+    background-color: transparent;
+    margin-bottom: 0;
+
+    .note-editing-area{
+      .note-editable{
+        color: $gray-light;
+        background-color: transparent;
+        will-change: height;
+        border: 1px solid transparent; // overwrite form-control default
+
+        &.has-error{
+          border-color: $red;
+        }
+      }
+    }
+
+    .note-statusbar{
+      background-color: $gray-dark;
+      padding: 1px 0;
+      border-top: 0;
+
+      .note-resizebar{
+        &:hover{
+          .note-icon-bar{
+            border-top: 1px solid $orange;
+          }
+        }
+
+        .note-icon-bar{
+          border-top: 1px solid $gray-light;
+          @include transition(border-top 0.15s ease-out);
+        }
+      }
+    }
+  }
+}

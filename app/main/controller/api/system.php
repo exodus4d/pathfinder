@@ -10,6 +10,7 @@ namespace Controller\Api;
 
 use Controller;
 use Model;
+use Exception;
 
 class System extends Controller\AccessController {
 
@@ -79,24 +80,34 @@ class System extends Controller\AccessController {
             }
 
             if( !is_null($systemModel) ){
-                // set/update system custom data
-                $systemModel->copyfrom($systemData, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
+                try{
+                    // set/update system custom data
+                    $systemModel->copyfrom($systemData, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
 
-                if($systemModel->save($activeCharacter)){
-                    // get data from "fresh" model (e.g. some relational data has changed: "statusId")
-                    /**
-                     * @var $newSystemModel Model\SystemModel
-                     */
-                    $newSystemModel = Model\BasicModel::getNew('SystemModel');
-                    $newSystemModel->getById( $systemModel->_id, 0);
-                    $newSystemModel->clearCacheData();
-                    $return->systemData = $newSystemModel->getData();
+                    if($systemModel->save($activeCharacter)){
+                        // get data from "fresh" model (e.g. some relational data has changed: "statusId")
+                        /**
+                         * @var $newSystemModel Model\SystemModel
+                         */
+                        $newSystemModel = Model\BasicModel::getNew('SystemModel');
+                        $newSystemModel->getById( $systemModel->_id, 0);
+                        $newSystemModel->clearCacheData();
+                        $return->systemData = $newSystemModel->getData();
 
-                    // broadcast map changes
-                    $this->broadcastMapData($newSystemModel->mapId);
-                }else{
-                    $return->error = $systemModel->getErrors();
+                        // broadcast map changes
+                        $this->broadcastMapData($newSystemModel->mapId);
+                    }else{
+                        $return->error = $systemModel->getErrors();
+                    }
+                }catch(Exception\ValidationException $e){
+                    $validationError = (object) [];
+                    $validationError->type = 'error';
+                    $validationError->field = $e->getField();
+                    $validationError->message = $e->getMessage();
+                    $return->error[] = $validationError;
                 }
+
+
             }
         }
 
@@ -273,13 +284,14 @@ class System extends Controller\AccessController {
         $requestData = (array)$f3->get('POST');
         $mapId = (int)$requestData['mapId'];
         $systemId = (int)$requestData['systemId'];
+        $isCcpId = (bool)$requestData['isCcpId'];
         $activeCharacter = $this->getCharacter();
 
         $return = (object) [];
 
         if(
             !is_null($map = $activeCharacter->getMap($mapId)) &&
-            !is_null($system = $map->getSystemById($systemId))
+            !is_null($system = $isCcpId ? $map->getSystemByCCPId($systemId) : $map->getSystemById($systemId))
         ){
             $return->system = $system->getData();
             $return->system->signatures = $system->getSignaturesData();

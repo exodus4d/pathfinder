@@ -275,7 +275,8 @@ define([
                 // exclude some HTML Tags from watcher
                 if(
                     e.target.tagName !== 'INPUT' &&
-                    e.target.tagName !== 'TEXTAREA'
+                    e.target.tagName !== 'TEXTAREA' &&
+                    !e.target.classList.contains('note-editable')       // Summerstyle editor
                 ){
                     let key = e.key.toUpperCase();
                     map[key] = true;

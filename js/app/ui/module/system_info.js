@@ -6,9 +6,8 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'app/map/util'
-], ($, Init, Util, Render, MapUtil) => {
+], ($, Init, Util, MapUtil) => {
     'use strict';
 
     let config = {
@@ -38,50 +37,55 @@ define([
         systemInfoWormholeClass: 'pf-system-info-wormhole-',                    // class prefix for static wormhole element
 
         // description field
-        descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
+        descriptionAreaClass: 'pf-system-info-description-area',                // class for "description" area
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
-        moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
-        tableToolsActionClass: 'pf-table-tools-action',                         // class for "edit" action
-
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
-        descriptionTextareaCharCounter: 'pf-form-field-char-count',             // class for "character counter" element for form field
 
         // fonts
-        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
+        fontTriglivianClass: 'pf-triglivian',                                   // class for "Triglivian" names (e.g. Abyssal systems)
+
+        // Summernote
+        defaultBgColor: '#e2ce48'
     };
-
-    // disable Module update temporary (in case e.g. textarea is currently active)
-    let disableModuleUpdate = false;
-
-    // animation speed values
-    let animationSpeedToolbarAction = 200;
 
     // max character length for system description
-    let maxDescriptionLength = 512;
+    let maxDescriptionLength = 9000;
 
     /**
-     * shows the tool action element by animation
-     * @param toolsActionElement
+     * save system (description)
+     * @param requestData
+     * @param context
+     * @param callback
      */
-    let showToolsActionElement = (toolsActionElement) => {
-        toolsActionElement.velocity('stop').velocity({
-            opacity: 1,
-            height: '100%'
-        },{
-            duration: animationSpeedToolbarAction,
-            display: 'block',
-            visibility: 'visible'
-        });
-    };
+    let saveSystem = (requestData, context, callback) => {
+        context.descriptionArea.showLoadingAnimation();
 
-    /**
-     * hides the tool action element by animation
-     * @param toolsActionElement
-     */
-    let hideToolsActionElement = (toolsActionElement) => {
-        toolsActionElement.velocity('stop').velocity('reverse', {
-            display: 'none',
-            visibility: 'hidden'
+        $.ajax({
+            type: 'POST',
+            url: Init.path.saveSystem,
+            data: requestData,
+            dataType: 'json',
+            context: context
+        }).done(function(responseData){
+            let newSystemData = responseData.systemData;
+
+            if( !$.isEmptyObject(newSystemData) ){
+                callback(newSystemData);
+            }
+
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(let error of responseData.error){
+                    Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
+                }
+            }
+        }).fail(function(jqXHR, status, error){
+            let reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
+        }).always(function(){
+            this.descriptionArea.hideLoadingAnimation();
         });
     };
 
@@ -93,8 +97,24 @@ define([
      */
     let updateModule = (moduleElement, systemData) => {
         let systemId = moduleElement.data('id');
+        let updated = moduleElement.data('updated');
 
-        if(systemId === systemData.id){
+        if(
+            systemId === systemData.id &&
+            updated !== systemData.updated.updated
+        ){
+            let setUpdated = true;
+
+            // created/updated tooltip --------------------------------------------------------------------------------
+            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
+
+            let tooltipData = {
+                created: systemData.created,
+                updated: systemData.updated
+            };
+
+            nameRowElement.addCharacterInfoTooltip( tooltipData );
+
             // update system status -----------------------------------------------------------------------------------
             let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
             let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
@@ -112,45 +132,33 @@ define([
 
             // update description textarea ----------------------------------------------------------------------------
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
-            let description = descriptionTextareaElement.editable('getValue', true);
+            if(descriptionTextareaElement.length){
+                let description = descriptionTextareaElement.html();
+                if(description !== systemData.description){
+                    // description has changed
+                    if(typeof descriptionTextareaElement.data().summernote === 'object'){
+                        // "Summernote" editor is currently open
+                        setUpdated = false;
+                    }else{
+                        // not open
+                        let newDescription = systemData.description;
+                        if( !Util.isValidHtml(newDescription) ){
+                            // try to convert raw text into valid html
+                            newDescription = newDescription.replace(/(\r\n|\n|\r)/g, '<br>');
+                            newDescription = '<p>' + newDescription + '</p>';
+                        }
 
-            if(
-                !disableModuleUpdate &&                 // don´t update if field is active
-                description !== systemData.description
-            ){
-                // description changed
-                let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
-
-                // set new value
-                descriptionTextareaElement.editable('setValue', systemData.description);
-
-                let actionElement = descriptionButton.siblings('.' + config.tableToolsActionClass);
-
-                if(systemData.description.length === 0){
-                    // show/activate description field
-                    // show button if value is empty
-                    descriptionButton.show();
-                    hideToolsActionElement(actionElement);
-                }else{
-                    // hide/disable description field
-                    // hide tool button
-                    descriptionButton.hide();
-                    showToolsActionElement(actionElement);
+                        descriptionTextareaElement.html(newDescription);
+                    }
                 }
             }
 
-            // created/updated tooltip --------------------------------------------------------------------------------
-            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
-
-            let tooltipData = {
-                created: systemData.created,
-                updated: systemData.updated
-            };
-
-            nameRowElement.addCharacterInfoTooltip( tooltipData );
+            if(setUpdated){
+                moduleElement.data('updated', systemData.updated.updated);
+            }
         }
 
-        moduleElement.find('.' + config.descriptionArea).hideLoadingAnimation();
+        moduleElement.find('.' + config.descriptionAreaClass).hideLoadingAnimation();
     };
 
     /**
@@ -181,188 +189,7 @@ define([
         let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
         let effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
 
-        // systemInfo template config
-        let moduleConfig = {
-            name: 'modules/system_info',
-            position: moduleElement,
-            link: 'append',
-            functions: {
-                after: function(conf){
-                    let tempModuleElement = conf.position;
-                    // lock "description" field until first update
-                    tempModuleElement.find('.' + config.descriptionArea).showLoadingAnimation();
-                    // "add description" button
-                    let descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
-                    // description textarea element
-                    let descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
-
-                    // init description textarea
-                    descriptionTextareaElement.editable({
-                        url: Init.path.saveSystem,
-                        dataType: 'json',
-                        pk: systemData.id,
-                        type: 'textarea',
-                        mode: 'inline',
-                        emptytext: '',
-                        onblur: 'cancel',
-                        showbuttons: true,
-                        value: '',  // value is set by trigger function updateModule()
-                        rows: 5,
-                        name: 'description',
-                        inputclass: config.descriptionTextareaElementClass,
-                        tpl: '<textarea maxlength="' + maxDescriptionLength + '"></textarea>',
-                        params: function(params){
-                            params.mapData = {
-                                id: mapId
-                            };
-
-                            params.systemData = {};
-                            params.systemData.id = params.pk;
-                            params.systemData[params.name] = params.value;
-
-                            // clear unnecessary data
-                            delete params.pk;
-                            delete params.name;
-                            delete params.value;
-
-                            return params;
-                        },
-                        validate: function(value){
-                            if(value.length > 0 && $.trim(value).length === 0){
-                                return {newValue: ''};
-                            }
-                        },
-                        success: function(response, newValue){
-                            Util.showNotify({title: 'System updated', text: 'Name: ' + response.name, type: 'success'});
-                        },
-                        error: function(jqXHR, newValue){
-                            let reason = '';
-                            let status = '';
-                            if(jqXHR.name){
-                                // save error new sig (mass save)
-                                reason = jqXHR.name;
-                                status = 'Error';
-                            }else{
-                                reason = jqXHR.responseJSON.text;
-                                status = jqXHR.status;
-                            }
-
-                            Util.showNotify({title: status + ': save system information', text: reason, type: 'warning'});
-                            $(document).setProgramStatus('problem');
-                            return reason;
-                        }
-                    });
-
-                    // on xEditable open ------------------------------------------------------------------------------
-                    descriptionTextareaElement.on('shown', function(e, editable){
-                        let textarea = editable.input.$input;
-
-                        // disable module update until description field is open
-                        disableModuleUpdate = true;
-
-                        // create character counter
-                        let charCounter = $('<kbd>', {
-                            class: [config.descriptionTextareaCharCounter, 'txt-color', 'text-right'].join(' ')
-                        });
-                        textarea.parent().next().append(charCounter);
-
-                        // update character counter
-                        Util.updateCounter(textarea, charCounter, maxDescriptionLength);
-
-                        textarea.on('keyup', function(){
-                            Util.updateCounter($(this), charCounter, maxDescriptionLength);
-                        });
-                    });
-
-                    // on xEditable close -----------------------------------------------------------------------------
-                    descriptionTextareaElement.on('hidden', function(e){
-                        let value = $(this).editable('getValue', true);
-                        if(value.length === 0){
-                            // show button if value is empty
-                            hideToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
-                            descriptionButton.show();
-                        }
-
-                        // enable module update
-                        disableModuleUpdate = false;
-                    });
-
-                    // enable xEditable field on Button click ---------------------------------------------------------
-                    descriptionButton.on('click', function(e){
-                        e.stopPropagation();
-                        let descriptionButton = $(this);
-
-                        // hide tool buttons
-                        descriptionButton.hide();
-
-                        // show field *before* showing the element
-                        descriptionTextareaElement.editable('show');
-
-                        showToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
-                    });
-
-                    // init tooltips ----------------------------------------------------------------------------------
-                    let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
-                    tooltipElements.tooltip({
-                        container: 'body',
-                        placement: 'top'
-                    });
-
-                    // init system effect popover ---------------------------------------------------------------------
-                    tempModuleElement.find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
-
-                    // init planets popover ---------------------------------------------------------------------------
-                    tempModuleElement.find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
-
-                    // init static wormhole information ---------------------------------------------------------------
-                    for(let staticData of staticsData){
-                        let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
-                        staticRowElement.addWormholeInfoTooltip(staticData);
-                    }
-
-                    // copy system deeplink URL -----------------------------------------------------------------------
-                    tempModuleElement.find('.' + config.urlLinkClass).on('click', function(){
-                        let mapUrl = $(this).attr('data-url');
-                        Util.copyToClipboard(mapUrl).then(payload => {
-                            if(payload.data){
-                                Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
-                            }
-                        });
-                    });
-
-                    // constellation popover --------------------------------------------------------------------------
-                    tempModuleElement.find('a.popup-ajax').popover({
-                        html: true,
-                        trigger: 'hover',
-                        placement: 'top',
-                        delay: 200,
-                        container: 'body',
-                        content: function(){
-                            return details_in_popup(this);
-                        }
-                    });
-
-                    function details_in_popup(popoverElement){
-                        popoverElement = $(popoverElement);
-                        let popover = popoverElement.data('bs.popover');
-
-                        $.ajax({
-                            url: popoverElement.data('url'),
-                            success: function(data){
-                                let systemEffectTable = Util.getSystemsInfoTable( data.systemsData );
-                                popover.options.content = systemEffectTable;
-                                // reopen popover (new content size)
-                                popover.show();
-                            }
-                        });
-                        return 'Loading...';
-                    }
-
-                }
-            }
-        };
-
-        let moduleData = {
+        let data = {
             system: systemData,
             static: staticsData,
             moduleHeadlineIconClass: config.moduleHeadlineIconClass,
@@ -385,9 +212,8 @@ define([
             trueSecClass: Util.getTrueSecClassForSystem( systemData.trueSec ),
             effectName: effectName,
             effectClass: effectClass,
-            moduleToolbarClass: config.moduleElementToolbarClass,
+            descriptionAreaClass: config.descriptionAreaClass,
             descriptionButtonClass: config.addDescriptionButtonClass,
-            tableToolsActionClass: config.tableToolsActionClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
             systemNameClass: () => {
                 return (val, render) => {
@@ -409,7 +235,189 @@ define([
             systemUrlLinkClass: config.urlLinkClass
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        requirejs(['text!templates/modules/system_info.html', 'mustache', 'summernote.loader'], (template, Mustache, Summernote) => {
+            let content = Mustache.render(template, data);
+            moduleElement.append(content);
+
+            let descriptionArea = moduleElement.find('.' + config.descriptionAreaClass);
+            let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
+            let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
+
+            // lock "description" field until first update
+            descriptionArea.showLoadingAnimation();
+
+            // WYSIWYG init on button click ---------------------------------------------------------------------------
+            descriptionButton.on('click', function(e){
+                e.stopPropagation();
+                let descriptionButton = $(this);
+                // hide edit button
+                descriptionButton.hide();
+
+                // content has changed
+                let descriptionChanged = false;
+
+                Summernote.initSummernote(descriptionTextareaElement, {
+                    height: 75,                 // set editor height
+                    minHeight: 75,              // set minimum height of editor
+                    maxHeight: 500,             // set maximum height of editor
+                    focus: true,
+                    placeholder: false,
+                    maxTextLength: maxDescriptionLength,
+                    disableDragAndDrop: true,
+                    shortcuts: false,
+                    toolbar: [
+                        ['style', ['style']],
+                        ['font', ['underline', 'strikethrough', 'clear']],
+                        ['color', ['color']],
+                        ['para', ['ul', 'ol', 'paragraph']],
+                        ['table', ['table']],
+                        ['insert', ['link', 'hr']],
+                        //['view', ['codeview', 'help']],
+                        ['misc', ['undo', 'redo']],
+                        ['lengthField'],
+                        ['customBtn', ['discardBtn', 'saveBtn']]
+                    ],
+                    buttons: {
+                        saveBtn: context => {
+                            let ui = $.summernote.ui;
+                            let button = ui.button({
+                                contents: '<i class="fas fa-fw fa-check"/>',
+                                container: 'body',
+                                className: ['btn-success', 'btn-save'],
+                                click: e => {
+                                    context.layoutInfo.editable.removeClass('has-error');
+
+                                    // save changes
+                                    if(descriptionChanged){
+                                        let validDescription = true;
+                                        let description = '';
+
+                                        if( context.$note.summernote('isEmpty') ){
+                                            // ... isEmpty -> clear empty default tags as well
+                                            context.$note.summernote('code', '');
+                                        }else{
+                                            description = context.$note.summernote('code');
+                                            if( !Util.isValidHtml(description) ){
+                                                // ... not valid HTML
+                                                validDescription = false;
+                                                context.layoutInfo.editable.addClass('has-error');
+                                                Util.showNotify({title: 'Validation failed', text: 'HTML not valid', type: 'error'});
+                                            }
+                                        }
+
+                                        if(validDescription){
+                                            // ... valid -> save()
+                                            saveSystem({
+                                                mapData: {
+                                                    id: mapId
+                                                },
+                                                systemData: {
+                                                    id: systemData.id,
+                                                    description: description
+                                                }
+                                            }, {
+                                                descriptionArea: descriptionArea
+                                            }, (systemData) => {
+                                                // .. save callback
+                                                context.$note.summernote('destroy');
+                                                updateModule(moduleElement, systemData);
+                                            });
+                                        }
+                                    }else{
+                                        // ... no changes -> no save()
+                                        context.$note.summernote('destroy');
+                                    }
+                                }
+                            });
+
+                            return button.render();
+                        }
+                    },
+                    callbacks: {
+                        onInit: function(context){
+                            // make editable field a big larger
+                            context.editable.css('height', '150px');
+
+                            // set default background color
+                            // -> could not figure out how to set by API as default color
+                            context.toolbar.find('.note-current-color-button').attr('data-backcolor', config.defaultBgColor)
+                                .find('.note-recent-color').css('background-color', config.defaultBgColor);
+                        },
+                        onChange: function(contents){
+                            descriptionChanged = true;
+                        },
+                        onPaste: function (e) {
+                            let bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
+                            e.preventDefault();
+
+                            // Firefox fix
+                            setTimeout(() => {
+                                document.execCommand('insertText', false, bufferText);
+                            }, 10);
+                        },
+                        onDestroy: function(context){
+                            descriptionButton.show();
+                        }
+                    }
+                });
+            });
+
+            // init system effect popover -----------------------------------------------------------------------------
+            moduleElement.find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
+
+            // init planets popover -----------------------------------------------------------------------------------
+            moduleElement.find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
+
+            // init static wormhole information -----------------------------------------------------------------------
+            for(let staticData of staticsData){
+                let staticRowElement = moduleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                staticRowElement.addWormholeInfoTooltip(staticData);
+            }
+
+            // copy system deeplink URL -------------------------------------------------------------------------------
+            moduleElement.find('.' + config.urlLinkClass).on('click', function(){
+                let mapUrl = $(this).attr('data-url');
+                Util.copyToClipboard(mapUrl).then(payload => {
+                    if(payload.data){
+                        Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
+                    }
+                });
+            });
+
+            // constellation popover ----------------------------------------------------------------------------------
+            moduleElement.find('a.popup-ajax').popover({
+                html: true,
+                trigger: 'hover',
+                placement: 'top',
+                delay: 200,
+                container: 'body',
+                content: function(){
+                    return details_in_popup(this);
+                }
+            });
+
+            let details_in_popup = popoverElement => {
+                popoverElement = $(popoverElement);
+                let popover = popoverElement.data('bs.popover');
+
+                $.ajax({
+                    url: popoverElement.data('url'),
+                    success: function(data){
+                        popover.options.content = Util.getSystemsInfoTable(data.systemsData);
+                        // reopen popover (new content size)
+                        popover.show();
+                    }
+                });
+                return 'Loading...';
+            };
+
+            // init tooltips ------------------------------------------------------------------------------------------
+            let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip({
+                container: 'body',
+                placement: 'top'
+            });
+        });
 
         return moduleElement;
     };
@@ -418,10 +426,8 @@ define([
      * efore module destroy callback
      * @param moduleElement
      */
-    let beforeDestroy = (moduleElement) => {
-        // remove xEditable description textarea
-        let descriptionTextareaElement = moduleElement.find('.' + config.descriptionTextareaElementClass);
-        descriptionTextareaElement.editable('destroy');
+    let beforeDestroy = moduleElement => {
+        moduleElement.find('.' +  config.descriptionTextareaElementClass).summernote('destroy');
 
         moduleElement.destroyPopover(true);
     };
@@ -433,6 +439,3 @@ define([
         beforeDestroy: beforeDestroy
     };
 });
-
-
-

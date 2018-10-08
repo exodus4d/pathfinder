@@ -94,10 +94,11 @@ class SystemModel extends AbstractMapTrackingModel {
             'activity-log' => true
         ],
         'description' => [
-            'type' => Schema::DT_VARCHAR512,
+            'type' => Schema::DT_TEXT,
             'nullable' => false,
             'default' => '',
-            'activity-log' => true
+            'activity-log' => true,
+            'validate' => true
         ],
         'posX' => [
             'type' => Schema::DT_INT,
@@ -259,6 +260,21 @@ class SystemModel extends AbstractMapTrackingModel {
             $this->throwValidationException($key, 'Validation failed: "' . $key . '" = "' . $val . '"');
         }
 
+        return $valid;
+    }
+
+    /**
+     * @param string $key
+     * @param string $val
+     * @return bool
+     * @throws \Exception\ValidationException
+     */
+    protected function validate_description(string $key, string $val): bool {
+        $valid = true;
+        if(mb_strlen($val) > 9000){
+            $valid = false;
+            $this->throwValidationException($key);
+        }
         return $valid;
     }
 

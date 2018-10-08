@@ -6,28 +6,112 @@
     text-transform: capitalize;
   }
 
+  // system "name" cell should truncate on long names
+  .pf-system-info-name-cell{
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: all;
+  }
+
   // dynamic area specific for the description field
   .pf-system-info-description-area{
     min-height: 124px;
+    padding: 0; // overwrite default "pf-dynamic-area"
 
-    // textarea system description
-    .editable-container{
-      width: 100%;
-      .editableform{
-        width: 100%;
-        .form-group{
-          width: 100%;
-          .editable-input{
-            width: calc(100% - 75px);
-            textarea{
-              width: 100%;
-              max-height: 200px;
-              resize: vertical;
-            }
-          }
-        }
+    .pf-system-info-description-button{
+      position: absolute;
+      right: 10px;
+      top: 13px;
+    }
+
+    .pf-system-info-description{
+      padding: 10px;
+      user-select: text;
+    }
+
+    .note-toolbar{
+      kbd{
+        padding: 3px 4px;
+      }
+
+      .note-customBtn{
+        float: right; // customBtn group should be right
+      }
+
+      @include clearfix(); // because of "floating" right button group
+    }
+  }
+
+  // custom wysiwyg editor styles
+  .pf-system-info-description, .note-editable{
+
+    &>h2:first-child, &>h3:first-child{
+      margin-top: 0 !important;  // no margin if first element
+    }
+
+    h2, h3{
+      &:before{
+        font-family: "Font Awesome 5 Free";
+        content: "\f105";
+        font-weight: bold;
+        display: inline-block;
+        margin-right: 3px;
       }
     }
+
+    h2{
+      font-size: 16px;
+      margin: 15px 0;
+    }
+
+    h3{
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    a{
+      &:after{
+        font-family: "Font Awesome 5 Free";
+        content: "\f35d";
+        font-size: 70%;
+        vertical-align: top;
+        font-weight: bold;
+        display: inline-block;
+        margin-left: 2px;
+      }
+    }
+
+    // custom WYSIWYG style
+    hr{
+      border-top: 1px solid $gray-dark;
+    }
+
+    blockquote {
+      padding: 5px 10px;
+      margin: 0 0 10px;
+      font-size: 13px;
+      border-left: 3px solid $teal;
+    }
+
+    ol, ul{
+      padding-left: 20px;
+    }
+
+    ul{
+      list-style: disc;
+    }
+
+    ol{
+      list-style: decimal;
+    }
+  }
+}
+
+.modal.link-dialog{
+  .checkbox{
+    display: none;  // hide checkbox for "target" link attribute -> always _blank
   }
 }
 
@@ -190,23 +274,19 @@
 // killboard module ========================================================
 .pf-system-killboard-module{
 
-  .pf-system-killboard-graph-kills{
-    width: 100%;
-    height: 100px;
-    position: relative;
-    margin-bottom: 30px;
+  .pf-system-killboard-label-recent{
+    display: none;
   }
 
   .pf-system-killboard-list{
-    padding-bottom: 10px;
-    border-bottom: 1px solid $gray-darker;
+    padding-bottom: 5px;
 
     & > li{
-      margin-left: 0;
+      padding-left: 0;
       overflow: visible;
       min-height: 50px;
       will-change: transform, opacity, margin-left;
-      @include transition( margin-left 0.12s cubic-bezier(0.30, 0.80, 0.80, 1.70));
+      @include transition( padding-left 0.12s cubic-bezier(0.30, 0.80, 0.80, 1.70));
 
       // character headline
       h5{
@@ -269,7 +349,7 @@
         position: absolute;
         z-index: 10;
         left: -18px;
-        top: 15px;
+        top: 16px;
         color: $teal;
         opacity: 0;
         will-change: opacity, left;
@@ -277,14 +357,18 @@
       }
 
       &:hover{
-        margin-left: 10px;
+        padding-left: 10px;
 
         &:before{
           opacity: 1;
-          left: -15px;
+          left: -3px;
         }
       }
     }
+  }
+
+  .pf-module-control-area{
+    margin-bottom: 0;
   }
 }
 
@@ -294,14 +378,6 @@
     display: flex;
     align-items: stretch;
     flex-wrap: wrap;
-  }
-
-  .pf-dynamic-area{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
-    min-height: inherit;
   }
 
   .pf-connection-info-table{

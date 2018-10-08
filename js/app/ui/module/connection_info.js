@@ -30,6 +30,9 @@ define([
         connectionInfoPanelClass: 'pf-connection-info-panel',                                   // class for connection info panels
         connectionInfoPanelId: 'pf-connection-info-panel-',                                     // id prefix for connection info panels
 
+        dynamicAreaClass: 'pf-dynamic-area',                                                    // class for "dynamic" areas
+        controlAreaClass: 'pf-module-control-area',                                             // class for "control" areas
+
         // info table
         moduleTableClass: 'pf-module-table',                                                    // class for module tables
         connectionInfoTableLabelSourceClass: 'pf-connection-info-label-source',                 // class for source label
@@ -107,7 +110,7 @@ define([
      */
     let getInfoPanelControl = (mapId) => {
         let connectionElement = getConnectionElement(mapId, 0).append($('<div>', {
-            class: 'pf-dynamic-area',
+            class: [config.dynamicAreaClass, config.controlAreaClass].join(' '),
             html: '<i class="fas fa-fw fa-plus"></i>&nbsp;add connection&nbsp;&nbsp;<kbd>ctrl</kbd>&nbsp;+&nbsp;<kbd>click</kbd>'
         }));
 
@@ -125,7 +128,7 @@ define([
         let scopeLabel = MapUtil.getScopeInfoForConnection(connectionData.scope, 'label');
 
         let element = $('<div>', {
-            class: 'pf-dynamic-area'
+            class: [config.dynamicAreaClass, config.controlAreaClass].join(' ')
         }).append(
             $('<table>', {
                 class: ['table', 'table-condensed', 'pf-table-fixed', config.moduleTableClass].join(' ')
