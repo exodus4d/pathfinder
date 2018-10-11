@@ -20,7 +20,6 @@ define([
 
     let config = {
         taskDialogId: 'pf-task-dialog',                                                 // id for map "task manager" dialog
-        dialogDynamicAreaClass: 'pf-dynamic-area',                                      // class for dynamic areas
         timestampCounterClass: 'pf-timestamp-counter',                                  // class for "timestamp" counter
         taskDialogStatusAreaClass: 'pf-task-dialog-status',                             // class for "status" dynamic area
         taskDialogLogTableAreaClass: 'pf-task-dialog-table',                            // class for "log table" dynamic area
@@ -83,7 +82,7 @@ define([
         requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache){
             let data = {
                 id: config.taskDialogId,
-                dialogDynamicAreaClass: config.dialogDynamicAreaClass,
+                dialogDynamicAreaClass: Util.config.dynamicAreaClass,
                 taskDialogStatusAreaClass: config.taskDialogStatusAreaClass,
                 taskDialogLogTableAreaClass: config.taskDialogLogTableAreaClass
             };
@@ -218,7 +217,7 @@ define([
                         });
 
                         let graphArea = $('<div>', {
-                            class: config.dialogDynamicAreaClass
+                            class: Util.config.dynamicAreaClass
                         }).append(  graphElement );
 
                         let headline = $('<h4>', {

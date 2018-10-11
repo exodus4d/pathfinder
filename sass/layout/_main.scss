@@ -1018,12 +1018,11 @@ table{
 }
 
 // system effect info dialog ======================================================================
-.pf-system-effect-dialog-wrapper, .pf-jump-info-dialog{
-  .table{
-    margin: 15px 0;
-
-    td{
-      text-transform: capitalize;
+.pf-system-effect-dialog{
+  .clearfix + .col-md-6{
+    margin-top: 10px;
+    + .col-md-6{
+      margin-top: 10px;
     }
   }
 }

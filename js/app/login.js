@@ -582,7 +582,7 @@ define([
          * update all character panels -> set CSS class (e.g. after some panels were added/removed,..)
          */
         let updateCharacterPanels = function(){
-            let characterRows = $('.' + config.characterSelectionClass + ' .pf-dynamic-area').parent();
+            let characterRows = $('.' + config.characterSelectionClass + ' .' + Util.config.dynamicAreaClass).parent();
             let rowClassIdentifier = ((12 / characterRows.length ) <= 3) ? 3 : (12 / characterRows.length);
             $(characterRows).removeClass().addClass('col-sm-' + rowClassIdentifier);
         };
@@ -635,7 +635,7 @@ define([
         // request character data for each character panel
         requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
 
-            $('.' + config.characterSelectionClass + ' .pf-dynamic-area').each(function(){
+            $('.' + config.characterSelectionClass + ' .' + Util.config.dynamicAreaClass).each(function(){
                 let characterElement = $(this);
 
                 characterElement.showLoadingAnimation();

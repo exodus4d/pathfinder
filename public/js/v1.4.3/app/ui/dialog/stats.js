@@ -404,7 +404,7 @@ define([
      */
     let getStatsData = function(requestData, context){
 
-        context.dynamicArea = $('#' + config.statsContainerId + ' .pf-dynamic-area');
+        context.dynamicArea = $('#' + config.statsContainerId + ' .' + Util.config.dynamicAreaClass);
         context.dynamicArea.showLoadingAnimation();
 
         $.ajax({
@@ -806,13 +806,7 @@ define([
                 title: 'Statistics',
                 message: content,
                 size: 'large',
-                show: false,
-                buttons: {
-                    close: {
-                        label: 'close',
-                        className: 'btn-default'
-                    }
-                }
+                show: false
             });
 
             // model events

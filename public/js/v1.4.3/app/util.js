@@ -65,7 +65,8 @@ define([
         mapClass: 'pf-map' ,                                                    // class for all maps
 
         // util
-        userStatusClass: 'pf-user-status',                                       // class for player status
+        userStatusClass: 'pf-user-status',                                      // class for player status
+        dynamicAreaClass: 'pf-dynamic-area',                                    // class for "dynamic" areas
 
         // select2
         select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements

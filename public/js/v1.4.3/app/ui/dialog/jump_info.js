@@ -22,7 +22,7 @@ define([
      * show jump info dialog
      */
     $.fn.showJumpInfoDialog = function(){
-        requirejs(['text!templates/dialog/jump_info.html', 'mustache'], (template, Mustache) => {
+        requirejs(['text!templates/dialog/jump_info.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
             let data = {
                 config: config,
                 wormholes: Object.keys(Init.wormholes).map(function(k){ return Init.wormholes[k]; }), // convert Json to array
