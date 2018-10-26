@@ -9,6 +9,7 @@ define(['jquery'], ($) => {
     let Config = {
         path: {
             img: '/public/img/',                                            // path for images
+            api: '/api/rest',                                               //ajax URL - REST API
             // user API
             getCaptcha: '/api/user/getCaptcha',                             // ajax URL - get captcha image
             getServerStatus: '/api/user/getEveServerStatus',                // ajax URL - get EVE-Online server status

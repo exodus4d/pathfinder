@@ -137,9 +137,9 @@ class ConnectionModel extends AbstractMapTrackingModel {
     /**
      * check object for model access
      * @param CharacterModel $characterModel
-     * @return mixed
+     * @return bool
      */
-    public function hasAccess(CharacterModel $characterModel){
+    public function hasAccess(CharacterModel $characterModel) : bool {
         $access = false;
         if( !$this->dry() ){
             $access = $this->mapId->hasAccess($characterModel);
@@ -149,7 +149,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
 
     /**
      * set default connection type by search route between endpoints
-     * @throws \Exception\PathfinderException
+     * @throws \Exception
      */
     public function setDefaultTypeData(){
         if(
@@ -215,7 +215,6 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @param $pkeys
      * @return bool
      * @throws \Exception\DatabaseException
-     * @throws \Exception\PathfinderException
      */
     public function beforeInsertEvent($self, $pkeys){
         // check for "default" connection type and add them if missing
@@ -266,8 +265,8 @@ class ConnectionModel extends AbstractMapTrackingModel {
 
     /**
      * @param string $action
-     * @return Logging\LogInterface
-     * @throws \Exception\PathfinderException
+     * @return logging\LogInterface
+     * @throws \Exception\ConfigException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
@@ -335,10 +334,6 @@ class ConnectionModel extends AbstractMapTrackingModel {
      */
     public function getLogs(){
         $logs = [];
-        $this->filter('connectionLog', [
-            'active = :active',
-            ':active' => 1
-        ]);
 
         if($this->connectionLog){
             $logs = $this->connectionLog;
@@ -378,19 +373,33 @@ class ConnectionModel extends AbstractMapTrackingModel {
     }
 
     /**
+     * get blank connectionLog model
+     * @return ConnectionLogModel
+     * @throws \Exception
+     */
+    public function getNewLog() : ConnectionLogModel {
+        /**
+         * @var $log ConnectionLogModel
+         */
+        $log = self::getNew('ConnectionLogModel');
+        $log->connectionId = $this;
+        return $log;
+    }
+
+    /**
      * log new mass for this connection
      * @param CharacterLogModel $characterLog
-     * @return $this
+     * @return ConnectionModel
+     * @throws \Exception
      */
-    public function logMass(CharacterLogModel $characterLog){
+    public function logMass(CharacterLogModel $characterLog) : self {
         if( !$characterLog->dry() ){
-            $log = $this->rel('connectionLog');
+            $log = $this->getNewLog();
             $log->shipTypeId = $characterLog->shipTypeId;
             $log->shipTypeName = $characterLog->shipTypeName;
             $log->shipMass = $characterLog->shipMass;
             $log->characterId = $characterLog->characterId->_id;
             $log->characterName = $characterLog->characterId->name;
-            $log->connectionId = $this;
             $log->save();
         }
 

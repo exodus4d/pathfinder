@@ -208,7 +208,6 @@ class Config extends \Prefab {
     /**
      * get SMTP config values
      * @return \stdClass
-     * @throws Exception\PathfinderException
      */
     static function getSMTPConfig(): \stdClass{
         $config             = new \stdClass();
@@ -253,7 +252,6 @@ class Config extends \Prefab {
      * get email for notifications by hive key
      * @param $key
      * @return mixed
-     * @throws Exception\PathfinderException
      */
     static function getNotificationMail($key){
         return self::getPathfinderData('notification' . ($key ? '.' . $key : ''));
@@ -264,7 +262,6 @@ class Config extends \Prefab {
      * -> read from pathfinder.ini
      * @param string $mapType
      * @return mixed
-     * @throws Exception\PathfinderException
      */
     static function getMapsDefaultConfig($mapType = ''){
         if( $mapConfig = self::getPathfinderData('map' . ($mapType ? '.' . $mapType : '')) ){
@@ -380,16 +377,15 @@ class Config extends \Prefab {
     /**
      * @param string $key
      * @return null|mixed
-     * @throws Exception\PathfinderException
      */
     static function getPathfinderData($key = ''){
         $hiveKey = self::HIVE_KEY_PATHFINDER . ($key ? '.' . strtoupper($key) : '');
         $data = null; // make sure it is always defined
         try{
             if( !\Base::instance()->exists($hiveKey, $data) ){
-                throw new Exception\PathfinderException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
+                throw new Exception\ConfigException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
             }
-        }catch (Exception\PathfinderException $e){
+        }catch (Exception\ConfigException $e){
             LogController::getLogger('ERROR')->write($e->getMessage());
         }
 

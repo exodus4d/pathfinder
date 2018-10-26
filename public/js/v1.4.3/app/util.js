@@ -8,6 +8,7 @@ define([
     'conf/signature_type',
     'bootbox',
     'localForage',
+    'lazyload',
     'velocity',
     'velocityUI',
     'customScrollbar',
@@ -70,6 +71,7 @@ define([
 
         // select2
         select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements
+        select2ImageLazyLoadClass: 'pf-select2-image-lazyLoad',
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -1059,6 +1061,9 @@ define([
             // in order to make mCustomScrollbar mouseWheel enable works correctly
             $(resultsWrapper).find('ul.select2-results__options').off('mousewheel');
 
+            // preload images that are not visible yet
+            let lazyLoadImagesOffset = 240;
+
             resultsWrapper.mCustomScrollbar({
                 mouseWheel: {
                     enable: true,
@@ -1085,10 +1090,35 @@ define([
                         // -> this is because the initPassiveEvents() delegates the mouseWheel events
                         togglePageScroll(false);
                     },
+                    onUpdate: function(a){
+                        // whenever the scroll content updates -> init lazyLoad for potential images
+                        $('.' + config.select2ImageLazyLoadClass).lazyload({
+                            container: this,
+                            threshold: lazyLoadImagesOffset,
+                            event: 'pf:lazyLoad'
+                        });
+                    },
                     onTotalScroll: function(){
                         // we want to "trigger" Select2´s 'scroll' event
                         // in order to make its "infinite scrolling" function working
                         this.mcs.content.find(':first-child').trigger('scroll');
+                    },
+                    whileScrolling: function(){
+
+                        // lazy load for images -> reduce number of calculations by % 10
+                        if(0 === this.mcs.top % 10){
+                            let scroller = $(this).find('.mCSB_container');
+                            let scrollerBox = scroller.closest('.mCustomScrollBox');
+
+                            scrollerBox.find('.' + config.select2ImageLazyLoadClass).filter(function(){
+                                let $this = $(this);
+                                if($this.attr('src') === $this.attr('data-original')) return false;
+                                let scrollerTop = scroller.position().top;
+                                let scrollerHeight = scrollerBox.height();
+                                let offset = $this.closest('div').position();
+                                return (offset.top - lazyLoadImagesOffset < scrollerHeight - scrollerTop);
+                            }).trigger('pf:lazyLoad');
+                        }
                     }
                 }
             });
@@ -1108,7 +1138,7 @@ define([
             return wrapper;
         };
 
-        // global open event
+        // global opened event
         $(document).on('select2:open', '.' + config.select2Class, function(e){
             let resultsWrapper = getResultsWrapper(this);
             if(resultsWrapper){
@@ -1495,6 +1525,37 @@ define([
                 toggleGlobalInfoPanel(isMaintenance);
             }
         });
+    };
+
+    /**
+     * global ajax error handler -> handles .fail() requests
+     * @param payload
+     */
+    let handleAjaxErrorResponse = (payload) => {
+        // handle only request errors
+        if(payload.action === 'request'){
+            let jqXHR = payload.data.jqXHR;
+            let reason = '';
+
+            if(jqXHR.responseJSON){
+                // ... valid JSON response
+                let response = jqXHR.responseJSON;
+
+                if(response.error && response.error.length > 0){
+                    // build error notification reason from errors
+                    reason = response.error.map(error => error.status).join('\n');
+
+                    // check if errors might belong to a HTML form -> check "context"
+                    if(payload.context.formElement){
+                        // show form messages e.g. validation errors
+                        payload.context.formElement.showFormMessage(response.error);
+                    }
+                }
+            }else{
+                reason = 'Invalid JSON response';
+            }
+            showNotify({title: jqXHR.status + ': ' + payload.name, text: reason, type: 'error'});
+        }
     };
 
     /**
@@ -2864,7 +2925,7 @@ define([
      * @param url
      * @param params
      */
-    let redirect = (url, params) => {
+    let redirect = (url, params = []) => {
         let currentUrl = document.URL;
 
         if(url !== currentUrl){
@@ -2976,6 +3037,7 @@ define([
         stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
         ajaxSetup: ajaxSetup,
+        handleAjaxErrorResponse: handleAjaxErrorResponse,
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,

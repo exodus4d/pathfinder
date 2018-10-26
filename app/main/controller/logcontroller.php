@@ -163,7 +163,6 @@ class LogController extends \Prefab  {
      * get Logger instance
      * @param string $type
      * @return \Log|null
-     * @throws \Exception\PathfinderException
      */
     public static function getLogger($type){
         $logFiles = Config::getPathfinderData('logfiles');

@@ -414,7 +414,7 @@ class Route extends Controller\AccessController {
      * @param array $mapIds
      * @param array $filterData
      * @return array
-     * @throws \Exception\PathfinderException
+     * @throws \Exception
      */
     public function searchRoute(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
         // search root by ESI API
@@ -439,7 +439,6 @@ class Route extends Controller\AccessController {
      * @param array $filterData
      * @return array
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     private function searchRouteCustom(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
         // reset all previous set jump data
@@ -519,7 +518,6 @@ class Route extends Controller\AccessController {
      * @param array $filterData
      * @return array
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     private function searchRouteESI(int $systemFromId, int $systemToId, int $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
         // reset all previous set jump data
@@ -645,7 +643,6 @@ class Route extends Controller\AccessController {
      * search multiple route between two systems
      * @param \Base $f3
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     public function search($f3){
         $requestData = (array)$f3->get('POST');

@@ -100,14 +100,8 @@ class System extends Controller\AccessController {
                         $return->error = $systemModel->getErrors();
                     }
                 }catch(Exception\ValidationException $e){
-                    $validationError = (object) [];
-                    $validationError->type = 'error';
-                    $validationError->field = $e->getField();
-                    $validationError->message = $e->getMessage();
-                    $return->error[] = $validationError;
+                    $return->error[] = $e->getError();
                 }
-
-
             }
         }
 
@@ -246,7 +240,6 @@ class System extends Controller\AccessController {
      * send Rally Point poke
      * @param \Base $f3
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     public function pokeRally(\Base $f3){
         $rallyData = (array)$f3->get('POST');

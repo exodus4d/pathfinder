@@ -7,6 +7,7 @@
  */
 
 namespace Controller\Api;
+
 use Controller;
 use Model;
 
@@ -97,7 +98,7 @@ class Connection extends Controller\AccessController {
             $map = Model\BasicModel::getNew('MapModel');
             $map->getById($mapId);
 
-            if( $map->hasAccess($activeCharacter) ){
+            if($map->hasAccess($activeCharacter)){
                 foreach($connectionIds as $connectionId){
                     if( $connection = $map->getConnectionById($connectionId) ){
                         $connection->delete( $activeCharacter );

@@ -137,7 +137,6 @@ class Setup extends Controller {
      * @param \Base $f3
      * @param array $params
      * @return bool
-     * @throws \Exception\PathfinderException
      */
     function beforeroute(\Base $f3, $params): bool {
         $this->initResource($f3);
@@ -162,7 +161,6 @@ class Setup extends Controller {
 
     /**
      * @param \Base $f3
-     * @throws \Exception\PathfinderException
      */
     public function afterroute(\Base $f3) {
         // js view (file)
@@ -789,7 +787,6 @@ class Setup extends Controller {
      * get default map config
      * @param \Base $f3
      * @return array
-     * @throws \Exception\PathfinderException
      */
     protected function getMapsDefaultConfig(\Base $f3): array {
         $matrix = \Matrix::instance();
@@ -1517,8 +1514,8 @@ class Setup extends Controller {
      */
     protected function invalidateCookies(\Base $f3){
         $this->getDB('PF');
-        $authentidationModel = Model\BasicModel::getNew('CharacterAuthenticationModel');
-        $results = $authentidationModel->find();
+        $authenticationModel = Model\BasicModel::getNew('CharacterAuthenticationModel');
+        $results = $authenticationModel->find();
         if($results){
             foreach($results as $result){
                 $result->erase();
@@ -1537,7 +1534,7 @@ class Setup extends Controller {
         if($bytes){
             $base = log($bytes, 1024);
             $suffixes = array('', 'KB', 'M', 'GB', 'TB');
-            $result = round(pow(1024, $base - floor($base)), $precision) .''. $suffixes[floor($base)];
+            $result = round(pow(1024, $base - floor($base)), $precision) .''. $suffixes[(int)floor($base)];
         }
         return $result;
     }

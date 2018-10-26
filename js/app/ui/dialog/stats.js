@@ -753,7 +753,7 @@ define([
      * show activity stats dialog
      */
     $.fn.showStatsDialog = function(){
-        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache){
+        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
             // get current statistics map settings
             let logActivityEnabled = false;
             let activeMap = Util.getMapModule().getActiveMap();

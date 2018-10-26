@@ -59,7 +59,7 @@ class TypeModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry',
+            'validate' => 'notDry',
         ],
         'marketGroupId' => [
             'type' => Schema::DT_INT,
@@ -99,12 +99,17 @@ class TypeModel extends BasicUniverseModel {
 
     /**
      * get type data
-     * @return object
+     * @param array $additionalData
+     * @return null|object
      */
-    public function getData(){
+    public function getData(array $additionalData = []){
         $typeData = (object) [];
         $typeData->id = $this->id;
         $typeData->name = $this->name;
+
+        foreach($additionalData as $key){
+            $typeData->$key = $this->$key;
+        }
 
         return $typeData;
     }

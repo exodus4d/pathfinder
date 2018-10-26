@@ -118,7 +118,7 @@ abstract class BasicModel extends \DB\Cortex {
         parent::__construct($db, $table, $fluid, $ttl);
 
         // insert events ------------------------------------------------------------------------------------
-        $this->beforeinsert( function($self, $pkeys){
+        $this->beforeinsert(function($self, $pkeys){
             return $self->beforeInsertEvent($self, $pkeys);
         });
 
@@ -127,21 +127,21 @@ abstract class BasicModel extends \DB\Cortex {
         });
 
         // update events ------------------------------------------------------------------------------------
-        $this->beforeupdate( function($self, $pkeys){
+        $this->beforeupdate(function($self, $pkeys){
             return $self->beforeUpdateEvent($self, $pkeys);
         });
 
-        $this->afterupdate( function($self, $pkeys){
+        $this->afterupdate(function($self, $pkeys){
             $self->afterUpdateEvent($self, $pkeys);
         });
 
         // erase events -------------------------------------------------------------------------------------
 
-        $this->beforeerase( function($self, $pkeys){
+        $this->beforeerase(function($self, $pkeys){
             return $self->beforeEraseEvent($self, $pkeys);
         });
 
-        $this->aftererase( function($self, $pkeys){
+        $this->aftererase(function($self, $pkeys){
             $self->afterEraseEvent($self, $pkeys);
         });
     }
@@ -264,7 +264,7 @@ abstract class BasicModel extends \DB\Cortex {
      * get static fields for this model instance
      * @return array
      */
-    protected function getStaticFieldConf(): array {
+    protected function getStaticFieldConf() : array {
         $staticFieldConfig = [];
 
         // static tables (fixed data) do not require them...
@@ -299,13 +299,14 @@ abstract class BasicModel extends \DB\Cortex {
      * @param $val
      * @return bool
      */
-    protected function validateField(string $key, $val): bool {
+    protected function validateField(string $key, $val) : bool {
         $valid = true;
         if($fieldConf = $this->fieldConf[$key]){
             if($method = $this->fieldConf[$key]['validate']){
                 if( !is_string($method)){
-                    $method = 'validate_' . $key;
+                    $method = $key;
                 }
+                $method = 'validate_' . $method;
                 if(method_exists($this, $method)){
                     // validate $key (column) with this method...
                     $valid = $this->$method($key, $val);
@@ -325,7 +326,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @return bool
      * @throws \Exception\ValidationException
      */
-    protected function validate_notDry($key, $val): bool {
+    protected function validate_notDry($key, $val) : bool {
         $valid = true;
         if($colConf = $this->fieldConf[$key]){
             if(isset($colConf['belongs-to-one'])){
@@ -338,6 +339,30 @@ abstract class BasicModel extends \DB\Cortex {
                     $msg = 'Validation failed: "' . get_class($this) . '->' . $key . '" must be a valid instance of ' . $colConf['belongs-to-one'];
                     $this->throwValidationException($key, $msg);
                 }
+            }
+        }
+
+        return $valid;
+    }
+
+    /**
+     * validates a model field to be not empty
+     * @param $key
+     * @param $val
+     * @return bool
+     */
+    protected function validate_notEmpty($key, $val) : bool {
+        $valid = false;
+
+        if($colConf = $this->fieldConf[$key]){
+            switch($colConf['type']){
+                case Schema::DT_INT:
+                case Schema::DT_FLOAT:
+                    if( (is_int($val) || ctype_digit($val)) && (int)$val > 0){
+                        $valid = true;
+                    }
+                    break;
+                default:
             }
         }
 
@@ -628,7 +653,7 @@ abstract class BasicModel extends \DB\Cortex {
      * function should be overwritten in parent classes
      * @return bool
      */
-    public function isValid(): bool {
+    public function isValid() : bool {
         return true;
     }
 
@@ -776,7 +801,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @param string $action
      * @return Logging\LogInterface
      */
-    protected function newLog($action = ''): Logging\LogInterface{
+    protected function newLog($action = '') : Logging\LogInterface{
         return new Logging\DefaultLog($action);
     }
 
@@ -800,7 +825,7 @@ abstract class BasicModel extends \DB\Cortex {
      * get all validation errors
      * @return array
      */
-    public function getErrors(): array {
+    public function getErrors() : array {
         return $this->validationError;
     }
 
@@ -808,7 +833,7 @@ abstract class BasicModel extends \DB\Cortex {
      * checks whether data is outdated and should be refreshed
      * @return bool
      */
-    protected function isOutdated(): bool {
+    protected function isOutdated() : bool {
         $outdated = true;
         if(!$this->dry()){
             $timezone = $this->getF3()->get('getTimeZone')();
@@ -832,7 +857,7 @@ abstract class BasicModel extends \DB\Cortex {
         }catch(ValidationException $e){
             $this->setValidationError($e);
         }catch(DatabaseException $e){
-            self::getF3()->error($e->getCode(), $e->getMessage(), $e->getTrace());
+            self::getF3()->error($e->getResponseCode(), $e->getMessage(), $e->getTrace());
         }
     }
 
@@ -913,7 +938,6 @@ abstract class BasicModel extends \DB\Cortex {
      * debug log function
      * @param string $text
      * @param string $type
-     * @throws \Exception\PathfinderException
      */
     public static function log($text, $type = 'DEBUG'){
         Controller\LogController::getLogger($type)->write($text);

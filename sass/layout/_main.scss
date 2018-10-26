@@ -258,7 +258,7 @@ select:active, select:hover {
     margin: 0 3px;  // <select> for page size
     padding: 1px;
   }
-  
+
   .dt-buttons{
     .dt-button{
       line-height: 22px;
@@ -270,6 +270,53 @@ select:active, select:hover {
 
       .fa{
         margin-right: 5px;
+      }
+    }
+  }
+}
+
+// condensed dataTable toolbar
+.pf-dataTable-condensed-toolbar{
+  padding-top: 3px;
+
+  .dataTables_info{
+    padding-top: 0;
+    text-align: left;
+  }
+
+  & > div{
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .dataTables_paginate{
+    padding-top: 0;
+    margin-top: 0;
+
+    .paginate_button{
+      padding: 0;
+      height: 13px;
+      border: 0 !important;
+
+      &:before, &:after{
+        top: 0;
+      }
+      &:hover{
+        background: transparent !important;
+        color: $orange !important;
+      }
+    }
+  }
+
+  .dt-buttons{
+    text-align: right;
+    margin-bottom: 0;
+
+    .dt-button{
+      line-height: 18px;
+
+      .fa{
+        margin-right: 0;
       }
     }
   }

@@ -339,7 +339,7 @@ input[type="email"]{
 	 * WITH ICON
 	 */
 	.input-icon-right {
-		//position:relative; why?
+		position:relative;
 	}
 	.input-icon-right > i, .input-icon-left > i {
 		position:absolute;

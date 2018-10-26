@@ -1,5 +1,4 @@
 .modal-content, .panel-body {
-
   // dialog headline ==========================================================
   h2 {
     font-family: $font-family-sans-serif;
@@ -58,7 +57,6 @@
     }
   }
 }
-
 
 .modal-content {
   // data tables ==============================================================
@@ -142,13 +140,11 @@
       }
 
     }
-
   }
 }
 
 // settings dialog ============================================================
 #pf-settings-dialog{
-
   // smaller buttons
   .form-group .btn-sm{
     padding: 4px 7px 3px;
@@ -226,6 +222,13 @@
   }
 }
 
+// connection log dialog ======================================================
+#pf-connection-info-dialog{
+  #pf-connection-info-dialog-type-select, #pf-connection-info-dialog-character-select{
+    width: 310px !important;
+  }
+}
+
 // jump info dialog ===========================================================
 .pf-jump-info-dialog{
   blockquote{
@@ -233,6 +236,7 @@
     margin-bottom: 5px;
   }
 }
+
 // changelog
 .pf-changelog-dialog{
   .pf-dynamic-message-container{
@@ -242,7 +246,6 @@
 
 // credits dialog =============================================================
 .pf-credits-dialog{
-
   .pf-credits-logo-background{
     overflow: visible;
     background: url("#{$base-url}/logo_bg.png");

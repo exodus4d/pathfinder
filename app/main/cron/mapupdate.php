@@ -22,7 +22,6 @@ class MapUpdate extends AbstractCron {
      * deactivate all "private" maps whose lifetime is over
      * >> php index.php "/cron/deactivateMapData"
      * @param \Base $f3
-     * @throws \Exception\PathfinderException
      */
     function deactivateMapData(\Base $f3){
         $this->setMaxExecutionTime();

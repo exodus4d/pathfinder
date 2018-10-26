@@ -30,7 +30,7 @@ class StargateModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
@@ -42,7 +42,7 @@ class StargateModel extends BasicUniverseModel {
                     'on-delete' => 'SET NULL'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'destinationSystemId' => [
             'type' => Schema::DT_INT,
@@ -54,7 +54,7 @@ class StargateModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'x' => [
             'type' => Schema::DT_BIGINT,

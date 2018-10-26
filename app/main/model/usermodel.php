@@ -94,7 +94,6 @@ class UserModel extends BasicModel {
      * @param UserModel $self
      * @param $pkeys
      * @return bool
-     * @throws Exception\PathfinderException
      * @throws Exception\RegistrationException
      */
     public function beforeInsertEvent($self, $pkeys){
@@ -137,7 +136,6 @@ class UserModel extends BasicModel {
     /**
      * checks whether user has a valid email address and pathfinder has a valid SMTP config
      * @return bool
-     * @throws Exception\PathfinderException
      */
     protected function isMailSendEnabled() : bool{
         return Config::isValidSMTPConfig($this->getSMTPConfig());
@@ -146,7 +144,6 @@ class UserModel extends BasicModel {
     /**
      * get SMTP config for this user
      * @return \stdClass
-     * @throws Exception\PathfinderException
      */
     protected function getSMTPConfig() : \stdClass{
         $config = Config::getSMTPConfig();

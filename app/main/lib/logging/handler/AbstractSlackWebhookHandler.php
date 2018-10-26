@@ -179,7 +179,6 @@ abstract class AbstractSlackWebhookHandler extends Handler\AbstractProcessingHan
      * @param array $attachment
      * @param array $characterData
      * @return array
-     * @throws \Exception\PathfinderException
      */
     protected function setAuthor(array $attachment, array $characterData): array {
         if( !empty($characterData['id']) &&  !empty($characterData['name'])){

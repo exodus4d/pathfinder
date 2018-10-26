@@ -30,7 +30,7 @@ class ConstellationModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'x' => [
             'type' => Schema::DT_BIGINT,

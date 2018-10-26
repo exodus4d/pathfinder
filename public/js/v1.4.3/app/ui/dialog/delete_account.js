@@ -76,7 +76,7 @@ define([
                                         dialogElement.find('.modal-content').hideLoadingAnimation();
 
                                         if(responseData.reroute !== undefined){
-                                            Util.redirect(responseData.reroute, []);
+                                            Util.redirect(responseData.reroute);
                                         }else if(
                                             responseData.error &&
                                             responseData.error.length > 0

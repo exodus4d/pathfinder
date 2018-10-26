@@ -25,7 +25,7 @@ class SystemStaticModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'wormholeId' => [
             'type' => Schema::DT_INT,
@@ -37,7 +37,7 @@ class SystemStaticModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ]
     ];
 

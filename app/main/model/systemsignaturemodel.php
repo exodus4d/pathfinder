@@ -162,8 +162,8 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
 
     /**
      * @param string $action
-     * @return Logging\LogInterface
-     * @throws \Exception\PathfinderException
+     * @return logging\LogInterface
+     * @throws \Exception\ConfigException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());

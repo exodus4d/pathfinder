@@ -181,7 +181,6 @@ class CorporationModel extends BasicModel {
      * @param array $mapIds
      * @param array $options
      * @return array
-     * @throws \Exception\PathfinderException
      */
     public function getMaps($mapIds = [], $options = []){
         $maps = [];

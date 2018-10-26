@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'bootbox',
     'app/map/util'
-], ($, Init, Util, MapUtil) => {
+], ($, Init, Util, bootbox, MapUtil) => {
     'use strict';
 
     let config = {
@@ -46,9 +47,17 @@ define([
         connectionInfoTableCellMassLeftClass: 'pf-connection-info-mass-left',                   // class for "mass left" table cell
 
         // dataTable
+        tableToolbarCondensedClass: 'pf-dataTable-condensed-toolbar',                           // class for condensed table toolbar
         connectionInfoTableClass: 'pf-connection-info-table',                                   // class for connection tables
         tableCellImageClass: 'pf-table-image-cell',                                             // class for table "image" cells
         tableCellCounterClass: 'pf-table-counter-cell',                                         // class for table "counter" cells
+        tableCellActionClass: 'pf-table-action-cell',                                           // class for "action" cells
+
+        // connection dialog
+        connectionDialogId: 'pf-connection-info-dialog',                                        // id for "connection" dialog
+        typeSelectId: 'pf-connection-info-dialog-type-select',                                  // id for "ship type" select
+        shipMassId: 'pf-connection-info-dialog-mass',                                           // id for "ship mass" input
+        characterSelectId: 'pf-connection-info-dialog-character-select',                        // id for "character" select
 
         // config
         showShip: true                                                                          // default for "show current ship mass" toggle
@@ -512,6 +521,34 @@ define([
     };
 
     /**
+     * enrich connectionData with "logs" data (if available) and other "missing" data
+     * @param connectionsData
+     * @param newConnectionsData
+     * @returns {*}
+     */
+    let enrichConnectionsData = (connectionsData, newConnectionsData) => {
+        for(let i = 0; i < connectionsData.length; i++){
+            for(let newConnectionData of newConnectionsData){
+                if(connectionsData[i].id === newConnectionData.id){
+                    // copy some missing data
+                    connectionsData[i].character = newConnectionData.character;
+                    connectionsData[i].created = newConnectionData.created;
+                    // check for mass logs and copy data
+                    if(newConnectionData.logs && newConnectionData.logs.length){
+                        connectionsData[i].logs = newConnectionData.logs;
+                    }
+                    // check for signatures and copy data
+                    if(newConnectionData.signatures && newConnectionData.signatures.length){
+                        connectionsData[i].signatures = newConnectionData.signatures;
+                    }
+                    break;
+                }
+            }
+        }
+        return connectionsData;
+    };
+
+    /**
      * request connection log data
      * @param requestData
      * @param context
@@ -530,24 +567,7 @@ define([
             dataType: 'json',
             context: context
         }).done(function(connectionsData){
-            // enrich connectionData with "logs" data (if available) and other "missing" data
-            for(let i = 0; i < this.connectionsData.length; i++){
-                for(let connectionData of connectionsData){
-                    if(this.connectionsData[i].id === connectionData.id){
-                        // copy some missing data
-                        this.connectionsData[i].created = connectionData.created;
-                        // check for mass logs and copy data
-                        if(connectionData.logs && connectionData.logs.length){
-                            this.connectionsData[i].logs = connectionData.logs;
-                        }
-                        // check for signatures and copy data
-                        if(connectionData.signatures && connectionData.signatures.length){
-                            this.connectionsData[i].signatures = connectionData.signatures;
-                        }
-                        break;
-                    }
-                }
-            }
+            this.connectionsData = enrichConnectionsData(this.connectionsData, connectionsData);
 
             callback(this.moduleElement, this.connectionsData);
         }).always(function(){
@@ -592,9 +612,9 @@ define([
      */
     let addConnectionsData = (moduleElement, connectionsData) => {
 
-        let getRowIndexesByData = (dataTable, colName, value) => {
-            return dataTable.rows().eq(0).filter((rowIdx) => {
-                return (dataTable.cell(rowIdx, colName + ':name').data() === value);
+        let getRowIndexesByData = (tableApi, colName, value) => {
+            return tableApi.rows().eq(0).filter((rowIdx) => {
+                return (tableApi.cell(rowIdx, colName + ':name').data() === value);
             });
         };
 
@@ -607,42 +627,47 @@ define([
                 connectionInfoElement.data('connectionData', connectionData);
 
                 // update dataTable ---------------------------------------------------------------
-                let dataTable = connectionElement.find('.dataTable').dataTable().api();
+                let tableApi = connectionElement.find('.dataTable').dataTable().api();
 
                 if(connectionData.logs && connectionData.logs.length > 0){
                     for(let i = 0; i < connectionData.logs.length; i++){
                         let rowData = connectionData.logs[i];
-                        let row = null;
+                        let rowNew = null;
                         let animationStatus = null;
-                        let indexes = getRowIndexesByData(dataTable, 'index', rowData.id);
+                        let indexes = getRowIndexesByData(tableApi, 'index', rowData.id);
                         if(indexes.length === 0){
                             // row not found -> add new row
-                            row = dataTable.row.add( rowData );
+                            rowNew = tableApi.row.add(rowData);
                             animationStatus = 'added';
-                        }
-                        /* else{
-                            // we DON´t expect changes -> no row update)
+                        }else{
                             // update row with FIRST index
-                            //row = dataTable.row( parseInt(indexes[0]) );
-                            // update row data
-                            //row.data(connectionData.logs[i]);
-                            //animationStatus = 'changed';
-                        } */
+                            let row = tableApi.row( parseInt(indexes[0]));
+                            let rowDataCurrent = row.data();
+
+                            // check if row data changed
+                            if(rowDataCurrent.updated.updated !== rowData.updated.updated){
+                                // ... row changed -> delete old and re-add
+                                // -> cell actions might have changed
+                                row.remove();
+                                rowNew = tableApi.row.add(rowData);
+                                animationStatus = 'changed';
+                            }
+                        }
 
                         if(
                             animationStatus !== null &&
-                            row.length > 0
+                            rowNew.length > 0
                         ){
-                            row.nodes().to$().data('animationStatus', animationStatus);
+                            rowNew.nodes().to$().data('animationStatus', animationStatus);
                         }
                     }
                 }else{
                     // clear table or leave empty
-                    dataTable.clear();
+                    tableApi.clear();
                 }
 
                 // redraw dataTable
-                dataTable.draw(false);
+                tableApi.draw(false);
             }
         }
     };
@@ -663,11 +688,45 @@ define([
 
             let table = $('<table>', {
                 class: ['compact', 'stripe', 'order-column', 'row-border', 'nowrap', config.connectionInfoTableClass].join(' ')
-            }).append('<tfoot><tr><th></th><th></th><th></th><th></th><th></th></tr></tfoot>');
+            }).append('<tfoot><tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></tfoot>');
             connectionElement.append(table);
 
             // init empty table
             let logTable = table.DataTable({
+                dom: '<"container-fluid"' +
+                        '<"row ' + config.tableToolbarCondensedClass + '"' +
+                            '<"col-xs-5"i><"col-xs-5"p><"col-xs-2 text-right"B>>' +
+                        '<"row"tr>>',
+                buttons: {
+                    name: 'tableTools',
+                    buttons: [
+                        {
+                            name: 'addLog',
+                            className: config.moduleHeadlineIconClass,
+                            text: '<i class="fa fa-plus"></i>',
+                            action: function(e, tableApi, node, conf){
+                                let logData = {};
+
+                                // pre-fill form with current character data (if available)
+                                let currentUserData = Util.getCurrentUserData();
+                                if(currentUserData && currentUserData.character){
+                                    logData.character = {
+                                        id: currentUserData.character.id,
+                                        name: currentUserData.character.name
+                                    };
+                                    if(currentUserData.character.log){
+                                        logData.ship = {
+                                            id: currentUserData.character.log.ship.typeId,
+                                            name: currentUserData.character.log.ship.typeName
+                                        };
+                                    }
+                                }
+
+                                showLogDialog(moduleElement, connectionElement, connectionData, logData);
+                            }
+                        }
+                    ]
+                },
                 pageLength: 8,
                 paging: true,
                 pagingType: 'simple',
@@ -678,11 +737,14 @@ define([
                 searching: false,
                 hover: false,
                 autoWidth: false,
-                // rowId: 'systemTo',
                 language: {
                     emptyTable:  'No jumps recorded',
-                    info: '_START_ to _END_ of _MAX_',
-                    infoEmpty: ''
+                    info: '_START_ - _END_ of _MAX_',
+                    infoEmpty: '',
+                    paginate: {
+                        previous:   '',
+                        next:       ''
+                    }
                 },
                 columnDefs: [
                     {
@@ -692,10 +754,25 @@ define([
                         orderable: false,
                         searchable: false,
                         width: 20,
-                        class: 'text-center',
-                        data: 'id'
+                        className: ['text-center', 'txt-color'].join(' '),
+                        data: 'id',
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            if(
+                                !rowData.record ||
+                                (rowData.updated.updated !== rowData.created.created)
+                            ){
+                                // log was manually modified or added
+                                $(cell)
+                                    .addClass(Util.config.helpClass)
+                                    .addClass( 'txt-color-orange').tooltip({
+                                        container: 'body',
+                                        title: 'added/updated manually'
+                                    });
+                            }
+                        }
                     },{
                         targets: 1,
+                        name: 'ship',
                         title: '',
                         width: 26,
                         orderable: false,
@@ -715,16 +792,17 @@ define([
                         }
                     },{
                         targets: 2,
+                        name: 'character',
                         title: '',
                         width: 26,
                         orderable: false,
                         className: [Util.config.helpDefaultClass, 'text-center', config.tableCellImageClass].join(' '),
-                        data: 'created.character',
+                        data: 'character',
                         render: {
-                            _: function(data, type, row){
-                                let value = data.name;
+                            _: (cellData, type, rowData, meta) => {
+                                let value = cellData.name;
                                 if(type === 'display'){
-                                    value = '<img src="' + Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg" title="' + value + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Init.url.ccpImageServer + '/Character/' + cellData.id + '_32.jpg" title="' + value + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }
@@ -734,26 +812,134 @@ define([
                         }
                     },{
                         targets: 3,
+                        name: 'mass',
                         title: 'mass',
                         className: ['text-right'].join(' ') ,
                         data: 'ship.mass',
                         render: {
-                            _: function(data, type, row){
-                                let value = data;
+                            _: (cellData, type, rowData, meta) => {
+                                let value = cellData;
                                 if(type === 'display'){
                                     value = Util.formatMassValue(value);
+                                    if(!rowData.active){
+                                        // log is "deleted"
+                                        value = '<span class="pf-font-line-through txt-color txt-color-red">' + value + '</span>';
+                                    }
                                 }
                                 return value;
                             }
                         }
                     },{
                         targets: 4,
+                        name: 'created',
                         title: 'log',
                         width: 55,
                         className: ['text-right', config.tableCellCounterClass].join(' '),
                         data: 'created.created',
                         createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                             $(cell).initTimestampCounter('d');
+                        }
+                    },{
+                        targets: 5,
+                        name: 'edit',
+                        title: '',
+                        orderable: false,
+                        searchable: false,
+                        width: 10,
+                        className: ['text-center', config.tableCellActionClass, config.moduleHeadlineIconClass].join(' '),
+                        data: null,
+                        render: {
+                            display: data => {
+                                let icon = '';
+                                if(data.active){
+                                    icon = '<i class="fas fa-pen"></i>';
+                                }
+                                return icon;
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            let tableApi = this.api();
+
+                            if($(cell).is(':empty')){
+                                $(cell).removeClass(config.tableCellActionClass + ' ' + config.moduleHeadlineIconClass);
+                            }else{
+                                $(cell).on('click', function(e){
+                                    showLogDialog(moduleElement, connectionElement, connectionData, rowData);
+                                });
+                            }
+                        }
+                    },{
+                        targets: 6,
+                        name: 'delete',
+                        title: '',
+                        orderable: false,
+                        searchable: false,
+                        width: 10,
+                        className: ['text-center', config.tableCellActionClass].join(' '),
+                        data: 'active',
+                        render: {
+                            display: data => {
+                                let val = '<i class="fas fa-plus"></i>';
+                                if(data){
+                                    val = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                                }
+                                return val;
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            let tableApi = this.api();
+
+                            if(rowData.active){
+                                let confirmationSettings = {
+                                    container: 'body',
+                                    placement: 'left',
+                                    btnCancelClass: 'btn btn-sm btn-default',
+                                    btnCancelLabel: 'cancel',
+                                    btnCancelIcon: 'fas fa-fw fa-ban',
+                                    title: 'delete jump log',
+                                    btnOkClass: 'btn btn-sm btn-danger',
+                                    btnOkLabel: 'delete',
+                                    btnOkIcon: 'fas fa-fw fa-times',
+                                    onConfirm : function(e, target){
+                                        // get current row data (important!)
+                                        // -> "rowData" param is not current state, values are "on createCell()" state
+                                        rowData = tableApi.row($(cell).parents('tr')).data();
+
+                                        connectionElement.find('table').showLoadingAnimation();
+
+                                        request('DELETE', 'log', rowData.id, {}, {
+                                            connectionElement: connectionElement
+                                        }, requestAlways)
+                                            .then(
+                                                payload => {
+                                                    addConnectionsData(moduleElement, enrichConnectionsData([connectionData], payload.data));
+                                                },
+                                                Util.handleAjaxErrorResponse
+                                            );
+                                    }
+                                };
+
+                                // init confirmation dialog
+                                $(cell).confirmation(confirmationSettings);
+                            }else {
+                                $(cell).on('click', function(e){
+                                    connectionElement.find('table').showLoadingAnimation();
+
+                                    let requestData = {
+                                        active: 1
+                                    };
+
+                                    request('PATCH', 'log', rowData.id, requestData, {
+                                        connectionElement: connectionElement
+                                    }, requestAlways)
+                                        .then(
+                                            payload => {
+                                                addConnectionsData(moduleElement, enrichConnectionsData([connectionData], payload.data));
+                                            },
+                                            Util.handleAjaxErrorResponse
+                                        );
+                                });
+                            }
                         }
                     }
                 ],
@@ -772,27 +958,34 @@ define([
 
                 },
                 footerCallback: function(row, data, start, end, display ){
-
-                    let api = this.api();
-                    let sumColumnIndexes = [3];
+                    let tableApi = this.api();
+                    let sumColumnIndexes = ['mass:name', 'delete:name'];
 
                     // column data for "sum" columns over this page
-                    let pageTotalColumns = api
+                    let pageTotalColumns = tableApi
                         .columns( sumColumnIndexes, { page: 'all'} )
                         .data();
 
                     // sum columns for "total" sum
-                    pageTotalColumns.each((colData, index) => {
-                        pageTotalColumns[index] = colData.reduce((a, b) => {
-                            return parseInt(a) + parseInt(b);
+                    pageTotalColumns.each((colData, colIndex) => {
+                        pageTotalColumns[colIndex] = colData.reduce((sum, val, rowIndex) => {
+                            // sum "mass" (colIndex 0) only if not "deleted" (colIndex 1)
+                            if(colIndex === 0 && pageTotalColumns[1][rowIndex]){
+                                return sum + parseInt(val);
+                            }else{
+                                return sum;
+                            }
                         }, 0);
                     });
 
-                    $(sumColumnIndexes).each((index, value) => {
-                        $( api.column( value ).footer() ).text( Util.formatMassValue(pageTotalColumns[index]) );
+                    sumColumnIndexes.forEach((colSelector, index) => {
+                        // only "mass" column footer needs updates
+                        if(colSelector === 'mass:name'){
+                            $(tableApi.column(colSelector).footer()).text( Util.formatMassValue(pageTotalColumns[index]) );
 
-                        // save mass for further reCalculation of "info" table
-                        connectionElement.find('.' + config.connectionInfoTableCellMassLogClass).data('mass', pageTotalColumns[index]);
+                            // save mass for further reCalculation of "info" table
+                            connectionElement.find('.' + config.connectionInfoTableCellMassLogClass).data('mass', pageTotalColumns[index]);
+                        }
                     });
 
                     // calculate "info" table -----------------------------------------------------
@@ -805,12 +998,184 @@ define([
 
             logTable.on('order.dt search.dt', function(){
                 let pageInfo = logTable.page.info();
-                logTable.column(0, {search:'applied', order:'applied'}).nodes().each((cell, i) => {
-                    let content = (pageInfo.recordsTotal - i) + '.&nbsp;&nbsp;';
+                logTable.column('index:name', {search:'applied', order:'applied'}).nodes().each((cell, i) => {
+                    let content = (pageInfo.recordsTotal - i) + '.';
                     $(cell).html(content);
                 });
             });
         }
+    };
+
+    let request = (action, entity, ids = [], data = {}, context = {}, always = null) => {
+
+        let requestExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'request',
+                name: action.toLowerCase() + entity.charAt(0).toUpperCase() + entity.slice(1)
+            };
+
+            // build request url --------------------------------------------------------------------------------------
+            let url = Init.path.api + '/' + entity;
+
+            let path = '';
+            if(isNaN(ids)){
+                if(Array.isArray(ids)){
+                    path += '/' + ids.join(',');
+                }
+            }else{
+                let id = parseInt(ids, 10);
+                path += id ? '/' + id : '';
+            }
+            url += path;
+
+            $.ajax({
+                type: action,
+                url: url,
+                data: JSON.stringify(data),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                context: context
+            }).done(function(response){
+                payload.data = response;
+                payload.context = this;
+                resolve(payload);
+            }).fail(function(jqXHR, status, error){
+                payload.data = {
+                    jqXHR: jqXHR,
+                    status: status,
+                    error: error
+                };
+                payload.context = this;
+                reject(payload);
+            }).always(function(){
+                if(always){
+                    always(this);
+                }
+            });
+        };
+
+        return new Promise(requestExecutor);
+    };
+
+    /**
+     *
+     * @param context
+     */
+    let requestAlways = (context) => {
+        context.connectionElement.find('table').hideLoadingAnimation();
+    };
+
+    /**
+     * show jump log dialog
+     * @param moduleElement
+     * @param connectionElement
+     * @param connectionData
+     * @param logData
+     */
+    let showLogDialog = (moduleElement, connectionElement, connectionData, logData = {}) => {
+
+        let data = {
+            id: config.connectionDialogId,
+            typeSelectId: config.typeSelectId,
+            shipMassId: config.shipMassId,
+            characterSelectId: config.characterSelectId,
+            logData: logData,
+            massFormat: () => {
+                return (val, render) => {
+                    return  (parseInt(render(val) || 0) / 1000) || '';
+                };
+            }
+        };
+
+        requirejs(['text!templates/dialog/connection_log.html', 'mustache'], (template, Mustache) => {
+            let content = Mustache.render(template, data);
+
+            let connectionDialog = bootbox.dialog({
+                title: 'Jump log',
+                message: content,
+                show: false,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fas fa-fw fa-check"></i>&nbsp;save',
+                        className: 'btn-success',
+                        callback: function(){
+                            let form = this.find('form');
+
+                            // validate form
+                            form.validator('validate');
+
+                            // check whether the form is valid
+                            let formValid = form.isValidForm();
+
+                            if(formValid){
+                                // get form data
+                                let formData = form.getFormValues();
+                                formData.id = Util.getObjVal(logData, 'id') || 0;
+                                formData.connectionId = Util.getObjVal(connectionData, 'id') || 0;
+                                formData.shipTypeId = Util.getObjVal(formData, 'shipTypeId') || 0;
+                                formData.shipMass = parseInt((Util.getObjVal(formData, 'shipMass') || 0) * 1000);
+                                formData.characterId = Util.getObjVal(formData, 'characterId') || 0;
+
+                                // we need some "additional" form data from the Select2 dropdown
+                                // -> data is required on the backend side
+                                let formDataShip = form.find('#' + config.typeSelectId).select2('data');
+                                let formDataCharacter = form.find('#' + config.characterSelectId).select2('data');
+                                formData.shipTypeName = formDataShip.length ? formDataShip[0].text : '';
+                                formData.characterName = formDataCharacter.length ? formDataCharacter[0].text : '';
+
+                                let method = formData.id ? 'PATCH' : 'PUT';
+
+                                request(method, 'log', formData.id, formData, {
+                                    connectionElement: connectionElement,
+                                    formElement: form
+                                }, requestAlways)
+                                    .then(
+                                        payload => {
+                                            addConnectionsData(moduleElement, enrichConnectionsData([connectionData], payload.data));
+                                            this.modal('hide');
+                                        },
+                                        Util.handleAjaxErrorResponse
+                                    );
+
+                            }
+
+                            return false;
+                        }
+                    }
+                }
+            });
+
+            connectionDialog.on('show.bs.modal', function(e){
+                let modalContent = $('#' + config.connectionDialogId);
+
+                // init type select live search
+                let selectElementType = modalContent.find('#' + config.typeSelectId);
+                selectElementType.initUniverseTypeSelect({
+                    categoryIds: [6],
+                    maxSelectionLength: 1,
+                    selected: [Util.getObjVal(logData, 'ship.typeId')]
+                }).on('select2:select select2:unselecting', function(e){
+                    // get ship mass from selected ship type and update mass input field
+                    let shipMass = e.params.data ? e.params.data.mass / 1000 : '';
+                    modalContent.find('#' + config.shipMassId).val(shipMass);
+                });
+
+                // init character select live search
+                let selectElementCharacter = modalContent.find('#' + config.characterSelectId);
+                selectElementCharacter.initUniverseSearch({
+                    categoryNames: ['character'],
+                    maxSelectionLength: 1
+                });
+
+            });
+
+            // show dialog
+            connectionDialog.modal('show');
+        });
     };
 
     /**

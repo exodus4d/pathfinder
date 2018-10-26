@@ -79,15 +79,21 @@ define([
 
             let reason = status + ' ' + jqXHR.status + ': ' + error;
             let errorData = [];
+            let redirect = false;   // redirect user to other page e.g. login
+            let reload = true;      // reload current page (default: true)
 
             if(jqXHR.responseJSON){
                 // handle JSON
-                let errorObj = jqXHR.responseJSON;
+                let responseObj = jqXHR.responseJSON;
                 if(
-                    errorObj.error &&
-                    errorObj.error.length > 0
+                    responseObj.error &&
+                    responseObj.error.length > 0
                 ){
-                    errorData = errorObj.error;
+                    errorData = responseObj.error;
+                }
+
+                if(responseObj.reroute){
+                    redirect = responseObj.reroute;
                 }
             }else{
                 // handle HTML
@@ -98,7 +104,13 @@ define([
             }
 
             console.error(' ↪ %s Error response: %o', jqXHR.url, errorData);
-            $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
+            $(document).trigger('pf:shutdown', {
+                status: jqXHR.status,
+                reason: reason,
+                error: errorData,
+                redirect: redirect,
+                reload: reload
+            });
         };
 
         // map init functions =========================================================================================

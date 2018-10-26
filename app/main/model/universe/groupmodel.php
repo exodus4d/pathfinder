@@ -36,7 +36,7 @@ class GroupModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'types' => [
             'has-many' => ['Model\Universe\TypeModel', 'groupId']
@@ -45,14 +45,15 @@ class GroupModel extends BasicUniverseModel {
 
     /**
      * get group data
-     * @return object
+     * @param array $additionalData
+     * @return null|object
      */
-    public function getData(){
+    public function getData(array $additionalData = []){
         $groupData = (object) [];
         $groupData->id = $this->id;
         $groupData->name = $this->name;
 
-        if($typesData = $this->getTypesData()){
+        if($typesData = $this->getTypesData($additionalData)){
             $groupData->types = $typesData;
         }
 
@@ -81,14 +82,15 @@ class GroupModel extends BasicUniverseModel {
     }
 
     /**
+     * @param array $additionalData
      * @return array
      */
-    protected function getTypesData() : array {
+    protected function getTypesData(array $additionalData = []) : array {
         $typesData = [];
         $types = $this->getTypes();
 
         foreach($types as $type){
-            $typesData[] = $type->getData();
+            $typesData[] = $type->getData($additionalData);
         }
 
         return $typesData;

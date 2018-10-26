@@ -23,7 +23,7 @@ abstract class AbstractMapTrackingModel extends BasicModel implements LogModelIn
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'updatedCharacterId' => [
             'type' => Schema::DT_INT,
@@ -35,7 +35,7 @@ abstract class AbstractMapTrackingModel extends BasicModel implements LogModelIn
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ]
     ];
 

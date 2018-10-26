@@ -30,11 +30,19 @@ class ConnectionLogModel extends BasicModel {
                     'table' => 'connection',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'notDry'
+        ],
+        'record' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1,
+            'index' => true
         ],
         'shipTypeId' => [
             'type' => Schema::DT_INT,
-            'index' => true
+            'index' => true,
+            'validate' => 'notEmpty'
         ],
         'shipTypeName' => [
             'type' => Schema::DT_VARCHAR128,
@@ -44,11 +52,13 @@ class ConnectionLogModel extends BasicModel {
         'shipMass' => [
             'type' => Schema::DT_FLOAT,
             'nullable' => false,
-            'default' => 0
+            'default' => 0,
+            'validate' => 'notEmpty'
         ],
         'characterId' => [
             'type' => Schema::DT_INT,
-            'index' => true
+            'index' => true,
+            'validate' => 'notEmpty'
         ],
         'characterName' => [
             'type' => Schema::DT_VARCHAR128,
@@ -58,12 +68,22 @@ class ConnectionLogModel extends BasicModel {
     ];
 
     /**
+     * set map data by an associative array
+     * @param array $data
+     */
+    public function setData(array $data){
+        $this->copyfrom($data, ['shipTypeId', 'shipTypeName', 'shipMass', 'characterId', 'characterName']);
+    }
+
+    /**
      * get connection log data
      * @return \stdClass
      */
     public function getData() : \stdClass {
         $logData                            = (object) [];
         $logData->id                        = $this->id;
+        $logData->active                    = $this->active;
+        $logData->record                    = $this->record;
 
         $logData->connection                = (object) [];
         $logData->connection->id            = $this->get('connectionId', true);
@@ -73,12 +93,46 @@ class ConnectionLogModel extends BasicModel {
         $logData->ship->typeName            = $this->shipTypeName;
         $logData->ship->mass                = $this->shipMass;
 
+        $logData->character                 = (object) [];
+        $logData->character->id             = $this->characterId;
+        $logData->character->name           = $this->characterName;
+
         $logData->created                   = (object) [];
         $logData->created->created          = strtotime($this->created);
-        $logData->created->character        = (object) [];
-        $logData->created->character->id    = $this->characterId;
-        $logData->created->character->name  = $this->characterName;
+
+        $logData->updated                   = (object) [];
+        $logData->updated->updated          = strtotime($this->updated);
 
         return $logData;
+    }
+
+    /**
+     * validate shipTypeId
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
+    protected function validate_shipTypeId(string $key, string $val): bool {
+        return !empty((int)$val);
+    }
+
+    /**
+     * @return ConnectionModel
+     */
+    public function getConnection() : ConnectionModel {
+        return $this->get('connectionId');
+    }
+
+    /**
+     * check object for model access
+     * @param CharacterModel $characterModel
+     * @return bool
+     */
+    public function hasAccess(CharacterModel $characterModel) : bool {
+        $access = false;
+        if( !$this->dry() ){
+            $access = $this->getConnection()->hasAccess($characterModel);
+        }
+        return $access;
     }
 }

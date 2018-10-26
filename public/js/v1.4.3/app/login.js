@@ -343,7 +343,7 @@ define([
     let initGallery = (newElements) => {
         if( newElements.length > 0){
             // We have to add ALL thumbnail elements to the gallery!
-            // -> even those wthat are invisible (not lazyLoaded) now!
+            // -> even those which are invisible (not lazyLoaded) now!
             // -> This is required for "swipe" through all images
             let allThumbLinks = getThumbnailElements();
 
@@ -814,7 +814,7 @@ define([
         // init carousel
         initCarousel();
 
-        // init scrollspy
+        // init scrollSpy
         // -> after "Carousel"! required for correct "viewport" calculation (Gallery)!
         initScrollSpy();
 

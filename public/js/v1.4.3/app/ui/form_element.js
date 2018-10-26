@@ -12,7 +12,8 @@ define([
 
     let config = {
         // Select2
-        resultOptionImageClass: 'pf-result-image'                       // class for Select2 result option entry with image
+        resultOptionImageClass: 'pf-result-image',                      // class for Select2 result option entry with image
+        select2ImageLazyLoadClass: 'pf-select2-image-lazyLoad'          // class for Select2 result images that should be lazy loaded
     };
 
     /**
@@ -60,7 +61,7 @@ define([
             }
 
             if(imagePath){
-                thumb = '<img src="' + imagePath + '" style="max-width: 100%" />';
+                thumb = '<img class="' + config.select2ImageLazyLoadClass + '" data-original="' + imagePath + '" style="max-width: 100%"/>';
             }else if(iconName){
                 thumb = '<i class="fas fa-fw ' + iconName + '" ></i>';
             }
@@ -564,6 +565,7 @@ define([
                             return group;
                         });
                     },*/
+                    disabled: options.hasOwnProperty('disabled') ? options.disabled : false,
                     allowClear: options.maxSelectionLength <= 1,
                     maximumSelectionLength: options.maxSelectionLength,
                     templateResult: formatCategoryTypeResultData
@@ -605,6 +607,7 @@ define([
                 return {
                     id: type.id,
                     text: type.name,
+                    mass: type.hasOwnProperty('mass') ? type.mass : null,
                     groupId: this.groupId,
                     categoryId: this.categoryId,
                     categoryType: this.categoryType

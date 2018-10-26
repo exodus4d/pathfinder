@@ -109,7 +109,6 @@ class User extends Controller\Controller{
      * -> return character data (if valid)
      * @param \Base $f3
      * @throws Exception
-     * @throws Exception\PathfinderException
      */
     public function getCookieCharacter(\Base $f3){
         $data = $f3->get('POST');
@@ -201,15 +200,10 @@ class User extends Controller\Controller{
     /**
      * log the current user out + clear character system log data
      * @param \Base $f3
-     * @throws Exception
      * @throws \ZMQSocketException
      */
     public function logout(\Base $f3){
-        $this->logoutCharacter(false, true, true, true);
-
-        $return = (object) [];
-        $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
-        echo json_encode($return);
+        $this->logoutCharacter($f3, false, true, true, true);
     }
 
     /**
@@ -345,17 +339,9 @@ class User extends Controller\Controller{
                 }
 
             }catch(Exception\ValidationException $e){
-                $validationError = (object) [];
-                $validationError->type = 'error';
-                $validationError->field = $e->getField();
-                $validationError->message = $e->getMessage();
-                $return->error[] = $validationError;
+                $return->error[] = $e->getError();
             }catch(Exception\RegistrationException $e){
-                $registrationError = (object) [];
-                $registrationError->type = 'error';
-                $registrationError->field = $e->getField();
-                $registrationError->message = $e->getMessage();
-                $return->error[] = $registrationError;
+                $return->error[] = $e->getError();
             }
 
             // return new/updated user data
@@ -394,10 +380,8 @@ class User extends Controller\Controller{
                     sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
                 );
 
-                $this->logoutCharacter(true, true, true, true);
+                $this->logoutCharacter($f3, true, true, true, true);
                 $user->erase();
-
-                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
             }
         }else{
             // captcha not valid -> return error

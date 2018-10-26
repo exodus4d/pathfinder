@@ -100,7 +100,6 @@ class Web extends \Web {
      * @param array $additionalOptions
      * @param int $retryCount request counter for failed call
      * @return array|FALSE|mixed
-     * @throws \Exception\PathfinderException
      */
     public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0 ) {
         $f3 = \Base::instance();
