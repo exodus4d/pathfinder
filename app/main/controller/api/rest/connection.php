@@ -1,51 +1,40 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodus4d
- * Date: 01.03.15
- * Time: 18:37
+ * User: Exodus 4D
+ * Date: 10.11.2018
+ * Time: 12:10
  */
 
-namespace Controller\Api;
+namespace Controller\Api\Rest;
 
-use Controller;
 use Model;
 
-class Connection extends Controller\AccessController {
-
+class Connection extends AbstractRestController {
 
     /**
      * save a new connection or updates an existing (drag/drop) between two systems
      * if a connection is changed (drag&drop) to another system. -> this function is called for update
      * @param \Base $f3
      * @throws \Exception
+     * @throws \ZMQSocketException
      */
-    public function save(\Base $f3){
-        $postData = (array)$f3->get('POST');
+    public function put(\Base $f3){
+        $requestData = $this->getRequestData($f3);
+        $connectionData = [];
 
-        $return = (object) [];
-        $return->error = [];
-        $return->connectionData = (object) [];
-
-        if(
-            isset($postData['connectionData']) &&
-            isset($postData['mapData'])
-        ){
-            $mapData = (array)$postData['mapData'];
-            $connectionData = (array)$postData['connectionData'];
-
+        if($mapId = (int)$requestData['mapId']){
             $activeCharacter = $this->getCharacter();
 
-            // get map model and check map access
             /**
              * @var Model\MapModel $map
              */
             $map = Model\BasicModel::getNew('MapModel');
-            $map->getById( (int)$mapData['id'] );
+            $map->getById($mapId);
 
-            if( $map->hasAccess($activeCharacter) ){
-                $source = $map->getSystemById( $connectionData['source'] );
-                $target = $map->getSystemById( $connectionData['target'] );
+            if($map->hasAccess($activeCharacter)){
+                $source = $map->getSystemById((int)$requestData['source']);
+                $target = $map->getSystemById((int)$requestData['target']);
 
                 if(
                     !is_null($source) &&
@@ -55,7 +44,7 @@ class Connection extends Controller\AccessController {
                      * @var $connection Model\ConnectionModel
                      */
                     $connection = Model\BasicModel::getNew('ConnectionModel');
-                    $connection->getById( (int)$connectionData['id'] );
+                    $connection->getById((int)$requestData['id']);
 
                     $connection->mapId = $map;
                     $connection->source = $source;
@@ -66,30 +55,30 @@ class Connection extends Controller\AccessController {
                     $connection->setDefaultTypeData();
 
                     if($connection->save($activeCharacter)){
-                        $return->connectionData = $connection->getData();
+                        $connectionData = $connection->getData();
 
                         // broadcast map changes
                         $this->broadcastMapData($connection->mapId);
-                    }else{
-                        $return->error = $connection->getErrors();
                     }
                 }
             }
         }
 
-        echo json_encode($return);
+        $this->out($connectionData);
     }
 
     /**
-     * delete connection
      * @param \Base $f3
+     * @param $params
      * @throws \Exception
+     * @throws \ZMQSocketException
      */
-    public function delete(\Base $f3){
-        $mapId = (int)$f3->get('POST.mapId');
-        $connectionIds = (array)$f3->get('POST.connectionIds');
+    public function delete(\Base $f3, $params){
+        $requestData = $this->getRequestData($f3);
+        $connectionIds = array_map('intval', explode(',', (string)$params['id']));
+        $deletedConnectionIds = [];
 
-        if($mapId){
+        if($mapId = (int)$requestData['mapId']){
             $activeCharacter = $this->getCharacter();
 
             /**
@@ -100,20 +89,21 @@ class Connection extends Controller\AccessController {
 
             if($map->hasAccess($activeCharacter)){
                 foreach($connectionIds as $connectionId){
-                    if( $connection = $map->getConnectionById($connectionId) ){
+                    if($connection = $map->getConnectionById($connectionId)){
                         $connection->delete( $activeCharacter );
 
                         $connection->reset();
+                        $deletedConnectionIds[] = $connectionId;
                     }
                 }
 
                 // broadcast map changes
-                $this->broadcastMapData($map);
+                if(count($deletedConnectionIds)){
+                    $this->broadcastMapData($map);
+                }
             }
-
         }
 
-        echo json_encode([]);
+        $this->out($deletedConnectionIds);
     }
-
-} 
+}

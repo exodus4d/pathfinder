@@ -127,7 +127,7 @@ class Database extends \Prefab {
         ];
 
         // set ERRMODE depending on pathfinders global DEBUG level
-        if($f3->get('DEBUG') >= 3){
+        if($f3->get('DEBUG') >= 1){
             $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_WARNING;
         }else{
             $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;

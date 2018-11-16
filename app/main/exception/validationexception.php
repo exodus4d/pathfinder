@@ -12,7 +12,7 @@ namespace Exception;
 class ValidationException extends PathfinderException {
 
     protected $codes = [
-        2000 => 593
+        2000 => 422
     ];
 
     /**

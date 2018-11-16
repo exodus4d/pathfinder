@@ -690,7 +690,7 @@ class Controller {
                     $errorData['code'],
                     $errorData['status'],
                     $errorData['text'],
-                    $f3->get('DEBUG') === 3 ? $errorData['trace'] : null
+                    $f3->get('DEBUG') >= 1 ? $errorData['trace'] : null
                 );
             }
 

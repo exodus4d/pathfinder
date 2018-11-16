@@ -10,7 +10,6 @@ namespace Controller\Api;
 
 use Controller;
 use Model;
-use Exception;
 
 class System extends Controller\AccessController {
 
@@ -24,88 +23,6 @@ class System extends Controller\AccessController {
      */
     protected function getSystemGraphCacheKey(int $systemId): string {
         return sprintf(self::CACHE_KEY_GRAPH, 'SYSTEM_' . $systemId);
-    }
-
-    /**
-     * save a new system to a a map
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function save(\Base $f3){
-        $postData = (array)$f3->get('POST');
-
-        $return = (object) [];
-        $return->error = [];
-        $return->systemData = (object) [];
-
-        if(
-            isset($postData['systemData']) &&
-            isset($postData['mapData'])
-        ){
-            $activeCharacter = $this->getCharacter();
-            $systemData = (array)$postData['systemData'];
-            $mapData = (array)$postData['mapData'];
-            $systemModel = null;
-
-            if( (int)$systemData['statusId'] <= 0 ){
-                unset($systemData['statusId']);
-            }
-
-            if( isset($systemData['id']) ){
-                // update existing system (e.g. set description) ------------------------------------------------------
-                /**
-                 * @var $system Model\SystemModel
-                 */
-                $system = Model\BasicModel::getNew('SystemModel');
-                $system->getById($systemData['id']);
-                if(
-                    !$system->dry() &&
-                    $system->hasAccess($activeCharacter)
-                ){
-                    // system model found
-                    // activate system (e.g. was inactive))
-                    $system->setActive(true);
-                    $systemModel = $system;
-                }
-            }elseif( isset($mapData['id']) ){
-                // save NEW system ------------------------------------------------------------------------------------
-                /**
-                 * @var $map Model\MapModel
-                 */
-                $map = Model\BasicModel::getNew('MapModel');
-                $map->getById($mapData['id']);
-                if($map->hasAccess($activeCharacter)){
-                    $systemModel = $map->getNewSystem($systemData['systemId']);
-                }
-            }
-
-            if( !is_null($systemModel) ){
-                try{
-                    // set/update system custom data
-                    $systemModel->copyfrom($systemData, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
-
-                    if($systemModel->save($activeCharacter)){
-                        // get data from "fresh" model (e.g. some relational data has changed: "statusId")
-                        /**
-                         * @var $newSystemModel Model\SystemModel
-                         */
-                        $newSystemModel = Model\BasicModel::getNew('SystemModel');
-                        $newSystemModel->getById( $systemModel->_id, 0);
-                        $newSystemModel->clearCacheData();
-                        $return->systemData = $newSystemModel->getData();
-
-                        // broadcast map changes
-                        $this->broadcastMapData($newSystemModel->mapId);
-                    }else{
-                        $return->error = $systemModel->getErrors();
-                    }
-                }catch(Exception\ValidationException $e){
-                    $return->error[] = $e->getError();
-                }
-            }
-        }
-
-        echo json_encode($return);
     }
 
     /**
@@ -294,87 +211,5 @@ class System extends Controller\AccessController {
         echo json_encode($return);
     }
 
-    /**
-     * delete systems and all its connections from map
-     * -> set "active" flag
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function delete(\Base $f3){
-        $mapId = (int)$f3->get('POST.mapId');
-        $systemIds = array_map('intval', (array)$f3->get('POST.systemIds'));
-
-        $return = (object) [];
-        $return->deletedSystemIds = [];
-
-        if($mapId){
-            $activeCharacter = $this->getCharacter();
-
-            /**
-             * @var Model\MapModel $map
-             */
-            $map = Model\BasicModel::getNew('MapModel');
-            $map->getById($mapId);
-
-            if($map->hasAccess($activeCharacter)){
-                $newSystemModel = Model\BasicModel::getNew('SystemModel');
-                foreach($systemIds as $systemId){
-                    if( $system = $map->getSystemById($systemId) ){
-                        // check whether system should be deleted OR set "inactive"
-                        if( $this->checkDeleteMode($map, $system) ){
-                            // delete log
-                            // -> first set updatedCharacterId -> required for activity log
-                            $system->updatedCharacterId = $activeCharacter;
-                            $system->update();
-
-                            // ... now get fresh object and delete..
-                            $newSystemModel->getById( $system->id, 0);
-                            $newSystemModel->erase();
-                            $newSystemModel->reset();
-                        }else{
-                            // keep data -> set "inactive"
-                            $system->setActive(false);
-                            $system->save($activeCharacter);
-                        }
-
-                        $system->reset();
-
-                        $return->deletedSystemIds[] = $systemId;
-                    }
-                }
-                // broadcast map changes
-                if(count($return->deletedSystemIds)){
-                    $this->broadcastMapData($map);
-                }
-            }
-        }
-
-        echo json_encode($return);
-    }
-
-    /**
-     * checks whether a system should be "deleted" or set "inactive" (keep some data)
-     * @param Model\MapModel $map
-     * @param Model\SystemModel $system
-     * @return bool
-     */
-    protected function checkDeleteMode(Model\MapModel $map, Model\SystemModel $system){
-        $delete = true;
-
-        if( !empty($system->description) ){
-            // never delete systems with custom description set!
-            $delete = false;
-        }elseif(
-            $map->persistentAliases &&
-            !empty($system->alias) &&
-            ($system->alias != $system->name)
-        ){
-            // map setting "persistentAliases" is active (default) AND
-            // alias is set and != name
-            $delete = false;
-        }
-
-        return $delete;
-    }
 }
 

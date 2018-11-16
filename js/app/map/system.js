@@ -56,47 +56,6 @@ define([
             '- DPS and Logistic ships needed'
     };
 
-
-    /**
-     * save a new system and add it to the map
-     * @param requestData
-     * @param context
-     * @param callback
-     */
-    let saveSystem = (requestData, context, callback) => {
-        $.ajax({
-            type: 'POST',
-            url: Init.path.saveSystem,
-            data: requestData,
-            dataType: 'json',
-            context: context
-        }).done(function(responseData){
-            let newSystemData = responseData.systemData;
-
-            if( !$.isEmptyObject(newSystemData) ){
-                Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
-
-                callback(newSystemData);
-            }
-
-            if(
-                responseData.error &&
-                responseData.error.length > 0
-            ){
-                for(let i = 0; i < responseData.error.length; i++){
-                    let error = responseData.error[i];
-                    Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
-                }
-            }
-        }).fail(function(jqXHR, status, error){
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        }).always(function(){
-            this.systemDialog.find('.modal-content').hideLoadingAnimation();
-        });
-    };
-
     /**
      * open "new system" dialog and add the system to map
      * optional the new system is connected to a "sourceSystem" (if available)
@@ -256,7 +215,7 @@ define([
                             // get form Values
                             let form = this.find('form');
 
-                            let systemDialogData = $(form).getFormValues();
+                            let formData = $(form).getFormValues();
 
                             // validate form
                             form.validator('validate');
@@ -288,27 +247,31 @@ define([
                                 };
                             }
 
-                            systemDialogData.position = newPosition;
+                            formData.position = newPosition;
+                            formData.mapId = mapId;
 
                             // ----------------------------------------------------------------------------------------
 
-                            let requestData = {
-                                systemData: systemDialogData,
-                                mapData: {
-                                    id: mapId
-                                }
-                            };
-
                             this.find('.modal-content').showLoadingAnimation();
 
-                            saveSystem(requestData, {
-                                systemDialog: this
-                            }, (newSystemData) => {
-                                // success callback
-                                callback(map, newSystemData, sourceSystem);
+                            Util.request('PUT', 'system', [], formData, {
+                                systemDialog: systemDialog,
+                                formElement: form,
+                                map: map,
+                                sourceSystem: sourceSystem
+                            }, context => {
+                                // always do
+                                context.systemDialog.find('.modal-content').hideLoadingAnimation();
+                            }).then(
+                                payload => {
+                                    Util.showNotify({title: 'New system', text: payload.data.name, type: 'success'});
 
-                                bootbox.hideAll();
-                            });
+                                    callback(payload.context.map, payload.data, payload.context.sourceSystem);
+                                    bootbox.hideAll();
+                                },
+                                Util.handleAjaxErrorResponse
+                            );
+
                             return false;
                         }
                     }
@@ -695,36 +658,29 @@ define([
      */
     let deleteSystems = (map, systems = [], callback = (systems) => {}) => {
         let mapContainer = $( map.getContainer() );
+        let systemIds = systems.map(system => $(system).data('id'));
 
-        $.ajax({
-            type: 'POST',
-            url: Init.path.deleteSystem,
-            data: {
-                mapId: mapContainer.data('id'),
-                systemIds: systems.map( system => $(system).data('id') )
+        Util.request('DELETE', 'system', systemIds, {
+            mapId: mapContainer.data('id')
+        }, {
+            map: map,
+            systems: systems
+        }).then(
+            payload => {
+                // check if all systems were deleted that should get deleted
+                let deletedSystems = payload.context.systems.filter(
+                    function(system){
+                        return this.indexOf( $(system).data('id') ) !== -1;
+                    }, payload.data
+                );
+
+                // remove systems from map
+                removeSystems(payload.context.map,  deletedSystems);
+
+                callback(deletedSystems);
             },
-            dataType: 'json',
-            context: {
-                map: map,
-                systems: systems
-            }
-        }).done(function(data){
-            // check if all systems were deleted that should get deleted
-            let deletedSystems = this.systems.filter(
-                function(system){
-                    return this.indexOf( $(system).data('id') ) !== -1;
-                }, data.deletedSystemIds
-            );
-
-            // remove systems from map
-            removeSystems(this.map,  deletedSystems);
-
-            callback(deletedSystems);
-        }).fail(function(jqXHR, status, error){
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
+            Util.handleAjaxErrorResponse
+        );
     };
 
     /**
@@ -733,7 +689,7 @@ define([
      * @param systems
      */
     let removeSystems = (map, systems) => {
-        let removeSystemCallbak = deleteSystem => {
+        let removeSystemCallback = deleteSystem => {
             map.remove(deleteSystem);
         };
 
@@ -741,10 +697,10 @@ define([
             system = $(system);
 
             // check if system is "active"
-            if( system.hasClass(config.systemActiveClass) ){
+            if(system.hasClass(config.systemActiveClass)){
                 delete Init.currentSystemData;
                 // get parent Tab Content and fire clear modules event
-                let tabContentElement = MapUtil.getTabContentElementByMapElement( system );
+                let tabContentElement = MapUtil.getTabContentElementByMapElement(system);
                 $(tabContentElement).trigger('pf:removeSystemModules');
             }
 
@@ -759,7 +715,7 @@ define([
             // remove system
             system.velocity('transition.whirlOut', {
                 duration: Init.animationSpeed.mapDeleteSystem,
-                complete: removeSystemCallbak
+                complete: removeSystemCallback
             });
         }
     };

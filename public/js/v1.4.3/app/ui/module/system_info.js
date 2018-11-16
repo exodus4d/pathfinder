@@ -52,44 +52,6 @@ define([
     let maxDescriptionLength = 9000;
 
     /**
-     * save system (description)
-     * @param requestData
-     * @param context
-     * @param callback
-     */
-    let saveSystem = (requestData, context, callback) => {
-        context.descriptionArea.showLoadingAnimation();
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.saveSystem,
-            data: requestData,
-            dataType: 'json',
-            context: context
-        }).done(function(responseData){
-            let newSystemData = responseData.systemData;
-
-            if( !$.isEmptyObject(newSystemData) ){
-                callback(newSystemData);
-            }
-
-            if(
-                responseData.error &&
-                responseData.error.length > 0
-            ){
-                for(let error of responseData.error){
-                    Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
-                }
-            }
-        }).fail(function(jqXHR, status, error){
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
-        }).always(function(){
-            this.descriptionArea.hideLoadingAnimation();
-        });
-    };
-
-    /**
      * update trigger function for this module
      * compare data and update module
      * @param moduleElement
@@ -307,21 +269,22 @@ define([
 
                                         if(validDescription){
                                             // ... valid -> save()
-                                            saveSystem({
-                                                mapData: {
-                                                    id: mapId
-                                                },
-                                                systemData: {
-                                                    id: systemData.id,
-                                                    description: description
-                                                }
+                                            descriptionArea.showLoadingAnimation();
+
+                                            Util.request('PATCH', 'system', systemData.id, {
+                                                description: description
                                             }, {
                                                 descriptionArea: descriptionArea
-                                            }, (systemData) => {
-                                                // .. save callback
-                                                context.$note.summernote('destroy');
-                                                updateModule(moduleElement, systemData);
-                                            });
+                                            }, context => {
+                                                // always do
+                                                context.descriptionArea.hideLoadingAnimation();
+                                            }).then(
+                                                payload => {
+                                                    context.$note.summernote('destroy');
+                                                    updateModule(moduleElement, payload.data);
+                                                },
+                                                Util.handleAjaxErrorResponse
+                                            );
                                         }
                                     }else{
                                         // ... no changes -> no save()

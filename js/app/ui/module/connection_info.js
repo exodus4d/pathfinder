@@ -907,7 +907,7 @@ define([
 
                                         connectionElement.find('table').showLoadingAnimation();
 
-                                        request('DELETE', 'log', rowData.id, {}, {
+                                        Util.request('DELETE', 'log', rowData.id, {}, {
                                             connectionElement: connectionElement
                                         }, requestAlways)
                                             .then(
@@ -929,7 +929,7 @@ define([
                                         active: 1
                                     };
 
-                                    request('PATCH', 'log', rowData.id, requestData, {
+                                    Util.request('PATCH', 'log', rowData.id, requestData, {
                                         connectionElement: connectionElement
                                     }, requestAlways)
                                         .then(
@@ -1006,57 +1006,6 @@ define([
         }
     };
 
-    let request = (action, entity, ids = [], data = {}, context = {}, always = null) => {
-
-        let requestExecutor = (resolve, reject) => {
-            let payload = {
-                action: 'request',
-                name: action.toLowerCase() + entity.charAt(0).toUpperCase() + entity.slice(1)
-            };
-
-            // build request url --------------------------------------------------------------------------------------
-            let url = Init.path.api + '/' + entity;
-
-            let path = '';
-            if(isNaN(ids)){
-                if(Array.isArray(ids)){
-                    path += '/' + ids.join(',');
-                }
-            }else{
-                let id = parseInt(ids, 10);
-                path += id ? '/' + id : '';
-            }
-            url += path;
-
-            $.ajax({
-                type: action,
-                url: url,
-                data: JSON.stringify(data),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                context: context
-            }).done(function(response){
-                payload.data = response;
-                payload.context = this;
-                resolve(payload);
-            }).fail(function(jqXHR, status, error){
-                payload.data = {
-                    jqXHR: jqXHR,
-                    status: status,
-                    error: error
-                };
-                payload.context = this;
-                reject(payload);
-            }).always(function(){
-                if(always){
-                    always(this);
-                }
-            });
-        };
-
-        return new Promise(requestExecutor);
-    };
-
     /**
      *
      * @param context
@@ -1129,7 +1078,7 @@ define([
 
                                 let method = formData.id ? 'PATCH' : 'PUT';
 
-                                request(method, 'log', formData.id, formData, {
+                                Util.request(method, 'log', formData.id, formData, {
                                     connectionElement: connectionElement,
                                     formElement: form
                                 }, requestAlways)

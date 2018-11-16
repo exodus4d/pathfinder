@@ -30,6 +30,9 @@ class Config extends \Prefab {
      */
     const ARRAY_KEYS                                = ['CCP_ESI_SCOPES', 'CCP_ESI_SCOPES_ADMIN'];
 
+    const
+        HTTP_422='Unprocessable Entity';
+
     /**
      * all environment data
      * @var array
@@ -390,6 +393,20 @@ class Config extends \Prefab {
         }
 
         return $data;
+    }
+
+    /**
+     * get HTTP status message by HTTP return code
+     * -> either from F3 or from self::Config constants
+     * @param int $code
+     * @return string
+     */
+    static function getHttpStatusByCode(int $code) : string {
+        if(empty($status = @constant('Base::HTTP_' .  $code))){
+            $status = @constant('self::HTTP_' .  $code);
+        }
+
+        return $status;
     }
 
 }

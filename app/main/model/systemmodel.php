@@ -120,6 +120,14 @@ class SystemModel extends AbstractMapTrackingModel {
     ];
 
     /**
+     * set map data by an associative array
+     * @param array $data
+     */
+    public function setData(array $data){
+        $this->copyfrom($data, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
+    }
+
+    /**
      * get map data as object
      * @return \stdClass
      * @throws \Exception
@@ -271,7 +279,7 @@ class SystemModel extends AbstractMapTrackingModel {
         $valid = true;
         if(mb_strlen($val) > 9000){
             $valid = false;
-            $this->throwValidationException($key);
+            $this->throwValidationException($key, 'Validation failed: "' . $key . '" too long');
         }
         return $valid;
     }

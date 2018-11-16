@@ -8,6 +8,7 @@
 
 namespace Exception;
 
+use lib\Config;
 
 class PathfinderException extends \Exception {
 
@@ -41,10 +42,11 @@ class PathfinderException extends \Exception {
         $error = (object) [];
         $error->type = 'error';
         $error->code = $this->getResponseCode();
-        $error->status = @constant('Base::HTTP_' .  $this->getResponseCode());
+        $error->status = Config::getHttpStatusByCode($this->getResponseCode());
         $error->message = $this->getMessage();
-        //$error->trace = $this->getTraceAsString();
-        $error->trace = $this->getTrace();
+        if(\Base::instance()->get('DEBUG') >= 1){
+            $error->trace = preg_split('/\R/', $this->getTraceAsString()); // no $this->>getTrace() here -> to much data
+        }
         return $error;
     }
 

@@ -60,7 +60,6 @@ class Log extends AbstractRestController {
         $this->out($connectionData);
     }
 
-
     /**
      * update log data
      * @param \Base $f3

@@ -559,7 +559,7 @@ define([
                         // confirm dialog
                         bootbox.confirm('Is this connection really gone?', function(result){
                             if(result){
-                                $().deleteConnections([activeConnection]);
+                                MapUtil.deleteConnections([activeConnection]);
                             }
                         });
                         break;
@@ -1385,158 +1385,73 @@ define([
      * @param connection
      */
     let saveConnection = function(connection){
-        if( connection instanceof jsPlumb.Connection ){
+        if(connection instanceof jsPlumb.Connection){
 
             let map = connection._jsPlumb.instance;
-            let mapContainer = $( map.getContainer() );
-
+            let mapContainer = $(map.getContainer());
             let mapId = mapContainer.data('id');
+
             let connectionData = MapUtil.getDataByConnection(connection);
+            connectionData.mapId = mapId;
 
-            let requestData = {
-                mapData: {
-                    id: mapId
-                },
-                connectionData: connectionData
-            };
+            Util.request('PUT', 'connection', [], connectionData, {
+                connection: connection,
+                map: map,
+                mapId: mapId,
+                oldConnectionData: connectionData
+            }).then(
+                payload => {
+                    let newConnectionData = payload.data;
 
-            $.ajax({
-                type: 'POST',
-                url: Init.path.saveConnection,
-                data: requestData,
-                dataType: 'json',
-                context: {
-                    connection: connection,
-                    map: map,
-                    mapId: mapId,
-                    oldConnectionData: connectionData
-                }
-            }).done(function(responseData){
-                let newConnectionData = responseData.connectionData;
+                    if( !$.isEmptyObject(newConnectionData) ){
+                        let updateCon = false;
 
-                if( !$.isEmptyObject(newConnectionData) ){
-                    let updateCon = false;
-
-                    if(this.oldConnectionData.id > 0){
-                        // connection exists (e.g. drag&drop new target system... (ids should never changed)
-                        let connection = $().getConnectionById(this.mapId, this.oldConnectionData.id);
-                        updateCon = true;
-                    }else{
-                        // new connection, check if connectionId was already updated (webSocket push is faster than ajax callback)
-                        let connection = $().getConnectionById(this.mapId, newConnectionData.id);
-
-                        if(connection){
-                            // connection already updated
-                            this.map.detach(this.connection, {fireEvent: false});
-                        }else{
-                            // .. else update this connection
-                            connection = this.connection;
+                        if(payload.context.oldConnectionData.id > 0){
+                            // connection exists (e.g. drag&drop new target system... (ids should never changed)
+                            let connection = $().getConnectionById(payload.context.mapId, payload.context.oldConnectionData.id);
                             updateCon = true;
+                        }else{
+                            // new connection, check if connectionId was already updated (webSocket push is faster than ajax callback)
+                            let connection = $().getConnectionById(payload.context.mapId, newConnectionData.id);
+
+                            if(connection){
+                                // connection already updated
+                                payload.context.map.detach(payload.context.connection, {fireEvent: false});
+                            }else{
+                                // .. else update this connection
+                                connection = payload.context.connection;
+                                updateCon = true;
+                            }
                         }
+
+                        if(updateCon){
+                            // update connection data e.g. "scope" has auto detected
+                            connection = updateConnection(connection, payload.context.oldConnectionData, newConnectionData);
+
+                            // new/updated connection should be cached immediately!
+                            updateConnectionCache(payload.context.mapId, connection);
+                        }
+
+                        // connection scope
+                        let scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
+
+                        let title = 'New connection established';
+                        if(payload.context.oldConnectionData.id > 0){
+                            title = 'Connection switched';
+                        }
+
+                        Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
+                    }else{
+                        // some save errors
+                        payload.context.map.detach(payload.context.connection, {fireEvent: false});
                     }
-
-                    if(updateCon){
-                        // update connection data e.g. "scope" has auto detected
-                        connection = updateConnection(connection, this.oldConnectionData, newConnectionData);
-
-                        // new/updated connection should be cached immediately!
-                        updateConnectionCache(this.mapId, connection);
-                    }
-
-                    // connection scope
-                    let scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
-
-                    let title = 'New connection established';
-                    if(this.oldConnectionData.id > 0){
-                        title = 'Connection switched';
-                    }
-
-                    Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
-                }else{
-                    // some save errors
-                    this.map.detach(this.connection, {fireEvent: false});
+                },
+                payload => {
+                    // remove this connection from map
+                    payload.context.map.detach(payload.context.connection, {fireEvent: false});
+                    Util.handleAjaxErrorResponse(payload);
                 }
-
-                // show errors
-                if(
-                    responseData.error &&
-                    responseData.error.length > 0
-                ){
-                    for(let i = 0; i < responseData.error.length; i++){
-                        let error = responseData.error[i];
-                        Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
-                    }
-                }
-            }).fail(function(jqXHR, status, error){
-                // remove this connection from map
-                this.map.detach(this.connection, {fireEvent: false});
-
-                let reason = status + ' ' + error;
-                Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
-                $(document).setProgramStatus('problem');
-            });
-        }
-    };
-
-    /**
-     * delete a connection and all related data
-     * @param connections
-     * @param callback
-     */
-    $.fn.deleteConnections = function(connections, callback){
-        if(connections.length > 0){
-
-            // remove connections from map
-            let removeConnections = function(tempConnections){
-                for(let i = 0; i < tempConnections.length; i++){
-                    // if a connection is manually (drag&drop) detached, the jsPlumb instance does not exist any more
-                    // connection is already deleted!
-                    if(tempConnections[i]._jsPlumb){
-                        tempConnections[i]._jsPlumb.instance.detach(tempConnections[i], {fireEvent: false});
-                    }
-                }
-            };
-
-            // prepare delete request
-            let map = connections[0]._jsPlumb.instance;
-            let mapContainer = $( map.getContainer() );
-
-            let connectionIds = [];
-            // connectionIds for delete request
-            for(let i = 0; i < connections.length; i++){
-                let connectionId = connections[i].getParameter('connectionId');
-                // drag&drop a new connection does not have an id yet, if connection is not established correct
-                if(connectionId !== undefined){
-                    connectionIds[i] = connections[i].getParameter('connectionId');
-                }
-            }
-
-            if(connectionIds.length > 0){
-                let requestData = {
-                    mapId: mapContainer.data('id'),
-                    connectionIds: connectionIds
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.deleteConnection,
-                    data: requestData,
-                    dataType: 'json',
-                    context: connections
-                }).done(function(data){
-                    // remove connections from map
-                    removeConnections(this);
-
-                    // optional callback
-                    if(callback){
-                        callback();
-                    }
-                }).fail(function(jqXHR, status, error){
-                    let reason = status + ' ' + error;
-                    Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
-                });
-            }
+            );
         }
     };
 
@@ -2181,7 +2096,7 @@ define([
             newJsPlumbInstance.bind('connectionDetached', function(info, e){
                 // a connection is manually (drag&drop) detached! otherwise this event should not be send!
                 let connection = info.connection;
-                $().deleteConnections([connection]);
+                MapUtil.deleteConnections([connection]);
             });
 
             newJsPlumbInstance.bind('checkDropAllowed', function(params){
