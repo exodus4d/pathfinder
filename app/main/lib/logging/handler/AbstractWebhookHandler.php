@@ -12,7 +12,7 @@ use lib\Config;
 use Monolog\Handler;
 use Monolog\Logger;
 
-abstract class AbstractSlackWebhookHandler extends Handler\AbstractProcessingHandler {
+abstract class AbstractWebhookHandler extends Handler\AbstractProcessingHandler {
 
     /**
      * @var string
