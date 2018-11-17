@@ -49,7 +49,7 @@ class Admin extends Controller{
             $this->dispatch($f3, $params, $character);
         }
 
-        $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAdminAuthorization']));
+        $f3->set('tplAuthType', $f3->get('BASE') . $f3->alias( 'sso', ['action' => 'requestAdminAuthorization']));
 
         // page title
         $f3->set('tplPageTitle', 'Admin | ' . Config::getPathfinderData('name'));
