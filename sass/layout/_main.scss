@@ -1196,7 +1196,35 @@ table{
       @include border-radius(3px);
     }
   }
+}
 
+// "fake connection" classes for inline text
+.pf-fake-connection-text{
+  padding: 0 2px;
+  border-style: solid;
+  border-color: darken($gray-light, 5%);
+  border-width: 2px;
+  border-left: none;
+  border-right: none;
+
+  &.pf-wh-eol{
+    border-color: $pink-dark;
+  }
+
+  &.pf-wh-reduced{
+    background-color: $orange;
+    color: $black;
+  }
+
+  &.pf-wh-critical{
+    background-color: $red-darker;
+    color: $black;
+  }
+
+  &.pf-wh-frig{
+    border-top-style: dashed;
+    border-bottom-style: dashed;
+  }
 }
 
 // structure status ===============================================================================
@@ -1599,5 +1627,3 @@ Animate the stripes
     background-position: 50px 50px;
   }
 }
-
-

@@ -151,8 +151,29 @@ define([
         let markup = '';
         if(parts.length === 2){
             // wormhole data -> 2 columns
+
+            let styleClass = ['pf-fake-connection-text'];
+            if(state.metaData){
+                let metaData = state.metaData;
+                if(metaData.type){
+                    let type = metaData.type;
+                    if(type.includes('wh_eol')){
+                        styleClass.push('pf-wh-eol');
+                    }
+                    if(type.includes('wh_reduced')){
+                        styleClass.push('pf-wh-reduced');
+                    }
+                    if(type.includes('wh_critical')){
+                        styleClass.push('pf-wh-critical');
+                    }
+                    if(type.includes('frigate')){
+                        styleClass.push('pf-wh-frig');
+                    }
+                }
+            }
+
             let securityClass = Util.getSecurityClassForSystem(parts[1]);
-            markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
+            markup += '<span class="' + styleClass.join(' ') + '">' + parts[0] + '</span>&nbsp;&nbsp;';
             markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
         }else{
             markup += '<span>' + state.text + '</span>';
@@ -786,6 +807,11 @@ define([
 
         return this.each(function(){
             let selectElement = $(this);
+
+            // remove existing <options> from DOM in case "data" is explicit set
+            if(options.data){
+                selectElement.empty();
+            }
             selectElement.select2(options);
 
             // initial open dropDown

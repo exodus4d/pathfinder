@@ -1012,6 +1012,61 @@ define([
     };
 
     /**
+     * convert XEditable Select <option> data into Select2 data format
+     * -> "prepend" (empty) options get added, too
+     * -> "metaData" can be used to pass custom data per <option>
+     * @param editable
+     * @returns {Array}
+     */
+    let convertXEditableOptionsToSelect2 = editable => {
+        let data = [];
+
+        if(editable.options){
+            // collect all options + "prepend" option from xEditable...
+            let optionsPrepend = editable.options.prepend ? editable.options.prepend : [];
+            let options =  editable.options.source();
+
+            let optionsAll = [];
+            optionsAll.push(...optionsPrepend, ...options);
+
+            /**
+             * convert a single option into Select2 format
+             * @param option
+             * @returns {{id: *, text: *}}
+             */
+            let convertOption = (option) => {
+                let data = {
+                    id: option.value,
+                    text: option.text
+                };
+
+                if(editable.value === option.value){
+                    data.selected = true;
+                }
+
+                // optional "metaData" that belongs to this option
+                if(option.hasOwnProperty('metaData')){
+                   data.metaData = option.metaData;
+                }
+
+                return data;
+            };
+
+            // ... transform data into Select2 data format
+            data = optionsAll.map(group => {
+                if(group.children){
+                    group.children = group.children.map(convertOption);
+                }else{
+                    group = convertOption(group);
+                }
+                return group;
+            });
+        }
+
+        return data;
+    };
+
+    /**
      * flatten XEditable array for select fields
      * @param dataArray
      * @returns {{}}
@@ -3138,6 +3193,7 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         initPageScroll: initPageScroll,
+        convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,
         getNearBySystemData: getNearBySystemData,
