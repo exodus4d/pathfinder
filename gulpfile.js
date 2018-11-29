@@ -109,14 +109,16 @@ let uglifyJsOptions = {
 let printError = (title, example) => {
     let cliLineLength = (cliBoxLength - 8);
 
-    log('').log(colors.red( '= ERROR ' + '=' . repeat(cliLineLength)));
+    log('');
+    log(colors.red( '= ERROR ' + '=' . repeat(cliLineLength)));
     log(colors.red(title));
     if(example){
         log(`
              ${colors.gray(example)}
         `);
     }
-    log(colors.red('='.repeat(cliBoxLength))).log('');
+    log(colors.red('='.repeat(cliBoxLength)));
+    log('');
 };
 
 // == Settings ========================================================================================================
@@ -270,34 +272,34 @@ let mergeConf = (confUser, confDefault) => {
  */
 let printHelp = () => {
     let cliLineLength = (cliBoxLength - 7);
-    log('')
-        .log(colors.cyan( '= HELP ' + '='.repeat(cliLineLength)))
-        .log(`
-             ${colors.cyan('documentation:')}        ${colors.gray('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
+    log('');
+    log(colors.cyan( '= HELP ' + '='.repeat(cliLineLength)));
+    log(`
+        ${colors.cyan('documentation:')}        ${colors.gray('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
+         
+        ${colors.cyan('usage:')}                ${colors.gray('$ npm run gulp [task] -- [--options] ...')}
+         
+        ${colors.cyan('tasks:')}
+            ${colors.gray('help')}              This view
+            ${colors.gray('default')}           Development environment. Working with row src files and file watcher, default:
+            ${colors.gray('')}                      ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
+            ${colors.gray('production')}        Production build. Concat and uglify static resources, default:
+            ${colors.gray('')}                      ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
+         
+        ${colors.cyan('options:')}
+            ${colors.gray('--tag')}             Set build version.                  ${colors.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
+            ${colors.gray('--jsUglify')}        Set js uglification.                ${colors.gray('(true || false)')}
+            ${colors.gray('--jsSourcemaps')}    Set js sourcemaps generation.       ${colors.gray('(true || false)')}
+            ${colors.gray('--jsGzip')}          Set js "gzip" compression mode.     ${colors.gray('(true || false)')}
+            ${colors.gray('--jsBrotli')}        Set js "brotli" compression mode.   ${colors.gray('(true || false)')}
              
-             ${colors.cyan('usage:')}                ${colors.gray('$ npm run gulp [task] -- [--options] ...')}
-             
-             ${colors.cyan('tasks:')}
-                ${colors.gray('help')}               This view
-                ${colors.gray('default')}            Development environment. Working with row src files and file watcher, default:
-                ${colors.gray('')}                       ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
-                ${colors.gray('production')}         Production build. Concat and uglify static resources, default:
-                ${colors.gray('')}                       ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
-             
-             ${colors.cyan('options:')}
-                 ${colors.gray('--tag')}             Set build version.                  ${colors.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
-                 ${colors.gray('--jsUglify')}        Set js uglification.                ${colors.gray('(true || false)')}
-                 ${colors.gray('--jsSourcemaps')}    Set js sourcemaps generation.       ${colors.gray('(true || false)')}
-                 ${colors.gray('--jsGzip')}          Set js "gzip" compression mode.     ${colors.gray('(true || false)')}
-                 ${colors.gray('--jsBrotli')}        Set js "brotli" compression mode.   ${colors.gray('(true || false)')}
-                 
-                 ${colors.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${colors.gray('(true || false)')}
-                 ${colors.gray('--cssGzip')}         Set CSS "gzip" compression mode.    ${colors.gray('(true || false)')}
-                 ${colors.gray('--cssBrotli')}       Set CSS "brotli" compression mode.  ${colors.gray('(true || false)')}
-                 ${colors.gray('--debug')}           Set debug mode (more output).       ${colors.gray('(true || false)')}
-        `)
-        .log(colors.cyan('='.repeat(cliBoxLength)))
-        .log('');
+            ${colors.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${colors.gray('(true || false)')}
+            ${colors.gray('--cssGzip')}         Set CSS "gzip" compression mode.    ${colors.gray('(true || false)')}
+            ${colors.gray('--cssBrotli')}       Set CSS "brotli" compression mode.  ${colors.gray('(true || false)')}
+            ${colors.gray('--debug')}           Set debug mode (more output).       ${colors.gray('(true || false)')}
+    `);
+    log(colors.cyan('='.repeat(cliBoxLength)));
+    log('');
 };
 
 /**

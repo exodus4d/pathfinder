@@ -19,14 +19,6 @@ input, select{
     -webkit-text-fill-color: $gray-lighter;
   }
 
-  // file input
-  &::-webkit-file-upload-button{
-    background-color: transparent;
-    border: none;
-    color: $gray-light;
-    outline: none;
-  }
-
   &[disabled]{
     @include placeholder(transparent);
   }
@@ -44,6 +36,16 @@ input[type='number']{
     -moz-appearance: none;
     appearance: none;
     margin: 0;
+    display: none;
+  }
+}
+
+input[type='file']{
+  &::-webkit-file-upload-button{
+    background-color: transparent;
+    border: none;
+    color: $gray-light;
+    outline: none;
   }
 }
 

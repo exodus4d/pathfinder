@@ -4,7 +4,9 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
+    'app/util',
+    'mousewheel',
+    'customScrollbar'
 ], ($, Init, Util) => {
     'use strict';
 
