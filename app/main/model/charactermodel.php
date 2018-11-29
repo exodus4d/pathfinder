@@ -300,8 +300,9 @@ class CharacterModel extends BasicModel {
 
     /**
      * setter for "banned" status
-     * @param bool|int $status
-     * @return mixed
+     * @param $status
+     * @return mixed|string|null
+     * @throws \Exception
      */
     public function set_banned($status){
         if($this->allowBanChange){
@@ -405,6 +406,7 @@ class CharacterModel extends BasicModel {
      */
     private function resetAdminColumns(){
         $this->kick();
+        $this->ban();
     }
 
     /**
