@@ -39,6 +39,7 @@ class Setup extends Controller {
         'CCP_SSO_URL',
         'CCP_SSO_CLIENT_ID',
         'CCP_SSO_SECRET_KEY',
+        'CCP_SSO_DOWNTIME',
         'CCP_ESI_URL',
         'CCP_ESI_DATASOURCE',
         'SMTP_HOST',

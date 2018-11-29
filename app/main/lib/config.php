@@ -373,7 +373,6 @@ class Config extends \Prefab {
         ){
             $uri = 'tcp://' . $ip . ':' . $port;
         }
-
         return $uri;
     }
 
@@ -391,7 +390,6 @@ class Config extends \Prefab {
         }catch (Exception\ConfigException $e){
             LogController::getLogger('ERROR')->write($e->getMessage());
         }
-
         return $data;
     }
 
@@ -405,8 +403,41 @@ class Config extends \Prefab {
         if(empty($status = @constant('Base::HTTP_' .  $code))){
             $status = @constant('self::HTTP_' .  $code);
         }
-
         return $status;
+    }
+
+    /**
+     * check if a given DateTime() is within downTime range: downtime + 10m
+     * -> can be used for prevent logging errors during downTime
+     * @param \DateTime|null $dateCheck
+     * @return bool
+     * @throws Exception\DateException
+     * @throws \Exception
+     */
+    static function inDownTimeRange(\DateTime $dateCheck = null) : bool {
+        // default daily downtime 00:00am
+        $downTimeParts = [0, 0];
+        if( !empty($downTime = (string)self::getEnvironmentData('CCP_SSO_DOWNTIME')) ){
+            $parts = array_map('intval', explode(':', $downTime));
+            if(count($parts) === 2){
+                // well formatted DOWNTIME found in config files
+                $downTimeParts = $parts;
+            }
+        }
+
+        // downTime Range is 10m
+        $downtimeInterval = new \DateInterval('PT10M');
+        $timezone = \Base::instance()->get('getTimeZone')();
+
+        // if  set -> use current time
+        $dateCheck = is_null($dateCheck) ? new \DateTime('now', $timezone) : $dateCheck;
+        $dateDowntimeStart = new \DateTime('now', $timezone);
+        $dateDowntimeStart->setTime($downTimeParts[0],$downTimeParts[1]);
+        $dateDowntimeEnd = clone $dateDowntimeStart;
+        $dateDowntimeEnd->add($downtimeInterval);
+
+        $dateRange = new DateRange($dateDowntimeStart, $dateDowntimeEnd);
+        return $dateRange->inRange($dateCheck);
     }
 
 }
