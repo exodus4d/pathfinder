@@ -533,6 +533,7 @@ define([
                     // copy some missing data
                     connectionsData[i].character = newConnectionData.character;
                     connectionsData[i].created = newConnectionData.created;
+                    connectionsData[i].type = newConnectionData.type;
                     // check for mass logs and copy data
                     if(newConnectionData.logs && newConnectionData.logs.length){
                         connectionsData[i].logs = newConnectionData.logs;

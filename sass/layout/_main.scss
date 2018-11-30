@@ -486,6 +486,29 @@ select:active, select:hover {
     }
   }
 
+  // column highlight cell class
+  thead{
+    th.colHighlight{
+      border-bottom: 1px solid $orange-dark;
+    }
+  }
+
+  tbody{
+    td.colHighlight{
+      border-left: 1px solid $orange-dark;
+      border-right: 1px solid $orange-dark;
+      background-color: rgba($orange-dark, .08);
+    }
+
+    tr:first-child td.colHighlight{
+      border-top: 1px solid $orange-dark;
+    }
+
+    tr:last-child td.colHighlight{
+      border-bottom: 1px solid $orange-dark;
+    }
+  }
+
 }
 
 // table styles ===================================================================================

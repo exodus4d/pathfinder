@@ -433,8 +433,23 @@
     background-image: url("#{$base-url}/landing/eve_sso_login_buttons_large_black_hover.png");
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    @include transition(box-shadow 0.12s ease-out);
-    will-change: box-shadow;
+
+    &:before{
+      content: ' ';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+
+      /* Create the box shadow at expanded size. */
+      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+
+      /* Hidden by default. */
+      opacity: 0;
+      @include transition(opacity 0.12s ease-in-out);
+      will-change: opacity;
+    }
 
     &:after {
       content: ' ';
@@ -449,7 +464,9 @@
     }
 
     &:hover {
-      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+      &:before{
+        opacity: 1;
+      }
 
       &:after{
         opacity: 0;

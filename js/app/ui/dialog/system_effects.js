@@ -14,7 +14,9 @@ define([
 
     let config = {
         // system effect dialog
-        systemEffectDialogClass: 'pf-system-effect-dialog'                      // class for system effect dialog
+        systemEffectDialogClass: 'pf-system-effect-dialog',                     // class for system effect dialog
+
+        systemEffectTableClass: 'pf-system-effect-table'                        // Table class for effect tables
     };
 
     let cache = {
@@ -33,12 +35,15 @@ define([
 
             let systemEffectData = Util.getSystemEffectData();
 
+            // last active (hover) table columnIndex
+            let lastActiveColIndex = null;
+
             let colCount = 0;
             for(let [effectName, effectData] of Object.entries(systemEffectData.wh)){
                 colCount++;
 
                 let table = $('<table>', {
-                    class: 'compact stripe order-column row-border'
+                    class: ['compact', 'stripe', 'order-column', 'row-border', config.systemEffectTableClass].join(' ')
                 });
 
                 let tbody = $('<tbody>');
@@ -121,7 +126,15 @@ define([
             });
 
             effectsDialog.on('show.bs.modal', function(e){
-                $(this).find('table').DataTable({
+                let headerAll = $();
+                let columnsAll = $();
+
+                let removeColumnHighlight = () => {
+                    headerAll.removeClass('colHighlight');
+                    columnsAll.removeClass('colHighlight');
+                };
+
+                let tableApis = $(this).find('table').DataTable({
                     pageLength: -1,
                     paging: false,
                     lengthChange: false,
@@ -129,8 +142,40 @@ define([
                     searching: false,
                     info: false,
                     columnDefs: [],
-                    data: null      // use DOM data overwrites [] default -> data.loader.js
+                    data: null,     // use DOM data overwrites [] default -> data.loader.js
+                    initComplete: function(settings, json){
+                        let tableApi = this.api();
+
+                        tableApi.tables().nodes().to$().on('mouseover', 'td', function(){
+                            // inside table cell -> get current hover colIndex
+                            let colIndex = tableApi.cell(this).index().column;
+
+                            if(colIndex !== lastActiveColIndex){
+                                removeColumnHighlight();
+
+                                lastActiveColIndex = colIndex;
+
+                                if(colIndex > 0){
+                                    // active column changed -> highlight same colIndex on other tables
+                                    let tableApis = $.fn.dataTable.tables({ visible: false, api: true })
+                                        .tables('.' + config.systemEffectTableClass);
+
+                                    let columns = tableApis.columns(colIndex);
+                                    columns.header().flatten().to$().addClass('colHighlight');
+                                    columns.nodes().flatten().to$().addClass('colHighlight');
+                                }
+                            }
+                        }).on('mouseleave', function(){
+                            // no longer inside table
+                            lastActiveColIndex = null;
+                            removeColumnHighlight();
+                        });
+                    }
                 });
+
+                // table cells will not change so we should cache them once
+                headerAll = tableApis.columns().header().to$();
+                columnsAll = tableApis.cells().nodes().to$();
             });
 
             effectsDialog.on('hide.bs.modal', function(e){

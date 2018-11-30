@@ -244,6 +244,12 @@
   }
 }
 
+// system effect dialog =======================================================
+.pf-system-effect-dialog{
+  .dataTable{
+    border-collapse: collapse; // required vor column highlight (hover) -> prevents jumping when border gets attached
+  }
+}
 // credits dialog =============================================================
 .pf-credits-dialog{
   .pf-credits-logo-background{
