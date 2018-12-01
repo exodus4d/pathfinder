@@ -718,7 +718,8 @@ define([
                                     if(currentUserData.character.log){
                                         logData.ship = {
                                             id: currentUserData.character.log.ship.typeId,
-                                            name: currentUserData.character.log.ship.typeName
+                                            name: currentUserData.character.log.ship.typeName,
+                                            mass: currentUserData.character.log.ship.mass
                                         };
                                     }
                                 }
@@ -1107,7 +1108,7 @@ define([
                 selectElementType.initUniverseTypeSelect({
                     categoryIds: [6],
                     maxSelectionLength: 1,
-                    selected: [Util.getObjVal(logData, 'ship.typeId')]
+                    selected: [Util.getObjVal(logData, 'ship.id')]
                 }).on('select2:select select2:unselecting', function(e){
                     // get ship mass from selected ship type and update mass input field
                     let shipMass = e.params.data ? e.params.data.mass / 1000 : '';
