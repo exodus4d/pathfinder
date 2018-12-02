@@ -150,7 +150,7 @@ class Controller {
         ){
 
             if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
-                $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+                new DB\SQL\MySQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
             }
         }
 
