@@ -95,8 +95,6 @@ class SystemModel extends AbstractMapTrackingModel {
         ],
         'description' => [
             'type' => Schema::DT_TEXT,
-            'nullable' => false,
-            'default' => '',
             'activity-log' => true,
             'validate' => true
         ],
@@ -120,6 +118,14 @@ class SystemModel extends AbstractMapTrackingModel {
             'has-many' => ['Model\ConnectionModel', 'target']
         ]
     ];
+
+    /**
+     * set map data by an associative array
+     * @param array $data
+     */
+    public function setData(array $data){
+        $this->copyfrom($data, ['statusId', 'locked', 'rallyUpdated', 'position', 'description']);
+    }
 
     /**
      * get map data as object
@@ -151,7 +157,7 @@ class SystemModel extends AbstractMapTrackingModel {
             $systemData->locked                 = $this->locked;
             $systemData->rallyUpdated           = strtotime($this->rallyUpdated);
             $systemData->rallyPoke              = $this->rallyPoke;
-            $systemData->description            = $this->description;
+            $systemData->description            = $this->description ? : '';
 
             $systemData->position               = (object) [];
             $systemData->position->x            = $this->posX;
@@ -273,7 +279,7 @@ class SystemModel extends AbstractMapTrackingModel {
         $valid = true;
         if(mb_strlen($val) > 9000){
             $valid = false;
-            $this->throwValidationException($key);
+            $this->throwValidationException($key, 'Validation failed: "' . $key . '" too long');
         }
         return $valid;
     }
@@ -490,8 +496,8 @@ class SystemModel extends AbstractMapTrackingModel {
 
     /**
      * @param string $action
-     * @return Logging\LogInterface
-     * @throws \Exception\PathfinderException
+     * @return logging\LogInterface
+     * @throws \Exception\ConfigException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
@@ -654,7 +660,7 @@ class SystemModel extends AbstractMapTrackingModel {
      * -> send to an Email
      * @param array $rallyData
      * @param CharacterModel $characterModel
-     * @throws \Exception\PathfinderException
+     * @throws \Exception\ConfigException
      */
     public function sendRallyPoke(array $rallyData, CharacterModel $characterModel){
         // rally log needs at least one handler to be valid

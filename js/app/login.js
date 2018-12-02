@@ -343,7 +343,7 @@ define([
     let initGallery = (newElements) => {
         if( newElements.length > 0){
             // We have to add ALL thumbnail elements to the gallery!
-            // -> even those wthat are invisible (not lazyLoaded) now!
+            // -> even those which are invisible (not lazyLoaded) now!
             // -> This is required for "swipe" through all images
             let allThumbLinks = getThumbnailElements();
 
@@ -582,7 +582,7 @@ define([
          * update all character panels -> set CSS class (e.g. after some panels were added/removed,..)
          */
         let updateCharacterPanels = function(){
-            let characterRows = $('.' + config.characterSelectionClass + ' .pf-dynamic-area').parent();
+            let characterRows = $('.' + config.characterSelectionClass + ' .' + Util.config.dynamicAreaClass).parent();
             let rowClassIdentifier = ((12 / characterRows.length ) <= 3) ? 3 : (12 / characterRows.length);
             $(characterRows).removeClass().addClass('col-sm-' + rowClassIdentifier);
         };
@@ -635,7 +635,7 @@ define([
         // request character data for each character panel
         requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
 
-            $('.' + config.characterSelectionClass + ' .pf-dynamic-area').each(function(){
+            $('.' + config.characterSelectionClass + ' .' + Util.config.dynamicAreaClass).each(function(){
                 let characterElement = $(this);
 
                 characterElement.showLoadingAnimation();
@@ -814,7 +814,7 @@ define([
         // init carousel
         initCarousel();
 
-        // init scrollspy
+        // init scrollSpy
         // -> after "Carousel"! required for correct "viewport" calculation (Gallery)!
         initScrollSpy();
 

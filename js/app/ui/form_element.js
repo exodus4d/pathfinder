@@ -12,7 +12,8 @@ define([
 
     let config = {
         // Select2
-        resultOptionImageClass: 'pf-result-image'                       // class for Select2 result option entry with image
+        resultOptionImageClass: 'pf-result-image',                      // class for Select2 result option entry with image
+        select2ImageLazyLoadClass: 'pf-select2-image-lazyLoad'          // class for Select2 result images that should be lazy loaded
     };
 
     /**
@@ -60,7 +61,7 @@ define([
             }
 
             if(imagePath){
-                thumb = '<img src="' + imagePath + '" style="max-width: 100%" />';
+                thumb = '<img class="' + config.select2ImageLazyLoadClass + '" data-original="' + imagePath + '" style="max-width: 100%"/>';
             }else if(iconName){
                 thumb = '<i class="fas fa-fw ' + iconName + '" ></i>';
             }
@@ -150,8 +151,29 @@ define([
         let markup = '';
         if(parts.length === 2){
             // wormhole data -> 2 columns
+
+            let styleClass = ['pf-fake-connection-text'];
+            if(state.metaData){
+                let metaData = state.metaData;
+                if(metaData.type){
+                    let type = metaData.type;
+                    if(type.includes('wh_eol')){
+                        styleClass.push('pf-wh-eol');
+                    }
+                    if(type.includes('wh_reduced')){
+                        styleClass.push('pf-wh-reduced');
+                    }
+                    if(type.includes('wh_critical')){
+                        styleClass.push('pf-wh-critical');
+                    }
+                    if(type.includes('frigate')){
+                        styleClass.push('pf-wh-frig');
+                    }
+                }
+            }
+
             let securityClass = Util.getSecurityClassForSystem(parts[1]);
-            markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
+            markup += '<span class="' + styleClass.join(' ') + '">' + parts[0] + '</span>&nbsp;&nbsp;';
             markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
         }else{
             markup += '<span>' + state.text + '</span>';
@@ -564,6 +586,7 @@ define([
                             return group;
                         });
                     },*/
+                    disabled: options.hasOwnProperty('disabled') ? options.disabled : false,
                     allowClear: options.maxSelectionLength <= 1,
                     maximumSelectionLength: options.maxSelectionLength,
                     templateResult: formatCategoryTypeResultData
@@ -605,6 +628,7 @@ define([
                 return {
                     id: type.id,
                     text: type.name,
+                    mass: type.hasOwnProperty('mass') ? type.mass : null,
                     groupId: this.groupId,
                     categoryId: this.categoryId,
                     categoryType: this.categoryType
@@ -783,6 +807,11 @@ define([
 
         return this.each(function(){
             let selectElement = $(this);
+
+            // remove existing <options> from DOM in case "data" is explicit set
+            if(options.data){
+                selectElement.empty();
+            }
             selectElement.select2(options);
 
             // initial open dropDown

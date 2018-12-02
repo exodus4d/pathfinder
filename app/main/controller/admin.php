@@ -37,7 +37,6 @@ class Admin extends Controller{
      * @param $params
      * @return bool
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     function beforeroute(\Base $f3, $params): bool {
         $return = parent::beforeroute($f3, $params);
@@ -50,7 +49,7 @@ class Admin extends Controller{
             $this->dispatch($f3, $params, $character);
         }
 
-        $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAdminAuthorization']));
+        $f3->set('tplAuthType', $f3->get('BASE') . $f3->alias( 'sso', ['action' => 'requestAdminAuthorization']));
 
         // page title
         $f3->set('tplPageTitle', 'Admin | ' . Config::getPathfinderData('name'));
@@ -67,7 +66,6 @@ class Admin extends Controller{
     /**
      * event handler after routing
      * @param \Base $f3
-     * @throws \Exception\PathfinderException
      */
     public function afterroute(\Base $f3) {
         // js view (file)
@@ -123,7 +121,6 @@ class Admin extends Controller{
      * @param $params
      * @param null $character
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     public function dispatch(\Base $f3, $params, $character = null){
         if($character instanceof CharacterModel){
@@ -232,7 +229,6 @@ class Admin extends Controller{
      * @param CharacterModel $character
      * @param int $kickCharacterId
      * @param int $minutes
-     * @throws \Exception\PathfinderException
      */
     protected function kickCharacter(CharacterModel $character, $kickCharacterId, $minutes){
         $kickOptions = self::KICK_OPTIONS;
@@ -262,7 +258,6 @@ class Admin extends Controller{
      * @param CharacterModel $character
      * @param int $banCharacterId
      * @param int $value
-     * @throws \Exception\PathfinderException
      */
     protected function banCharacter(CharacterModel $character, $banCharacterId, $value){
         $banCharacters = $this->filterValidCharacters($character, $banCharacterId);
@@ -309,7 +304,6 @@ class Admin extends Controller{
      * @param CharacterModel $character
      * @param int $mapId
      * @param int $value
-     * @throws \Exception\PathfinderException
      */
     protected function activateMap(CharacterModel $character, int $mapId, int $value){
         $maps = $this->filterValidMaps($character, $mapId);
@@ -322,7 +316,6 @@ class Admin extends Controller{
     /**
      * @param CharacterModel $character
      * @param int $mapId
-     * @throws \Exception\PathfinderException
      */
     protected function deleteMap(CharacterModel $character, int $mapId){
         $maps = $this->filterValidMaps($character, $mapId);
@@ -336,7 +329,6 @@ class Admin extends Controller{
      * @param CharacterModel $character
      * @param int $mapId
      * @return \DB\CortexCollection[]|MapModel[]
-     * @throws \Exception\PathfinderException
      */
     protected function filterValidMaps(CharacterModel $character, int $mapId) {
         $maps = [];
@@ -355,7 +347,6 @@ class Admin extends Controller{
      * get log file for "admin" logs
      * @param string $type
      * @return \Log
-     * @throws \Exception\PathfinderException
      */
     static function getLogger($type = 'ADMIN'){
         return parent::getLogger('ADMIN');
@@ -406,7 +397,6 @@ class Admin extends Controller{
      * init /maps page data
      * @param \Base $f3
      * @param CharacterModel $character
-     * @throws \Exception\PathfinderException
      */
     protected function initMaps(\Base $f3, CharacterModel $character){
         $data = (object) [];

@@ -405,6 +405,32 @@ define([
         let newSelectOptions = [];
         let connectionOptions = [];
 
+        /**
+         * get option data for a single connection
+         * @param type
+         * @param connectionData
+         * @param systemData
+         * @returns {{value: *, text: string, metaData: {type: *}}}
+         */
+        let getOption = (type, connectionData, systemData) => {
+            let text = 'UNKNOWN';
+            if(type === 'source'){
+                text = connectionData.sourceAlias + ' - ' + systemData.security;
+            }else if(type === 'target'){
+                text = connectionData.targetAlias + ' - ' + systemData.security;
+            }
+
+            let option = {
+                value: connectionData.id,
+                text: text,
+                metaData: {
+                    type: connectionData.type
+                }
+            };
+
+            return option;
+        };
+
         for(let systemConnection of systemConnections){
             let connectionData = MapUtil.getDataByConnection(systemConnection);
 
@@ -416,19 +442,13 @@ define([
                     let targetSystemData = MapUtil.getSystemData(mapId, connectionData.target);
                     if(targetSystemData){
                         // take target...
-                        connectionOptions.push({
-                            value: connectionData.id,
-                            text: connectionData.targetAlias + ' - ' + targetSystemData.security
-                        });
+                        connectionOptions.push(getOption('target', connectionData, targetSystemData));
                     }
                 }else if(systemData.id !== connectionData.source){
                     let sourceSystemData = MapUtil.getSystemData(mapId, connectionData.source);
                     if(sourceSystemData){
                         // take source...
-                        connectionOptions.push({
-                            value: connectionData.id,
-                            text: connectionData.sourceAlias + ' - ' + sourceSystemData.security
-                        });
+                        connectionOptions.push(getOption('source', connectionData, sourceSystemData));
                     }
                 }
             }
@@ -1119,7 +1139,14 @@ define([
     let editableConnectionOnShown = cell => {
         $(cell).on('shown', function(e, editable){
             let inputField = editable.input.$input;
-            inputField.addClass('pf-select2').initSignatureConnectionSelect();
+
+            // Select2 init would work without passing select options as "data", Select2 would grap data from DOM
+            // -> We want to pass "meta" data for each option into Select2 for formatting
+            let options = {
+                data: Util.convertXEditableOptionsToSelect2(editable)
+            };
+
+            inputField.addClass('pf-select2').initSignatureConnectionSelect(options);
         });
     };
 
@@ -1534,7 +1561,10 @@ define([
                                 let selected = $.fn.editableutils.itemsByValue(value, sourceData);
                                 if(selected.length && selected[0].value > 0){
                                     let errorIcon = '<i class="fas fa-exclamation-triangle txt-color txt-color-danger hide"></i>&nbsp;';
-                                    $(this).html(FormElement.formatSignatureConnectionSelectionData({text: selected[0].text})).prepend(errorIcon);
+                                    $(this).html(FormElement.formatSignatureConnectionSelectionData({
+                                        text: selected[0].text,
+                                        metaData: selected[0].metaData
+                                    })).prepend(errorIcon);
                                 }else{
                                     $(this).empty();
                                 }
@@ -2150,7 +2180,7 @@ define([
                 // xEditable field should not open -> on 'click'
                 // -> therefore disable "pointer-events" on "td" for some ms -> 'click' event is not triggered
                 $(this).css('pointer-events', 'none');
-                $(e.target.parentNode).toggleClass('selected');
+                $(e.target).closest('tr').toggleClass('selected');
 
                 // check delete button
                 checkDeleteSignaturesButton(e.data.tableApi);

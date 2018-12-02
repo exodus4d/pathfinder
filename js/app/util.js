@@ -8,6 +8,7 @@ define([
     'conf/signature_type',
     'bootbox',
     'localForage',
+    'lazyload',
     'velocity',
     'velocityUI',
     'customScrollbar',
@@ -65,10 +66,12 @@ define([
         mapClass: 'pf-map' ,                                                    // class for all maps
 
         // util
-        userStatusClass: 'pf-user-status',                                       // class for player status
+        userStatusClass: 'pf-user-status',                                      // class for player status
+        dynamicAreaClass: 'pf-dynamic-area',                                    // class for "dynamic" areas
 
         // select2
         select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements
+        select2ImageLazyLoadClass: 'pf-select2-image-lazyLoad',
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -1009,6 +1012,61 @@ define([
     };
 
     /**
+     * convert XEditable Select <option> data into Select2 data format
+     * -> "prepend" (empty) options get added, too
+     * -> "metaData" can be used to pass custom data per <option>
+     * @param editable
+     * @returns {Array}
+     */
+    let convertXEditableOptionsToSelect2 = editable => {
+        let data = [];
+
+        if(editable.options){
+            // collect all options + "prepend" option from xEditable...
+            let optionsPrepend = editable.options.prepend ? editable.options.prepend : [];
+            let options =  editable.options.source();
+
+            let optionsAll = [];
+            optionsAll.push(...optionsPrepend, ...options);
+
+            /**
+             * convert a single option into Select2 format
+             * @param option
+             * @returns {{id: *, text: *}}
+             */
+            let convertOption = (option) => {
+                let data = {
+                    id: option.value,
+                    text: option.text
+                };
+
+                if(editable.value === option.value){
+                    data.selected = true;
+                }
+
+                // optional "metaData" that belongs to this option
+                if(option.hasOwnProperty('metaData')){
+                   data.metaData = option.metaData;
+                }
+
+                return data;
+            };
+
+            // ... transform data into Select2 data format
+            data = optionsAll.map(group => {
+                if(group.children){
+                    group.children = group.children.map(convertOption);
+                }else{
+                    group = convertOption(group);
+                }
+                return group;
+            });
+        }
+
+        return data;
+    };
+
+    /**
      * flatten XEditable array for select fields
      * @param dataArray
      * @returns {{}}
@@ -1058,6 +1116,9 @@ define([
             // in order to make mCustomScrollbar mouseWheel enable works correctly
             $(resultsWrapper).find('ul.select2-results__options').off('mousewheel');
 
+            // preload images that are not visible yet
+            let lazyLoadImagesOffset = 240;
+
             resultsWrapper.mCustomScrollbar({
                 mouseWheel: {
                     enable: true,
@@ -1084,10 +1145,35 @@ define([
                         // -> this is because the initPassiveEvents() delegates the mouseWheel events
                         togglePageScroll(false);
                     },
+                    onUpdate: function(a){
+                        // whenever the scroll content updates -> init lazyLoad for potential images
+                        $('.' + config.select2ImageLazyLoadClass).lazyload({
+                            container: this,
+                            threshold: lazyLoadImagesOffset,
+                            event: 'pf:lazyLoad'
+                        });
+                    },
                     onTotalScroll: function(){
                         // we want to "trigger" Select2´s 'scroll' event
                         // in order to make its "infinite scrolling" function working
                         this.mcs.content.find(':first-child').trigger('scroll');
+                    },
+                    whileScrolling: function(){
+
+                        // lazy load for images -> reduce number of calculations by % 10
+                        if(0 === this.mcs.top % 10){
+                            let scroller = $(this).find('.mCSB_container');
+                            let scrollerBox = scroller.closest('.mCustomScrollBox');
+
+                            scrollerBox.find('.' + config.select2ImageLazyLoadClass).filter(function(){
+                                let $this = $(this);
+                                if($this.attr('src') === $this.attr('data-original')) return false;
+                                let scrollerTop = scroller.position().top;
+                                let scrollerHeight = scrollerBox.height();
+                                let offset = $this.closest('div').position();
+                                return (offset.top - lazyLoadImagesOffset < scrollerHeight - scrollerTop);
+                            }).trigger('pf:lazyLoad');
+                        }
                     }
                 }
             });
@@ -1107,7 +1193,7 @@ define([
             return wrapper;
         };
 
-        // global open event
+        // global opened event
         $(document).on('select2:open', '.' + config.select2Class, function(e){
             let resultsWrapper = getResultsWrapper(this);
             if(resultsWrapper){
@@ -1494,6 +1580,100 @@ define([
                 toggleGlobalInfoPanel(isMaintenance);
             }
         });
+    };
+
+    /**
+     * Request data from Server
+     * -> This function should be used (in future) for all Ajax and REST API calls
+     * -> works as a "wrapper" for jQueries ajax() method
+     * @param action
+     * @param entity
+     * @param ids
+     * @param data
+     * @param context
+     * @param always
+     * @returns {Promise<any>}
+     */
+    let request = (action, entity, ids = [], data = {}, context = {}, always = null) => {
+
+        let requestExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'request',
+                name: action.toLowerCase() + entity.charAt(0).toUpperCase() + entity.slice(1)
+            };
+
+            // build request url --------------------------------------------------------------------------------------
+            let url = Init.path.api + '/' + entity;
+
+            let path = '';
+            if(isNaN(ids)){
+                if(Array.isArray(ids)){
+                    path += '/' + ids.join(',');
+                }
+            }else{
+                let id = parseInt(ids, 10);
+                path += id ? '/' + id : '';
+            }
+            url += path;
+
+            $.ajax({
+                type: action,
+                url: url,
+                data: JSON.stringify(data),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                context: context
+            }).done(function(response){
+                payload.data = response;
+                payload.context = this;
+                resolve(payload);
+            }).fail(function(jqXHR, status, error){
+                payload.data = {
+                    jqXHR: jqXHR,
+                    status: status,
+                    error: error
+                };
+                payload.context = this;
+                reject(payload);
+            }).always(function(){
+                if(always){
+                    always(this);
+                }
+            });
+        };
+
+        return new Promise(requestExecutor);
+    };
+
+    /**
+     * global ajax error handler -> handles .fail() requests
+     * @param payload
+     */
+    let handleAjaxErrorResponse = (payload) => {
+        // handle only request errors
+        if(payload.action === 'request'){
+            let jqXHR = payload.data.jqXHR;
+            let reason = '';
+
+            if(jqXHR.responseJSON){
+                // ... valid JSON response
+                let response = jqXHR.responseJSON;
+
+                if(response.error && response.error.length > 0){
+                    // build error notification reason from errors
+                    reason = response.error.map(error => error.message ? error.message : error.status).join('\n');
+
+                    // check if errors might belong to a HTML form -> check "context"
+                    if(payload.context.formElement){
+                        // show form messages e.g. validation errors
+                        payload.context.formElement.showFormMessage(response.error);
+                    }
+                }
+            }else{
+                reason = 'Invalid JSON response';
+            }
+            showNotify({title: jqXHR.status + ': ' + payload.name, text: reason, type: 'error'});
+        }
     };
 
     /**
@@ -2863,7 +3043,7 @@ define([
      * @param url
      * @param params
      */
-    let redirect = (url, params) => {
+    let redirect = (url, params = []) => {
         let currentUrl = document.URL;
 
         if(url !== currentUrl){
@@ -2975,6 +3155,8 @@ define([
         stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
         ajaxSetup: ajaxSetup,
+        request: request,
+        handleAjaxErrorResponse: handleAjaxErrorResponse,
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
@@ -3011,6 +3193,7 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         initPageScroll: initPageScroll,
+        convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,
         getNearBySystemData: getNearBySystemData,

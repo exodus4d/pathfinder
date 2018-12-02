@@ -9,7 +9,11 @@
 namespace Exception;
 
 
-class ValidationException extends BaseException {
+class ValidationException extends PathfinderException {
+
+    protected $codes = [
+        2000 => 422
+    ];
 
     /**
      * table column that triggers the exception
@@ -17,35 +21,18 @@ class ValidationException extends BaseException {
      */
     private $field;
 
-    /**
-     * @return string
-     */
-    public function getField(): string {
-        return $this->field;
-    }
-
-    /**
-     * @param string $field
-     */
-    public function setField(string $field){
-        $this->field = $field;
-    }
-
-
     public function __construct(string $message, string $field = ''){
-        parent::__construct($message, self::VALIDATION_EXCEPTION);
-        $this->setField($field);
+        parent::__construct($message, 2000);
+        $this->field = $field;
     }
 
     /**
      * get error object
      * @return \stdClass
      */
-    public function getError(){
-        $error = (object) [];
-        $error->type = 'error';
-        $error->field = $this->getField();
-        $error->message = $this->getMessage();
+    public function getError() : \stdClass {
+        $error = parent::getError();
+        $error->field = $this->field;
         return $error;
     }
 } 

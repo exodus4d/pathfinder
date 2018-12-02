@@ -100,9 +100,9 @@ class Web extends \Web {
      * @param array $additionalOptions
      * @param int $retryCount request counter for failed call
      * @return array|FALSE|mixed
-     * @throws \Exception\PathfinderException
+     * @throws \Exception\DateException
      */
-    public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0 ) {
+    public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0){
         $f3 = \Base::instance();
 
         if( !$f3->exists( $hash = $this->getCacheKey($url, $options) ) ){
@@ -135,7 +135,11 @@ class Web extends \Web {
                         $url,
                         json_decode($result['body'])
                     );
-                    LogController::getLogger('ERROR')->write($errorMsg);
+
+                    // if request not within downTime time range -> log error
+                    if( !Config::inDownTimeRange() ){
+                        LogController::getLogger('ERROR')->write($errorMsg);
+                    }
                     break;
                 case 500:
                 case 501:
@@ -151,7 +155,11 @@ class Web extends \Web {
                             $url,
                             json_decode($result['body'])
                         );
-                        LogController::getLogger('ERROR')->write($errorMsg);
+
+                        // if request not within downTime time range -> log error
+                        if( !Config::inDownTimeRange() ){
+                            LogController::getLogger('ERROR')->write($errorMsg);
+                        }
 
                         // trigger error
                         if($additionalOptions['suppressHTTPErrors'] !== true){
@@ -174,8 +182,10 @@ class Web extends \Web {
                             json_decode($result['body'])
                         );
 
-                        // log error
-                        LogController::getLogger('ERROR')->write($errorMsg);
+                        // if request not within downTime time range -> log error
+                        if( !Config::inDownTimeRange() ){
+                            LogController::getLogger('ERROR')->write($errorMsg);
+                        }
 
                         if($additionalOptions['suppressHTTPErrors'] !== true){
                             $f3->error(504, $errorMsg);
@@ -190,7 +200,9 @@ class Web extends \Web {
                         $url
                     );
 
-                    LogController::getLogger('ERROR')->write($errorMsg);
+                    if( !Config::inDownTimeRange() ){
+                        LogController::getLogger('ERROR')->write($errorMsg);
+                    }
                     break;
             }
 

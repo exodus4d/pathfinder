@@ -787,12 +787,14 @@ define([
                         label: '<i class="fas fa-fw fa-sync"></i> restart',
                         className: ['btn-primary'].join(' '),
                         callback: function(){
-                            // check if error was 5xx -> reload page
-                            // -> else try to logout -> ajax request
-                            if(data.status >= 500 && data.status < 600){
-                                // redirect to login
-                                window.location = '../';
+                            if(data.redirect) {
+                                //  ... redirect user to e.g. login form page ...
+                                Util.redirect(data.redirect, ['logout']);
+                            }else if(data.reload){
+                                // ... or reload current page ...
+                                location.reload();
                             }else{
+                                // ... fallback try to logout user
                                 documentElement.trigger('pf:menuLogout');
                             }
                         }
@@ -811,12 +813,9 @@ define([
             };
 
             // add error information (if available)
-            if(
-                data.error &&
-                data.error.length
-            ){
-                for(let i = 0; i < data.error.length; i++){
-                    options.content.textSmaller.push(data.error[i].message);
+            if(data.error && data.error.length){
+                for(let error of data.error){
+                    options.content.textSmaller.push(error.message);
                 }
             }
 

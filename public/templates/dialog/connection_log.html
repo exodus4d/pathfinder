@@ -1,0 +1,51 @@
+<div id="{{id}}">
+    <form  role="form" class="form-horizontal">
+
+        <div class="row">
+            <div class="col-xs-9 col-sm-7">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="{{typeSelectId}}">Ship</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <label for="{{typeSelectId}}"></label>
+                            <select id="{{typeSelectId}}" class="pf-select2" name="shipTypeId" data-error="Ship type is required" required {{#logData.id}}readonly{{/logData.id}}></select>
+                            <span class="note help-block with-errors"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-3 col-sm-5">
+                <div class="form-group">
+                    <label class="col-sm-6 control-label" for="{{shipMassId}}">Jump mass</label>
+                    <div class="col-sm-6">
+                        <div class="input-icon-right">
+                            <i class="fas">t</i>
+                            <input id="{{shipMassId}}" class="form-control text-right" name="shipMass" type="number"  value="{{#massFormat}}{{logData.ship.mass}}{{/massFormat}}" min="32" max="2400000" step="1" data-error="Mass required" data-min-error="a POD has 32t" data-max-error="a Titan has 2.400.000t" required>
+                        </div>
+                        <div class="note help-block with-errors"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-9 col-sm-7">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="{{characterSelectId}}">Character</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <label for="{{characterSelectId}}"></label>
+                            <select id="{{characterSelectId}}" class="pf-select2" name="characterId" data-error="Character is required" required {{#logData.id}}readonly{{/logData.id}}>
+                                {{#logData.character}}
+                                <option value="{{id}}" selected="selected">{{name}}</option>
+                                {{/logData.character}}
+                            </select>
+                            <span class="note help-block with-errors"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

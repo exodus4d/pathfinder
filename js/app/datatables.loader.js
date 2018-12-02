@@ -18,6 +18,9 @@ define([
             lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']],
             order: [],              // no default order because columnDefs is empty
             autoWidth: false,
+            language: {
+                info: '_START_ - _END_ of _TOTAL_ entries'
+            },
             responsive: {
                 breakpoints: Init.breakpoints,
                 details: false

@@ -337,7 +337,7 @@ define([
                     data: statusData
                 });
 
-                // init character counter
+                // init char counter
                 let textarea = modalContent.find('#' + config.descriptionTextareaId);
                 let charCounter = modalContent.find('.' + config.descriptionTextareaCharCounter);
                 Util.updateCounter(textarea, charCounter, maxDescriptionLength);

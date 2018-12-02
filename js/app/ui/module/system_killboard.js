@@ -32,7 +32,6 @@ define([
         systemKillboardListImgCorp: 'pf-system-killboard-img-corp',             // class for all corp logos
 
         labelRecentKillsClass: 'pf-system-killboard-label-recent',              // class for "recent kills" label
-        dynamicAreaClass: 'pf-dynamic-area',                                    // class for "dynamic" areas
         controlAreaClass: 'pf-module-control-area',                             // class for "control" areas
 
         minCountKills: 5,
@@ -292,7 +291,7 @@ define([
      */
     let getControlElement = () => {
         let controlElement = $('<div>', {
-            class: [config.dynamicAreaClass, config.controlAreaClass, config.moduleHeadlineIconClass].join(' '),
+            class: [Util.config.dynamicAreaClass, config.controlAreaClass, config.moduleHeadlineIconClass].join(' '),
             html: '<i class="fas fa-sync"></i>&nbsp;&nbsp;load more'
         });
         return controlElement;

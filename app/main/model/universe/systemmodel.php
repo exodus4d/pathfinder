@@ -32,7 +32,7 @@ class SystemModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'starId' => [
             'type' => Schema::DT_INT,
@@ -44,7 +44,7 @@ class SystemModel extends BasicUniverseModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'security' => [
             'type' => Schema::DT_VARCHAR128

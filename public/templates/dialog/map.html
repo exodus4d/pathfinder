@@ -43,7 +43,7 @@
                 {{#hasRightMapUpdate}}
                     <form role="form" class="form-horizontal">
 
-                        <div class="row ">
+                        <div class="row">
                             <div class="col-sm-6">
                                 <h4 class="pf-dynamic-area">Map options</h4>
 
@@ -116,7 +116,7 @@
 
                         <div id="pf-map-dialog-slack-section" class="collapse {{#slackSectionShow}}in{{/slackSectionShow}}">
                             <fieldset {{^slackEnabled}}disabled{{/slackEnabled}}>
-                                <div class="row ">
+                                <div class="row">
                                     <div class="col-xs-12 col-sm-12 col-md-6">
                                         <div class="form-group">
                                             <label for="{{slackWebHookURLId}}" class="col-sm-3 col-md-4 control-label">WebHook
@@ -155,15 +155,14 @@
                                             </label>
                                             <div class="col-sm-6 col-md-8">
                                                 <div class="input-icon-left input-icon-right">
-                                                        <span class="fa-stack">
-                                                            <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
-                                                            <i class="fas fa-fw fa-2x fa-minus fa-stack-1x"></i>
-                                                        </span>
                                                     <span class="fa-stack">
-                                                            <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
-                                                            <i class="fas fa-fw fa-2x fa-minus fa-stack-1x"></i>
-                                                        </span>
-
+                                                        <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
+                                                        <i class="fas fa-fw fa-2x fa-minus fa-stack-1x"></i>
+                                                    </span>
+                                                    <span class="fa-stack">
+                                                        <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
+                                                        <i class="fas fa-fw fa-2x fa-minus fa-stack-1x"></i>
+                                                    </span>
                                                     <input name="slackIcon" type="text" class="form-control text-center" id="{{slackIconId}}" value="{{slackIcon}}" placeholder="slack" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)">
                                                 </div>
                                                 <div class="note help-block with-errors"></div>
@@ -181,23 +180,24 @@
                                             </label>
                                             <div class="col-sm-6 col-md-8">
                                                 <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type"{{/slackRallyEnabled}}>
-                                                <i class="fas fa-hashtag"></i>
-                                                <input name="slackChannelRally" type="text" class="form-control" id="{{slackChannelRallyId}}" value="{{slackChannelRally}}" placeholder="map_rally" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackRallyEnabled}}disabled{{/slackRallyEnabled}}>
+                                                    <i class="fas fa-hashtag"></i>
+                                                    <input name="slackChannelRally" type="text" class="form-control" id="{{slackChannelRallyId}}" value="{{slackChannelRally}}" placeholder="map_rally" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackRallyEnabled}}disabled{{/slackRallyEnabled}}>
+                                                </div>
                                             </div>
                                             <div class="note help-block with-errors"></div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-xs-6 col-sm-6 col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{slackChannelHistoryId}}" class="col-sm-6 col-md-4 control-label">Channel 'map changes'
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Send map changes to a Slack channel. This can be used in addition or replacement for the logfiles. (check 'Map logging' section above)"></i>
-                                        </label>
-                                        <div class="col-sm-6 col-md-8">
-                                            <div class="input-icon-left" {{^slackHistoryEnabled}}title="Globally disabled for this map type"{{/slackHistoryEnabled}}>
-                                            <i class="fas fa-hashtag"></i>
-                                            <input name="slackChannelHistory" type="text" class="form-control" id="{{slackChannelHistoryId}}" value="{{slackChannelHistory}}" placeholder="map_logging" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackHistoryEnabled}}disabled{{/slackHistoryEnabled}}>
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{slackChannelHistoryId}}" class="col-sm-6 col-md-4 control-label">Channel 'map changes'
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Send map changes to a Slack channel. This can be used in addition or replacement for the logfiles. (check 'Map logging' section above)"></i>
+                                            </label>
+                                            <div class="col-sm-6 col-md-8">
+                                                <div class="input-icon-left" {{^slackHistoryEnabled}}title="Globally disabled for this map type"{{/slackHistoryEnabled}}>
+                                                <i class="fas fa-hashtag"></i>
+                                                <input name="slackChannelHistory" type="text" class="form-control" id="{{slackChannelHistoryId}}" value="{{slackChannelHistory}}" placeholder="map_logging" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackHistoryEnabled}}disabled{{/slackHistoryEnabled}}>
+                                            </div>
                                         </div>
                                         <div class="help-block with-errors"></div>
                                     </div>
@@ -219,7 +219,7 @@
 
                         <div id="pf-map-dialog-discord-section" class="collapse {{#discordSectionShow}}in{{/discordSectionShow}}">
                             <fieldset {{^discordEnabled}}disabled{{/discordEnabled}}>
-                                <div class="row ">
+                                <div class="row">
                                     <div class="col-xs-12 col-sm-12 col-md-6">
                                         <div class="form-group">
                                             <label for="{{discordWebHookURLRallyId}}" class="col-sm-3 col-md-4 control-label">WebHook 'rally point'

@@ -30,7 +30,7 @@ class StarModel extends BasicUniverseModel {
                     'on-delete' => 'SET NULL'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'age' => [
             'type' => Schema::DT_BIGINT,

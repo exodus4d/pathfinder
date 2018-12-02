@@ -135,8 +135,13 @@ class Signature extends Controller\AccessController {
 
                     $system->saveSignature($signature, $activeCharacter);
 
-                    $updatedSignatureIds[] = $signature->_id;
-                    $return->signatures[] = $signature->getData();
+                    // TODO figure out why $system->connectionId is NULL after change/save
+                    //-> workaround: get data from "new" $signature model
+                    $signatureNew = Model\BasicModel::getNew('SystemSignatureModel');
+                    $signatureNew->getById($signature->_id);
+
+                    $updatedSignatureIds[] = $signatureNew->_id;
+                    $return->signatures[] = $signatureNew->getData();
 
                     $signature->reset();
                 }

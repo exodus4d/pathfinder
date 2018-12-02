@@ -19,14 +19,6 @@ input, select{
     -webkit-text-fill-color: $gray-lighter;
   }
 
-  // file input
-  &::-webkit-file-upload-button{
-    background-color: transparent;
-    border: none;
-    color: $gray-light;
-    outline: none;
-  }
-
   &[disabled]{
     @include placeholder(transparent);
   }
@@ -34,6 +26,26 @@ input, select{
   &.pf-select2{
     height: 32px; // supposed to be select2 field (before initialization)
     padding: 6px 12px;
+  }
+}
+
+input[type='number']{
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+    display: none;
+  }
+}
+
+input[type='file']{
+  &::-webkit-file-upload-button{
+    background-color: transparent;
+    border: none;
+    color: $gray-light;
+    outline: none;
   }
 }
 

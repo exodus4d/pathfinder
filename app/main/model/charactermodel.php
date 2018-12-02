@@ -300,8 +300,9 @@ class CharacterModel extends BasicModel {
 
     /**
      * setter for "banned" status
-     * @param bool|int $status
-     * @return mixed
+     * @param $status
+     * @return mixed|string|null
+     * @throws \Exception
      */
     public function set_banned($status){
         if($this->allowBanChange){
@@ -405,6 +406,7 @@ class CharacterModel extends BasicModel {
      */
     private function resetAdminColumns(){
         $this->kick();
+        $this->ban();
     }
 
     /**
@@ -473,7 +475,6 @@ class CharacterModel extends BasicModel {
      * get ESI API "access_token" from OAuth
      * @return bool|mixed
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     public function getAccessToken(){
         $accessToken = false;
@@ -544,7 +545,6 @@ class CharacterModel extends BasicModel {
      * checks whether this character is authorized to log in
      * -> check corp/ally whitelist config (pathfinder.ini)
      * @return bool
-     * @throws \Exception\PathfinderException
      */
     public function isAuthorized(){
         $authStatus = 'UNKNOWN';
@@ -614,7 +614,6 @@ class CharacterModel extends BasicModel {
      * get Pathfinder role for character
      * @return RoleModel
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     public function requestRole() : RoleModel{
         $role = null;
@@ -660,7 +659,6 @@ class CharacterModel extends BasicModel {
      * request all corporation roles granted to this character
      * @return array
      * @throws \Exception
-     * @throws \Exception\PathfinderException
      */
     protected function requestRoles(){
         $rolesData = [];
@@ -1021,7 +1019,6 @@ class CharacterModel extends BasicModel {
     /**
      * get all accessible map models for this character
      * @return MapModel[]
-     * @throws \Exception\PathfinderException
      */
     public function getMaps(){
         $this->filter(

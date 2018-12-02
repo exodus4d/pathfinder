@@ -162,8 +162,8 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
 
     /**
      * @param string $action
-     * @return Logging\LogInterface
-     * @throws \Exception\PathfinderException
+     * @return logging\LogInterface
+     * @throws \Exception\ConfigException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
@@ -194,11 +194,14 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
         $hasChanged = false;
 
         foreach((array)$signatureData as $key => $value){
-            if(
-                $this->exists($key) &&
-                $this->$key != $value
-            ){
-                $hasChanged = true;
+            if($this->exists($key)){
+                if($this->$key instanceof ConnectionModel){
+                    $currentValue = $this->get($key, true);
+                }else{
+                    $currentValue = $this->$key;
+                }
+
+                $hasChanged = $currentValue !== $value;
                 break;
             }
         }

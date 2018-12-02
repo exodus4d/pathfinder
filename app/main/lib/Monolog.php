@@ -36,8 +36,8 @@ class Monolog extends \Prefab {
         'mail'          => 'Monolog\Handler\SwiftMailerHandler',
         'slackMap'      => 'lib\logging\handler\SlackMapWebhookHandler',
         'slackRally'    => 'lib\logging\handler\SlackRallyWebhookHandler',
-        'discordMap'    => 'lib\logging\handler\SlackMapWebhookHandler', // use Slack handler for Discord
-        'discordRally'  => 'lib\logging\handler\SlackRallyWebhookHandler', // use Slack handler for Discord
+        'discordMap'    => 'lib\logging\handler\DiscordMapWebhookHandler',
+        'discordRally'  => 'lib\logging\handler\DiscordRallyWebhookHandler',
         'zmq'           => 'lib\logging\handler\ZMQHandler'
     ];
 

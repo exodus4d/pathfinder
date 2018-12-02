@@ -35,7 +35,7 @@ class WormholeModel extends BasicUniverseModel {
                     'on-delete' => 'SET NULL'
                 ]
             ],
-            'validate' => 'validate_notDry'
+            'validate' => 'notDry'
         ],
         'static' => [
             'type' => Schema::DT_BOOL,

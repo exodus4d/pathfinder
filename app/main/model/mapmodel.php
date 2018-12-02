@@ -10,9 +10,9 @@ namespace Model;
 
 use DB\SQL\Schema;
 use data\file\FileHandler;
+use Exception\ConfigException;
 use lib\Config;
 use lib\logging;
-use Exception\PathfinderException;
 
 class MapModel extends AbstractMapTrackingModel {
 
@@ -44,7 +44,7 @@ class MapModel extends AbstractMapTrackingModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry',
+            'validate' => 'notDry',
             'activity-log' => true
         ],
         'typeId' => [
@@ -57,7 +57,7 @@ class MapModel extends AbstractMapTrackingModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
-            'validate' => 'validate_notDry',
+            'validate' => 'notDry',
             'activity-log' => true
         ],
         'name' => [
@@ -199,7 +199,6 @@ class MapModel extends AbstractMapTrackingModel {
      * get data
      * -> this includes system and connection data as well
      * @return \stdClass
-     * @throws PathfinderException
      * @throws \Exception
      */
     public function getData(){
@@ -791,7 +790,6 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether a character has access to this map or not
      * @param CharacterModel $characterModel
      * @return bool
-     * @throws PathfinderException
      */
     public function hasAccess(CharacterModel $characterModel) : bool {
         $hasAccess = false;
@@ -972,8 +970,8 @@ class MapModel extends AbstractMapTrackingModel {
 
     /**
      * @param string $action
-     * @return Logging\LogInterface
-     * @throws PathfinderException
+     * @return logging\LogInterface
+     * @throws ConfigException
      */
     public function newLog($action = ''): Logging\LogInterface{
         $logChannelData = $this->getLogChannelData();
@@ -1048,7 +1046,6 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * check if "activity logging" is enabled for this map type
      * @return bool
-     * @throws PathfinderException
      */
     public function isActivityLogEnabled(): bool {
         return $this->logActivity && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_activity_enabled'];
@@ -1057,7 +1054,6 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * check if "history logging" is enabled for this map type
      * @return bool
-     * @throws PathfinderException
      */
     public function isHistoryLogEnabled(): bool {
         return $this->logHistory && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_history_enabled'];
@@ -1067,7 +1063,7 @@ class MapModel extends AbstractMapTrackingModel {
      * check if "Slack WebHook" is enabled for this map type
      * @param string $channel
      * @return bool
-     * @throws PathfinderException
+     * @throws ConfigException
      */
     public function isSlackChannelEnabled(string $channel): bool {
         $enabled = false;
@@ -1077,7 +1073,7 @@ class MapModel extends AbstractMapTrackingModel {
             switch($channel){
                 case 'slackChannelHistory': $defaultMapConfigKey = 'send_history_slack_enabled'; break;
                 case 'slackChannelRally': $defaultMapConfigKey = 'send_rally_slack_enabled'; break;
-                default: throw new PathfinderException(sprintf(self::ERROR_SLACK_CHANNEL, $channel));
+                default: throw new ConfigException(sprintf(self::ERROR_SLACK_CHANNEL, $channel));
             }
 
             if((bool) Config::getMapsDefaultConfig($this->typeId->name)[$defaultMapConfigKey]){
@@ -1095,7 +1091,7 @@ class MapModel extends AbstractMapTrackingModel {
      * check if "Discord WebHook" is enabled for this map type
      * @param string $channel
      * @return bool
-     * @throws PathfinderException
+     * @throws ConfigException
      */
     public function isDiscordChannelEnabled(string $channel): bool {
         $enabled = false;
@@ -1105,7 +1101,7 @@ class MapModel extends AbstractMapTrackingModel {
             switch($channel){
                 case 'discordWebHookURLHistory': $defaultMapConfigKey = 'send_history_discord_enabled'; break;
                 case 'discordWebHookURLRally': $defaultMapConfigKey = 'send_rally_discord_enabled'; break;
-                default: throw new PathfinderException(sprintf(self::ERROR_DISCORD_CHANNEL, $channel));
+                default: throw new ConfigException(sprintf(self::ERROR_DISCORD_CHANNEL, $channel));
             }
 
             if((bool) Config::getMapsDefaultConfig($this->typeId->name)[$defaultMapConfigKey]){
@@ -1123,7 +1119,6 @@ class MapModel extends AbstractMapTrackingModel {
      * check if "E-Mail" Log is enabled for this map
      * @param string $type
      * @return bool
-     * @throws PathfinderException
      */
     public function isMailSendEnabled(string $type): bool{
         $enabled = false;
@@ -1197,7 +1192,6 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $type
      * @param bool $addJson
      * @return \stdClass
-     * @throws PathfinderException
      */
     public function getSMTPConfig(string $type, bool $addJson = true): \stdClass{
         $config = Config::getSMTPConfig();
@@ -1350,7 +1344,6 @@ class MapModel extends AbstractMapTrackingModel {
      * get all active characters (with active log)
      * grouped by systems
      * @return \stdClass
-     * @throws PathfinderException
      * @throws \Exception
      */
     public function getUserData(){

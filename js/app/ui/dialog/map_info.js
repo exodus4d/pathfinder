@@ -654,7 +654,7 @@ define([
                             // deleteSignatures(row);
                             let connection = $().getConnectionById(mapData.config.id, rowData.id);
 
-                            $().deleteConnections([connection], function(){
+                            MapUtil.deleteConnections([connection], () => {
                                 // callback function after ajax "delete" success
                                 // remove table row
                                 tempTableElement.DataTable().rows(deleteRowElement).remove().draw();

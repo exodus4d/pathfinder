@@ -351,6 +351,67 @@ define([
     };
 
     /**
+     * delete a connection and all related data
+     * @param connections
+     * @param callback
+     */
+    let deleteConnections = (connections, callback) => {
+        if(connections.length > 0){
+
+            // remove connections from map
+            let removeConnections = connections => {
+                for(let connection of connections){
+                    connection._jsPlumb.instance.detach(connection, {fireEvent: false});
+                }
+            };
+
+            // prepare delete request
+            let map = connections[0]._jsPlumb.instance;
+            let mapContainer = $(map.getContainer());
+
+            // connectionIds for delete request
+            let connectionIds = [];
+            for(let connection of connections){
+                let connectionId = connection.getParameter('connectionId');
+                // drag&drop a new connection does not have an id yet, if connection is not established correct
+                if(connectionId !== undefined){
+                    connectionIds.push(connectionId);
+                }
+            }
+
+            if(connectionIds.length > 0){
+                Util.request('DELETE', 'connection', connectionIds, {
+                    mapId: mapContainer.data('id')
+                }, {
+                    connections: connections
+                }).then(
+                    payload => {
+                        // check if all connections were deleted that should get deleted
+                        let deletedConnections = payload.context.connections.filter(
+                            function(connection){
+                                // if a connection is manually (drag&drop) detached, the jsPlumb instance does not exist any more
+                                // connection is already deleted!
+                                return (
+                                    connection._jsPlumb &&
+                                    this.indexOf( connection.getParameter('connectionId') ) !== -1
+                                );
+                            }, payload.data
+                        );
+
+                        // remove connections from map
+                        removeConnections(deletedConnections);
+
+                        if(callback){
+                            callback();
+                        }
+                    },
+                    Util.handleAjaxErrorResponse
+                );
+            }
+        }
+    };
+
+    /**
      * get connection related data from a connection
      * -> data requires a signature bind to that connection
      * @param connection
@@ -1682,6 +1743,7 @@ define([
         setConnectionWHStatus: setConnectionWHStatus,
         getScopeInfoForConnection: getScopeInfoForConnection,
         getDataByConnections: getDataByConnections,
+        deleteConnections: deleteConnections,
         getConnectionDataFromSignatures: getConnectionDataFromSignatures,
         getEndpointOverlayContent: getEndpointOverlayContent,
         getTabContentElementByMapElement: getTabContentElementByMapElement,

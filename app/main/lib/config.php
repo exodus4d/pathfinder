@@ -30,6 +30,9 @@ class Config extends \Prefab {
      */
     const ARRAY_KEYS                                = ['CCP_ESI_SCOPES', 'CCP_ESI_SCOPES_ADMIN'];
 
+    const
+        HTTP_422='Unprocessable Entity';
+
     /**
      * all environment data
      * @var array
@@ -208,7 +211,6 @@ class Config extends \Prefab {
     /**
      * get SMTP config values
      * @return \stdClass
-     * @throws Exception\PathfinderException
      */
     static function getSMTPConfig(): \stdClass{
         $config             = new \stdClass();
@@ -253,7 +255,6 @@ class Config extends \Prefab {
      * get email for notifications by hive key
      * @param $key
      * @return mixed
-     * @throws Exception\PathfinderException
      */
     static function getNotificationMail($key){
         return self::getPathfinderData('notification' . ($key ? '.' . $key : ''));
@@ -264,7 +265,6 @@ class Config extends \Prefab {
      * -> read from pathfinder.ini
      * @param string $mapType
      * @return mixed
-     * @throws Exception\PathfinderException
      */
     static function getMapsDefaultConfig($mapType = ''){
         if( $mapConfig = self::getPathfinderData('map' . ($mapType ? '.' . $mapType : '')) ){
@@ -373,27 +373,71 @@ class Config extends \Prefab {
         ){
             $uri = 'tcp://' . $ip . ':' . $port;
         }
-
         return $uri;
     }
 
     /**
      * @param string $key
      * @return null|mixed
-     * @throws Exception\PathfinderException
      */
     static function getPathfinderData($key = ''){
         $hiveKey = self::HIVE_KEY_PATHFINDER . ($key ? '.' . strtoupper($key) : '');
         $data = null; // make sure it is always defined
         try{
             if( !\Base::instance()->exists($hiveKey, $data) ){
-                throw new Exception\PathfinderException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
+                throw new Exception\ConfigException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
             }
-        }catch (Exception\PathfinderException $e){
+        }catch (Exception\ConfigException $e){
             LogController::getLogger('ERROR')->write($e->getMessage());
         }
-
         return $data;
+    }
+
+    /**
+     * get HTTP status message by HTTP return code
+     * -> either from F3 or from self::Config constants
+     * @param int $code
+     * @return string
+     */
+    static function getHttpStatusByCode(int $code) : string {
+        if(empty($status = @constant('Base::HTTP_' .  $code))){
+            $status = @constant('self::HTTP_' .  $code);
+        }
+        return $status;
+    }
+
+    /**
+     * check if a given DateTime() is within downTime range: downtime + 10m
+     * -> can be used for prevent logging errors during downTime
+     * @param \DateTime|null $dateCheck
+     * @return bool
+     * @throws Exception\DateException
+     * @throws \Exception
+     */
+    static function inDownTimeRange(\DateTime $dateCheck = null) : bool {
+        // default daily downtime 00:00am
+        $downTimeParts = [0, 0];
+        if( !empty($downTime = (string)self::getEnvironmentData('CCP_SSO_DOWNTIME')) ){
+            $parts = array_map('intval', explode(':', $downTime));
+            if(count($parts) === 2){
+                // well formatted DOWNTIME found in config files
+                $downTimeParts = $parts;
+            }
+        }
+
+        // downTime Range is 10m
+        $downtimeInterval = new \DateInterval('PT10M');
+        $timezone = \Base::instance()->get('getTimeZone')();
+
+        // if  set -> use current time
+        $dateCheck = is_null($dateCheck) ? new \DateTime('now', $timezone) : $dateCheck;
+        $dateDowntimeStart = new \DateTime('now', $timezone);
+        $dateDowntimeStart->setTime($downTimeParts[0],$downTimeParts[1]);
+        $dateDowntimeEnd = clone $dateDowntimeStart;
+        $dateDowntimeEnd->add($downtimeInterval);
+
+        $dateRange = new DateRange($dateDowntimeStart, $dateDowntimeEnd);
+        return $dateRange->inRange($dateCheck);
     }
 
 }

@@ -29,7 +29,7 @@ class AppController extends Controller {
 
         if($return = parent::beforeroute($f3, $params)){
             // href for SSO Auth
-            $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAuthorization'] ));
+            $f3->set('tplAuthType', $f3->get('BASE') . $f3->alias( 'sso', ['action' => 'requestAuthorization'] ));
 
             // characters  from cookies
             $f3->set('cookieCharacters', $this->getCookieByName(self::COOKIE_PREFIX_CHARACTER, true));

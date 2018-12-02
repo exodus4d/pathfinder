@@ -37,7 +37,6 @@ class RallyLog extends AbstractCharacterLog{
 
     /**
      * @return string
-     * @throws \Exception\PathfinderException
      */
     protected function getThumbUrl() : string{
         $url = '';

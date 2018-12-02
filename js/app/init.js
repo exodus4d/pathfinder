@@ -9,6 +9,7 @@ define(['jquery'], ($) => {
     let Config = {
         path: {
             img: '/public/img/',                                            // path for images
+            api: '/api/rest',                                               //ajax URL - REST API
             // user API
             getCaptcha: '/api/user/getCaptcha',                             // ajax URL - get captcha image
             getServerStatus: '/api/user/getEveServerStatus',                // ajax URL - get EVE-Online server status
@@ -34,14 +35,9 @@ define(['jquery'], ($) => {
             getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
             // system API
             getSystemData: '/api/system/getData',                           // ajax URL - get system data
-            saveSystem: '/api/system/save',                                 // ajax URL - saves system to map
-            deleteSystem: '/api/system/delete',                             // ajax URL - delete system from map
             getSystemGraphData: '/api/system/graphData',                    // ajax URL - get all system graph data
             setDestination: '/api/system/setDestination',                   // ajax URL - set destination
             pokeRally: '/api/system/pokeRally',                             // ajax URL - send rally point pokes
-            // connection API
-            saveConnection: '/api/connection/save',                         // ajax URL - save new connection to map
-            deleteConnection: '/api/connection/delete',                     // ajax URL - delete connection from map
             // signature API
             saveSignatureData: '/api/signature/save',                       // ajax URL - save signature data for system
             deleteSignatureData: '/api/signature/delete',                   // ajax URL - delete signature data for system

@@ -9,7 +9,11 @@
 namespace Exception;
 
 
-class RegistrationException extends BaseException{
+class RegistrationException extends PathfinderException{
+
+    protected $codes = [
+        2000 => 403
+    ];
 
     /**
      * form field name that causes this exception
@@ -17,22 +21,18 @@ class RegistrationException extends BaseException{
      */
     private $field;
 
-    /**
-     * @return mixed
-     */
-    public function getField(){
-        return $this->field;
-    }
-
-    /**
-     * @param mixed $field
-     */
-    public function setField($field){
+    public function __construct(string $message, string $field = ''){
+        parent::__construct($message, 2000);
         $this->field = $field;
     }
 
-    public function __construct($message, $field = ''){
-        parent::__construct($message, self::REGISTRATION_EXCEPTION);
-        $this->setField($field);
+    /**
+     * get error object
+     * @return \stdClass
+     */
+    public function getError() : \stdClass {
+        $error = parent::getError();
+        $error->field = $this->field;
+        return $error;
     }
 }

@@ -123,7 +123,6 @@ class Statistic extends Controller\AccessController {
      * @param int $yearEnd
      * @param int $weekEnd
      * @return array
-     * @throws \Exception\PathfinderException
      */
     protected function queryStatistic( CharacterModel $character, $typeId, $yearStart, $weekStart, $yearEnd, $weekEnd){
         $data = [];

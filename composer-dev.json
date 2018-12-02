@@ -21,6 +21,8 @@
     }],
   "require": {
     "php-64bit": ">=7.0",
+    "ext-pdo": "*",
+    "ext-openssl": "*",
     "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
@@ -30,6 +32,7 @@
     "monolog/monolog": "1.*",
     "websoftwares/monolog-zmq-handler": "0.2.*",
     "swiftmailer/swiftmailer": "^6.0",
+    "league/html-to-markdown": "4.8.*",
     "exodus4d/pathfinder_esi": "dev-develop as 0.0.x-dev"
   }
 }

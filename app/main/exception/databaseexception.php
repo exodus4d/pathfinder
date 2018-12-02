@@ -8,9 +8,13 @@
 
 namespace Exception;
 
-class DatabaseException extends BaseException {
+class DatabaseException extends PathfinderException {
+
+    protected $codes = [
+        1500 => 500
+    ];
 
     public function __construct(string $message){
-        parent::__construct($message, self::DB_EXCEPTION);
+        parent::__construct($message, 1500);
     }
 }

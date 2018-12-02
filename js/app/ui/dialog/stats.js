@@ -404,7 +404,7 @@ define([
      */
     let getStatsData = function(requestData, context){
 
-        context.dynamicArea = $('#' + config.statsContainerId + ' .pf-dynamic-area');
+        context.dynamicArea = $('#' + config.statsContainerId + ' .' + Util.config.dynamicAreaClass);
         context.dynamicArea.showLoadingAnimation();
 
         $.ajax({
@@ -753,7 +753,7 @@ define([
      * show activity stats dialog
      */
     $.fn.showStatsDialog = function(){
-        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache){
+        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
             // get current statistics map settings
             let logActivityEnabled = false;
             let activeMap = Util.getMapModule().getActiveMap();
@@ -806,13 +806,7 @@ define([
                 title: 'Statistics',
                 message: content,
                 size: 'large',
-                show: false,
-                buttons: {
-                    close: {
-                        label: 'close',
-                        className: 'btn-default'
-                    }
-                }
+                show: false
             });
 
             // model events

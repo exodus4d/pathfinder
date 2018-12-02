@@ -33,14 +33,15 @@ class CategoryModel extends BasicUniverseModel {
 
     /**
      * get category data
-     * @return object
+     * @param array $additionalData
+     * @return null|object
      */
-    public function getData(){
+    public function getData(array $additionalData = []){
         $categoryData = (object) [];
         $categoryData->id = $this->id;
         $categoryData->name = $this->name;
 
-        if($groupsData = $this->getGroupsData()){
+        if($groupsData = $this->getGroupsData($additionalData)){
             $categoryData->groups = $groupsData;
         }
 
@@ -69,14 +70,15 @@ class CategoryModel extends BasicUniverseModel {
     }
 
     /**
+     * @param array $additionalData
      * @return array
      */
-    protected function getGroupsData() : array {
+    protected function getGroupsData(array $additionalData = []) : array {
         $groupsData = [];
         $groups = $this->getGroups();
 
         foreach($groups as $group){
-            $groupsData[] = $group->getData();
+            $groupsData[] = $group->getData($additionalData);
         }
 
         return $groupsData;

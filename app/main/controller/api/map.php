@@ -7,6 +7,7 @@
  */
 
 namespace Controller\Api;
+
 use Controller;
 use data\file\FileHandler;
 use lib\Config;
@@ -50,7 +51,6 @@ class Map extends Controller\AccessController {
      * Get all required static config data for program initialization
      * @param \Base $f3
      * @throws Exception
-     * @throws Exception\PathfinderException
      */
     public function initData(\Base $f3){
         // expire time in seconds
@@ -221,6 +221,7 @@ class Map extends Controller\AccessController {
 
             // universe category data ---------------------------------------------------------------------------------
             $return->universeCategories = [
+                6  => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(6)->getData(['mass']),
                 65 => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(65)->getData()
             ];
 
@@ -572,11 +573,7 @@ class Map extends Controller\AccessController {
 
                     $return->mapData = $map->getData();
                 }catch(Exception\ValidationException $e){
-                    $validationError = (object) [];
-                    $validationError->type = 'error';
-                    $validationError->field = $e->getField();
-                    $validationError->message = $e->getMessage();
-                    $return->error[] = $validationError;
+                    $return->error[] = $e->getError();
                 }
             }else{
                 // map access denied
@@ -634,7 +631,6 @@ class Map extends Controller\AccessController {
      * -> if characters with map access found -> broadcast mapData to them
      * @param Model\MapModel $map
      * @throws Exception
-     * @throws Exception\PathfinderException
      * @throws \ZMQSocketException
      */
     protected function broadcastMapAccess(Model\MapModel $map){
@@ -708,7 +704,6 @@ class Map extends Controller\AccessController {
      * -> function is called continuously (trigger) by any active client
      * @param \Base $f3
      * @throws Exception
-     * @throws Exception\PathfinderException
      */
     public function updateData(\Base $f3){
         $postData = (array)$f3->get('POST');
@@ -848,7 +843,6 @@ class Map extends Controller\AccessController {
      * @param Model\MapModel[] $mapModels
      * @return array
      * @throws Exception
-     * @throws Exception\PathfinderException
      */
     protected function getFormattedMapsData($mapModels){
         $mapData = [];
@@ -864,7 +858,6 @@ class Map extends Controller\AccessController {
      * -> function is called continuously by any active client
      * @param \Base $f3
      * @throws Exception
-     * @throws Exception\PathfinderException
      */
     public function updateUserData(\Base $f3){
         $postData = (array)$f3->get('POST');
@@ -1196,7 +1189,6 @@ class Map extends Controller\AccessController {
      * get map log data
      * @param \Base $f3
      * @throws Exception
-     * @throws Exception\PathfinderException
      */
     public function getLogData(\Base $f3){
         $postData = (array)$f3->get('POST');
