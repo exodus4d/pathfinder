@@ -168,7 +168,7 @@ define([
                                 class: 'pf-link',
                                 html: connectionData.sourceAlias + '&nbsp;&nbsp;'
                             }).on('click', function(){
-                                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: connectionData.source });
+                                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: connectionData.source});
                             }),
                             $('<span>', {
                                 class: [config.connectionInfoTableLabelSourceClass].join(' ')
@@ -183,7 +183,7 @@ define([
                                 class: 'pf-link',
                                 html: '&nbsp;&nbsp;' + connectionData.targetAlias
                             }).on('click', function(){
-                                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: connectionData.target });
+                                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: connectionData.target});
                             })
                         )
                     )

@@ -70,7 +70,7 @@ define([
     };
 
     /**
-     * scroll to a specific position in the map
+     * scroll to a specific position on map
      * demo: http://manos.malihu.gr/repository/custom-scrollbar/demo/examples/scrollTo_demo.html
      * @param position
      */
@@ -78,5 +78,32 @@ define([
         return this.each(function(){
             $(this).mCustomScrollbar('scrollTo', position);
         });
+    };
+
+    /**
+     * scroll to a specific system on map
+     * -> subtract some offset for tooltips/connections
+     * @param position
+     * @returns {*}
+     */
+    $.fn.scrollToSystem = function(position){
+        position = getOffsetPosition(position, {x: -15, y: -35});
+        return this.each(function(){
+            $(this).mCustomScrollbar('scrollTo', position);
+        });
+    };
+
+    /**
+     * add/subtract offset coordinates from position
+     * -> no negative values returned
+     * @param position
+     * @param offset
+     * @returns {{x: number, y: number}}
+     */
+    let getOffsetPosition = (position, offset) => {
+        return {
+            x: Math.max(0, position.x + offset.x),
+            y: Math.max(0, position.y + offset.y)
+        };
     };
 });

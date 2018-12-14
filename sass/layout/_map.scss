@@ -89,7 +89,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   position: absolute;
   display: none; // triggered by js
   z-index: 10000;
-  right: 26px;
+  right: 25px;
   background: rgba($black, 0.25);
   @include border-radius(5px);
 

@@ -142,6 +142,11 @@ class CharacterModel extends BasicModel {
             'nullable' => false,
             'default' => 1
         ],
+        'selectLocation' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
         'securityStatus' => [
             'type' => Schema::DT_FLOAT,
             'nullable' => false,
@@ -186,6 +191,7 @@ class CharacterModel extends BasicModel {
             $characterData->role = $this->roleId->getData();
             $characterData->shared = $this->shared;
             $characterData->logLocation = $this->logLocation;
+            $characterData->selectLocation = $this->selectLocation;
 
             if($this->authStatus){
                 $characterData->authStatus = $this->authStatus;

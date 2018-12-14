@@ -307,7 +307,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.id });
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.id});
                         });
                     }
                 },{
@@ -597,7 +597,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.source.id });
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.source.id});
                         });
                     }
                 },{
@@ -615,7 +615,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.target.id });
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.target.id});
                         });
                     }
                 },{

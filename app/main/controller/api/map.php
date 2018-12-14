@@ -183,6 +183,11 @@ class Map extends Controller\AccessController {
                 'zKillboard'            => Config::getPathfinderData('api.z_killboard')
             ];
 
+            // Character default config -------------------------------------------------------------------------------
+            $return->character = [
+                'autoLocationSelect'    => (bool)Config::getPathfinderData('character.auto_location_select')
+            ];
+
             // Slack integration status -------------------------------------------------------------------------------
             $return->slack = [
                 'status'                => (bool)Config::getPathfinderData('slack.status')

@@ -143,6 +143,22 @@
   @include rotate( -90deg );
 }
 
+// rainbow background =============================================================================
+@keyframes rotateRainbow{
+  0%{
+    background-position-x: 0;
+  }
+  100%{
+    background-position-x: 100vw;
+  }
+}
+
+@mixin rainbow(){
+  background: repeating-linear-gradient(-45deg, $green-light 0%, $teal-lighter 12.5%, $teal-lightest 25%, $green 37.5%, $green-light 50%);
+  background-size:100vw 100vw;
+  @include animation(rotateRainbow 3s infinite linear forwards);
+}
+
 // navigation link active/hover indicator =========================================================
 @mixin navigation-active-indicator($position) {
   content: '';

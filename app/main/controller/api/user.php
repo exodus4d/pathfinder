@@ -329,7 +329,7 @@ class User extends Controller\Controller{
 
                     // character config -----------------------------------------------------------
                     if(isset($formData['character'])){
-                        $activeCharacter->logLocation = (int)$formData['logLocation'];
+                        $activeCharacter->copyfrom($formData, ['logLocation', 'selectLocation']);
 
                         $activeCharacter->save();
                     }

@@ -12,7 +12,8 @@
   left: 0;
   width: 100%;
   height: 3px;
-  @include background-image(linear-gradient(to right, $green-light, $green-light 100%));
+
+  @include rainbow;
 
   &.warning{
     @include background-image(linear-gradient(to right, $brand-warning, $brand-warning 100%));

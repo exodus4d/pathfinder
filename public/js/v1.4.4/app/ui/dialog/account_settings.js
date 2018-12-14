@@ -55,6 +55,7 @@ define([
                 formErrorContainerClass: Util.config.formErrorContainerClass,
                 ccpImageServer: Init.url.ccpImageServer,
                 roleLabel: Util.getLabelByRole(Util.getObjVal(Util.getCurrentUserData(), 'character.role')).prop('outerHTML'),
+                characterAutoLocationSelectEnabled: Boolean(Util.getObjVal(Init, 'character.autoLocationSelect'))
             };
 
             let content = Mustache.render(template, data);
