@@ -45,8 +45,7 @@ class Sso extends Api\User{
     const ERROR_CHARACTER_DATA                      = 'Failed to load characterData from ESI';
     const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in. Reason: %s';
     const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
-    const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed. Please retry by CCP SSO';
-
+    const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed (data not found). Please retry by CCP SSO';
 
     /**
      * redirect user to CCP SSO page and request authorization
@@ -104,9 +103,7 @@ class Sso extends Api\User{
                         $character->hasUserCharacter() &&
                         ($character->isAuthorized() === 'OK')
                     ){
-                        $loginCheck = $this->loginByCharacter($character);
-
-                        if($loginCheck){
+                        if($this->loginByCharacter($character)){
                             // set "login" cookie
                             $this->setLoginCookie($character);
 
@@ -253,9 +250,7 @@ class Sso extends Api\User{
                                     $characterModel = $userCharactersModel->getCharacter();
 
                                     // login by character
-                                    $loginCheck = $this->loginByCharacter($characterModel);
-
-                                    if($loginCheck){
+                                    if($this->loginByCharacter($characterModel)){
                                         // set "login" cookie
                                         $this->setLoginCookie($characterModel);
 
@@ -306,7 +301,7 @@ class Sso extends Api\User{
      */
     public function login(\Base $f3){
         $data = (array)$f3->get('GET');
-        $cookieName = empty($data['cookie']) ? '' : $data['cookie'];
+        $cookieName = (string)$data['cookie'];
         $character = null;
 
         if( !empty($cookieName) ){
@@ -319,17 +314,19 @@ class Sso extends Api\User{
             }
         }
 
-        if( is_object($character)){
+        if(is_object($character)){
             // login by character
-            $loginCheck = $this->loginByCharacter($character);
-            if($loginCheck){
+            if($this->loginByCharacter($character)){
                 // route to "map"
                 $f3->reroute(['map', ['*' => '']]);
+            }else{
+                $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, $character->name));
             }
+        }else{
+            $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_COOKIE_LOGIN);
         }
 
         // on error -> route back to login form
-        $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_COOKIE_LOGIN);
         $f3->reroute(['login']);
     }
 

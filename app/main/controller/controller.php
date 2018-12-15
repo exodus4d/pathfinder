@@ -212,7 +212,7 @@ class Controller {
                         $data[$name] = $value;
                     }
                 }
-            }elseif( isset($cookieData[$cookieName]) ){
+            }elseif(isset($cookieData[$cookieName])){
                 // look for a single cookie
                 $data[$cookieName] = $cookieData[$cookieName];
             }
@@ -539,6 +539,7 @@ class Controller {
     /**
      * get EVE server status from ESI
      * @param \Base $f3
+     * @throws \Exception
      */
     public function getEveServerStatus(\Base $f3){
         $cacheKey = 'eve_server_status';

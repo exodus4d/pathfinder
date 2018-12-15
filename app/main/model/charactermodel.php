@@ -1121,7 +1121,7 @@ class CharacterModel extends BasicModel {
      * @param array $characterDataBase
      * @return array
      */
-    public static function mergeSessionCharacterData(array $characterDataBase = []){
+    public static function mergeSessionCharacterData(array $characterDataBase = []) : array {
         $addData = [];
         // get current session characters to be merged with
         $characterData = (array)self::getF3()->get(User::SESSION_KEY_CHARACTERS);
