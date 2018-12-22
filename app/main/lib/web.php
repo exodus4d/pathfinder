@@ -15,10 +15,11 @@ class Web extends \Web {
     const ERROR_STATUS_LOG                  = 'HTTP %s: \'%s\' | url: %s \'%s\'%s';
 
     /**
-     * max number of curls calls for a single resource until giving up...
-     * this is because SSO API is not very stable
+     * max retry attempts (cURL requests) for a single resource until giving up...
+     * -> this is because SSO API is not very stable
+     * 2 == (initial request + 2 retry == max of 3)
      */
-    const RETRY_COUNT_MAX                   = 3;
+    const RETRY_COUNT_MAX                   = 2;
 
     /**
      * end of line
@@ -31,9 +32,8 @@ class Web extends \Web {
      * @param array $headers
      * @return int
      */
-    protected function getStatusCodeFromHeaders($headers = []){
+    protected function getStatusCodeFromHeaders(array $headers = []) : int {
         $statusCode = 0;
-
         if(
             preg_match(
                 '/HTTP\/1\.\d (\d{3}?)/',
@@ -51,9 +51,8 @@ class Web extends \Web {
      * @param array $headers
      * @return int
      */
-    protected function getCacheTimeFromHeaders($headers = []){
+    protected function getCacheTimeFromHeaders(array $headers = []) : int {
         $cacheTime = 0;
-
         if(
             preg_match(
                 '/Cache-Control:(.*?)max-age=([0-9]+)/',
@@ -80,10 +79,10 @@ class Web extends \Web {
      * @param null $options
      * @return string
      */
-    protected function getCacheKey($url, $options = null){
+    protected function getCacheKey(string $url, $options = null) : string {
         $f3 = \Base::instance();
 
-        $headers = isset($options['header']) ? implode($this->eol, (array) $options['header']) : '';
+        $headers = isset($options['header']) ? implode($this->eol, (array)$options['header']) : '';
 
         return $f3->hash(
             $options['method'] . ' '
@@ -100,13 +99,15 @@ class Web extends \Web {
      * @param array $additionalOptions
      * @param int $retryCount request counter for failed call
      * @return array|FALSE|mixed
-     * @throws \Exception\DateException
      */
-    public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0){
+    public function request($url, array $options = null, array $additionalOptions = [], int $retryCount = 0){
         $f3 = \Base::instance();
 
-        if( !$f3->exists( $hash = $this->getCacheKey($url, $options) ) ){
-            // retry same request until request limit is reached
+        if( !$f3->exists($hash = $this->getCacheKey($url, $options), $result) ){
+            // set max retry count in case of request error
+            $retryCountMax = isset($additionalOptions['retryCountMax']) ? (int)$additionalOptions['retryCountMax'] : self::RETRY_COUNT_MAX;
+
+            // retry same request until retry limit is reached
             $retry = false;
 
             $result = parent::request($url, $options);
@@ -148,7 +149,7 @@ class Web extends \Web {
                 case 505:
                     $retry = true;
 
-                    if( $retryCount == self::RETRY_COUNT_MAX ){
+                    if($retryCount == $retryCountMax){
                         $errorMsg = $this->getErrorMessageFromJsonResponse(
                             $statusCode,
                             $options['method'],
@@ -171,7 +172,7 @@ class Web extends \Web {
                 case 0:
                     $retry = true;
 
-                    if( $retryCount == self::RETRY_COUNT_MAX ){
+                    if($retryCount == $retryCountMax){
                         // timeout -> response should not be cached
                         $result['timeout'] = true;
 
@@ -208,14 +209,11 @@ class Web extends \Web {
 
             if(
                 $retry &&
-                $retryCount < self::RETRY_COUNT_MAX
+                $retryCount < $retryCountMax
             ){
                 $retryCount++;
                 $this->request($url, $options, $additionalOptions, $retryCount);
             }
-
-        }else{
-            $result = $f3->get($hash);
         }
 
         return $result;

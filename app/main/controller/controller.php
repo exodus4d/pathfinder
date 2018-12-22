@@ -126,30 +126,29 @@ class Controller {
     protected function initSession(\Base $f3){
         $session = null;
 
-        /**
-         * callback() for suspect sessions
-         * @param $session
-         * @param $sid
-         * @return bool
-         */
-        $onSuspect = function($session, $sid){
-            self::getLogger('SESSION_SUSPECT')->write( sprintf(
-                self::ERROR_SESSION_SUSPECT,
-                $sid,
-                $session->ip(),
-                $session->agent()
-            ));
-            // .. continue with default onSuspect() handler
-            // -> destroy session
-            return false;
-        };
-
         if(
             $f3->get('SESSION_CACHE') === 'mysql' &&
             $this->getDB('PF') instanceof DB\SQL
         ){
-
             if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
+                /**
+                 * callback() for suspect sessions
+                 * @param $session
+                 * @param $sid
+                 * @return bool
+                 */
+                $onSuspect = function($session, $sid){
+                    self::getLogger('SESSION_SUSPECT')->write( sprintf(
+                        self::ERROR_SESSION_SUSPECT,
+                        $sid,
+                        $session->ip(),
+                        $session->agent()
+                    ));
+                    // .. continue with default onSuspect() handler
+                    // -> destroy session
+                    return false;
+                };
+
                 new DB\SQL\MySQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
             }
         }

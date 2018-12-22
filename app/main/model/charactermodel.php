@@ -23,7 +23,9 @@ class CharacterModel extends BasicModel {
     /**
      * cache key prefix for getData(); result WITH log data
      */
-    const DATA_CACHE_KEY_LOG = 'LOG';
+    const DATA_CACHE_KEY_LOG                        = 'LOG';
+
+    const LOG_ACCESS                                = 'charId: [%20s], status: %s, charName: %s';
 
     /**
      * character authorization status
@@ -75,15 +77,15 @@ class CharacterModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
-        'crestAccessToken' => [
+        'esiAccessToken' => [
             'type' => Schema::DT_VARCHAR256
         ],
-        'crestAccessTokenUpdated' => [
+        'esiAccessTokenExpires' => [
             'type' => Schema::DT_TIMESTAMP,
             'default' => Schema::DF_CURRENT_TIMESTAMP,
             'index' => true
         ],
-        'crestRefreshToken' => [
+        'esiRefreshToken' => [
             'type' => Schema::DT_VARCHAR256
         ],
         'esiScopes' => [
@@ -193,10 +195,6 @@ class CharacterModel extends BasicModel {
             $characterData->logLocation = $this->logLocation;
             $characterData->selectLocation = $this->selectLocation;
 
-            if($this->authStatus){
-                $characterData->authStatus = $this->authStatus;
-            }
-
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
                     $characterData->log = $logModel->getData();
@@ -217,6 +215,11 @@ class CharacterModel extends BasicModel {
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
             $this->updateCacheData($characterData, $cacheKeyModifier);
+        }
+
+        // temp "authStatus" should not be cached
+        if($this->authStatus){
+            $characterData->authStatus = $this->authStatus;
         }
 
         return $characterData;
@@ -259,20 +262,6 @@ class CharacterModel extends BasicModel {
         }
 
         return $ownerHash;
-    }
-
-    /**
-     * set API accessToken for current session
-     * -> update "tokenUpdated" column on change
-     * -> this is required for expire checking!
-     * @param string $accessToken
-     * @return string
-     */
-    public function set_crestAccessToken($accessToken){
-        if($this->crestAccessToken !== $accessToken){
-            $this->touch('crestAccessTokenUpdated');
-        }
-        return $accessToken;
     }
 
     /**
@@ -484,47 +473,61 @@ class CharacterModel extends BasicModel {
      */
     public function getAccessToken(){
         $accessToken = false;
+        $refreshToken = true;
 
-        // check if there is already an "accessToken" for this user
-        // check expire timer for stored "accessToken"
+        $timezone = self::getF3()->get('getTimeZone')();
+        $now = new \DateTime('now', $timezone);
+
         if(
-            !empty($this->crestAccessToken) &&
-            !empty($this->crestAccessTokenUpdated)
+            !empty($this->esiAccessToken) &&
+            !empty($this->esiAccessTokenExpires)
         ){
-            $timezone = self::getF3()->get('getTimeZone')();
-            $tokenTime = \DateTime::createFromFormat(
+            $expireTime = \DateTime::createFromFormat(
                 'Y-m-d H:i:s',
-                $this->crestAccessTokenUpdated,
+                $this->esiAccessTokenExpires,
                 $timezone
             );
-            // add expire time buffer for this "accessToken"
-            // token should be marked as "deprecated" BEFORE it actually expires.
-            $timeBuffer = 2 * 60;
-            $tokenTime->add(new \DateInterval('PT' . (Sso::ACCESS_KEY_EXPIRE_TIME - $timeBuffer) . 'S'));
 
-            $now = new \DateTime('now', $timezone);
-            if($tokenTime->getTimestamp() > $now->getTimestamp()){
-                $accessToken = $this->crestAccessToken;
+            // check if token is not expired
+            if($expireTime->getTimestamp() > $now->getTimestamp()){
+                // token still valid
+                $accessToken = $this->esiAccessToken;
+
+                // check if token should be renewed (close to expire)
+                $timeBuffer = 2 * 60;
+                $expireTime->sub(new \DateInterval('PT' . $timeBuffer . 'S'));
+
+                if($expireTime->getTimestamp() > $now->getTimestamp()){
+                    // token NOT close to expire
+                    $refreshToken = false;
+                }
             }
         }
 
-        // if no "accessToken" was found -> get a fresh one by an existing "refreshToken"
+        // no valid "accessToken" found OR
+        // existing token is close to expire
+        // -> get a fresh one by an existing "refreshToken"
+        // -> in case request for new token fails (e.g. timeout) and old token is still valid -> keep old token
         if(
-            !$accessToken &&
-            !empty($this->crestRefreshToken)
+            $refreshToken &&
+            !empty($this->esiRefreshToken)
         ){
-            // no accessToken found OR token is deprecated
-            $ssoController = new Sso();
-            $accessData =  $ssoController->refreshAccessToken($this->crestRefreshToken);
+            $additionalOptions = [];
+            if($accessToken){
+                // ... close to expire token exists -> moderate failover settings
+                $additionalOptions['suppressHTTPErrors'] = true;
+                $additionalOptions['retryCountMax'] = 0;
+            }
 
-            if(
-                isset($accessData->accessToken) &&
-                isset($accessData->refreshToken)
-            ){
-                $this->crestAccessToken = $accessData->accessToken;
+            $ssoController = new Sso();
+            $accessData =  $ssoController->refreshAccessToken($this->esiRefreshToken, $additionalOptions);
+
+            if(isset($accessData->accessToken, $accessData->esiAccessTokenExpires, $accessData->refreshToken)){
+                $this->esiAccessToken = $accessData->accessToken;
+                $this->esiAccessTokenExpires = $accessData->esiAccessTokenExpires;
                 $this->save();
 
-                $accessToken = $this->crestAccessToken;
+                $accessToken = $this->esiAccessToken;
             }
         }
 
@@ -535,16 +538,51 @@ class CharacterModel extends BasicModel {
      * check if character  is currently kicked
      * @return bool
      */
-    public function isKicked(){
+    public function isKicked() : bool {
         $kicked = false;
         if( !is_null($this->kicked) ){
-            $kickedUntil = new \DateTime();
-            $kickedUntil->setTimestamp( (int)strtotime($this->kicked) );
-            $now = new \DateTime();
-            $kicked = ($kickedUntil > $now);
+            try{
+                $kickedUntil = new \DateTime();
+                $kickedUntil->setTimestamp( (int)strtotime($this->kicked) );
+                $now = new \DateTime();
+                $kicked = ($kickedUntil > $now);
+            }catch(\Exception $e){
+                self::getF3()->error(500, $e->getMessage(), $e->getTrace());
+            }
         }
 
         return $kicked;
+    }
+
+    /**
+     * checks whether this character is currently logged in
+     * @return bool
+     */
+    public function checkLoginTimer() : bool {
+        $loginCheck = false;
+
+        if( !$this->dry() && $this->lastLogin ){
+            // get max login time (minutes) from config
+            $maxLoginMinutes = (int)Config::getPathfinderData('timer.logged');
+            if($maxLoginMinutes){
+                $timezone = self::getF3()->get('getTimeZone')();
+                try{
+                    $now = new \DateTime('now', $timezone);
+                    $logoutTime = new \DateTime($this->lastLogin, $timezone);
+                    $logoutTime->add(new \DateInterval('PT' . $maxLoginMinutes . 'M'));
+                    if($logoutTime->getTimestamp() > $now->getTimestamp()){
+                        $loginCheck = true;
+                    }
+                }catch(\Exception $e){
+                    self::getF3()->error(500, $e->getMessage(), $e->getTrace());
+                }
+            }else{
+                // no "max login" timer configured -> character still logged in
+                $loginCheck = true;
+            }
+        }
+
+        return $loginCheck;
     }
 
     /**
@@ -1111,7 +1149,7 @@ class CharacterModel extends BasicModel {
         }
 
         // delete auth cookie data ------------------------------------------------------------------------------------
-        if($deleteCookie ){
+        if($deleteCookie){
             $this->deleteAuthentications();
         }
     }

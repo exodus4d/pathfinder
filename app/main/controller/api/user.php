@@ -86,7 +86,7 @@ class User extends Controller\Controller{
             $character->save();
 
             // write login log --------------------------------------------------------------------
-            self::getLogger('LOGIN')->write(
+            self::getLogger('CHARACTER_LOGIN')->write(
                 sprintf(self::LOG_LOGGED_IN,
                     $user->_id,
                     $user->name,
@@ -260,7 +260,7 @@ class User extends Controller\Controller{
             $formData = $data['formData'];
 
             try{
-                if($activeCharacter = $this->getCharacter(0)){
+                if($activeCharacter = $this->getCharacter()){
                     $user = $activeCharacter->getUser();
 
                     // captcha is send -> check captcha -------------------------------------------
@@ -371,7 +371,7 @@ class User extends Controller\Controller{
             !empty($data['captcha']) &&
             $data['captcha'] === $captcha
         ){
-            $activeCharacter = $this->getCharacter(0);
+            $activeCharacter = $this->getCharacter();
             $user = $activeCharacter->getUser();
 
             if($user){

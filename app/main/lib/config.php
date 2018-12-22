@@ -20,6 +20,16 @@ class Config extends \Prefab {
     const CACHE_KEY_SOCKET_VALID                    = 'CACHED_SOCKET_VALID';
     const CACHE_TTL_SOCKET_VALID                    = 60;
 
+    /**
+     * SSO downtime length (estimation), minutes
+     */
+    const DOWNTIME_LENGTH                           = 8;
+
+    /**
+     * SSO downtime buffer length extends downtime length, minutes
+     */
+    const DOWNTIME_BUFFER                           = 1;
+
     const ERROR_CONF_PATHFINDER                     = 'Config value missing in pathfinder.ini file [%s]';
     const ERROR_CLASS_NOT_EXISTS_COMPOSER           = 'Class "%s" not found. -> Check installed Composer packages';
 
@@ -411,10 +421,9 @@ class Config extends \Prefab {
      * -> can be used for prevent logging errors during downTime
      * @param \DateTime|null $dateCheck
      * @return bool
-     * @throws Exception\DateException
-     * @throws \Exception
      */
     static function inDownTimeRange(\DateTime $dateCheck = null) : bool {
+        $inRange = false;
         // default daily downtime 00:00am
         $downTimeParts = [0, 0];
         if( !empty($downTime = (string)self::getEnvironmentData('CCP_SSO_DOWNTIME')) ){
@@ -425,19 +434,28 @@ class Config extends \Prefab {
             }
         }
 
-        // downTime Range is 10m
-        $downtimeInterval = new \DateInterval('PT10M');
-        $timezone = \Base::instance()->get('getTimeZone')();
+        try{
+            // downTime Range is 10m
+            $downtimeLength = self::DOWNTIME_LENGTH + (2 * self::DOWNTIME_BUFFER);
+            $timezone = \Base::instance()->get('getTimeZone')();
 
-        // if  set -> use current time
-        $dateCheck = is_null($dateCheck) ? new \DateTime('now', $timezone) : $dateCheck;
-        $dateDowntimeStart = new \DateTime('now', $timezone);
-        $dateDowntimeStart->setTime($downTimeParts[0],$downTimeParts[1]);
-        $dateDowntimeEnd = clone $dateDowntimeStart;
-        $dateDowntimeEnd->add($downtimeInterval);
+            // if not set -> use current time
+            $dateCheck = is_null($dateCheck) ? new \DateTime('now', $timezone) : $dateCheck;
+            $dateDowntimeStart = new \DateTime('now', $timezone);
+            $dateDowntimeStart->setTime($downTimeParts[0],$downTimeParts[1]);
+            $dateDowntimeStart->sub(new \DateInterval('PT' . self::DOWNTIME_BUFFER . 'M'));
 
-        $dateRange = new DateRange($dateDowntimeStart, $dateDowntimeEnd);
-        return $dateRange->inRange($dateCheck);
+            $dateDowntimeEnd = clone $dateDowntimeStart;
+            $dateDowntimeEnd->add(new \DateInterval('PT' . $downtimeLength . 'M'));
+
+            $dateRange = new DateRange($dateDowntimeStart, $dateDowntimeEnd);
+            $inRange = $dateRange->inRange($dateCheck);
+        }catch(\Exception $e){
+            $f3 = \Base::instance();
+            $f3->error(500, $e->getMessage(), $e->getTrace());
+        }
+
+        return $inRange;
     }
 
 }

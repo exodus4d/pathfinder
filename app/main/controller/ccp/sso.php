@@ -24,11 +24,6 @@ class Sso extends Api\User{
      */
     const SSO_TIMEOUT                               = 4;
 
-    /**
-     * @var int expire time (seconds) for an valid "accessToken"
-     */
-    const ACCESS_KEY_EXPIRE_TIME                    = 20 * 60;
-
     // SSO specific session keys
     const SESSION_KEY_SSO                           = 'SESSION.SSO';
     const SESSION_KEY_SSO_ERROR                     = 'SESSION.SSO.ERROR';
@@ -71,7 +66,7 @@ class Sso extends Api\User{
 
         if(
             isset($params['characterId']) &&
-            ( $activeCharacter = $this->getCharacter(0) )
+            ( $activeCharacter = $this->getCharacter() )
         ){
             // authentication restricted to a characterId -----------------------------------------------
             // restrict login to this characterId e.g. for character switch on map page
@@ -187,10 +182,7 @@ class Sso extends Api\User{
 
                 $accessData = $this->getSsoAccessData($getParams['code']);
 
-                if(
-                    isset($accessData->accessToken) &&
-                    isset($accessData->refreshToken)
-                ){
+                if(isset($accessData->accessToken, $accessData->esiAccessTokenExpires, $accessData->refreshToken)){
                     // login succeeded -> get basic character data for current login
                     $verificationCharacterData = $this->verifyCharacterData($accessData->accessToken);
 
@@ -205,10 +197,11 @@ class Sso extends Api\User{
 
                         if( isset($characterData->character) ){
                             // add "ownerHash" and SSO tokens
-                            $characterData->character['ownerHash']          = $verificationCharacterData->CharacterOwnerHash;
-                            $characterData->character['crestAccessToken']   = $accessData->accessToken;
-                            $characterData->character['crestRefreshToken']  = $accessData->refreshToken;
-                            $characterData->character['esiScopes']          = Lib\Util::convertScopesString($verificationCharacterData->Scopes);
+                            $characterData->character['ownerHash']              = $verificationCharacterData->CharacterOwnerHash;
+                            $characterData->character['esiAccessToken']         = $accessData->accessToken;
+                            $characterData->character['esiAccessTokenExpires']  = $accessData->esiAccessTokenExpires;
+                            $characterData->character['esiRefreshToken']        = $accessData->refreshToken;
+                            $characterData->character['esiScopes']              = Lib\Util::convertScopesString($verificationCharacterData->Scopes);
 
                             // add/update static character data
                             $characterModel = $this->updateCharacter($characterData);
@@ -338,7 +331,7 @@ class Sso extends Api\User{
      * @param bool $authCode
      * @return null|\stdClass
      */
-    public function getSsoAccessData($authCode){
+    protected function getSsoAccessData($authCode){
         $accessData = null;
 
         if( !empty($authCode) ){
@@ -354,10 +347,10 @@ class Sso extends Api\User{
 
     /**
      * verify authorization code, and get an "access_token" data
-     * @param $authCode
+     * @param string $authCode
      * @return \stdClass
      */
-    protected function verifyAuthorizationCode($authCode){
+    protected function verifyAuthorizationCode(string $authCode){
         $requestParams = [
             'grant_type' => 'authorization_code',
             'code' => $authCode
@@ -369,32 +362,35 @@ class Sso extends Api\User{
     /**
      * get new "access_token" by an existing "refresh_token"
      * -> if "access_token" is expired, this function gets a fresh one
-     * @param $refreshToken
+     * @param string $refreshToken
+     * @param array $additionalOptions
      * @return \stdClass
      */
-    public function refreshAccessToken($refreshToken){
+    public function refreshAccessToken(string $refreshToken, array $additionalOptions = []){
         $requestParams = [
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken
         ];
 
-        return $this->requestAccessData($requestParams);
+        return $this->requestAccessData($requestParams, $additionalOptions);
     }
 
     /**
      * request an "access_token" AND "refresh_token" data
      * -> this can either be done by sending a valid "authorization code"
      * OR by providing a valid "refresh_token"
-     * @param $requestParams
+     * @param array $requestParams
+     * @param array $additionalOptions
      * @return \stdClass
      */
-    protected function requestAccessData($requestParams){
+    protected function requestAccessData(array $requestParams, array $additionalOptions = []){
         $verifyAuthCodeUrl = self::getVerifyAuthorizationCodeEndpoint();
         $verifyAuthCodeUrlParts = parse_url($verifyAuthCodeUrl);
 
         $accessData = (object) [];
         $accessData->accessToken = null;
         $accessData->refreshToken = null;
+        $accessData->esiAccessTokenExpires = 0;
 
         if($verifyAuthCodeUrlParts){
             $contentType = 'application/x-www-form-urlencoded';
@@ -412,15 +408,28 @@ class Sso extends Api\User{
             // content (parameters to send with)
             $requestOptions['content'] = http_build_query($requestParams);
 
-            $apiResponse = Lib\Web::instance()->request($verifyAuthCodeUrl, $requestOptions);
+            $apiResponse = Lib\Web::instance()->request($verifyAuthCodeUrl, $requestOptions, $additionalOptions);
 
             if($apiResponse['body']){
                 $authCodeRequestData = json_decode($apiResponse['body'], true);
 
                 if( !empty($authCodeRequestData) ){
                     if( isset($authCodeRequestData['access_token']) ){
-                        // this token is required for endpoints that require Auth
+                        // accessToken is required for endpoints that require Auth
                         $accessData->accessToken =  $authCodeRequestData['access_token'];
+                    }
+
+                    if(isset($authCodeRequestData['expires_in'])){
+                        // expire time for accessToken
+                        try{
+                            $timezone = $this->getF3()->get('getTimeZone')();
+                            $accessTokenExpires = new \DateTime('now', $timezone);
+                            $accessTokenExpires->add(new \DateInterval('PT' . (int)$authCodeRequestData['expires_in'] . 'S'));
+
+                            $accessData->esiAccessTokenExpires = $accessTokenExpires->format('Y-m-d H:i:s');
+                        }catch(\Exception $e){
+                            $this->getF3()->error(500, $e->getMessage(), $e->getTrace());
+                        }
                     }
 
                     if(isset($authCodeRequestData['refresh_token'])){
@@ -546,7 +555,7 @@ class Sso extends Api\User{
             $character = Model\BasicModel::getNew('CharacterModel');
             $character->getById((int)$characterData->character['id'], 0);
             $character->copyfrom($characterData->character, [
-                'id', 'name', 'ownerHash', 'crestAccessToken', 'crestRefreshToken', 'esiScopes', 'securityStatus'
+                'id', 'name', 'ownerHash', 'esiAccessToken', 'esiAccessTokenExpires', 'esiRefreshToken', 'esiScopes', 'securityStatus'
             ]);
 
             $character->corporationId = $characterData->corporation;
@@ -562,7 +571,7 @@ class Sso extends Api\User{
      * -> This header is required for any Auth-required endpoints!
      * @return string
      */
-    protected function getAuthorizationHeader(){
+    protected function getAuthorizationHeader() : string {
         return base64_encode(
             Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') . ':'
             . Controller\Controller::getEnvironmentData('CCP_SSO_SECRET_KEY')
@@ -574,7 +583,7 @@ class Sso extends Api\User{
      * -> throw error if url is broken/missing
      * @return string
      */
-    static function getSsoUrlRoot(){
+    static function getSsoUrlRoot() : string {
         $url = '';
         if( \Audit::instance()->url(self::getEnvironmentData('CCP_SSO_URL')) ){
             $url = self::getEnvironmentData('CCP_SSO_URL');
@@ -587,15 +596,15 @@ class Sso extends Api\User{
         return $url;
     }
 
-    static function getAuthorizationEndpoint(){
+    static function getAuthorizationEndpoint() : string {
         return self::getSsoUrlRoot() . '/oauth/authorize';
     }
 
-    static function getVerifyAuthorizationCodeEndpoint(){
+    static function getVerifyAuthorizationCodeEndpoint() : string {
         return self::getSsoUrlRoot() . '/oauth/token';
     }
 
-    static function getVerifyUserEndpoint(){
+    static function getVerifyUserEndpoint() : string {
         return self::getSsoUrlRoot() . '/oauth/verify';
     }
 
@@ -603,7 +612,7 @@ class Sso extends Api\User{
      * get logger for SSO logging
      * @return \Log
      */
-    static function getSSOLogger(){
+    static function getSSOLogger() : \Log {
         return parent::getLogger('SSO');
     }
 }
