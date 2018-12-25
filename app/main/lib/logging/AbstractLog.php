@@ -420,6 +420,9 @@ abstract class AbstractLog implements LogInterface {
         $params = [];
         if( !empty($conf = $this->handlerParamsConfig['stream']) ){
             $params[] = $conf->stream;
+            $params[] = Logger::toMonologLevel($this->getLevel());  // min level that is handled;
+            $params[] = true;                                       // bubble
+            $params[] = 0666;                                       // permissions (default 644)
         }
 
         return $params;

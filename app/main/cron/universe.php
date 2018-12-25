@@ -34,7 +34,7 @@ class Universe extends AbstractCron {
     }
 
     /**
-     * format Byte §size for output
+     * format Byte $size for output
      * @param int $size
      * @return string
      */

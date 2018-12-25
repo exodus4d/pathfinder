@@ -1037,6 +1037,10 @@ class MapModel extends AbstractMapTrackingModel {
         ];
     }
 
+    /**
+     * map log formatter callback
+     * @return \Closure
+     */
     protected function getLogFormatter(){
         return function(&$rowDataObj){
             unset($rowDataObj['extra']);
@@ -1258,9 +1262,18 @@ class MapModel extends AbstractMapTrackingModel {
      * @param int $limit
      * @return array
      */
-    public function getLogData(int $offset = FileHandler::LOG_FILE_OFFSET, int $limit = FileHandler::LOG_FILE_LIMIT): array {
+    public function getLogData(int $offset = FileHandler::LOG_FILE_OFFSET, int $limit = FileHandler::LOG_FILE_LIMIT) : array {
         $streamConf = $this->getStreamConfig();
-        return FileHandler::readLogFile($streamConf->stream, $offset, $limit, $this->getLogFormatter());
+
+        $rowFormatter = $this->getLogFormatter();
+        $rowParser = function(string &$rowData, array &$data) use ($rowFormatter){
+            if( !empty($rowDataObj = (array)json_decode($rowData, true)) ){
+                $rowFormatter($rowDataObj);
+                $data[] = $rowDataObj;
+            }
+        };
+
+        return FileHandler::instance()->readFileReverse($streamConf->stream, $offset, $limit, $rowParser);
     }
 
     /**
