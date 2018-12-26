@@ -30,7 +30,6 @@ class Config extends \Prefab {
      */
     const DOWNTIME_BUFFER                           = 1;
 
-    const ERROR_CONF_PATHFINDER                     = 'Config value missing in pathfinder.ini file [%s]';
     const ERROR_CLASS_NOT_EXISTS_COMPOSER           = 'Class "%s" not found. -> Check installed Composer packages';
 
 
@@ -392,13 +391,8 @@ class Config extends \Prefab {
      */
     static function getPathfinderData($key = ''){
         $hiveKey = self::HIVE_KEY_PATHFINDER . ($key ? '.' . strtoupper($key) : '');
-        $data = null; // make sure it is always defined
-        try{
-            if( !\Base::instance()->exists($hiveKey, $data) ){
-                throw new Exception\ConfigException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
-            }
-        }catch (Exception\ConfigException $e){
-            LogController::getLogger('ERROR')->write($e->getMessage());
+        if( !\Base::instance()->exists($hiveKey, $data) ){
+            $data = null;
         }
         return $data;
     }
