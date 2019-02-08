@@ -77,7 +77,7 @@ class StructureModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseStructureData($id, $accessToken, $additionalOptions);
+        $data = self::getF3()->ccpClient()->getUniverseStructureData($id, $accessToken);
         if(!empty($data)){
             /**
              * @var $type TypeModel

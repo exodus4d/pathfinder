@@ -333,7 +333,7 @@ class SystemModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseSystemData($id);
+        $data = self::getF3()->ccpClient()->getUniverseSystemData($id);
 
         if(!empty($data)){
             /**
@@ -363,7 +363,7 @@ class SystemModel extends BasicUniverseModel {
      */
     public function loadPlanetsData(){
         if( !$this->dry() ){
-            $data = self::getF3()->ccpClient->getUniverseSystemData($this->_id);
+            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
             if($data['planets']){
                 // planets are optional since ESI v4 (e.g. Abyssal systems)
                 foreach((array)$data['planets'] as $planetData){
@@ -384,7 +384,7 @@ class SystemModel extends BasicUniverseModel {
      */
     public function loadStargatesData(){
         if( !$this->dry() ){
-            $data = self::getF3()->ccpClient->getUniverseSystemData($this->_id);
+            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
             if(!empty($data)){
                 foreach((array)$data['stargates'] as $stargateId){
                     /**

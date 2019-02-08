@@ -88,7 +88,7 @@ define([
                     let data = {
                         isFirst: (i === 0),
                         isOdd: (i % 2 !== 0),
-                        releaseDate: releaseData.published_at.substr(0, 10),
+                        releaseDate: releaseData.publishedAt.substr(0, 10),
                         releaseData: releaseData
                     };
 

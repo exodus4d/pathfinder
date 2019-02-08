@@ -631,6 +631,13 @@
   // table
   table tr td {
     line-height: 1;
+
+    .btn-group {
+      .btn { // smaller buttons on /setup page in tables
+        padding-top: 4px;
+        padding-bottom: 4px;
+      }
+    }
   }
 }
 

@@ -284,7 +284,7 @@ class CorporationModel extends BasicModel {
             !empty($accessToken) &&
             !$this->isNPC
         ){
-            $response = self::getF3()->ccpClient->getCorporationRoles($this->_id, $accessToken);
+            $response = self::getF3()->ccpClient()->getCorporationRoles($this->_id, $accessToken);
             if( !empty($response['roles']) ){
                 $characterRolesData = (array)$response['roles'];
             }
@@ -351,10 +351,10 @@ class CorporationModel extends BasicModel {
         $corporation = parent::getById($id, $ttl, $isActive);
         if($corporation->isOutdated()){
             // request corporation data
-            $corporationData = self::getF3()->ccpClient->getCorporationData($id);
+            $corporationData = self::getF3()->ccpClient()->getCorporationData($id);
             if( !empty($corporationData) ){
                 // check for NPC corporation
-                $corporationData['isNPC'] = self::getF3()->ccpClient->isNpcCorporation($id);
+                $corporationData['isNPC'] = self::getF3()->ccpClient()->isNpcCorporation($id);
 
                 $corporation->copyfrom($corporationData, ['id', 'name', 'ticker', 'memberCount', 'isNPC']);
                 $corporation->save();

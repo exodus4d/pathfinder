@@ -198,7 +198,7 @@ abstract class AbstractLog implements LogInterface {
      * @param \stdClass|null $handlerParams
      * @return LogInterface
      */
-    public function addHandler(string $handlerKey, string $formatterKey = null, \stdClass $handlerParams = null): LogInterface{
+    public function addHandler(string $handlerKey, string $formatterKey = null, \stdClass $handlerParams = null): LogInterface {
         if(!$this->hasHandlerKey($handlerKey)){
             $this->handlerConfig[$handlerKey] = $formatterKey;
             // add more configuration params for the new handler
@@ -214,7 +214,7 @@ abstract class AbstractLog implements LogInterface {
      * @param string $handlerKey
      * @return LogInterface
      */
-    public function addHandlerGroup(string $handlerKey): LogInterface{
+    public function addHandlerGroup(string $handlerKey) : LogInterface {
         if(
             $this->hasHandlerKey($handlerKey) &&
             !$this->hasHandlerGroupKey($handlerKey)
@@ -227,7 +227,7 @@ abstract class AbstractLog implements LogInterface {
     /**
      * @return array
      */
-    public function getHandlerConfig(): array{
+    public function getHandlerConfig() : array{
         return $this->handlerConfig;
     }
 
@@ -237,7 +237,7 @@ abstract class AbstractLog implements LogInterface {
      * @return array
      * @throws \Exception
      */
-    public function getHandlerParams(string $handlerKey): array{
+    public function getHandlerParams(string $handlerKey) : array {
         $params = [];
 
         if($this->hasHandlerKey($handlerKey)){
@@ -267,14 +267,14 @@ abstract class AbstractLog implements LogInterface {
     /**
      * @return array
      */
-    public function getHandlerParamsConfig(): array{
+    public function getHandlerParamsConfig(): array {
         return $this->handlerParamsConfig;
     }
 
     /**
      * @return array
      */
-    public function getProcessorConfig(): array{
+    public function getProcessorConfig(): array {
         return $this->processorConfig;
     }
 

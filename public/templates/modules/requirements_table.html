@@ -26,7 +26,7 @@
             <false>
                 <tr>
                     <td>
-                        {{@requirement.label}}
+                        {{@requirement.label | raw }}
                         <check if="{{ @requirement.tooltip }}">
                             <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
                         </check>
@@ -38,14 +38,8 @@
                     </check>
 
                     <td
-                        <check if="{{ isset(@requirement.required) }}">
-                            <true>
-                                class="text-right col-md-3 text-right"
-                            </true>
-                            <false>
-                                class="text-right col-md-6 text-right" colspan="2"
-                            </false>
-                        </check>
+                            class="{{ isset(@requirement.required) ? 'text-right col-md-3 text-right' : 'text-right col-md-6 text-right' }}"
+                            colspan="{{ isset(@requirement.required) ? '1' : '2' }}"
                     >
                         <check if="{{ @requirement.check }}">
                             <true>
@@ -58,16 +52,35 @@
                             </false>
                         </check>
                     </td>
-                    <td class="text-right col-md-1 text-right">
-                        <check if="{{ @requirement.check }}">
-                            <true>
-                                <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
-                            </true>
-                            <false>
-                                <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
-                            </false>
-                        </check>
-                    </td>
+
+                    <check if="{{ @requirement.task }}">
+                        <true>
+                            <td class="text-right col-md-2 no-padding text-right">
+                                <div class="btn-group btn-group-justified">
+                                    <repeat group="{{ @requirement.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
+                                        <a href="?{{ @taskData.action }}" class="btn btn-default {{ @taskData.btn }}" role="button">
+                                            <i class="fas fa-fw {{ @taskData.icon }}"></i>&nbsp;{{ @taskData.label }}
+                                        </a>
+                                    </repeat>
+                                </div>
+                            </td>
+                        </true>
+                        <false>
+                            {* no task data *}
+                            <td class="text-right col-md-1">
+                                <check if="{{ @requirement.check }}">
+                                    <true>
+                                        {* Check ok *}
+                                        <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
+                                    </true>
+                                    <false>
+                                        {* Check failed *}
+                                        <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
+                                    </false>
+                                </check>
+                            </td>
+                        </false>
+                    </check>
                 </tr>
             </false>
         </check>

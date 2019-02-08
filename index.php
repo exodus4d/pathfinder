@@ -14,9 +14,6 @@ $f3->config('app/config.ini', true);
 // load environment dependent config
 lib\Config::instance($f3);
 
-// initiate CCP API Client (ESI)
-lib\CcpClient::instance($f3);
-
 // initiate cron-jobs
 Cron::instance();
 

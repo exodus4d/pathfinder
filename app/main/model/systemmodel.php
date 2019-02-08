@@ -665,7 +665,7 @@ class SystemModel extends AbstractMapTrackingModel {
     public function sendRallyPoke(array $rallyData, CharacterModel $characterModel){
         // rally log needs at least one handler to be valid
         $isValidLog = false;
-        $log = new Logging\RallyLog('rallySet', $this->getMap()->getLogChannelData());
+        $log = new logging\RallyLog('rallySet', $this->getMap()->getLogChannelData());
 
         // Slack poke -----------------------------------------------------------------------------
         $slackChannelKey = 'slackChannelRally';

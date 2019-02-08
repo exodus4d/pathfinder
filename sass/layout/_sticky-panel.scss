@@ -15,10 +15,10 @@
 
   ul{
     margin-bottom: 0;
+  }
 
-    li{
-      text-transform: lowercase;
-    }
+  ul + h4{
+    margin-top: 10px;
   }
 }
 

@@ -111,7 +111,7 @@ class GroupModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseGroupData($id);
+        $data = self::getF3()->ccpClient()->getUniverseGroupData($id);
         if(!empty($data)){
             /**
              * @var $category CategoryModel
@@ -132,7 +132,7 @@ class GroupModel extends BasicUniverseModel {
     public function loadTypesData(){
         $count = 0;
         if( !$this->dry() ){
-            $data = self::getF3()->ccpClient->getUniverseGroupData($this->_id);
+            $data = self::getF3()->ccpClient()->getUniverseGroupData($this->_id);
             if(!empty($data)){
                 foreach((array)$data['types'] as $typeId){
                     /**

@@ -15,6 +15,8 @@ interface LogInterface {
 
     public function setLevel(string $level);
 
+    public function setTag(string $tag);
+
     public function setData(array $data): LogInterface;
 
     public function setTempData(array $data): LogInterface;
@@ -61,4 +63,5 @@ interface LogInterface {
 
     public function removeHandlerGroup(string $handlerKey);
 
+    public function buffer();
 }

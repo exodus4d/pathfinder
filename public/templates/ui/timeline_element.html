@@ -3,7 +3,7 @@
     <div class="timeline-panel">
         <div class="timeline-heading">
             <h4 class="timeline-title">
-                <a href="{{releaseData.html_url}}" target="_blank" rel="noopener">
+                <a href="{{releaseData.url}}" target="_blank" rel="noopener">
                     <i class="fas fa-fw fa-tag"></i>&nbsp;{{ releaseData.name }}
                 </a>
 
@@ -25,5 +25,15 @@
             <p><small class="text-muted"></small></p>
         </div>
         <div class="timeline-body">{{{ releaseData.body }}}</div>
+        <div class="timeline-footer">
+            <h4 class="timeline-title text-right">
+                <a href="{{releaseData.urlZipBall}}" target="_blank" rel="noopener">
+                    <i class="fas fa-fw fa-download"></i>&nbsp;download&nbsp;(zip)
+                </a>&nbsp;&nbsp;
+                <a href="{{releaseData.urlTarBall}}" target="_blank" rel="noopener">
+                    <i class="fas fa-fw fa-download"></i>&nbsp;download&nbsp;(tar)
+                </a>
+            </h4>
+        </div>
     </div>
 </li>

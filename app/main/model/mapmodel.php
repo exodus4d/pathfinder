@@ -1020,7 +1020,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get object relevant data for model log channel
      * @return array
      */
-    public function getLogChannelData() : array{
+    public function getLogChannelData() : array {
         return [
             'channelId' => $this->_id,
             'channelName' => $this->name
@@ -1030,7 +1030,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get object relevant data for model log object
      * @return array
      */
-    public function getLogObjectData() : array{
+    public function getLogObjectData() : array {
         return [
             'objId' => $this->_id,
             'objName' => $this->name

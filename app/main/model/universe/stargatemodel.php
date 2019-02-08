@@ -104,7 +104,7 @@ class StargateModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseStargateData($id);
+        $data = self::getF3()->ccpClient()->getUniverseStargateData($id);
 
         if(!empty($data)){
 

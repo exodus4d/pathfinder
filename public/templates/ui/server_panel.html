@@ -1,17 +1,26 @@
 <div id="{{ stickyPanelServerId }}" class="hidden-xs {{ stickyPanelClass }}">
-    <h4 class="text-center">{{ serverName }}</h4>
-    <ul class="fa-ul">
-        {{#serviceStatus}}
-            <li><i class="fa-li fas fa-server"></i><span class="txt-color {{ style }}">{{ eve }}</span></li>
-        {{/serviceStatus}}
-        {{#playerCount}}
-            <li><i class="fa-li fas fa-users"></i>{{ playerCount }}</li>
-        {{/playerCount}}
-        {{#startTime}}
-            <li><i class="fa-li far fa-clock"></i>up {{ startTime }}</li>
-        {{/startTime}}
-        {{#serverVersion}}
-            <li><i class="fa-li fas fa-certificate"></i>v. {{ serverVersion }}</li>
-        {{/serverVersion}}
-    </ul>
+    {{#server}}
+        <h4>{{ name }}</h4>
+        <ul class="fa-ul">
+            {{#status}}
+                <li><i class="fa-li fas fa-server"></i><span class="txt-color {{#statusFormat}}{{statusColor}}{{/statusFormat}}">{{ status }}</span></li>
+            {{/status}}
+            {{#playerCount}}
+                <li><i class="fa-li fas fa-users"></i>{{ playerCount }}</li>
+            {{/playerCount}}
+            {{#startTime}}
+                <li><i class="fa-li far fa-clock"></i>up {{ startTime }}</li>
+            {{/startTime}}
+        </ul>
+    {{/server}}
+
+    {{#api}}
+        <h4>{{ name }}</h4>
+        <ul class="fa-ul">
+            {{#status}}
+                <li><i class="fa-li fas fa-server"></i><span class="txt-color {{#statusFormat}}{{statusColor}}{{/statusFormat}}">{{ status }}</span></li>
+            {{/status}}
+            <li><i class="fa-li fas fa-question"></i><a class="{{ apiStatusTriggerClass }}" href="#">info</a></li>
+        </ul>
+    {{/api}}
 </div>

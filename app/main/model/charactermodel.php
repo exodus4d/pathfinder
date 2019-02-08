@@ -11,7 +11,6 @@ namespace Model;
 use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
-use lib\Util;
 use lib\Config;
 use lib\Socket;
 use Model\Universe;
@@ -512,15 +511,8 @@ class CharacterModel extends BasicModel {
             $refreshToken &&
             !empty($this->esiRefreshToken)
         ){
-            $additionalOptions = [];
-            if($accessToken){
-                // ... close to expire token exists -> moderate failover settings
-                $additionalOptions['suppressHTTPErrors'] = true;
-                $additionalOptions['retryCountMax'] = 0;
-            }
-
             $ssoController = new Sso();
-            $accessData =  $ssoController->refreshAccessToken($this->esiRefreshToken, $additionalOptions);
+            $accessData =  $ssoController->refreshAccessToken($this->esiRefreshToken);
 
             if(isset($accessData->accessToken, $accessData->esiAccessTokenExpires, $accessData->refreshToken)){
                 $this->esiAccessToken = $accessData->accessToken;
@@ -758,12 +750,12 @@ class CharacterModel extends BasicModel {
         ){
             // Try to pull data from API
             if( $accessToken = $this->getAccessToken() ){
-                $onlineData = self::getF3()->ccpClient->getCharacterOnlineData($this->_id, $accessToken, $additionalOptions);
+                $onlineData = self::getF3()->ccpClient()->getCharacterOnlineData($this->_id, $accessToken);
 
                 // check whether character is currently ingame online
                 if(is_bool($onlineData['online'])){
                     if($onlineData['online'] === true){
-                        $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
+                        $locationData = self::getF3()->ccpClient()->getCharacterLocationData($this->_id, $accessToken);
 
                         if( !empty($locationData['system']['id']) ){
                             // character is currently in-game
@@ -807,7 +799,7 @@ class CharacterModel extends BasicModel {
                             // get "more" data for systemId and/or stationId -----------------------------------------
                             if( !empty($lookupUniverseIds) ){
                                 // get "more" information for some Ids (e.g. name)
-                                $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupUniverseIds, $additionalOptions);
+                                $universeData = self::getF3()->ccpClient()->getUniverseNamesData($lookupUniverseIds);
 
                                 if( !empty($universeData) && !isset($universeData['error']) ){
                                     // We expect max ONE system AND/OR station data, not an array of e.g. systems
@@ -860,7 +852,7 @@ class CharacterModel extends BasicModel {
 
                             // check ship data for changes ------------------------------------------------------------
                             if( !$deleteLog ){
-                                $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
+                                $shipData = self::getF3()->ccpClient()->getCharacterShipData($this->_id, $accessToken);
 
                                 // IDs for "shipTypeId" that require more data
                                 $lookupShipTypeId = 0;
@@ -989,14 +981,14 @@ class CharacterModel extends BasicModel {
             // -> the "id" check is just for security and should NEVER fail!
             $ssoController = new Sso();
             if(
-                !is_null( $verificationCharacterData = $ssoController->verifyCharacterData($accessToken) ) &&
-                $verificationCharacterData->CharacterID === $this->_id
+                !empty( $verificationCharacterData = $ssoController->verifyCharacterData($accessToken) ) &&
+                $verificationCharacterData['characterId'] === $this->_id
             ){
                 // get character data from API
                 $characterData = $ssoController->getCharacterData($this->_id);
                 if( !empty($characterData->character) ){
-                    $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
-                    $characterData->character['esiScopes'] = Util::convertScopesString($verificationCharacterData->Scopes);
+                    $characterData->character['ownerHash'] = $verificationCharacterData['characterOwnerHash'];
+                    $characterData->character['esiScopes'] = $verificationCharacterData['scopes'];
 
                     $this->copyfrom($characterData->character, ['ownerHash', 'esiScopes', 'securityStatus']);
                     $this->corporationId = $characterData->corporation;

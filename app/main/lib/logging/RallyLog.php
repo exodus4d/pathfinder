@@ -72,7 +72,7 @@ class RallyLog extends AbstractCharacterLog{
         }
 
         // add human readable changes to string ---------------------------------------------------
-        $data['formatted'] =$this->formatData($data);
+        $data['formatted'] = $this->formatData($data);
 
         return $data;
     }
@@ -89,10 +89,10 @@ class RallyLog extends AbstractCharacterLog{
             !empty($data['channel'])
         ){
             $replace = [
-                '{objName}' => $data['object']['objName'],
-                '{objId}' => $data['object']['objId'],
+                '{objName}'     => $data['object']['objName'],
+                '{objId}'       => $data['object']['objId'],
                 '{channelName}' => $data['channel']['channelName'],
-                '{channelId}' => $data['channel']['channelId']
+                '{channelId}'   => $data['channel']['channelId']
             ];
             $string = str_replace(array_keys($replace), array_values($replace), $this->getMessage());
         }

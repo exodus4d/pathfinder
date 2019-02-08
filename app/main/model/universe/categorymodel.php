@@ -109,7 +109,7 @@ class CategoryModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseCategoryData($id);
+        $data = self::getF3()->ccpClient()->getUniverseCategoryData($id);
         if(!empty($data)){
             $this->copyfrom($data, ['id', 'name', 'published']);
             $this->save();
@@ -125,7 +125,7 @@ class CategoryModel extends BasicUniverseModel {
     public function loadGroupsData(int $offset = 0, int $length = 0) : array {
         $groupIds = [];
         if( !$this->dry() ){
-            $data = self::getF3()->ccpClient->getUniverseCategoryData($this->_id);
+            $data = self::getF3()->ccpClient()->getUniverseCategoryData($this->_id);
             if(!empty($data)){
                 array_multisort($data['groups'], SORT_ASC, SORT_NUMERIC);
                 if($length){

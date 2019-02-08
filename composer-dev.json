@@ -20,7 +20,7 @@
       "url": "../pathfinder_esi"
     }],
   "require": {
-    "php-64bit": ">=7.0",
+    "php-64bit": ">=7.1",
     "ext-pdo": "*",
     "ext-openssl": "*",
     "ext-curl": "*",
@@ -33,6 +33,14 @@
     "websoftwares/monolog-zmq-handler": "0.2.*",
     "swiftmailer/swiftmailer": "^6.0",
     "league/html-to-markdown": "4.8.*",
+    "cache/redis-adapter": "1.0.*",
+    "cache/filesystem-adapter": "1.0.*",
+    "cache/array-adapter": "1.0.*",
+    "cache/void-adapter": "1.0.*",
+    "cache/namespaced-cache": "1.0.*",
     "exodus4d/pathfinder_esi": "dev-develop as 0.0.x-dev"
+  },
+  "suggest": {
+    "ext-redis": "Redis can be used as cache backend."
   }
 }

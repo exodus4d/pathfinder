@@ -879,7 +879,7 @@ class Map extends Controller\AccessController {
 
         // update current location
         // -> suppress temporary timeout errors
-        $activeCharacter = $activeCharacter->updateLog(['suppressHTTPErrors' => true]);
+        $activeCharacter = $activeCharacter->updateLog();
 
         if( !empty($mapIds) ){
             // IMPORTANT for now -> just update a single map (save performance)

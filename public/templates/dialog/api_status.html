@@ -1,0 +1,65 @@
+<p>Shows status information for external used APIs. Provides a general health indicator per route and method.</p>
+
+<h4 class="pf-dynamic-area">{{ apiData.name }}
+    <span class="pull-right" title="{{#statusTitle}}{{ apiData.statusColor }}{{/statusTitle}}"><i class="fas fa-fw fa-circle txt-color txt-color-{{ apiData.statusColor }}"></i></span>
+</h4>
+
+<dl class="dl-horizontal" style="float: left;">
+    <dt>base url</dt>
+    <dd><kbd>{{ apiData.url }}</kbd></dd>
+    <dt>datasource</dt>
+    <dd><kbd>{{ apiData.dataSource }}</kbd></dd>
+    <dt>status for</dt>
+    <dd><kbd>{{ apiData.statusVersion }}</kbd></dd>
+</dl>
+<dl class="dl-horizontal" style="float: left;">
+    <dt>timeout</dt>
+    <dd><kbd>&nbsp;{{#secondsFormat}}{{ apiData.timeout }}{{/secondsFormat}}</kbd></dd>
+    <dt>connect timeout</dt>
+    <dd><kbd>&nbsp;{{#secondsFormat}}{{ apiData.connectTimeout }}{{/secondsFormat}}</kbd></dd>
+    <dt>read timeout</dt>
+    <dd><kbd>{{#secondsFormat}}{{ apiData.readTimeout }}{{/secondsFormat}}</kbd></dd>
+</dl>
+<dl class="dl-horizontal" style="float: right;">
+    <dt>proxy</dt>
+    <dd><kbd>{{ apiData.proxy }}</kbd></dd>
+    <dt>verify</dt>
+    <dd><kbd>{{ apiData.verify }}</kbd></dd>
+    <dt>debug</dt>
+    <dd><kbd>{{ apiData.debug }}</kbd></dd>
+</dl>
+
+<table class="table table-condensed" style="font-size: 12px">
+    <thead>
+    <tr>
+        <td></td>
+        <td class="col-sm-1"></td>
+        <td class="col-sm-1"></td>
+        <td>route</td>
+        <td class="col-sm-3 text-right">tags</td>
+    </tr>
+    </thead>
+    <tbody>
+    {{#apiData.routes}}
+        <tr>
+            <td class="text-center txt-color txt-color-grayLight txt-color-{{ status }}" title="{{#statusTitle}}{{status}}{{/statusTitle}}">
+                <i class="fas fa-fw fa-circle initialism"></i>
+            </td>
+            <td class="text-center">
+                <kbd class="initialism txt-color {{#methodFormat}}{{method}}{{/methodFormat}}">{{ method }}</kbd>
+            </td>
+            <td class="text-center">
+                {{#version}}
+                    <kbd>{{ . }}</kbd>
+                {{/version}}
+            </td>
+            <td><kbd>{{ route }}</kbd></td>
+            <td class="text-right">
+            {{#tags}}
+                &nbsp;<kbd>{{ . }}</kbd>
+            {{/tags}}
+            </td>
+        </tr>
+    {{/apiData.routes}}
+    </tbody>
+</table>

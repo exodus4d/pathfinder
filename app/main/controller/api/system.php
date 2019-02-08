@@ -135,7 +135,7 @@ class System extends Controller\AccessController {
                 ];
 
                 foreach($postData['systemData'] as $systemData){
-                    $response =  $f3->ccpClient->setWaypoint($systemData['systemId'], $accessToken, $options);
+                    $response =  $f3->ccpClient()->setWaypoint($systemData['systemId'], $accessToken, $options);
 
                     if(empty($response)){
                         $return->systemData[] = $systemData;

@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUndefinedMethodInspection */
+
 /**
  * Created by PhpStorm.
  * User: exodus4d
@@ -7,6 +8,8 @@
  */
 
 namespace Controller\Api;
+
+
 use lib\Config;
 use Controller;
 
@@ -18,135 +21,68 @@ use Controller;
 */
 class GitHub extends Controller\Controller {
 
-    protected function getBaseRequestOptions() : array {
-        return [
-            'timeout' => 3,
-            'user_agent' => $this->getUserAgent(),
-            'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
-        ];
-    }
-
-    /**
-     * get HTTP request options for API (curl) request
-     * @return array
-     */
-    protected function getRequestReleaseOptions() : array {
-        $options = $this->getBaseRequestOptions();
-        $options['method'] = 'GET';
-        return $options;
-    }
-
-    /**
-     * get HTTP request options for API (curl) request
-     * @param string $text
-     * @return array
-     */
-    protected function getRequestMarkdownOptions(string $text) : array {
-        $params = [
-            'text' => $text,
-            'mode' => 'gfm',
-            'context' => 'exodus4d/pathfinder'
-        ];
-
-        $options = $this->getBaseRequestOptions();
-        $options['method'] = 'POST';
-        $options['content'] = json_encode($params, JSON_UNESCAPED_SLASHES);
-        return $options;
-    }
-
     /**
      * get release information from  GitHub
      * @param \Base $f3
      */
     public function releases(\Base $f3){
-        $cacheKey = 'CACHE_GITHUB_RELEASES';
-        $ttl = 60 * 30; // 30min
         $releaseCount = 4;
 
-        if( !$f3->exists($cacheKey, $return) ){
-            $apiReleasePath =  Config::getPathfinderData('api.git_hub') . '/repos/exodus4d/pathfinder/releases';
-            $apiMarkdownPath =  Config::getPathfinderData('api.git_hub') . '/markdown';
+        $return = (object) [];
+        $return->releasesData = [];
+        $return->version = (object) [];
+        $return->version->current =  Config::getPathfinderData('version');
+        $return->version->last =  '';
+        $return->version->delta = null;
+        $return->version->dev = false;
 
-            // build request URL
-            $apiResponse = \Web::instance()->request($apiReleasePath, $this->getRequestReleaseOptions() );
+        $md = \Markdown::instance();
 
-            if($apiResponse['body']){
-                $return = (object) [];
-                $return->releasesData = [];
-                $return->version = (object) [];
-                $return->version->current =  Config::getPathfinderData('version');
-                $return->version->last =  '';
-                $return->version->delta = null;
-                $return->version->dev = false;
+        $releases = $f3->gitHubClient()->getProjectReleases('exodus4d/pathfinder', $releaseCount);
 
-                // request succeeded -> format "Markdown" to "HTML"
-                // result is JSON formed
-                $releasesData = (array)json_decode($apiResponse['body']);
-
-                // check max release count
-                if(count($releasesData) > $releaseCount){
-                    $releasesData = array_slice($releasesData, 0, $releaseCount);
+        foreach($releases as $key => &$release){
+            // check version ------------------------------------------------------------------------------------------
+            if($key === 0){
+                $return->version->last = $release['name'];
+                if(version_compare( $return->version->current, $return->version->last, '>')){
+                    $return->version->dev = true;
                 }
-
-                $md = \Markdown::instance();
-                foreach($releasesData as $key => &$releaseData){
-                    // check version ----------------------------------------------------------------------------------
-                    if($key === 0){
-                        $return->version->last = $releaseData->tag_name;
-
-                        if(version_compare( $return->version->current, $return->version->last, '>')){
-                            $return->version->dev = true;
-                        }
-                    }
-
-                    if(
-                        !$return->version->dev &&
-                        version_compare( $releaseData->tag_name, $return->version->current, '>=')
-                    ){
-                        $return->version->delta = ($key === count($releasesData) - 1) ? '>= ' . $key : $key;
-                    }
-
-                    // format body ------------------------------------------------------------------------------------
-                    if(isset($releaseData->body)){
-                        $body = $releaseData->body;
-
-                        // remove "update information" from release text
-                        // -> keep everything until first "***" -> horizontal line
-                        if( ($pos = strpos($body, '***')) !== false){
-                            $body = substr($body, 0, $pos);
-                        }
-
-                        // convert list style
-                        $body = str_replace(' - ', '* ', $body );
-
-                        // convert Markdown to HTML -> use either gitHub API (in oder to create abs, issue links)
-                        // -> or F3´s markdown as fallback
-                        $markdownResponse = \Web::instance()->request($apiMarkdownPath, $this->getRequestMarkdownOptions($body) );
-
-                        if($markdownResponse['body']){
-                            $body = $markdownResponse['body'];
-                        }else{
-                            $body =  $md->convert( trim($body) );
-                        }
-
-                        $releaseData->body = $body;
-                    }
-                }
-
-                $return->releasesData = $releasesData;
-
-                $f3->set($cacheKey, $return, $ttl);
-            }else{
-                // request failed -> cache failed result (respect API request limit)
-                $f3->set($cacheKey, false, 60 * 15);
             }
+
+            if(
+                !$return->version->dev &&
+                version_compare($release['name'], $return->version->current, '>=')
+            ){
+                $return->version->delta = ($key === count($releases) - 1) ? '>= ' . $key : $key;
+            }
+
+            // format body ------------------------------------------------------------------------------------
+            $body = $release['body'];
+
+            // remove "update information" from release text
+            // -> keep everything until first "***" -> horizontal line
+            if( ($pos = strpos($body, '***')) !== false){
+                $body = substr($body, 0, $pos);
+            }
+
+            // convert list style
+            $body = str_replace(' - ', '* ', $body);
+
+            // convert Markdown to HTML -> use either gitHub API (in oder to create abs, issue links)
+            // -> or F3´s markdown as fallback
+            $html = $f3->gitHubClient()->markdownToHtml('exodus4d/pathfinder', $body);
+
+            if(!empty($html)){
+                $body = $html;
+            }else{
+                $body = $md->convert(trim($body));
+            }
+
+            $release['body'] = $body;
         }
 
-        // set 503 if service unavailable or temp cached data = false
-        if( !$f3->get($cacheKey) ){
-            $f3->status(503);
-        }
+        $return->releasesData = $releases;
 
-        echo json_encode($f3->get($cacheKey));
+        echo json_encode($return);
     }
 }

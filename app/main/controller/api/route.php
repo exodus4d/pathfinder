@@ -590,7 +590,7 @@ class Route extends Controller\AccessController {
                 'connections' => $connections
             ];
 
-            $result = $this->getF3()->ccpClient->getRouteData($systemFromId, $systemToId, $options);
+            $result = $this->getF3()->ccpClient()->getRouteData($systemFromId, $systemToId, $options);
 
             // format result ------------------------------------------------------------------------------------------
 

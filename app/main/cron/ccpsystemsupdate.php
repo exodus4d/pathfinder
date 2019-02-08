@@ -104,13 +104,13 @@ class CcpSystemsUpdate extends AbstractCron {
 
         // get current jump data --------------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $jumpData = $f3->ccpClient->getUniverseJumps();
+        $jumpData = $f3->ccpClient()->getUniverseJumps();
         $time_end = microtime(true);
         $execTimeGetJumpData = $time_end - $time_start;
 
         // get current kill data --------------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $killData = $f3->ccpClient->getUniverseKills();
+        $killData = $f3->ccpClient()->getUniverseKills();
         $time_end = microtime(true);
         $execTimeGetKillData = $time_end - $time_start;
 

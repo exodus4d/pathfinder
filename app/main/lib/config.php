@@ -8,8 +8,10 @@
 
 namespace lib;
 
-use controller\LogController;
-use Exception;
+
+use lib\api\CcpClient;
+use lib\api\GitHubClient;
+use lib\api\SsoClient;
 
 class Config extends \Prefab {
 
@@ -19,6 +21,29 @@ class Config extends \Prefab {
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
     const CACHE_KEY_SOCKET_VALID                    = 'CACHED_SOCKET_VALID';
     const CACHE_TTL_SOCKET_VALID                    = 60;
+
+    // ================================================================================================================
+    // Redis
+    // ================================================================================================================
+
+    /**
+     * Redis connect timeout (seconds)
+     */
+    const REDIS_OPT_TIMEOUT                         = 2;
+
+    /**
+     * Redis read timeout (seconds)
+     */
+    const REDIS_OPT_READ_TIMEOUT                    = 10;
+
+    /**
+     * redis retry interval (milliseconds)
+     */
+    const REDIS_OPT_RETRY_INTERVAL                  = 200;
+
+    // ================================================================================================================
+    // EVE downtime
+    // ================================================================================================================
 
     /**
      * SSO downtime length (estimation), minutes
@@ -30,7 +55,8 @@ class Config extends \Prefab {
      */
     const DOWNTIME_BUFFER                           = 1;
 
-    const ERROR_CLASS_NOT_EXISTS_COMPOSER           = 'Class "%s" not found. -> Check installed Composer packages';
+    const ERROR_CLASS_NOT_EXISTS_COMPOSER           = 'Class "%s" not found. → Check installed Composer packages';
+    const ERROR_METHOD_NOT_EXISTS_COMPOSER          = 'Method "%s()" not found in class "%s". → Check installed Composer packages';
 
 
     /**
@@ -59,10 +85,21 @@ class Config extends \Prefab {
         // -> overwrites default configuration
         $this->setHiveVariables($f3);
 
-        // set global function for current DateTimeZone()
-        $f3->set('getTimeZone', function() use ($f3){
+        // set global getter for \DateTimeZone
+        $f3->set('getTimeZone', function() use ($f3) : \DateTimeZone {
             return new \DateTimeZone( $f3->get('TZ') );
         });
+
+        // set global getter for new \DateTime
+        $f3->set('getDateTime', function(string $time = 'now', ?\DateTimeZone $timeZone = null) use ($f3) : \DateTime {
+            $timeZone = $timeZone ? : $f3->get('getTimeZone')();
+           return new \DateTime($time, $timeZone);
+        });
+
+        // lazy init Web Api clients
+        $f3->set(SsoClient::CLIENT_NAME, SsoClient::instance());
+        $f3->set(CcpClient::CLIENT_NAME, CcpClient::instance());
+        $f3->set(GitHubClient::CLIENT_NAME, GitHubClient::instance());
     }
 
     /**
@@ -408,6 +445,33 @@ class Config extends \Prefab {
             $status = @constant('self::HTTP_' .  $code);
         }
         return $status;
+    }
+
+    /**
+     * parse [D]ata [S]ource [N]ame string from *.ini into $conf parts
+     * -> $dsn = redis=localhost:6379:2
+     *    $conf = ['type' => 'redis', 'host' => 'localhost', 'port' => 6379, 'db' => 2]
+     * -> some $conf values might be NULL if not found in $dsn!
+     * -> some missing values become defaults
+     * @param string $dsn
+     * @param array|null $conf
+     * @return bool
+     */
+    static function parseDSN(string $dsn, ?array &$conf = []) : bool {
+        // reset reference
+        if($matches = (bool)preg_match('/^(\w+)\h*=\h*(.+)/', strtolower(trim($dsn)), $parts)){
+            $conf['type'] = $parts[1];
+            if($conf['type'] == 'redis'){
+                list($conf['host'], $conf['port'], $conf['db']) = explode(':', $parts[2]) + [1 => 6379, 2 => null];
+            }elseif($conf['type'] == 'folder'){
+                $conf['folder'] = $parts[2];
+            }
+            // int cast numeric values
+            $conf = array_map(function($val){
+                return is_numeric($val) ? intval($val) : $val;
+            }, $conf);
+        }
+        return $matches;
     }
 
     /**

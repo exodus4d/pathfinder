@@ -1,17 +1,18 @@
-<?php
+<?php /** @noinspection PhpUndefinedMethodInspection */
+
 /**
  * Created by PhpStorm.
  * User: Exodus
  * Date: 23.01.2016
  * Time: 17:18
  *
- * Handles access to EVE-Online "ESI API" and "SSO" auth functions
+ * Handles access to EVE-Online "ESI API" and "SSO" oAuth 2.0 functions
  * - Add your API credentials in "environment.ini"
  * - Check "PATHFINDER.API" in "pathfinder.ini" for correct API URLs
- * Hint: \Web::instance()->request automatically caches responses by their response "Cache-Control" header!
  */
 
 namespace Controller\Ccp;
+
 use Controller;
 use Controller\Api as Api;
 use Model;
@@ -124,7 +125,7 @@ class Sso extends Api\User{
      * @param array $scopes
      * @param string $rootAlias
      */
-    private function rerouteAuthorization(\Base $f3, $scopes = [], $rootAlias = 'login'){
+    private function rerouteAuthorization(\Base $f3, array $scopes = [], string $rootAlias = 'login'){
         if( !empty( Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') ) ){
             // used for "state" check between request and callback
             $state = bin2hex( openssl_random_pseudo_bytes(12) );
@@ -138,7 +139,9 @@ class Sso extends Api\User{
                 'state' => $state
             ];
 
-            $ssoAuthUrl = self::getAuthorizationEndpoint() . '?' . http_build_query($urlParams, '', '&', PHP_QUERY_RFC3986 );
+            $ssoAuthUrl = $f3->ssoClient()->getUrl();
+            $ssoAuthUrl .= $f3->ssoClient()->getAuthorizationEndpointURI();
+            $ssoAuthUrl .= '?' . http_build_query($urlParams, '', '&', PHP_QUERY_RFC3986 );
 
             $f3->status(302);
             $f3->reroute($ssoAuthUrl);
@@ -186,22 +189,22 @@ class Sso extends Api\User{
                     // login succeeded -> get basic character data for current login
                     $verificationCharacterData = $this->verifyCharacterData($accessData->accessToken);
 
-                    if( !is_null($verificationCharacterData)){
+                    if( !empty($verificationCharacterData) ){
 
                         // check if login is restricted to a characterID
 
                         // verification available data. Data is needed for "ownerHash" check
 
                         // get character data from ESI
-                        $characterData = $this->getCharacterData((int)$verificationCharacterData->CharacterID);
+                        $characterData = $this->getCharacterData((int)$verificationCharacterData['characterId']);
 
                         if( isset($characterData->character) ){
                             // add "ownerHash" and SSO tokens
-                            $characterData->character['ownerHash']              = $verificationCharacterData->CharacterOwnerHash;
+                            $characterData->character['ownerHash']              = $verificationCharacterData['characterOwnerHash'];
                             $characterData->character['esiAccessToken']         = $accessData->accessToken;
                             $characterData->character['esiAccessTokenExpires']  = $accessData->esiAccessTokenExpires;
                             $characterData->character['esiRefreshToken']        = $accessData->refreshToken;
-                            $characterData->character['esiScopes']              = Lib\Util::convertScopesString($verificationCharacterData->Scopes);
+                            $characterData->character['esiScopes']              = $verificationCharacterData['scopes'];
 
                             // add/update static character data
                             $characterModel = $this->updateCharacter($characterData);
@@ -363,16 +366,15 @@ class Sso extends Api\User{
      * get new "access_token" by an existing "refresh_token"
      * -> if "access_token" is expired, this function gets a fresh one
      * @param string $refreshToken
-     * @param array $additionalOptions
      * @return \stdClass
      */
-    public function refreshAccessToken(string $refreshToken, array $additionalOptions = []){
+    public function refreshAccessToken(string $refreshToken){
         $requestParams = [
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken
         ];
 
-        return $this->requestAccessData($requestParams, $additionalOptions);
+        return $this->requestAccessData($requestParams);
     }
 
     /**
@@ -380,75 +382,41 @@ class Sso extends Api\User{
      * -> this can either be done by sending a valid "authorization code"
      * OR by providing a valid "refresh_token"
      * @param array $requestParams
-     * @param array $additionalOptions
      * @return \stdClass
      */
-    protected function requestAccessData(array $requestParams, array $additionalOptions = []){
-        $verifyAuthCodeUrl = self::getVerifyAuthorizationCodeEndpoint();
-        $verifyAuthCodeUrlParts = parse_url($verifyAuthCodeUrl);
-
+    protected function requestAccessData(array $requestParams) : \stdClass {
         $accessData = (object) [];
         $accessData->accessToken = null;
         $accessData->refreshToken = null;
         $accessData->esiAccessTokenExpires = 0;
 
-        if($verifyAuthCodeUrlParts){
-            $contentType = 'application/x-www-form-urlencoded';
-            $requestOptions = [
-                'timeout' => self::SSO_TIMEOUT,
-                'method' => 'POST',
-                'user_agent' => $this->getUserAgent(),
-                'header' => [
-                    'Authorization: Basic ' . $this->getAuthorizationHeader(),
-                    'Content-Type: ' . $contentType,
-                    'Host: ' . $verifyAuthCodeUrlParts['host']
-                ]
-            ];
+        $authCodeRequestData = $this->getF3()->ssoClient()->getAccessData($this->getAuthorizationData(), $requestParams);
 
-            // content (parameters to send with)
-            $requestOptions['content'] = http_build_query($requestParams);
+        if( !empty($authCodeRequestData) ){
+            if( !empty($authCodeRequestData['accessToken']) ){
+                // accessToken is required for endpoints that require Auth
+                $accessData->accessToken =  $authCodeRequestData['accessToken'];
+            }
 
-            $apiResponse = Lib\Web::instance()->request($verifyAuthCodeUrl, $requestOptions, $additionalOptions);
+            if( !empty($authCodeRequestData['expiresIn']) ){
+                // expire time for accessToken
+                try{
+                    $timezone = $this->getF3()->get('getTimeZone')();
+                    $accessTokenExpires = new \DateTime('now', $timezone);
+                    $accessTokenExpires->add(new \DateInterval('PT' . (int)$authCodeRequestData['expiresIn'] . 'S'));
 
-            if($apiResponse['body']){
-                $authCodeRequestData = json_decode($apiResponse['body'], true);
-
-                if( !empty($authCodeRequestData) ){
-                    if( isset($authCodeRequestData['access_token']) ){
-                        // accessToken is required for endpoints that require Auth
-                        $accessData->accessToken =  $authCodeRequestData['access_token'];
-                    }
-
-                    if(isset($authCodeRequestData['expires_in'])){
-                        // expire time for accessToken
-                        try{
-                            $timezone = $this->getF3()->get('getTimeZone')();
-                            $accessTokenExpires = new \DateTime('now', $timezone);
-                            $accessTokenExpires->add(new \DateInterval('PT' . (int)$authCodeRequestData['expires_in'] . 'S'));
-
-                            $accessData->esiAccessTokenExpires = $accessTokenExpires->format('Y-m-d H:i:s');
-                        }catch(\Exception $e){
-                            $this->getF3()->error(500, $e->getMessage(), $e->getTrace());
-                        }
-                    }
-
-                    if(isset($authCodeRequestData['refresh_token'])){
-                        // this token is used to refresh/get a new access_token when expires
-                        $accessData->refreshToken =  $authCodeRequestData['refresh_token'];
-                    }
+                    $accessData->esiAccessTokenExpires = $accessTokenExpires->format('Y-m-d H:i:s');
+                }catch(\Exception $e){
+                    $this->getF3()->error(500, $e->getMessage(), $e->getTrace());
                 }
-            }else{
-                self::getSSOLogger()->write(
-                    sprintf(
-                        self::ERROR_ACCESS_TOKEN,
-                        print_r($requestParams, true)
-                    )
-                );
+            }
+
+            if( !empty($authCodeRequestData['refreshToken']) ){
+                // this token is used to refresh/get a new access_token when expires
+                $accessData->refreshToken =  $authCodeRequestData['refreshToken'];
             }
         }else{
-            self::getSSOLogger()->write(
-                sprintf(self::ERROR_CCP_SSO_URL, __METHOD__)
-            );
+            self::getSSOLogger()->write(sprintf(self::ERROR_ACCESS_TOKEN, print_r($requestParams, true)));
         }
 
         return $accessData;
@@ -458,34 +426,17 @@ class Sso extends Api\User{
      * verify character data by "access_token"
      * -> get some basic information (like character id)
      * -> if more character information is required, use ESI "characters" endpoints request instead
-     * @param $accessToken
-     * @return mixed|null
+     * @param string $accessToken
+     * @return array
      */
-    public function verifyCharacterData($accessToken){
-        $verifyUserUrl = self::getVerifyUserEndpoint();
-        $verifyUrlParts = parse_url($verifyUserUrl);
-        $characterData = null;
+    public function verifyCharacterData(string $accessToken) : array {
+        $characterData = $this->getF3()->ssoClient()->getVerifyCharacterData($accessToken);
 
-        if($verifyUrlParts){
-            $requestOptions = [
-                'timeout' => self::SSO_TIMEOUT,
-                'method' => 'GET',
-                'user_agent' => $this->getUserAgent(),
-                'header' => [
-                    'Authorization: Bearer ' . $accessToken,
-                    'Host: ' . $verifyUrlParts['host']
-                ]
-            ];
-
-            $apiResponse = Lib\Web::instance()->request($verifyUserUrl, $requestOptions);
-
-            if($apiResponse['body']){
-                $characterData = json_decode($apiResponse['body']);
-            }else{
-                self::getSSOLogger()->write(sprintf(self::ERROR_VERIFY_CHARACTER, __METHOD__));
-            }
+        if( !empty($characterData) ){
+            // convert string with scopes to array
+            $characterData['scopes'] = Lib\Util::convertScopesString($characterData['scopes']);
         }else{
-            self::getSSOLogger()->write(sprintf(self::ERROR_CCP_SSO_URL, __METHOD__));
+            self::getSSOLogger()->write(sprintf(self::ERROR_VERIFY_CHARACTER, __METHOD__));
         }
 
         return $characterData;
@@ -501,7 +452,7 @@ class Sso extends Api\User{
         $characterData = (object) [];
 
         if($characterId){
-            $characterDataBasic =  $this->getF3()->ccpClient->getCharacterData($characterId);
+            $characterDataBasic =  $this->getF3()->ccpClient()->getCharacterData($characterId);
 
             if( !empty($characterDataBasic) ){
                 // remove some "unwanted" data -> not relevant for Pathfinder
@@ -567,15 +518,16 @@ class Sso extends Api\User{
     }
 
     /**
-     * get "Authorization:" Header data
+     * get data for HTTP "Authorization:" Header
      * -> This header is required for any Auth-required endpoints!
-     * @return string
+     * @return array
      */
-    protected function getAuthorizationHeader() : string {
-        return base64_encode(
-            Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') . ':'
-            . Controller\Controller::getEnvironmentData('CCP_SSO_SECRET_KEY')
-        );
+    protected function getAuthorizationData() : array {
+        return [
+            Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID'),
+            Controller\Controller::getEnvironmentData('CCP_SSO_SECRET_KEY'),
+            'basic'
+        ];
     }
 
     /**
@@ -594,18 +546,6 @@ class Sso extends Api\User{
         }
 
         return $url;
-    }
-
-    static function getAuthorizationEndpoint() : string {
-        return self::getSsoUrlRoot() . '/oauth/authorize';
-    }
-
-    static function getVerifyAuthorizationCodeEndpoint() : string {
-        return self::getSsoUrlRoot() . '/oauth/token';
-    }
-
-    static function getVerifyUserEndpoint() : string {
-        return self::getSsoUrlRoot() . '/oauth/verify';
     }
 
     /**
