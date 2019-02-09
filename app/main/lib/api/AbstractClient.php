@@ -22,6 +22,19 @@ use Exodus4D\ESI\Client\ApiInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
 
+/**
+ * Class AbstractClient
+ * @package lib\api
+ *
+ * @method ApiInterface getUrl()
+ * @method ApiInterface getTimeout()
+ * @method ApiInterface getConnectTimeout()
+ * @method ApiInterface getReadTimeout()
+ * @method ApiInterface getProxy()
+ * @method ApiInterface getVerify()
+ * @method ApiInterface getDebugRequests()
+ * @method ApiInterface getDataSource()
+ */
 abstract class AbstractClient extends \Prefab {
 
     const ERROR_CLIENT_INVALID = "HTTP API client not found → Check installed Composer packages";

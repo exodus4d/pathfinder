@@ -10,6 +10,7 @@ namespace Controller;
 
 use Controller\Api as Api;
 use Exception\PathfinderException;
+use lib\api\CcpClient;
 use lib\Config;
 use lib\Resource;
 use lib\Monolog;
@@ -542,72 +543,86 @@ class Controller {
      */
     public function getEveServerStatus(\Base $f3){
         $esiStatusVersion = 'latest';
+        $cacheKey = 'eve_server_status';
 
-        $return = (object) [];
-        $return->error = [];
+        if( !$f3->exists($cacheKey, $return) ){
+            $return = (object) [];
+            $return->error = [];
 
-        if($client = $f3->ccpClient()){
-            $return->server = [
-                'name'              => strtoupper( self::getEnvironmentData('CCP_ESI_DATASOURCE') ),
-                'status'            => 'offline',
-                'statusColor'       => 'red',
-            ];
-            $return->api = [
-                'name'              => 'ESI API',
-                'status'            => 'offline',
-                'statusColor'       => 'red',
-                'url'               => $client->getUrl(),
-                'timeout'           => $client->getTimeout(),
-                'connectTimeout'    => $client->getConnectTimeout(),
-                'readTimeout'       => $client->getReadTimeout(),
-                'proxy'             => ($proxy = $client->getProxy()) ? : 'false',
-                'verify'            => $client->getVerify(),
-                'debug'             => $client->getDebugRequests(),
-                'dataSource'        => $client->getDataSource(),
-                'statusVersion'     => $esiStatusVersion,
-                'routes'            => []
-            ];
+            /**
+             * @var $client CcpClient
+             */
+            if($client = $f3->ccpClient()){
+                $return->server = [
+                    'name'              => strtoupper(self::getEnvironmentData('CCP_ESI_DATASOURCE')),
+                    'status'            => 'offline',
+                    'statusColor'       => 'red',
+                ];
+                $return->api = [
+                    'name'              => 'ESI API',
+                    'status'            => 'offline',
+                    'statusColor'       => 'red',
+                    'url'               => $client->getUrl(),
+                    'timeout'           => $client->getTimeout(),
+                    'connectTimeout'    => $client->getConnectTimeout(),
+                    'readTimeout'       => $client->getReadTimeout(),
+                    'proxy'             => ($proxy = $client->getProxy()) ? : 'false',
+                    'verify'            => $client->getVerify(),
+                    'debug'             => $client->getDebugRequests(),
+                    'dataSource'        => $client->getDataSource(),
+                    'statusVersion'     => $esiStatusVersion,
+                    'routes'            => []
+                ];
 
-            $serverStatus = $client->getServerStatus();
-            if( !isset($serverStatus['error']) ){
-                $statusData = $serverStatus['status'];
-                // calculate time diff since last server restart
-                $timezone = $f3->get('getTimeZone')();
-                $dateNow = new \DateTime('now', $timezone);
-                $dateServerStart = new \DateTime($statusData['startTime']);
-                $interval = $dateNow->diff($dateServerStart);
-                $startTimestampFormat = $interval->format('%hh %im');
-                if($interval->days > 0){
-                    $startTimestampFormat = $interval->days . 'd ' . $startTimestampFormat;
+                $serverStatus = $client->getServerStatus();
+                if( !isset($serverStatus['error']) ){
+                    $statusData = $serverStatus['status'];
+                    // calculate time diff since last server restart
+                    $timezone = $f3->get('getTimeZone')();
+                    $dateNow = new \DateTime('now', $timezone);
+                    $dateServerStart = new \DateTime($statusData['startTime']);
+                    $interval = $dateNow->diff($dateServerStart);
+                    $startTimestampFormat = $interval->format('%hh %im');
+                    if($interval->days > 0){
+                        $startTimestampFormat = $interval->days . 'd ' . $startTimestampFormat;
+                    }
+
+                    $statusData['name']         = $return->server['name'];
+                    $statusData['status']       = 'online';
+                    $statusData['statusColor']  = 'green';
+                    $statusData['startTime']    = $startTimestampFormat;
+                    $return->server = $statusData;
+                }else{
+                    $return->error[] = (new PathfinderException($serverStatus['error'], 500))->getError();
                 }
 
-                $statusData['name'] = $return->server['name'];
-                $statusData['status'] = 'online';
-                $statusData['statusColor'] = 'green';
-                $statusData['startTime'] = $startTimestampFormat;
-                $return->server = $statusData;
-            }
+                $apiStatus = $client->getStatusForRoutes('latest');
+                if( !isset($apiStatus['error']) ){
+                    // find top status
+                    $status = 'OK';
+                    $color = 'green';
+                    foreach($apiStatus['status'] as $statusData){
+                        if('red' == $statusData['status']){
+                            $status = 'unstable';
+                            $color = $statusData['status'];
+                            break;
+                        }
+                        if('yellow' == $statusData['status']){
+                            $status = 'degraded';
+                            $color = $statusData['status'];
+                        }
+                    }
 
-            $apiStatus = $client->getStatusForRoutes('latest');
-            if( !isset($apiStatus['error']) ){
-                // find top status
-                $status = 'OK';
-                $color = 'green';
-                foreach($apiStatus['status'] as $statusData){
-                    if('red' == $statusData['status']){
-                        $status = 'unstable';
-                        $color = $statusData['status'];
-                        break;
-                    }
-                    if('yellow' == $statusData['status']){
-                        $status = 'degraded';
-                        $color = $statusData['status'];
-                    }
+                    $return->api['status']      = $status;
+                    $return->api['statusColor'] = $color;
+                    $return->api['routes']      = $apiStatus['status'];
+                }else{
+                    $return->error[] = (new PathfinderException($apiStatus['error'], 500))->getError();
                 }
 
-                $return->api['status'] = $status;
-                $return->api['statusColor'] = $color;
-                $return->api['routes'] = $apiStatus['status'];
+                if(empty($return->error)){
+                    $f3->set($cacheKey, $return, 15);
+                }
             }
         }
 

@@ -1408,12 +1408,13 @@ class Setup extends Controller {
         return $this->databases;
     }
 
-    /** check MySQL params
+    /**
+     * check MySQL params
      * @param \Base $f3
-     * @param $db
+     * @param SQL $db
      * @return array
      */
-    protected function checkDBConfig(\Base $f3, $db){
+    protected function checkDBConfig(\Base $f3, SQL $db){
 
         // some db like "Maria DB" have some strange version strings....
         $dbVersionString = $db->version();
@@ -1436,19 +1437,13 @@ class Setup extends Controller {
             ]
         ];
 
-        // get specific MySQL config Value
-        $getDBConfigValue = function($db, $param){
-            $result = $db->exec([
-                //"USE " . $db->name(),
-                "SHOW VARIABLES LIKE '" . strtolower($param) . "'"
-            ]);
-            $tmpResult = reset($result);
-            return !empty($result)? end($tmpResult) : 'unknown';
-        };
-
-        $mySQLConfigParams = $f3->get('REQUIREMENTS.MYSQL.VARS');
+        $mySQLConfigParams = (array)$f3->get('REQUIREMENTS.MYSQL.VARS');
         foreach($mySQLConfigParams as $param => $requiredValue){
-            $value = $getDBConfigValue($db, $param);
+            // get current MySQL config value for $param
+            $result = $db->exec("SHOW VARIABLES LIKE '" . strtolower($param) . "'");
+            $tmpResult = reset($result);
+            $value = !empty($result)? end($tmpResult) : 'unknown';
+
             $dbConfig[] = [
                 'label' => strtolower($param),
                 'required' => $requiredValue,

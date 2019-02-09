@@ -11,7 +11,16 @@ namespace lib\api;
 use lib\Config;
 use Exodus4D\ESI\Client\ESI as Client;
 use Exodus4D\ESI\Client\ApiInterface;
+use Exodus4D\ESI\Client\EsiInterface;
 
+
+/**
+ * Class CcpClient
+ * @package lib\api
+ *
+ * @method EsiInterface getServerStatus()
+ * @method EsiInterface getStatusForRoutes(string $version)
+ */
 class CcpClient extends AbstractClient {
 
     /**
