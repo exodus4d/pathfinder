@@ -1844,21 +1844,20 @@ define([
         let areaId = 0;
         switch(security){
             case 'H':
-                areaId = 10;
+                areaId = 30;
                 break;
             case 'L':
-                areaId = 11;
+                areaId = 31;
                 break;
             case '0.0':
-                areaId = 12;
+                areaId = 32;
                 break;
             case 'SH':
-            case 'C13':
                 areaId = 13;
                 break;
             default:
                 // w-space
-                for(let i = 1; i <= 6; i++){
+                for(let i = 1; i <= 18; i++){
                     if(security === 'C' + i){
                         areaId = i;
                         break;

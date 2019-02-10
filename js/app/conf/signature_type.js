@@ -102,7 +102,7 @@ define(['jquery'], ($) => {
                     4: 'M609 - C4',
                     5: 'L614 - C5',
                     6: 'S804 - C6',
-                    7: 'F353 - Thera'
+                    7: 'F353 - C12 Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -146,7 +146,7 @@ define(['jquery'], ($) => {
                     4: 'Y683 - C4',
                     5: 'N062 - C5',
                     6: 'R474 - C6',
-                    7: 'F135 - Thera'
+                    7: 'F135 - C12 Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -192,7 +192,7 @@ define(['jquery'], ($) => {
                     4: 'T405 - C4',
                     5: 'N770 - C5',
                     6: 'A982 - C6',
-                    7: 'F135 - Thera'
+                    7: 'F135 - C12 Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -341,6 +341,14 @@ define(['jquery'], ($) => {
                     1: 'Superior Blood Raider Covert Research Facility' //*
                 }
             },
+            12: {   // Thera wormhole
+                1: {    // Combat
+                    1: 'Epicenter',
+                    2: 'Expedition Command Outpost Wreck',
+                    3: 'Planetary Colonization Office Wreck',
+                    4: 'Testing Facilities'
+                }
+            },
             13: {   // Shattered Wormholes
                 5: {    // Wormhole (some of them are static)
                     1: 'P060 - C1',
@@ -378,7 +386,7 @@ define(['jquery'], ($) => {
             }
         }, // system type (k-space)
         2:  {
-            10: {   // High Sec
+            30: {   // High Sec
                 5:  {   // Wormhole
                     1: 'Z971 - C1',
                     2: 'R943 - C2',
@@ -389,10 +397,10 @@ define(['jquery'], ($) => {
                     7: 'A641 - H',
                     8: 'R051 - L',
                     9: 'V283 - 0.0',
-                    10: 'T458 - Thera'
+                    10: 'T458 - C12 Thera'
                 }
             },
-            11: {   // Low Sec
+            31: {   // Low Sec
                 5:  {   // Wormhole
                     1: 'Z971 - C1',
                     2: 'R943 - C2',
@@ -403,10 +411,10 @@ define(['jquery'], ($) => {
                     7: 'B449 - H',
                     8: 'N944 - L',
                     9: 'S199 - 0.0',
-                    10: 'M164 - Thera'
+                    10: 'M164 - C12 Thera'
                 }
             },
-            12: {   // 0.0
+            32: {   // 0.0
                 5:  {   // Wormhole
                     1: 'Z971 - C1',
                     2: 'R943 - C2',
@@ -417,7 +425,7 @@ define(['jquery'], ($) => {
                     7: 'B449 - H',
                     8: 'N944 - L',
                     9: 'S199 - 0.0',
-                    10: 'L031 - Thera'
+                    10: 'L031 - C12 Thera'
                 }
             }
         }
