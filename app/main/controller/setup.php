@@ -192,6 +192,72 @@ class Setup extends Controller {
      * @throws \Exception
      */
     public function init(\Base $f3){
+
+        $uri = Config::getSocketUri();
+        var_dump('Socket URI: ' . $uri);
+
+
+        $loop   = \React\EventLoop\Factory::create();
+        $connector = new \React\Socket\Connector($loop, [
+            'timeout' => 7.0    // connection timeout
+        ]);
+
+        $connector->connect($uri)->then(function(\React\Socket\ConnectionInterface $connection) use ($loop) {
+            echo "pf: connected" . PHP_EOL;
+            echo "default_socket_timeout: " . ini_get("default_socket_timeout") . PHP_EOL;
+            $connection->on('data', function($chunk) use ($connection) {
+                echo "pf: connection on data:" . PHP_EOL;
+                echo $chunk. PHP_EOL;
+                if($chunk == 'DEF'){
+                    //$connection->end('pf: bye1 ');
+                }
+            });
+
+            $connection->on('end', function(){
+                echo "pf: connection on end" . PHP_EOL;
+            });
+
+            $connection->on('error', function(\Exception $e){
+                echo "pf: connection on error" . PHP_EOL;
+                echo 'error: ' . $e->getMessage();
+            });
+
+            $connection->on('close', function(){
+                echo "pf: connection on ' close" . PHP_EOL;
+            });
+
+            //$connection->pipe(new \React\Stream\WritableResourceStream(STDOUT, $loop));
+/*
+            $connection->write('PF ABC ');
+            //$connection->end('pf: bye1 ');
+           //sleep(2);
+
+            $connection->write('PF DEF ');
+
+            $connection->end('pf: bye2 ');
+*/
+            $loop->addTimer(1.0, function () use ($connection) {
+                $connection->write('ABC');
+            });
+
+            $loop->addTimer(3.0, function () use ($connection) {
+                $connection->write('DEF');
+                //$connection->end('pf: bye1 ');
+            });
+
+            $loop->addTimer(3.0, function ($test) use ($connection) {
+                //var_dump($test);
+                $connection->end('end with timeout');
+                //$connection->end('pf: bye1 ');
+            });
+        });
+echo 'loop start' . PHP_EOL;
+        $loop->run();
+        echo 'loop end//' . PHP_EOL;
+        die();
+return;
+        //sleep(6);
+        //die('END...');
         $params = $f3->get('GET');
 
         // enables automatic column fix

@@ -38,6 +38,7 @@
     "cache/array-adapter": "1.0.*",
     "cache/void-adapter": "1.0.*",
     "cache/namespaced-cache": "1.0.*",
+    "react/socket": "1.2.*",
     "exodus4d/pathfinder_esi": "dev-develop as 0.0.x-dev"
   },
   "suggest": {
