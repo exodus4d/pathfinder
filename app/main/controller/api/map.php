@@ -639,10 +639,8 @@ class Map extends Controller\AccessController {
      * -> if characters with map access found -> broadcast mapData to them
      * @param Model\MapModel $map
      * @throws Exception
-     * @throws \ZMQSocketException
      */
     protected function broadcastMapAccess(Model\MapModel $map){
-
         $mapAccess =  [
             'id' => $map->_id,
             'characterIds' => array_map(function ($data){
@@ -650,7 +648,7 @@ class Map extends Controller\AccessController {
             }, $map->getCharactersData())
         ];
 
-        (new Socket( Config::getSocketUri() ))->sendData('mapAccess', $mapAccess);
+        $this->getF3()->webSocket()->write('mapAccess', $mapAccess);
 
         // map has (probably) active connections that should receive map Data
         $this->broadcastMapData($map);
@@ -659,11 +657,9 @@ class Map extends Controller\AccessController {
     /**
      * broadcast map delete information to clients
      * @param int $mapId
-     * @return bool|string
-     * @throws \ZMQSocketException
      */
-    protected function broadcastMapDeleted($mapId){
-        return (new Socket( Config::getSocketUri() ))->sendData('mapDeleted', $mapId);
+    protected function broadcastMapDeleted(int $mapId){
+        $this->getF3()->webSocket()->write('mapDeleted', $mapId);
     }
 
     /**
@@ -702,7 +698,15 @@ class Map extends Controller\AccessController {
 
         // send Access Data to WebSocket Server and get response (status)
         // if 'OK' -> Socket exists
-        $return->status = (new Socket( Config::getSocketUri() ))->sendData('mapConnectionAccess', $return->data);
+        $status = '';
+        $f3->webSocket()
+            ->write('mapConnectionAccess', $return->data)
+            ->then(
+                function($payload) use (&$status) {
+                    $status = (string)$payload['load'];
+                });
+
+        $return->status = $status;
 
         echo json_encode( $return );
     }

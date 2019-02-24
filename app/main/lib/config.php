@@ -12,6 +12,8 @@ namespace lib;
 use lib\api\CcpClient;
 use lib\api\GitHubClient;
 use lib\api\SsoClient;
+use lib\socket\SocketInterface;
+use lib\socket\TcpSocket;
 
 class Config extends \Prefab {
 
@@ -100,6 +102,11 @@ class Config extends \Prefab {
         $f3->set(SsoClient::CLIENT_NAME, SsoClient::instance());
         $f3->set(CcpClient::CLIENT_NAME, CcpClient::instance());
         $f3->set(GitHubClient::CLIENT_NAME, GitHubClient::instance());
+
+        // Socket connectors
+        $f3->set(TcpSocket::SOCKET_NAME, function(array $options = ['timeout' => 1]) : SocketInterface {
+            return new TcpSocket(self::getSocketUri(), $options);
+        });
     }
 
     /**
@@ -337,16 +344,6 @@ class Config extends \Prefab {
     }
 
     /**
-     * check whether this installation fulfills all requirements
-     * -> check for ZMQ PHP extension and installed ZQM version
-     * -> this does NOT check versions! -> those can be verified on /setup page
-     * @return bool
-     */
-    static function checkSocketRequirements(): bool {
-        return extension_loaded('zmq') && class_exists('ZMQ');
-    }
-
-    /**
      * use this function to "validate" the socket connection.
      * The result will be CACHED for a few seconds!
      * This function is intended to pre-check a Socket connection if it MIGHT exists.
@@ -359,7 +356,7 @@ class Config extends \Prefab {
         $f3 = \Base::instance();
 
         if( !$f3->exists(self::CACHE_KEY_SOCKET_VALID, $valid) ){
-            if(self::checkSocketRequirements()  && ($socketUrl = self::getSocketUri()) ){
+            if( $socketUrl = self::getSocketUri() ){
                 // get socket URI parts -> not elegant...
                 $domain = parse_url( $socketUrl, PHP_URL_SCHEME) . '://' . parse_url( $socketUrl, PHP_URL_HOST);
                 $port = parse_url( $socketUrl, PHP_URL_PORT);

@@ -1,9 +1,9 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
- * Date: 03.09.2017
- * Time: 17:39
+ * User: Exodus 4D
+ * Date: 23.02.2019
+ * Time: 19:11
  */
 
 namespace lib\logging\handler;
@@ -11,8 +11,7 @@ namespace lib\logging\handler;
 
 use Monolog\Logger;
 
-class ZMQHandler extends \Websoftwares\Monolog\Handler\ZMQHandler {
-
+class SocketHandler extends \Monolog\Handler\SocketHandler {
 
     /**
      * some meta data (additional processing information)
@@ -20,17 +19,10 @@ class ZMQHandler extends \Websoftwares\Monolog\Handler\ZMQHandler {
      */
     protected $metaData                 = [];
 
-    public function __construct(
-        \zmqSocket $zmqSocket,
-        $zmqMode = \ZMQ::MODE_DONTWAIT,
-        $multipart = false,
-        $level = Logger::DEBUG,
-        $bubble = true,
-        $metaData = []
-    ){
+    public function __construct($connectionString, $level = Logger::DEBUG, $bubble = true, $metaData = []){
         $this->metaData = $metaData;
 
-        parent::__construct($zmqSocket, $zmqMode, $multipart, $level, $bubble);
+        parent::__construct($connectionString, $level, $bubble);
     }
 
     /**
@@ -38,7 +30,6 @@ class ZMQHandler extends \Websoftwares\Monolog\Handler\ZMQHandler {
      * -> change data structure after processor() calls and before formatter() calls
      * @param array $record
      * @return bool
-     * @throws \Exception
      */
     public function handle(array $record){
         if (!$this->isHandling($record)) {
@@ -61,5 +52,4 @@ class ZMQHandler extends \Websoftwares\Monolog\Handler\ZMQHandler {
 
         return false === $this->bubble;
     }
-
 }

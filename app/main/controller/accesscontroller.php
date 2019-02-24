@@ -8,8 +8,7 @@
 
 namespace Controller;
 
-use lib\Config;
-use lib\Socket;
+
 use Model;
 
 class AccessController extends Controller {
@@ -20,7 +19,6 @@ class AccessController extends Controller {
      * @param $params
      * @return bool
      * @throws \Exception
-     * @throws \ZMQSocketException
      */
     function beforeroute(\Base $f3, $params): bool {
         if($return = parent::beforeroute($f3, $params)){
@@ -80,13 +78,11 @@ class AccessController extends Controller {
      * broadcast map data to clients
      * -> send over TCP Socket
      * @param Model\MapModel $map
-     * @return int (number of active connections for this map)
      * @throws \Exception
-     * @throws \ZMQSocketException
      */
-    protected function broadcastMapData(Model\MapModel $map){
+    protected function broadcastMapData(Model\MapModel $map) : void {
         $mapData = $this->getFormattedMapData($map);
-        return (int)(new Socket( Config::getSocketUri() ))->sendData('mapUpdate', $mapData);
+        $this->getF3()->webSocket()->write('mapUpdate', $mapData);
     }
 
     /**

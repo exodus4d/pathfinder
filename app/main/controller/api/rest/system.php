@@ -68,7 +68,6 @@ class System extends AbstractRestController {
     /**
      * @param \Base $f3
      * @param $params
-     * @throws \ZMQSocketException
      * @throws \Exception
      */
     public function delete(\Base $f3, $params){
@@ -128,7 +127,6 @@ class System extends AbstractRestController {
      * @param Model\SystemModel $system
      * @param array $systemData
      * @return Model\SystemModel
-     * @throws \ZMQSocketException
      * @throws \Exception
      */
     private function update(Model\SystemModel $system, array $systemData) : Model\SystemModel {
