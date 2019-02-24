@@ -621,7 +621,7 @@ class Controller {
                 }
 
                 if(empty($return->error)){
-                    $f3->set($cacheKey, $return, 15);
+                    $f3->set($cacheKey, $return, 60);
                 }
             }
         }

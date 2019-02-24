@@ -302,7 +302,8 @@ abstract class AbstractClient extends \Prefab {
         ){
             // web client not initialized
             $client = $this->getClient($f3);
-            $client->setTimeout(3);
+            $client->setTimeout(5);
+            $client->setConnectTimeout(5);
             $client->setUserAgent($this->getUserAgent());
             $client->setDecodeContent('gzip, deflate');
 
@@ -321,10 +322,10 @@ abstract class AbstractClient extends \Prefab {
             $client->setCachePool($this->getCachePool($f3));
 
             // use local proxy server for debugging requests
-            #$client->setProxy('127.0.0.1:8888');
+            //$client->setProxy('127.0.0.1:8888');
 
             // disable SSL certificate verification -> allow proxy to decode(view) request
-            #$client->setVerify(false);
+            $client->setVerify(false);
 
             //$client->setDebugRequests(true);
 
