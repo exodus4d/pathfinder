@@ -949,9 +949,9 @@ class Controller {
      * get a Logger object by Hive key
      * -> set in pathfinder.ini
      * @param string $type
-     * @return \Log|null
+     * @return \Log
      */
-    static function getLogger($type){
+    static function getLogger($type = 'DEBUG') : \Log {
         return LogController::getLogger($type);
     }
 

@@ -580,9 +580,9 @@ class CharacterModel extends BasicModel {
     /**
      * checks whether this character is authorized to log in
      * -> check corp/ally whitelist config (pathfinder.ini)
-     * @return bool
+     * @return string
      */
-    public function isAuthorized(){
+    public function isAuthorized() : string {
         $authStatus = 'UNKNOWN';
 
         // check whether character is banned or temp kicked
@@ -923,35 +923,8 @@ class CharacterModel extends BasicModel {
             $deleteLog = true;
         }
 
-        //in case of failure (invalid API response) increase or reset "retry counter"
-        if( $user = $this->getUser() ){
-            // Session data does not exists in CLI mode (Cronjob)
-            if( $sessionCharacterData = $user->getSessionCharacterData($this->id, false) ){
-                $updateRetry = (int)$sessionCharacterData['UPDATE_RETRY'];
-                $newRetry =  $updateRetry;
-                if($invalidResponse){
-                    $newRetry++;
-
-                    if($newRetry >= 3){
-                        // no proper character log data (3 fails in a row))
-                        $newRetry = 0;
-                        $deleteLog = true;
-                    }
-                }else{
-                    // reset retry counter
-                    $newRetry = 0;
-                }
-
-                if($updateRetry !== $newRetry){
-                    // update retry counter
-                    $sessionCharacterData['UPDATE_RETRY'] = $newRetry;
-                    $sessionCharacters = self::mergeSessionCharacterData([$sessionCharacterData]);
-                    self::getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
-                }
-            }
-        }
-
         if($deleteLog){
+            self::log('DELETE LOG!');
             $this->deleteLog();
         }
 
