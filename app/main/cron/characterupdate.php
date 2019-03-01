@@ -67,8 +67,7 @@ class CharacterUpdate extends AbstractCron {
                 if(is_object($characterLog->characterId)){
                     // force characterLog as "updated" even if no changes were made
                     $characterLog->characterId->updateLog([
-                        'markUpdated' =>  true,
-                        'suppressHTTPErrors' => true
+                        'markUpdated' =>  true
                     ]);
                 }else{
                     // character_log does not have a character assigned -> delete

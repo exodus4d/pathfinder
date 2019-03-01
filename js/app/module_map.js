@@ -458,7 +458,7 @@ define([
                     mapElement.trigger('pf:updateLocal', currentMapUserData);
 
                     // update map with current user data
-                    mapElement.updateUserData(currentMapUserData);
+                    Map.updateUserData(mapElement, currentMapUserData);
                 }
             }
 

@@ -92,6 +92,9 @@ class Route extends Controller\AccessController {
         $rows = $this->getDB()->exec($query, null, $this->staticJumpDataCacheTime);
 
         if(count($rows) > 0){
+            array_walk($rows, function(&$row){
+                $row['jumpNodes'] = array_map('intval', explode(':', $row['jumpNodes']));
+            });
             $this->updateJumpData($rows);
         }
     }
@@ -172,58 +175,65 @@ class Route extends Controller\AccessController {
                     $whereQuery .= " `connection`.`eolUpdated` IS NULL AND ";
                 }
 
-                $query = "SELECT
-                        `system_src`.`systemId` systemId,
-                        (
-                          SELECT
-                            GROUP_CONCAT( NULLIF(`system_tar`.`systemId`, NULL) SEPARATOR ':')
+                $query = "SELECT 
+                            `system_src`.`systemId` systemSourceId,
+                            `system_tar`.`systemId` systemTargetId
                           FROM
                             `connection` INNER JOIN
-                            `system` system_tar ON
-                              `system_tar`.`id` = `connection`.`source` OR
-                              `system_tar`.`id` = `connection`.`target`
+                            `map` ON
+                              `map`.`id` = `connection`.`mapId` AND 
+                              `map`.`active` = 1 INNER JOIN
+                            `system` `system_src` ON 
+                              `system_src`.`id` = `connection`.`source` AND
+                              `system_src`.`active` = 1 INNER JOIN
+                            `system` `system_tar` ON 
+                              `system_tar`.`id` = `connection`.`target` AND
+                              `system_tar`.`active` = 1
                           WHERE
-                            `connection`.`mapId` " . $whereMapIdsQuery . " AND
-                            `connection`.`active` = 1 AND
-                            (
-                              `connection`.`source` = `system_src`.`id` OR
-                              `connection`.`target` = `system_src`.`id`
-                            ) AND
-                            " . $whereQuery . "
-                            `system_tar`.`id` != `system_src`.`id` AND
-                            `system_tar`.`active` = 1
-                        ) jumpNodes
-                    FROM
-                        `system` `system_src` INNER JOIN
-                        `map` ON
-                          `map`.`id` = `system_src`.`mapId`
-                    WHERE
-                        `system_src`.`mapId` " . $whereMapIdsQuery . " AND
-                        `system_src`.`active` = 1 AND
-                        `map`.`active` = 1
-                    HAVING
-                        -- skip systems without neighbors (e.g. WHs)
-	                    jumpNodes IS NOT NULL
-                ";
+                              " . $whereQuery . "
+                              `connection`.`active` = 1 AND 
+                              `connection`.`mapId` " . $whereMapIdsQuery . "
+                              ";
 
                 $rows = $this->getDB()->exec($query,  null, $this->dynamicJumpDataCacheTime);
 
                 if(count($rows) > 0){
-                    // enrich $row data with static system data (from universe DB)
+                    $jumpData = [];
                     $universe = new Universe();
-                    for($i = 0; $i < count($rows); $i++){
-                        if($staticData = $universe->getSystemData($rows[$i]['systemId'])){
-                            $rows[$i]['systemName'] = $staticData->name;
-                            $rows[$i]['constellationId'] = $staticData->constellation->id;
-                            $rows[$i]['regionId'] = $staticData->constellation->region->id;
-                            $rows[$i]['trueSec'] = $staticData->trueSec;
+
+                    /**
+                     * enrich dynamic jump data with static system data (from universe DB)
+                     * @param array $row
+                     * @param string $systemSourceKey
+                     * @param string $systemTargetKey
+                     */
+                    $enrichJumpData = function(array &$row, string $systemSourceKey, string $systemTargetKey) use (&$jumpData, &$universe) {
+                        if(
+                            !array_key_exists($row[$systemSourceKey], $jumpData) &&
+                            !is_null($staticData = $universe->getSystemData($row[$systemSourceKey]))
+                        ){
+                            $jumpData[$row[$systemSourceKey]] = [
+                                'systemId' => (int)$row[$systemSourceKey],
+                                'systemName' => $staticData->name,
+                                'constellationId' => $staticData->constellation->id,
+                                'regionId' => $staticData->constellation->region->id,
+                                'trueSec' => $staticData->trueSec,
+                            ];
                         }
+
+                        if( !in_array($row[$systemTargetKey], (array)$jumpData[$row[$systemSourceKey]]['jumpNodes']) ){
+                            $jumpData[$row[$systemSourceKey]]['jumpNodes'][] = (int)$row[$systemTargetKey];
+                        }
+                    };
+
+                    for($i = 0; $i < count($rows); $i++){
+                        $enrichJumpData($rows[$i],  'systemSourceId', 'systemTargetId');
+                        $enrichJumpData($rows[$i],  'systemTargetId', 'systemSourceId');
                     }
 
                     // update jump data for this instance
-                    $this->updateJumpData($rows);
+                    $this->updateJumpData($jumpData);
                 }
-
             }
         }
     }
@@ -259,7 +269,7 @@ class Route extends Controller\AccessController {
             if( !is_array($this->jumpArray[$systemId]) ){
                 $this->jumpArray[$systemId] = [];
             }
-            $this->jumpArray[$systemId] = array_merge(array_map('intval', explode(':', $row['jumpNodes'])), $this->jumpArray[$systemId]);
+            $this->jumpArray[$systemId] = array_merge($row['jumpNodes'], $this->jumpArray[$systemId]);
 
             // add systemName to end (if not already there)
             if(end($this->jumpArray[$systemId]) != $systemName){
@@ -580,7 +590,7 @@ class Route extends Controller\AccessController {
                 'connections' => $connections
             ];
 
-            $result = $this->getF3()->ccpClient->getRouteData($systemFromId, $systemToId, $options);
+            $result = $this->getF3()->ccpClient()->getRouteData($systemFromId, $systemToId, $options);
 
             // format result ------------------------------------------------------------------------------------------
 

@@ -136,7 +136,7 @@ class TypeModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseTypesData($id, $additionalOptions);
+        $data = self::getF3()->ccpClient()->getUniverseTypesData($id);
         if(!empty($data)){
             $group = $this->rel('groupId');
             $group->loadById($data['groupId'], $accessToken, $additionalOptions);

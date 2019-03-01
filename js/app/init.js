@@ -202,7 +202,7 @@ define(['jquery'], ($) => {
             },
             // system security
             systemSecurity: {
-                security: {
+                'security': {
                     class: 'pf-system-sec'
                 },
                 'A': {
@@ -220,23 +220,26 @@ define(['jquery'], ($) => {
                 '0.0': {
                     class: 'pf-system-sec-nullSec'
                 },
-                'C6': {
-                    class: 'pf-system-sec-high'
-                },
-                'C5': {
-                    class: 'pf-system-sec-high'
-                },
-                'C4': {
-                    class: 'pf-system-sec-mid'
-                },
-                'C3': {
-                    class: 'pf-system-sec-mid'
+                'C1': {
+                    class: 'pf-system-sec-low'
                 },
                 'C2': {
                     class: 'pf-system-sec-low'
                 },
-                'C1': {
-                    class: 'pf-system-sec-low'
+                'C3': {
+                    class: 'pf-system-sec-mid'
+                },
+                'C4': {
+                    class: 'pf-system-sec-mid'
+                },
+                'C5': {
+                    class: 'pf-system-sec-high'
+                },
+                'C6': {
+                    class: 'pf-system-sec-high'
+                },
+                'C12': {
+                    class: 'pf-system-sec-special'
                 }
             },
             // true sec
@@ -495,6 +498,36 @@ define(['jquery'], ($) => {
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
                 8: 'A009 - C13'
+            },
+            30: {   // High Sec
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0',
+                8: 'A009 - C13'
+            },
+            31: {   // Low Sec
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0',
+                8: 'A009 - C13'
+            },
+            32: {   // 0.0
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0',
+                8: 'A009 - C13'
             }
         },
         // incoming wormholes
@@ -505,7 +538,7 @@ define(['jquery'], ($) => {
             4: 'K162 - H',
             5: 'K162 - L',
             6: 'K162 - 0.0',
-            7: 'K162 - Thera'
+            7: 'K162 - C12 Thera'
         }
 
     };

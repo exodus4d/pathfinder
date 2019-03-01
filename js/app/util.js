@@ -4,6 +4,7 @@
 define([
     'jquery',
     'app/init',
+    'app/console',
     'conf/system_effect',
     'conf/signature_type',
     'bootbox',
@@ -18,7 +19,7 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, SystemEffect, SignatureType, bootbox, localforage) => {
+], ($, Init, Con, SystemEffect, SignatureType, bootbox, localforage) => {
 
     'use strict';
 
@@ -82,6 +83,9 @@ define([
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
         popoverSmallClass: 'pf-popover-small',                                  // class for small "popover"
         popoverCharacterClass: 'pf-popover-character',                          // class for character "popover"
+
+        // Summernote
+        summernoteClass: 'pf-summernote',                                       // class for Summernote "WYSIWYG" elements
 
         // help
         helpDefaultClass: 'pf-help-default',                                    // class for "help" tooltip elements
@@ -878,9 +882,7 @@ define([
     /**
      * show current program version information in browser console
      */
-    let showVersionInfo = () => {
-        console.info('PATHFINDER ' + getVersion());
-    };
+    let showVersionInfo = () => Con.showVersionInfo(getVersion());
 
     /**
      * polyfill for "passive" events
@@ -1842,21 +1844,20 @@ define([
         let areaId = 0;
         switch(security){
             case 'H':
-                areaId = 10;
+                areaId = 30;
                 break;
             case 'L':
-                areaId = 11;
+                areaId = 31;
                 break;
             case '0.0':
-                areaId = 12;
+                areaId = 32;
                 break;
             case 'SH':
-            case 'C13':
                 areaId = 13;
                 break;
             default:
                 // w-space
-                for(let i = 1; i <= 6; i++){
+                for(let i = 1; i <= 18; i++){
                     if(security === 'C' + i){
                         areaId = i;
                         break;
@@ -2772,15 +2773,27 @@ define([
     };
 
     /**
+     * set current location data
+     * -> system data where current user is located
+     * @param systemId
+     * @param systemName
+     */
+    let setCurrentLocationData = (systemId, systemName) => {
+        let locationLink = $('#' + config.headCurrentLocationId).find('a');
+        locationLink.data('systemId', systemId);
+        locationLink.data('systemName', systemName);
+    };
+
+    /**
      * get current location data
      * -> system data where current user is located
      * @returns {{id: *, name: *}}
      */
     let getCurrentLocationData = () => {
-        let currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
+        let locationLink = $('#' + config.headCurrentLocationId).find('a');
         return {
-            id: currentLocationLink.data('systemId'),
-            name: currentLocationLink.data('systemName')
+            id: locationLink.data('systemId') || 0,
+            name: locationLink.data('systemName') || false
         };
     };
 
@@ -3013,6 +3026,13 @@ define([
     };
 
     /**
+     * checks if a given object is a DOM element
+     * @param obj
+     * @returns {boolean}
+     */
+    let isDomElement = obj => !!(obj && obj.nodeType === 1);
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3189,6 +3209,7 @@ define([
         getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        setCurrentLocationData: setCurrentLocationData,
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
@@ -3216,6 +3237,7 @@ define([
         htmlEncode: htmlEncode,
         htmlDecode: htmlDecode,
         isValidHtml: isValidHtml,
+        isDomElement: isDomElement,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

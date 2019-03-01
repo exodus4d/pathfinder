@@ -10,6 +10,7 @@ namespace Controller;
 
 use Controller\Api as Api;
 use Exception\PathfinderException;
+use lib\api\CcpClient;
 use lib\Config;
 use lib\Resource;
 use lib\Monolog;
@@ -126,31 +127,30 @@ class Controller {
     protected function initSession(\Base $f3){
         $session = null;
 
-        /**
-         * callback() for suspect sessions
-         * @param $session
-         * @param $sid
-         * @return bool
-         */
-        $onSuspect = function($session, $sid){
-            self::getLogger('SESSION_SUSPECT')->write( sprintf(
-                self::ERROR_SESSION_SUSPECT,
-                $sid,
-                $session->ip(),
-                $session->agent()
-            ));
-            // .. continue with default onSuspect() handler
-            // -> destroy session
-            return false;
-        };
-
         if(
             $f3->get('SESSION_CACHE') === 'mysql' &&
             $this->getDB('PF') instanceof DB\SQL
         ){
-
             if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
-                $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+                /**
+                 * callback() for suspect sessions
+                 * @param $session
+                 * @param $sid
+                 * @return bool
+                 */
+                $onSuspect = function($session, $sid){
+                    self::getLogger('SESSION_SUSPECT')->write( sprintf(
+                        self::ERROR_SESSION_SUSPECT,
+                        $sid,
+                        $session->ip(),
+                        $session->agent()
+                    ));
+                    // .. continue with default onSuspect() handler
+                    // -> destroy session
+                    return false;
+                };
+
+                new DB\SQL\MySQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
             }
         }
 
@@ -212,7 +212,7 @@ class Controller {
                         $data[$name] = $value;
                     }
                 }
-            }elseif( isset($cookieData[$cookieName]) ){
+            }elseif(isset($cookieData[$cookieName])){
                 // look for a single cookie
                 $data[$cookieName] = $cookieData[$cookieName];
             }
@@ -539,36 +539,90 @@ class Controller {
     /**
      * get EVE server status from ESI
      * @param \Base $f3
+     * @throws \Exception
      */
     public function getEveServerStatus(\Base $f3){
+        $esiStatusVersion = 'latest';
         $cacheKey = 'eve_server_status';
+
         if( !$f3->exists($cacheKey, $return) ){
             $return = (object) [];
             $return->error = [];
-            $return->status = [
-                'serverName' => strtoupper( self::getEnvironmentData('CCP_ESI_DATASOURCE') ),
-                'serviceStatus' => 'offline'
-            ];
 
-            $response = $f3->ccpClient->getServerStatus();
+            /**
+             * @var $client CcpClient
+             */
+            if($client = $f3->ccpClient()){
+                $return->server = [
+                    'name'              => strtoupper(self::getEnvironmentData('CCP_ESI_DATASOURCE')),
+                    'status'            => 'offline',
+                    'statusColor'       => 'red',
+                ];
+                $return->api = [
+                    'name'              => 'ESI API',
+                    'status'            => 'offline',
+                    'statusColor'       => 'red',
+                    'url'               => $client->getUrl(),
+                    'timeout'           => $client->getTimeout(),
+                    'connectTimeout'    => $client->getConnectTimeout(),
+                    'readTimeout'       => $client->getReadTimeout(),
+                    'proxy'             => ($proxy = $client->getProxy()) ? : 'false',
+                    'verify'            => $client->getVerify(),
+                    'debug'             => $client->getDebugRequests(),
+                    'dataSource'        => $client->getDataSource(),
+                    'statusVersion'     => $esiStatusVersion,
+                    'routes'            => []
+                ];
 
-            if( !empty($response) ){
-                // calculate time diff since last server restart
-                $timezone = $f3->get('getTimeZone')();
-                $dateNow = new \DateTime('now', $timezone);
-                $dateServerStart = new \DateTime($response['startTime']);
-                $interval = $dateNow->diff($dateServerStart);
-                $startTimestampFormat = $interval->format('%hh %im');
-                if($interval->days > 0){
-                    $startTimestampFormat = $interval->days . 'd ' . $startTimestampFormat;
+                $serverStatus = $client->getServerStatus();
+                if( !isset($serverStatus['error']) ){
+                    $statusData = $serverStatus['status'];
+                    // calculate time diff since last server restart
+                    $timezone = $f3->get('getTimeZone')();
+                    $dateNow = new \DateTime('now', $timezone);
+                    $dateServerStart = new \DateTime($statusData['startTime']);
+                    $interval = $dateNow->diff($dateServerStart);
+                    $startTimestampFormat = $interval->format('%hh %im');
+                    if($interval->days > 0){
+                        $startTimestampFormat = $interval->days . 'd ' . $startTimestampFormat;
+                    }
+
+                    $statusData['name']         = $return->server['name'];
+                    $statusData['status']       = 'online';
+                    $statusData['statusColor']  = 'green';
+                    $statusData['startTime']    = $startTimestampFormat;
+                    $return->server = $statusData;
+                }else{
+                    $return->error[] = (new PathfinderException($serverStatus['error'], 500))->getError();
                 }
 
-                $response['serverName'] = strtoupper( self::getEnvironmentData('CCP_ESI_DATASOURCE') );
-                $response['serviceStatus'] = 'online';
-                $response['startTime'] = $startTimestampFormat;
-                $return->status = $response;
+                $apiStatus = $client->getStatusForRoutes('latest');
+                if( !isset($apiStatus['error']) ){
+                    // find top status
+                    $status = 'OK';
+                    $color = 'green';
+                    foreach($apiStatus['status'] as $statusData){
+                        if('red' == $statusData['status']){
+                            $status = 'unstable';
+                            $color = $statusData['status'];
+                            break;
+                        }
+                        if('yellow' == $statusData['status']){
+                            $status = 'degraded';
+                            $color = $statusData['status'];
+                        }
+                    }
 
-                $f3->set($cacheKey, $return, 60);
+                    $return->api['status']      = $status;
+                    $return->api['statusColor'] = $color;
+                    $return->api['routes']      = $apiStatus['status'];
+                }else{
+                    $return->error[] = (new PathfinderException($apiStatus['error'], 500))->getError();
+                }
+
+                if(empty($return->error)){
+                    $f3->set($cacheKey, $return, 60);
+                }
             }
         }
 
@@ -795,9 +849,8 @@ class Controller {
      * @param string $authType
      * @return array
      */
-    static function getScopesByAuthType($authType = ''){
+    static function getScopesByAuthType(string $authType = '') : array {
         $scopes = array_filter((array)self::getEnvironmentData('CCP_ESI_SCOPES'));
-
         switch($authType){
             case 'admin':
                 $scopesAdmin = array_filter((array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN'));
@@ -896,9 +949,9 @@ class Controller {
      * get a Logger object by Hive key
      * -> set in pathfinder.ini
      * @param string $type
-     * @return \Log|null
+     * @return \Log
      */
-    static function getLogger($type){
+    static function getLogger($type = 'DEBUG') : \Log {
         return LogController::getLogger($type);
     }
 

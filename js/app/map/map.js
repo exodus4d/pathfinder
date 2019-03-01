@@ -1495,7 +1495,7 @@ define([
                     hiddenOptions.push('delete_system');
                 }
 
-                let mapElement = component.parents('.' + config.mapClass);
+                let mapElement = component.closest('.' + config.mapClass);
                 if( !mapElement.find('.' + config.systemActiveClass).length ){
                     hiddenOptions.push('find_route');
                 }
@@ -1827,7 +1827,7 @@ define([
         let single = function(e){
             // check if click was performed on "popover" (x-editable)
             let popoverClick = false;
-            if( $(e.target).parents('.popover').length ){
+            if( $(e.target).closest('.popover').length ){
                 popoverClick = true;
             }
 
@@ -2014,7 +2014,7 @@ define([
             // register all available connection types ----------------------------------------------------------------
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
-            // event after a new connection is established --------------------------
+            // event after a new connection is established ------------------------------------------------------------
             newJsPlumbInstance.bind('connection', function(info, e){
                 // set connection observer
                 setConnectionObserver(newJsPlumbInstance, info.connection);
@@ -2112,6 +2112,54 @@ define([
         }
 
         return MapUtil.getMapInstance(mapId);
+    };
+
+    /**
+     * check if there is an  focus() element found as parent of tabContentElement
+     * -> or if there is any other active UI element found (e.g. dialog, xEditable, Summernote)
+     * @param tabContentElement
+     * @returns {*}
+     */
+    let systemFormsActive = (tabContentElement) => {
+        let activeNode = null;
+        if(tabContentElement.length){
+            // tabContentElement exists ...
+            tabContentElement = tabContentElement[0];
+
+            // ... check for current active/focus() element and is not the default <body> element ...
+            if(
+                Util.isDomElement(document.activeElement) &&
+                document.activeElement !== document.body
+            ){
+                let activeElementTagName = document.activeElement.tagName.toLocaleLowerCase();
+
+                // ... check for active form elements ...
+                let isFormElement = ['input', 'select', 'textarea'].includes(activeElementTagName);
+                let isChildElement = tabContentElement.contains(document.activeElement);
+
+                if(isFormElement && isChildElement){
+                    activeNode = activeElementTagName;
+                }else{
+                    // ... check for open dialogs/xEditable elements ...
+                    if(Util.isDomElement(document.querySelector('.bootbox'))){
+                        activeNode = 'dialogOpen';
+                    }else if(Util.isDomElement(document.querySelector('.editable-open'))){
+                        activeNode = 'xEditableOpen';
+                    }else{
+                        // ... check for open Summernote editor
+                        let summernoteElement = tabContentElement.querySelector('.' + Util.config.summernoteClass);
+                        if(
+                            Util.isDomElement(summernoteElement) &&
+                            typeof $(summernoteElement).data().summernote === 'object'
+                        ){
+                            activeNode = 'SummernoteOpen';
+                        }
+                    }
+                }
+            }
+        }
+
+        return activeNode;
     };
 
     /**
@@ -2484,17 +2532,30 @@ define([
 
         // triggered from "header" link (if user is active in one of the systems)
         mapContainer.on('pf:menuSelectSystem', function(e, data){
-            let tempMapContainer = $(this);
-            let systemId = MapUtil.getSystemId(tempMapContainer.data('id'), data.systemId);
-            let system = $(this).find('#' + systemId);
+            let mapElement = $(this);
+            let systemId = MapUtil.getSystemId(mapElement.data('id'), data.systemId);
+            let system = mapElement.find('#' + systemId);
 
             if(system.length === 1){
-                // scroll to system
-                let tempMapWrapper = tempMapContainer.parents('.' + config.mapWrapperClass);
-                tempMapWrapper.mCustomScrollbar('scrollTo', system);
+                // system found on map ...
+                let select = Util.getObjVal(data, 'forceSelect') !== false;
 
-                // select system
-                MapUtil.showSystemInfo(map, system);
+                if(!select){
+                    // ... select is NOT "forced" -> auto select system on jump
+                    let activeElement = systemFormsActive(MapUtil.getTabContentElementByMapElement(system));
+                    if(activeElement !== null){
+                        console.info('Skip auto select systemId %i. Reason: %o', data.systemId, activeElement);
+                    }else{
+                        select = true;
+                    }
+                }
+
+                if(select){
+                    let mapWrapper = mapElement.closest('.' + config.mapWrapperClass);
+                    mapWrapper.scrollToSystem(MapUtil.getSystemPosition(system));
+                    // select system
+                    MapUtil.showSystemInfo(map, system);
+                }
             }
         });
 
@@ -2595,118 +2656,125 @@ define([
     /**
      * updates all systems on map with current user Data (all users on this map)
      * update the Data of the user that is currently viewing the map (if available)
+     * @param mapElement
      * @param userData
-     * @returns {boolean}
+     * @returns {Promise<any>}
      */
-    $.fn.updateUserData = function(userData){
-        let returnStatus = true;
+    let updateUserData = (mapElement, userData) => {
 
-        // get new map instance or load existing
-        let map = getMapInstance(userData.config.id);
-
-        let mapElement = map.getContainer();
-
-        // container must exist! otherwise systems can not be updated
-        if(mapElement !== undefined){
-            mapElement = $(mapElement);
-
-            // check if map is frozen
-            if(mapElement.data('frozen') === true){
-                return returnStatus;
-            }
-
-            // compact/small system layout or not
-            let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
-
-            // get current character log data
-            let characterLogExists = false;
-            let currentCharacterLog = Util.getCurrentCharacterLog();
-
-            // data for header update
-            let headerUpdateData = {
-                mapId: userData.config.id,
-                userCountInside: 0,                 // active user on a map
-                userCountOutside: 0,                // active user NOT on map
-                userCountInactive: 0                // inactive users (no location)
+        let updateUserDataExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'updateUserData'
             };
 
-            if(
-                currentCharacterLog &&
-                currentCharacterLog.system
-            ){
-                characterLogExists = true;
-                headerUpdateData.currentSystemName = currentCharacterLog.system.name;
-            }
+            // get new map instance or load existing
+            let map = getMapInstance(userData.config.id);
+            let mapElement = map.getContainer();
 
-            // check if current user was found on the map
-            let currentUserOnMap = false;
+            // container must exist! otherwise systems can not be updated
+            if(mapElement !== undefined){
+                mapElement = $(mapElement);
 
-            // get all systems
-            let systems = mapElement.find('.' + config.systemClass);
-
-            for(let i = 0; i < systems.length; i++){
-                // get user Data for System
-
-                let system = $( systems[i] );
-
-                let systemId = $(system).data('systemId');
-
-                let tempUserData = null;
-
-                // check if user is currently in "this" system
-                let currentUserIsHere = false;
-
-                let j = userData.data.systems.length;
-
-                // search backwards to avoid decrement the counter after splice()
-                while(j--){
-                    let systemData = userData.data.systems[j];
-
-                    // check if any user is in this system
-                    if(systemId === systemData.id){
-                        tempUserData = systemData;
-
-                        // add  "user count" to "total map user count"
-                        headerUpdateData.userCountInside += tempUserData.user.length;
-
-                        // remove system from "search" array -> speed up loop
-                        userData.data.systems.splice(j, 1);
-                    }
+                // no user update for 'frozen' maps...
+                if(mapElement.data('frozen') === true){
+                    return resolve(payload);
                 }
 
-                // the current user can only be in a single system ----------------------------------------------------
+                // compact/small system layout or not
+                let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
+
+                // get current character log data
+                let characterLogExists = false;
+                let currentCharacterLog = Util.getCurrentCharacterLog();
+
+                // data for header update
+                let headerUpdateData = {
+                    mapId: userData.config.id,
+                    userCountInside: 0,                 // active user on a map
+                    userCountOutside: 0,                // active user NOT on map
+                    userCountInactive: 0,               // inactive users (no location)
+                    currentLocation: {
+                        id: 0,                          // systemId for current active user
+                        name: false                     // systemName for current active user
+                    }
+                };
+
                 if(
-                    characterLogExists &&
-                    currentCharacterLog.system.id === systemId
+                    currentCharacterLog &&
+                    currentCharacterLog.system
                 ){
-                    if( !currentUserOnMap ){
-                        currentUserIsHere = true;
-                        currentUserOnMap = true;
+                    characterLogExists = true;
+                    headerUpdateData.currentLocation.name = currentCharacterLog.system.name;
+                }
 
-                        // set current location data for header update
-                        headerUpdateData.currentSystemId =  $(system).data('id');
-                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                // check if current user was found on the map
+                let currentUserOnMap = false;
+
+                // get all systems
+                let systems = mapElement.find('.' + config.systemClass);
+
+                for(let system of systems){
+                    system = $(system);
+                    let systemId = system.data('systemId');
+                    let tempUserData = null;
+
+                    // check if user is currently in "this" system
+                    let currentUserIsHere = false;
+
+                    let j = userData.data.systems.length;
+
+                    // search backwards to avoid decrement the counter after splice()
+                    while(j--){
+                        let systemData = userData.data.systems[j];
+
+                        // check if any user is in this system
+                        if(systemId === systemData.id){
+                            tempUserData = systemData;
+
+                            // add  "user count" to "total map user count"
+                            headerUpdateData.userCountInside += tempUserData.user.length;
+
+                            // remove system from "search" array -> speed up loop
+                            userData.data.systems.splice(j, 1);
+                        }
+                    }
+
+                    // the current user can only be in a single system ------------------------------------------------
+                    if(
+                        characterLogExists &&
+                        currentCharacterLog.system.id === systemId
+                    ){
+                        if( !currentUserOnMap ){
+                            currentUserIsHere = true;
+                            currentUserOnMap = true;
+
+                            // set current location data for header update
+                            headerUpdateData.currentLocation.id =  system.data('id');
+                            headerUpdateData.currentLocation.name = currentCharacterLog.system.name;
+                        }
+                    }
+
+                    system.updateSystemUserData(map, tempUserData, currentUserIsHere, {compactView: compactView});
+                }
+
+                // users who are not in any map system ----------------------------------------------------------------
+                for(let systemData of userData.data.systems){
+                    // users without location are grouped in systemId: 0
+                    if(systemData.id){
+                        headerUpdateData.userCountOutside += systemData.user.length;
+                    }else{
+                        headerUpdateData.userCountInactive += systemData.user.length;
                     }
                 }
 
-                system.updateSystemUserData(map, tempUserData, currentUserIsHere, {compactView: compactView});
+                // trigger document event -> update header
+                $(document).trigger('pf:updateHeaderMapData', headerUpdateData);
             }
 
-            // users who are not in any map system --------------------------------------------------------------------
-            for(let i = 0; i < userData.data.systems.length; i++){
-                // users without location are grouped in systemId: 0
-                if(userData.data.systems[i].id){
-                    headerUpdateData.userCountOutside += userData.data.systems[i].user.length;
-                }else{
-                    headerUpdateData.userCountInactive += userData.data.systems[i].user.length;
-                }
-            }
+            resolve(payload);
+        };
 
-            // trigger document event -> update header
-            $(document).trigger('pf:updateHeaderMapData', headerUpdateData);
-        }
-
-        return returnStatus;
+        return new Promise(updateUserDataExecutor);
     };
 
     /**
@@ -2851,17 +2919,7 @@ define([
             updated: parseInt( system.data('updated') )
         };
         systemData.userCount = (system.data('userCount') ? parseInt( system.data('userCount') ) : 0);
-
-        // position ---------------------------------------------------------------------------------------------------
-        let positionData = {};
-        let currentX = system.css('left');
-        let currentY = system.css('top');
-
-        // remove 'px'
-        positionData.x = parseInt( currentX.substring(0, currentX.length - 2) );
-        positionData.y = parseInt( currentY.substring(0, currentY.length - 2) );
-
-        systemData.position = positionData;
+        systemData.position = MapUtil.getSystemPosition(system);
 
         return systemData;
     };
@@ -2982,6 +3040,7 @@ define([
     return {
         getMapInstance: getMapInstance,
         loadMap: loadMap,
+        updateUserData: updateUserData,
         saveSystemCallback: saveSystemCallback
     };
 

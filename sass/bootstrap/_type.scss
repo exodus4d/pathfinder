@@ -168,11 +168,11 @@ ol {
 // Description Lists
 dl {
   margin-top: 0; // Remove browser default
-  margin-bottom: $line-height-computed;
+  margin-bottom: ($line-height-computed - 8);
 }
 dt,
 dd {
-  line-height: $line-height-base;
+  line-height: $line-height-computed;
 }
 dt {
   font-weight: bold;
@@ -190,7 +190,7 @@ dd {
   .dl-horizontal {
     dt {
       float: left;
-      width: ($component-offset-horizontal - 20);
+      width: ($component-offset-horizontal - 15);
       clear: left;
       text-align: right;
       @include text-overflow();

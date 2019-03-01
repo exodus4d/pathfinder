@@ -482,7 +482,7 @@ define([
      * @param label
      * @returns {string}
      */
-    let getEndpointOverlayContent = (label) => {
+    let getEndpointOverlayContent = label => {
         let newLabel = '';
         let colorClass = 'txt-color-grayLighter';
 
@@ -508,17 +508,14 @@ define([
      * @param element
      * @returns {*}
      */
-    let getTabContentElementByMapElement = (element) => {
-        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
-        return tabContentElement;
-    };
+    let getTabContentElementByMapElement = element => $(element).closest('.' + config.mapTabContentClass);
 
     /**
      * checks if there is an "active" connection on a map
      * @param map
      * @returns {boolean}
      */
-    let hasActiveConnection = (map) => {
+    let hasActiveConnection = map => {
         let activeConnections = getConnectionsByType(map, 'active');
         return activeConnections.length > 0;
     };
@@ -1204,6 +1201,21 @@ define([
     };
 
     /**
+     * get system coordinates from systemElement
+     * @param system
+     * @returns {{x: number, y: number}}
+     */
+    let getSystemPosition = system => {
+        let x = system.css('left');
+        let y = system.css('top');
+
+        return {
+          x: parseInt(x.substring(0, x.length - 2)),
+          y: parseInt(y.substring(0, y.length - 2))
+        };
+    };
+
+    /**
      * scroll map to default (stored) x/y coordinates
      * @param mapElement
      * @returns {Promise<any>}
@@ -1755,6 +1767,7 @@ define([
         deleteLocalData: deleteLocalData,
         visualizeMap: visualizeMap,
         setMapDefaultOptions: setMapDefaultOptions,
+        getSystemPosition: getSystemPosition,
         scrollToDefaultPosition: scrollToDefaultPosition,
         getSystemId: getSystemId,
         checkRight: checkRight,

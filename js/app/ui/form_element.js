@@ -85,7 +85,7 @@ define([
         let markup = '';
         if(parts.length === 2){
             // wormhole data -> 2 columns
-            let securityClass = Util.getSecurityClassForSystem(parts[1].length > 3 ? parts[1].substring(0, 2) : parts[1]);
+            let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
             markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
             markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
             markup += '<span class="' + securityClass + ' ' + Util.config.popoverTriggerClass + ' ' + Util.config.helpDefaultClass +
@@ -118,7 +118,7 @@ define([
             let parts = data.text.split(' - ');
             if(parts.length === 2){
                 // wormhole data -> 2 columns
-                let securityClass = Util.getSecurityClassForSystem(parts[1].length > 3 ? parts[1].substring(0, 2) : parts[1]);
+                let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
 
                 switch(formatType){
                     case 'wormhole':
@@ -180,6 +180,21 @@ define([
         }
 
         return $(markup);
+    };
+
+    /**
+     * try to parse a security label into  security name
+     * -> "C1/2/3 (unknown)"    -> C1
+     *    "C3"                  -> C3
+     *    "H"                   -> H
+     *    "0.0"                 -> 0.0
+     *    "C12 Thera"           -> C12
+     * @param security
+     * @returns {string}
+     */
+    let getSystemSecurityFromLabel = security => {
+        let matches = security.match(/^(\w+\.?\w?)/i);
+        return matches ? matches[1] : '';
     };
 
     /**

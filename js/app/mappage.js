@@ -143,6 +143,7 @@ define([
                     Init.characterStatus    = response.characterStatus;
                     Init.routes             = response.routes;
                     Init.url                = response.url;
+                    Init.character          = response.character;
                     Init.slack              = response.slack;
                     Init.discord            = response.discord;
                     Init.structureStatus    = response.structureStatus;
@@ -308,10 +309,10 @@ define([
             .then(payload => Promise.all([initMapModule(payload[0]), initMapWorker(payload[1])]))
             .then(payload => {
                 // mapModule initialized and WebSocket configuration working
-                console.info('%s() complete! command: "%s"; syncStatus: "%s"',
-                    payload[1].action,
-                    payload[1].data.command,
-                    payload[1].data.syncStatus
+                console.ok('Client syncStatus: %s. %O resolved by command: %s!',
+                    payload[1].data.syncStatus,
+                    payload[1].action + '()',
+                    payload[1].data.command
                 );
             })
             .catch(payload => {
@@ -322,10 +323,10 @@ define([
                         break;
                     case 'initMapWorker':
                         // WebSocket not working -> no error here -> fallback to Ajax
-                        console.warn('%s() rejects Promise. command: "%s"; syncStatus: "%s", payload: %o',
-                            payload.action,
-                            payload.data.command,
+                        console.info('Client syncStatus: %s. %O rejected by command: %s! payload: %o',
                             payload.data.syncStatus,
+                            payload.action + '()',
+                            payload.data.command,
                             payload.data
                         );
                         break;

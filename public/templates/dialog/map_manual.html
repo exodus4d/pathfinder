@@ -130,18 +130,99 @@
         Any <em>"K-space"</em> system in <em>"New Eden"</em> has a fixed <em>"Security status"</em> between <samp>-1.0</samp> and <samp>+1.0</samp>.
         <em>"W-space"</em> systems always have a Security status of <samp>-1.0</samp>.
         They can be distinguished into <em>"Classes"</em> [C1 - C6].<br>
-        The label color of the system indicates the <em>"Security Status"</em>.
+        The label color of a system indicates the <em>"Security Status"</em>.
     </p>
-    <ul style="list-style: none; margin-left: 10px">
-        <li><span class="pf-system-sec-highSec">H</span> high security system<small> (<samp>1.0 - 0.5</samp>)</small></li>
-        <li><span class="pf-system-sec-lowSec">L</span> low security system<small> (<samp>0.4 - 0.1</samp>)</small></li>
-        <li><span class="pf-system-sec-nullSec">0.0</span> null security system<small> (<samp>0.0 - -1.0</samp>)</small></li>
-        <li><span class="pf-system-sec-high">C6, C5</span> high class wormhole<small> (<samp>-1.0</samp>)</small></li>
-        <li><span class="pf-system-sec-mid">C4, C3</span> mid class wormhole<small> (<samp>-1.0</samp>)</small></li>
-        <li><span class="pf-system-sec-low">C2, C1</span> low class wormhole<small> (<samp>-1.0</samp>)</small></li>
-        <li><span class="pf-system-sec-unknown">SH</span> shattered wormhole<small> (<samp>-1.0</samp>)</small></li>
-        <li><span class="pf-system-sec-abyssal">A</span> abyss system<small> (<samp>-1.0</samp>)</small></li>
-    </ul>
+
+    <div class="row">
+        <div class="col-sm-6 col-md-4">
+            <table class="table table-condensed" style="font-size: 12px">
+                <thead>
+                <tr>
+                    <td class="col-sm-2 text-center">k-space</td>
+                    <td></td>
+                    <td class="col-sm-3 text-right">security</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="text-center pf-system-sec-highSec">H</td>
+                    <td>High security system</td>
+                    <td class="text-right">
+                        <samp class="pf-system-security-1-0">1.0</samp><samp> - </samp><samp class="pf-system-security-0-5">0.5</samp>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-center pf-system-sec-lowSec">L</td>
+                    <td>Low security system</td>
+                    <td class="text-right">
+                        <samp class="pf-system-security-0-4">0.4</samp><samp> - </samp><samp class="pf-system-security-0-1">0.1</samp>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-center pf-system-sec-nullSec">0.0</td>
+                    <td>Null security system</td>
+                    <td class="text-right">
+                        <samp class="pf-system-security-0-0">0.0</samp><samp> - </samp><samp class="pf-system-security-0-0">-1.0</samp>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-sm-6 col-md-4">
+            <table class="table table-condensed" style="font-size: 12px">
+                <thead>
+                <tr>
+                    <td class="col-sm-2 text-center">w-space</td>
+                    <td></td>
+                    <td class="col-sm-3 text-right">security</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="text-center pf-system-sec-low">C1, C2</td>
+                    <td>Low class wormhole</td>
+                    <td class="text-right"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+                <tr>
+                    <td class="text-center pf-system-sec-mid">C3, C4</td>
+                    <td>Mid class wormhole</td>
+                    <td class="text-right"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+                <tr>
+                    <td class="text-center pf-system-sec-high">C5, C6</td>
+                    <td>High class wormhole</td>
+                    <td class="text-right"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-sm-6 col-md-4">
+            <table class="table table-condensed" style="font-size: 12px">
+                <thead>
+                <tr>
+                    <td class="col-sm-2 text-center">w-space</td>
+                    <td></td>
+                    <td class="col-sm-3 text-right">security</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="text-center pf-system-sec-special">C12</td>
+                    <td>Thera class wormhole</td>
+                    <td class="text-right"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+                <tr>
+                    <td class="text-center pf-system-sec-unknown">SH</td>
+                    <td>Shattered wormhole</td>
+                    <td class="text-right"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+                <tr>
+                    <td class="text-center pf-system-sec-abyssal">A</td>
+                    <td>Abyss system</td>
+                    <td class="text-right"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
     <h4 id="pf-manual-scrollspy-anchor-system-status">System status</h4>
     <p>
         The border color indicates the current status of a system.<br>

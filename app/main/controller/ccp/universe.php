@@ -22,7 +22,7 @@ class Universe extends Controller {
         $regionsWhitelist = [
             10000002 // The Forge (13 constellations -> 93 systems)
         ];
-        $regionIds = $f3->ccpClient->getUniverseRegions();
+        $regionIds = $f3->ccpClient()->getUniverseRegions();
         $regionIds = array_intersect ($regionsWhitelist, $regionIds);
 
         $region = Model\Universe\BasicUniverseModel::getNew('RegionModel');
@@ -43,7 +43,7 @@ class Universe extends Controller {
         $constellationsWhitelist = [
             20000014 // Mal (11 systems)
         ];
-        $constellationIds = $f3->ccpClient->getUniverseConstellations();
+        $constellationIds = $f3->ccpClient()->getUniverseConstellations();
         $constellationIds = array_intersect ($constellationsWhitelist, $constellationIds);
         $constellation = Model\Universe\BasicUniverseModel::getNew('ConstellationModel');
         foreach($constellationIds as $constellationId){
@@ -92,7 +92,7 @@ class Universe extends Controller {
      */
     protected function setupCategories(array $categoriesWhitelist = []){
         $return = [];
-        $categoryIds = $this->getF3()->ccpClient->getUniverseCategories();
+        $categoryIds = $this->getF3()->ccpClient()->getUniverseCategories();
         $categoryIds = array_intersect ($categoriesWhitelist, $categoryIds);
         foreach($categoryIds as $categoryId){
             $return[$categoryId] = $this->setupCategory($categoryId);
@@ -112,7 +112,7 @@ class Universe extends Controller {
      */
     protected function setupGroups(array $groupsWhitelist = []){
         $return = [];
-        $groupIds = $this->getF3()->ccpClient->getUniverseGroups();
+        $groupIds = $this->getF3()->ccpClient()->getUniverseGroups();
         $groupIds = array_intersect ($groupsWhitelist, $groupIds);
         /**
          * @var $group Model\Universe\GroupModel
@@ -288,13 +288,13 @@ class Universe extends Controller {
         $f3 = \Base::instance();
         $universeNameData = [];
         if( !empty($categories) && !empty($search)){
-            $universeIds = $f3->ccpClient->search($categories, $search, $strict);
+            $universeIds = $f3->ccpClient()->search($categories, $search, $strict);
             if(isset($universeIds['error'])){
                 // ESI error
                 $universeNameData = $universeIds;
             }elseif( !empty($universeIds) ){
                 $universeIds = Util::arrayFlattenByValue($universeIds);
-                $universeNameData = $f3->ccpClient->getUniverseNamesData($universeIds);
+                $universeNameData = $f3->ccpClient()->getUniverseNamesData($universeIds);
             }
         }
         return $universeNameData;

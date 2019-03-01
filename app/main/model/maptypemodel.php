@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 
-class MapTypeModel extends BasicModel{
+class MapTypeModel extends BasicModel {
 
     protected $table = 'map_type';
 

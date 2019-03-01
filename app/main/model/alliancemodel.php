@@ -141,7 +141,7 @@ class AllianceModel extends BasicModel {
         $alliance = parent::getById($id, $ttl, $isActive);
         if($alliance->isOutdated()){
             // request alliance data
-            $allianceData = self::getF3()->ccpClient->getAllianceData($id);
+            $allianceData = self::getF3()->ccpClient()->getAllianceData($id);
             if( !empty($allianceData) ){
                 $alliance->copyfrom($allianceData, ['id', 'name', 'ticker']);
                 $alliance->save();

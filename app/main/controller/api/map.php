@@ -183,6 +183,11 @@ class Map extends Controller\AccessController {
                 'zKillboard'            => Config::getPathfinderData('api.z_killboard')
             ];
 
+            // Character default config -------------------------------------------------------------------------------
+            $return->character = [
+                'autoLocationSelect'    => (bool)Config::getPathfinderData('character.auto_location_select')
+            ];
+
             // Slack integration status -------------------------------------------------------------------------------
             $return->slack = [
                 'status'                => (bool)Config::getPathfinderData('slack.status')
@@ -204,6 +209,9 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($structureData) : $validInitData;
 
             // get available wormhole types ---------------------------------------------------------------------------
+            /**
+             * @var $wormhole Model\Universe\WormholeModel
+             */
             $wormhole = Model\Universe\BasicUniverseModel::getNew('WormholeModel');
             $wormholesData = [];
             if($rows = $wormhole->find(null, ['order' => 'name asc'])){
@@ -419,7 +427,7 @@ class Map extends Controller\AccessController {
         $return->error = [];
 
         if( isset($formData['id']) ){
-            $activeCharacter = $this->getCharacter(0);
+            $activeCharacter = $this->getCharacter();
 
             /**
              * @var $map Model\MapModel
@@ -865,13 +873,13 @@ class Map extends Controller\AccessController {
         $getMapUserData = (bool)$postData['getMapUserData'];
         $mapTracking = (bool)$postData['mapTracking'];
         $systemData = (array)$postData['systemData'];
-        $activeCharacter = $this->getCharacter(0);
+        $activeCharacter = $this->getCharacter();
 
         $return = (object)[];
 
         // update current location
         // -> suppress temporary timeout errors
-        $activeCharacter = $activeCharacter->updateLog(['suppressHTTPErrors' => true]);
+        $activeCharacter = $activeCharacter->updateLog();
 
         if( !empty($mapIds) ){
             // IMPORTANT for now -> just update a single map (save performance)

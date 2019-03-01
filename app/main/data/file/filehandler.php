@@ -21,20 +21,19 @@ class FileHandler extends \Prefab {
     const Log_File_LIMIT_MAX                                = 100;
 
     /**
-     * parse local log file from end to first line
-     * -> Each row is a JSON object
+     * parse file from end to first line
      * @param string $sourceFile
      * @param int $offset
      * @param int $limit
-     * @param null|callable $formatter
+     * @param \Closure|null $rowParser
      * @return array
      */
-    public static function readLogFile(
+    public function readFileReverse(
         string $sourceFile,
         int $offset = self::LOG_FILE_OFFSET,
         int $limit = self::LOG_FILE_LIMIT,
-        $formatter = null
-    ): array {
+        \Closure $rowParser = null
+    ) : array {
         $data = [];
 
         if(is_file($sourceFile)){
@@ -43,11 +42,11 @@ class FileHandler extends \Prefab {
                 $file->setFlags(\SplFileObject::DROP_NEW_LINE | \SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY);
 
                 foreach( new \LimitIterator($file, 0, $limit) as $i => $rowData){
-                    if( !empty($rowDataObj = (array)json_decode($rowData, true)) ){
-                        if(is_callable($formatter)){
-                            $formatter($rowDataObj);
-                        }
-                        $data[] = $rowDataObj;
+                    if(is_callable($rowParser)){
+                        // custom parser for row data -> manipulate $data by ref
+                        $rowParser($rowData, $data);
+                    }else{
+                        $data[] = $rowData;
                     }
                 }
             }else{

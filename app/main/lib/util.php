@@ -130,4 +130,54 @@ class Util {
         sort($scopes);
         return md5(serialize($scopes));
     }
+
+    /**
+     * get some information about a $source file/dir
+     * @param string|null $source
+     * @return array
+     */
+    static function filesystemInfo(?string $source) : array {
+        $info = [];
+        if(is_dir($source)){
+            $info['isDir'] = true;
+        }elseif(is_file($source)){
+            $info['isFile'] = true;
+        }
+        if(!empty($info)){
+            $info['chmod'] = substr(sprintf('%o', fileperms($source)), -4);
+        }
+        return $info;
+    }
+
+    /**
+     * round DateTime to interval
+     * @param \DateTime $dateTime
+     * @param string $type
+     * @param int $interval
+     * @param string $round
+     */
+    static function roundToInterval(\DateTime &$dateTime, string $type = 'sec', int $interval = 5, string $round = 'floor'){
+        $hours = $minutes = $seconds = 0;
+
+        $roundInterval = function(string $format, int $interval, string $round) : int {
+            return call_user_func($round, $format / $interval) * $interval;
+        };
+
+        switch($type){
+            case 'hour':
+                $hours = $roundInterval($dateTime->format('H'), $interval, $round);
+                break;
+            case 'min':
+                $hours = $dateTime->format('H');
+                $minutes = $roundInterval($dateTime->format('i'), $interval, $round);
+                break;
+            case 'sec':
+                $hours = $dateTime->format('H');
+                $minutes = $dateTime->format('i');
+                $seconds = $roundInterval($dateTime->format('s'), $interval, $round);
+                break;
+        }
+
+        $dateTime->setTime($hours, $minutes, $seconds);
+    }
 }

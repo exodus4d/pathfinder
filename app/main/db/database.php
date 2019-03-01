@@ -7,6 +7,8 @@
  */
 
 namespace DB;
+
+
 use controller\LogController;
 use lib\Config;
 
@@ -29,7 +31,7 @@ class Database extends \Prefab {
      * @param string $dbKey
      * @return SQL|null
      */
-    public function connectToServer(string $dbKey = 'PF'){
+    public function connectToServer(string $dbKey = 'PF') : ?SQL {
         $dbConfig = Config::getDatabaseConfig($dbKey);
         $dbConfig['DNS'] = str_replace(';dbname=', '', $dbConfig['DNS'] );
         $dbConfig['NAME'] = '';
@@ -42,7 +44,7 @@ class Database extends \Prefab {
      * @param string $dbKey
      * @return SQL|null
      */
-    public function createDB(string $dbKey = 'PF'){
+    public function createDB(string $dbKey = 'PF') : ?SQL {
         $db = null;
         $dbConfig = Config::getDatabaseConfig($dbKey);
         // remove database from $dsn (we want to crate it)
@@ -51,6 +53,9 @@ class Database extends \Prefab {
             $dbConfig['NAME'] = '';
             $dbConfig['DNS'] = str_replace(';dbname=', '', $dbConfig['DNS'] );
 
+            /**
+             * @var $db SQL|null
+             */
             $db = call_user_func_array([$this, 'connect'], $dbConfig);
 
             if(!is_null($db)){
@@ -83,12 +88,15 @@ class Database extends \Prefab {
      * @param string $dbKey
      * @return SQL|null
      */
-    public function getDB(string $dbKey = 'PF'){
+    public function getDB(string $dbKey = 'PF') : ?SQL {
         $f3 = \Base::instance();
         // "Hive" Key for DB object cache
         $dbHiveKey = $this->getDbHiveKey($dbKey);
         if( !$f3->exists($dbHiveKey, $db) ){
             $dbConfig = Config::getDatabaseConfig($dbKey);
+            /**
+             * @var $db SQL|null
+             */
             $db  = call_user_func_array([$this, 'connect'], $dbConfig);
             if(!is_null($db)){
                 self::prepareDBConnection($db);
@@ -104,7 +112,7 @@ class Database extends \Prefab {
      * @param $dbKey
      * @return string
      */
-    protected function getDbHiveKey($dbKey){
+    protected function getDbHiveKey(string $dbKey) : string {
         return 'DB_' . $dbKey;
     }
 
@@ -117,7 +125,7 @@ class Database extends \Prefab {
      * @param string $alias
      * @return SQL|null
      */
-    protected function connect($dns, $name, $user, $password, $alias){
+    protected function connect(string $dns, string $name, string $user, string $password, string $alias) : ?SQL {
         $db = null;
         $f3 = \Base::instance();
 
@@ -155,18 +163,18 @@ class Database extends \Prefab {
      * @param string $dbKey
      * @return array|bool
      */
-    public function getTables($dbKey = 'PF'){
+    public function getTables(string $dbKey = 'PF'){
         $schema = new SQL\Schema( $this->getDB($dbKey) );
         return $schema->getTables();
     }
 
     /**
      * checks whether a table exists on a DB or not
-     * @param $table
+     * @param string $table
      * @param string $dbKey
      * @return bool
      */
-    public function tableExists($table, $dbKey = 'PF'){
+    public function tableExists(string $table, string $dbKey = 'PF') : bool {
         $tableNames = $this->getTables($dbKey);
         return in_array($table, $tableNames);
     }
@@ -174,11 +182,11 @@ class Database extends \Prefab {
     /**
      * get current row (data) count for an existing table
      * -> returns 0 if table not exists or empty
-     * @param $table
+     * @param string $table
      * @param string $dbKey
      * @return int
      */
-    public function getRowCount($table, $dbKey = 'PF') {
+    public function getRowCount(string $table, string $dbKey = 'PF') : int {
         $count = 0;
         if( $this->tableExists($table, $dbKey) ){
             $db = $this->getDB($dbKey);
@@ -193,7 +201,7 @@ class Database extends \Prefab {
     /**
      * @return bool
      */
-    public function isSilent() : bool{
+    public function isSilent() : bool {
         return $this->silent;
     }
 
@@ -251,11 +259,15 @@ class Database extends \Prefab {
      */
     public static function prepareDBConnection(SQL &$db){
         // set DB timezone to UTC +00:00 (eve server time)
-        $db->exec('SET @@session.time_zone = "+00:00";');
-
         // set default storage engine
-        $db->exec('SET @@session.default_storage_engine = "' .
-            self::getRequiredMySqlVariables('DEFAULT_STORAGE_ENGINE') . '"');
+        $db->exec([
+                'SET @@session.time_zone = :time_zone',
+                'SET @@session.default_storage_engine = :storage_engine'
+            ], [
+                [':time_zone'       => '+00:00'],
+                [':storage_engine'  => self::getRequiredMySqlVariables('DEFAULT_STORAGE_ENGINE')]
+            ]
+        );
     }
 
     /**
@@ -277,7 +289,7 @@ class Database extends \Prefab {
      * @param string $key
      * @return string|null
      */
-    public static function getRequiredMySqlVariables(string $key){
+    public static function getRequiredMySqlVariables(string $key) : ?string {
         \Base::instance()->exists('REQUIREMENTS[MYSQL][VARS][' . $key . ']', $data);
         return $data;
     }
@@ -286,7 +298,7 @@ class Database extends \Prefab {
      * get logger for DB logging
      * @return \Log
      */
-    static function getLogger(){
+    static function getLogger() : \Log {
         return LogController::getLogger('ERROR');
     }
 }

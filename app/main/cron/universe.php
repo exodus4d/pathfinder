@@ -34,7 +34,7 @@ class Universe extends AbstractCron {
     }
 
     /**
-     * format Byte §size for output
+     * format Byte $size for output
      * @param int $size
      * @return string
      */
@@ -177,7 +177,7 @@ class Universe extends AbstractCron {
         switch($type){
             case 'system':
                 // load systems + dependencies (planets, star, types,...)
-                $ids = $f3->ccpClient->getUniverseSystems();
+                $ids = $f3->ccpClient()->getUniverseSystems();
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     $model->loadById($id);
@@ -186,7 +186,7 @@ class Universe extends AbstractCron {
                 break;
             case 'stargate':
                 // load all stargates. Systems must be present first!
-                $ids = $f3->ccpClient->getUniverseSystems();
+                $ids = $f3->ccpClient()->getUniverseSystems();
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     $model->loadById($id);
@@ -195,7 +195,7 @@ class Universe extends AbstractCron {
                 break;
             case 'index_system':
                 // setup system index, Systems must be present first!
-                $ids = $f3->ccpClient->getUniverseSystems();
+                $ids = $f3->ccpClient()->getUniverseSystems();
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     $model->getById($id); // no loadById() here! would take "forever" when system not exists and build up first...

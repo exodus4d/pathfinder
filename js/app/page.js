@@ -491,7 +491,7 @@ define([
 
         pageElement.prepend(headRendered);
 
-        // init header =====================================================================
+        // init header ================================================================================================
 
         // init slide menus
         let slideMenu = new $.slidebars({
@@ -516,7 +516,7 @@ define([
 
         // current location
         $('#' + Util.config.headCurrentLocationId).find('a').on('click', function(){
-            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
+            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId')});
         });
 
         // program status
@@ -589,7 +589,7 @@ define([
 
         pageElement.prepend(footerElement);
 
-        // init footer ==================================================
+        // init footer ================================================================================================
         pageElement.find('.' + config.footerLicenceLinkClass).on('click', function(){
             //show credits info dialog
             $.fn.showCreditsDialog();
@@ -728,7 +728,7 @@ define([
             return false;
         });
 
-        // END menu events =============================================================================
+        // END menu events ============================================================================================
 
         // global "popover" callback (for all popovers)
         $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e){
@@ -772,7 +772,7 @@ define([
                 userCountInside = data.userCountInside;
                 userCountOutside = data.userCountOutside;
                 userCountInactive = data.userCountInactive;
-                currentLocationData = data;
+                currentLocationData = data.currentLocation;
             }
             updateHeaderActiveUserCount(userCountInside, userCountOutside, userCountInactive);
             updateHeaderCurrentLocation(currentLocationData);
@@ -825,7 +825,7 @@ define([
 
             Util.showNotify({title: 'Logged out', text: data.reason, type: 'error'}, false);
 
-            // remove map -------------------------------------------------------
+            // remove map ---------------------------------------------------------------------------------------------
             Util.getMapModule().velocity('fadeOut', {
                 duration: 300,
                 complete: function(){
@@ -933,7 +933,7 @@ define([
             }
         };
 
-        // check for character/ship changes ---------------------------------------------
+        // check for character/ship changes ---------------------------------------------------------------------------
         if(
             userData &&
             userData.character
@@ -953,7 +953,7 @@ define([
             return data.id;
         });
 
-        // update user character data ---------------------------------------------------
+        // update user character data ---------------------------------------------------------------------------------
         if(currentCharactersOptionIds.toString() !== newCharactersOptionIds.toString()){
 
             let  currentCharacterChanged = false;
@@ -976,7 +976,7 @@ define([
             userInfoElement.data('characterOptionIds', newCharactersOptionIds);
         }
 
-        // update user ship data --------------------------------------------------------
+        // update user ship data --------------------------------------------------------------------------------------
         if(currentShipId !== newShipData.typeId){
             // set new data for next check
             userShipElement.data('shipData', newShipData);
@@ -1058,36 +1058,45 @@ define([
     };
 
     /**
-     * update the "current location" element in head
+     * update the "current location" link element in head
      * @param locationData
      */
-    let updateHeaderCurrentLocation = function(locationData){
-        let currentLocationElement = $('#' + Util.config.headCurrentLocationId);
-        let linkElement = currentLocationElement.find('a');
-        let textElement = linkElement.find('span');
+    let updateHeaderCurrentLocation = locationData => {
+        let systemId = locationData.id || 0;
+        let systemName = locationData.name || false;
 
-        let tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
-        let tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
+        let currentLocationData = Util.getCurrentLocationData();
 
         if(
-            linkElement.data('systemName') !== tempSystemName ||
-            linkElement.data('systemId') !== tempSystemId
+            currentLocationData.name !== systemName ||
+            currentLocationData.id !== systemId
         ){
-            linkElement.data('systemName', tempSystemName);
-            linkElement.data('systemId', tempSystemId);
-            linkElement.toggleClass('disabled', !tempSystemId);
+            Util.setCurrentLocationData(systemId, systemName);
 
-            if(tempSystemName !== false){
-                textElement.text(locationData.currentSystemName);
+            let currentLocationElement = $('#' + Util.config.headCurrentLocationId);
+            let linkElement = currentLocationElement.find('a');
+            linkElement.toggleClass('disabled', !systemId);
+
+            if(systemName !== false){
+                linkElement.find('span').text(locationData.name);
                 currentLocationElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
             }else{
                 if(currentLocationElement.is(':visible')){
                     currentLocationElement.velocity('fadeOut', {duration: Init.animationSpeed.headerLink});
                 }
             }
+
+            // auto select current system -----------------------------------------------------------------------------
+            let userData = Util.getCurrentUserData();
+
+            if(
+                Boolean(Util.getObjVal(Init, 'character.autoLocationSelect')) &&
+                Util.getObjVal(userData, 'character.selectLocation')
+            ){
+                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: systemId, forceSelect: false});
+            }
         }
     };
-
 
     /**
      * shows a test notification for desktop messages
