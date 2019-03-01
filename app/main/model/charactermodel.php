@@ -933,11 +933,11 @@ class CharacterModel extends BasicModel {
 
     /**
      * broadcast characterData
-     * @throws \ZMQSocketException
      */
     public function broadcastCharacterUpdate(){
         $characterData = $this->getData(true);
-        (new Socket( Config::getSocketUri() ))->sendData('characterUpdate', $characterData);
+
+        self::getF3()->webSocket()->write('characterUpdate', $characterData);
     }
 
     /**

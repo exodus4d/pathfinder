@@ -982,7 +982,7 @@ class MapModel extends AbstractMapTrackingModel {
         if($this->isHistoryLogEnabled()){
             // check socket config
             if(Config::validSocketConnect()){
-                $log->addHandler('zmq', 'json', $this->getSocketConfig());
+                $log->addHandler('socket', 'json', $this->getSocketConfig());
             }else{
                 // update log file local (slow)
                 $log->addHandler('stream', 'json', $this->getStreamConfig());
@@ -1155,7 +1155,7 @@ class MapModel extends AbstractMapTrackingModel {
      */
     public function getSocketConfig(): \stdClass{
         $config = (object) [];
-        $config->uri = Config::getSocketUri();
+        $config->dsn = Config::getSocketUri();
         $config->streamConf = $this->getStreamConfig(true);
         return $config;
     }

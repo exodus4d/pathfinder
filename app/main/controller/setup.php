@@ -262,7 +262,7 @@ class Setup extends Controller {
 
         // Socket -----------------------------------------------------------------------------------------------------
         // WebSocket information
-        $f3->set('socketInformation', $this->getSocketInformation());
+        $f3->set('socketInformation', $this->getSocketInformation($f3));
 
         // Administration ---------------------------------------------------------------------------------------------
         // Index information
@@ -561,23 +561,6 @@ class Setup extends Controller {
                 'tooltip' => 'Redis can replace the default file-caching mechanic. It is much faster!'
             ],
             [
-                'label' => 'ØMQ TCP sockets [optional]'
-            ],
-            'ext_zmq' => [
-                'label' => 'ZeroMQ extension',
-                'required' => $f3->get('REQUIREMENTS.PHP.ZMQ'),
-                'version' => extension_loaded('zmq') ? phpversion('zmq') : 'missing',
-                'check' => version_compare( phpversion('zmq'), $f3->get('REQUIREMENTS.PHP.ZMQ'), '>='),
-                'tooltip' => 'ØMQ PHP extension. Required for WebSocket configuration.'
-            ],
-            'lib_zmq' => [
-                'label' => 'ZeroMQ installation',
-                'required' => $f3->get('REQUIREMENTS.LIBS.ZMQ'),
-                'version' => (class_exists('ZMQ') && defined('ZMQ::LIBZMQ_VER')) ? \ZMQ::LIBZMQ_VER : 'unknown',
-                'check' => version_compare( (class_exists('ZMQ') && defined('ZMQ::LIBZMQ_VER')) ? \ZMQ::LIBZMQ_VER : 0, $f3->get('REQUIREMENTS.LIBS.ZMQ'), '>='),
-                'tooltip' => 'ØMQ version. Required for WebSocket configuration.'
-            ],
-            [
                 'label' => 'LibEvent library [optional]'
             ],
             'ext_event' => [
@@ -742,7 +725,7 @@ class Setup extends Controller {
             $getClientInfo = function(\Redis $client, array $conf) : array {
                 $redisInfo = [
                     'dsn' => [
-                        'label' => 'DNS',
+                        'label' => 'DSN',
                         'value' => $conf['host'] . ':' . $conf['port']
                     ],
                     'connected' => [
@@ -1506,51 +1489,109 @@ class Setup extends Controller {
 
     /**
      * get Socket information (TCP (internal)), (WebSocket (clients))
+     * @param \Base $f3
      * @return array
-     * @throws \ZMQSocketException
      */
-    protected function getSocketInformation(){
-        // $ttl for health check
-        $ttl = 600;
-
+    protected function getSocketInformation(\Base $f3) : array {
+        $ttl = 0.6;
+        $task = 'healthCheck';
         $healthCheckToken = microtime(true);
 
-        // ping TCP Socket with checkToken
-        self::checkTcpSocket($ttl,  $healthCheckToken);
+        $statusTcp = [
+            'type'  => 'danger',
+            'label' => 'INIT CONNECTION…',
+            'class' => 'txt-color-danger'
+        ];
+
+        $webSocketStatus = [
+            'type'  => 'danger',
+            'label' => 'INIT CONNECTION…',
+            'class' => 'txt-color-danger'
+        ];
+
+        $statsTcp = [
+            'startup'           => 0,
+            'connections'       => 0,
+            'maxConnections'    => 0
+        ];
+
+        // ping TCP Socket with "healthCheck" task
+        $f3->webSocket(['timeout' => $ttl])
+            ->write($task, $healthCheckToken)
+            ->then(
+                function($payload) use ($task, $healthCheckToken, &$statusTcp, &$statsTcp) {
+                    if(
+                        $payload['task'] == $task &&
+                        $payload['load'] == $healthCheckToken
+                    ){
+                        $statusTcp['type'] = 'success';
+                        $statusTcp['label'] = 'PING OK';
+                        $statusTcp['class'] = 'txt-color-success';
+
+                        // statistics (e.g. current connection count)
+                        if(!empty($payload['stats'])){
+                            $statsTcp = $payload['stats'];
+                        }
+                    }else{
+                        $statusTcp['type'] = 'warning';
+                        $statusTcp['label'] = is_string($payload['load']) ? $payload['load'] : 'INVALID RESPONSE';
+                        $statusTcp['class'] = 'txt-color-warning';
+                    }
+                },
+                function($payload) use (&$statusTcp) {
+                    $statusTcp['label'] = $payload['load'];
+                });
+
+        $formatTimeInterval = function(int $seconds = 0){
+            $dtF = new \DateTime('@0');
+            $dtT = new \DateTime("@" . $seconds);
+            $diff = $dtF->diff($dtT);
+
+            $format = ($d = $diff->format('%d')) ? $d . 'd ' : '';
+            $format .= ($h = $diff->format('%h')) ? $h . 'h ' : '';
+            $format .= ($i = $diff->format('%i')) ? $i . 'm ' : '';
+            $format .= ($s = $diff->format('%s')) ? $s . 's' : '';
+            return $format;
+        };
 
         $socketInformation = [
             'tcpSocket' => [
-                'label' => 'Socket (intern) [TCP]',
-                'online' => true,
+                'label'  => 'Socket (intern) [TCP]',
+                'status' => $statusTcp,
+                'stats'  => $statsTcp,
                 'data' => [
                     [
                         'label' => 'HOST',
-                        'value' => Config::getEnvironmentData('SOCKET_HOST'),
+                        'value' => Config::getEnvironmentData('SOCKET_HOST') ? : '[missing]',
                         'check' => !empty( Config::getEnvironmentData('SOCKET_HOST') )
                     ],[
                         'label' => 'PORT',
-                        'value' => Config::getEnvironmentData('SOCKET_PORT'),
+                        'value' => Config::getEnvironmentData('SOCKET_PORT') ? : '[missing]',
                         'check' => !empty( Config::getEnvironmentData('SOCKET_PORT') )
                     ],[
                         'label' => 'URI',
-                        'value' => Config::getSocketUri(),
+                        'value' => Config::getSocketUri() ? : '[missing]',
                         'check' => !empty( Config::getSocketUri() )
                     ],[
-                        'label' => 'timeout (ms)',
+                        'label' => 'timeout (seconds)',
                         'value' => $ttl,
                         'check' => !empty( $ttl )
+                    ],[
+                        'label' => 'uptime',
+                        'value' => $formatTimeInterval($statsTcp['startup']),
+                        'check' => $statsTcp['startup'] > 0
                     ]
                 ],
                 'token' => $healthCheckToken
             ],
             'webSocket' => [
                 'label' => 'WebSocket (clients) [HTTP]',
-                'online' => false,
+                'status' => $webSocketStatus,
                 'data' => [
                     [
                         'label' => 'URI',
                         'value' => '',
-                        'check' => false
+                        'check' => null // undefined
                     ]
                 ]
             ]

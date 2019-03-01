@@ -199,7 +199,6 @@ class User extends Controller\Controller{
     /**
      * log the current user out + clear character system log data
      * @param \Base $f3
-     * @throws \ZMQSocketException
      */
     public function logout(\Base $f3){
         $this->logoutCharacter($f3, false, true, true, true);
@@ -354,7 +353,6 @@ class User extends Controller\Controller{
      * delete current user account from DB
      * @param \Base $f3
      * @throws Exception
-     * @throws \ZMQSocketException
      */
     public function deleteAccount(\Base $f3){
         $data = $f3->get('POST.formData');

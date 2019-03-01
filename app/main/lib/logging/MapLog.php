@@ -19,8 +19,8 @@ class MapLog extends AbstractCharacterLog{
      * @var array
      */
     protected $handlerConfig        = [
-        //'stream' => 'json',
-        //'zmq' => 'json',
+        //'stream'   => 'json',
+        //'socket'   => 'json',
         //'slackMap' => 'json'
     ];
 
