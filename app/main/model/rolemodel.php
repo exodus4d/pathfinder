@@ -113,7 +113,8 @@ class RoleModel extends BasicModel {
      * @return self|null
      */
     public static function getRoleById(int $roleId = 1){
-        $role = (new self())->getById($roleId);
+        $role = new self();
+        $role->getById($roleId);
         return $role->dry() ? null : $role;
     }
 

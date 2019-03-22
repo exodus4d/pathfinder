@@ -30,7 +30,6 @@ class Connection extends AbstractRestController {
              */
             $map = Model\BasicModel::getNew('MapModel');
             $map->getById($mapId);
-
             if($map->hasAccess($activeCharacter)){
                 $source = $map->getSystemById((int)$requestData['source']);
                 $target = $map->getSystemById((int)$requestData['target']);
@@ -84,7 +83,6 @@ class Connection extends AbstractRestController {
              */
             $map = Model\BasicModel::getNew('MapModel');
             $map->getById($mapId);
-
             if($map->hasAccess($activeCharacter)){
                 foreach($connectionIds as $connectionId){
                     if($connection = $map->getConnectionById($connectionId)){

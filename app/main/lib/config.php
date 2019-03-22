@@ -76,6 +76,10 @@ class Config extends \Prefab {
      */
     private $serverConfigData                       = [];
 
+    /**
+     * Config constructor.
+     * @param \Base $f3
+     */
     public function __construct(\Base $f3){
         // set server data
         // -> CGI params (Nginx)
@@ -511,6 +515,24 @@ class Config extends \Prefab {
         }
 
         return $inRange;
+    }
+
+    /**
+     * format timeInterval in seconds into human readable string
+     * @param int $seconds
+     * @return string
+     * @throws \Exception
+     */
+    static function formatTimeInterval(int $seconds = 0) : string {
+        $dtF = new \DateTime('@0');
+        $dtT = new \DateTime("@" . $seconds);
+        $diff = $dtF->diff($dtT);
+
+        $format = ($d = $diff->format('%d')) ? $d . 'd ' : '';
+        $format .= ($h = $diff->format('%h')) ? $h . 'h ' : '';
+        $format .= ($i = $diff->format('%i')) ? $i . 'm ' : '';
+        $format .= ($s = $diff->format('%s')) ? $s . 's' : '';
+        return $format;
     }
 
 }

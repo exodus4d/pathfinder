@@ -80,11 +80,7 @@ class AllianceModel extends BasicModel {
      */
     public function getMaps(){
         $maps = [];
-
-        $this->filter('mapAlliances',
-            ['active = ?', 1],
-            ['order' => 'created']
-        );
+        $this->filterRel();
 
         if($this->mapAlliances){
             $mapCount = 0;
@@ -134,20 +130,34 @@ class AllianceModel extends BasicModel {
         return $characters;
     }
 
-    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true){
+    /**
+     * load alliance by Id either from DB or load data from API
+     * @param int $id
+     * @param int $ttl
+     * @param bool $isActive
+     * @return bool
+     */
+    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true) : bool {
         /**
          * @var AllianceModel $alliance
          */
-        $alliance = parent::getById($id, $ttl, $isActive);
-        if($alliance->isOutdated()){
+        $loaded = parent::getById($id, $ttl, $isActive);
+        if($this->isOutdated()){
             // request alliance data
             $allianceData = self::getF3()->ccpClient()->getAllianceData($id);
             if( !empty($allianceData) ){
-                $alliance->copyfrom($allianceData, ['id', 'name', 'ticker']);
-                $alliance->save();
+                $this->copyfrom($allianceData, ['id', 'name', 'ticker']);
+                $this->save();
             }
         }
 
-        return $alliance;
+        return $loaded;
+    }
+
+    /**
+     * @see parent
+     */
+    public function filterRel() : void {
+        $this->filter('mapAlliances', self::getFilter('active', true), ['order' => 'created']);
     }
 }

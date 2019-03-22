@@ -1491,6 +1491,7 @@ class Setup extends Controller {
      * get Socket information (TCP (internal)), (WebSocket (clients))
      * @param \Base $f3
      * @return array
+     * @throws \Exception
      */
     protected function getSocketInformation(\Base $f3) : array {
         $ttl = 0.6;
@@ -1542,18 +1543,6 @@ class Setup extends Controller {
                     $statusTcp['label'] = $payload['load'];
                 });
 
-        $formatTimeInterval = function(int $seconds = 0){
-            $dtF = new \DateTime('@0');
-            $dtT = new \DateTime("@" . $seconds);
-            $diff = $dtF->diff($dtT);
-
-            $format = ($d = $diff->format('%d')) ? $d . 'd ' : '';
-            $format .= ($h = $diff->format('%h')) ? $h . 'h ' : '';
-            $format .= ($i = $diff->format('%i')) ? $i . 'm ' : '';
-            $format .= ($s = $diff->format('%s')) ? $s . 's' : '';
-            return $format;
-        };
-
         $socketInformation = [
             'tcpSocket' => [
                 'label'  => 'Socket (intern) [TCP]',
@@ -1578,7 +1567,7 @@ class Setup extends Controller {
                         'check' => !empty( $ttl )
                     ],[
                         'label' => 'uptime',
-                        'value' => $formatTimeInterval($statsTcp['startup']),
+                        'value' => Config::formatTimeInterval($statsTcp['startup']),
                         'check' => $statsTcp['startup'] > 0
                     ]
                 ],
@@ -1609,8 +1598,22 @@ class Setup extends Controller {
     protected function getIndexData(\Base $f3){
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
+            /**
+             * @var $categoryUniverseModel Model\Universe\CategoryModel
+             */
             $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            $categoryUniverseModel->getById(65, 0);
+            $structureCount = $categoryUniverseModel->getTypesCount(false);
+
+            $categoryUniverseModel->getById(6, 0);
+            $shipCount = $categoryUniverseModel->getTypesCount(false);
+
+            /**
+             * @var $systemNeighbourModel Model\SystemNeighbourModel
+             */
             $systemNeighbourModel = Model\BasicModel::getNew('SystemNeighbourModel');
+
+
 
             $indexInfo = [
                 'Systems' => [
@@ -1642,7 +1645,7 @@ class Setup extends Controller {
                         ]
                     ],
                     'label' => 'import structures data',
-                    'countBuild' => $categoryUniverseModel->getById(65, 0)->getTypesCount(false),
+                    'countBuild' => $structureCount,
                     'countAll' => (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES'),
                     'tooltip' => 'import all structure types (e.g. Citadels) from ESI. Runtime: ~15s'
                 ],
@@ -1656,7 +1659,7 @@ class Setup extends Controller {
                         ]
                     ],
                     'label' => 'import ships data',
-                    'countBuild' => $categoryUniverseModel->getById(6, 0)->getTypesCount(false),
+                    'countBuild' => $shipCount,
                     'countAll' => (int)$f3->get('REQUIREMENTS.DATA.SHIPS'),
                     'tooltip' => 'import all ships types from ESI. Runtime: ~2min'
                 ],

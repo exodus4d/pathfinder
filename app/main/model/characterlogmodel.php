@@ -93,7 +93,7 @@ class CharacterLogModel extends BasicModel {
     ];
 
     /**
-     * set log data from array
+     * set log data by associative array
      * @param array $logData
      */
     public function setData($logData){

@@ -259,17 +259,28 @@ select:active, select:hover {
     padding: 1px;
   }
 
-  .dt-buttons{
+  .dt-buttons,
+  .dt-stats{
+    display: inline-block;
+    line-height: 22px;
+    margin-bottom: 5px;
+
     .dt-button{
-      line-height: 22px;
       padding: 0 5px; // overwrite default
 
       &:not(:last-child){
-        margin-right: 10px;
+        margin-right: 5px;
+      }
+    }
+
+    .dt-button,
+    .dt-stat{
+      .fas{
+        margin-right: 5px;
       }
 
-      .fa{
-        margin-right: 5px;
+      &.disabled{
+        color: darken($gray-light, 8%)
       }
     }
   }

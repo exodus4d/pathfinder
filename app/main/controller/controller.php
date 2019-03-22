@@ -417,17 +417,15 @@ class Controller {
      * @return Model\CharacterModel|null
      * @throws \Exception
      */
-    public function getCharacter($ttl = 0){
+    public function getCharacter(int $ttl = 0) : ?Model\CharacterModel {
         $character = null;
-        $characterData = $this->getSessionCharacterData();
 
-        if( !empty($characterData) ){
+        if(!empty($characterData = $this->getSessionCharacterData())){
             /**
              * @var $characterModel Model\CharacterModel
              */
             $characterModel = Model\BasicModel::getNew('CharacterModel');
-            $characterModel->getById( (int)$characterData['ID'], $ttl);
-
+            $characterModel->getById((int)$characterData['ID'], $ttl);
             if(
                 !$characterModel->dry() &&
                 $characterModel->hasUserCharacter()

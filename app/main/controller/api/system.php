@@ -186,30 +186,5 @@ class System extends Controller\AccessController {
         echo json_encode($return);
     }
 
-    /**
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function getData(\Base $f3){
-        $requestData = (array)$f3->get('POST');
-        $mapId = (int)$requestData['mapId'];
-        $systemId = (int)$requestData['systemId'];
-        $isCcpId = (bool)$requestData['isCcpId'];
-        $activeCharacter = $this->getCharacter();
-
-        $return = (object) [];
-
-        if(
-            !is_null($map = $activeCharacter->getMap($mapId)) &&
-            !is_null($system = $isCcpId ? $map->getSystemByCCPId($systemId) : $map->getSystemById($systemId))
-        ){
-            $return->system = $system->getData();
-            $return->system->signatures = $system->getSignaturesData();
-            $return->system->structures = $system->getStructuresData();
-        }
-
-        echo json_encode($return);
-    }
-
 }
 

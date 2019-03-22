@@ -14,13 +14,44 @@ use Controller\Ccp\Universe;
 
 class SystemModel extends AbstractMapTrackingModel {
 
-    const MAX_POS_X = 2440;
-    const MAX_POS_Y = 1480;
+    /**
+     * system position x max
+     */
+    const MAX_POS_X                     = 2440;
 
-    protected $table = 'system';
+    /**
+     * system position y max
+     */
+    const MAX_POS_Y                     = 1480;
 
-    protected $staticSystemDataCache = [];
+    /**
+     * max count of history signature data in cache
+     */
+    const MAX_HISTORY_SIGNATURES        = 10;
 
+    /**
+     * TTL for history signature data
+     */
+    const TTL_HISTORY_SIGNATURES        = 5000;
+
+    /**
+     * cache key prefix for getData(); result WITH log data
+     */
+    const DATA_CACHE_KEY_SIGNATURES     = 'SIGNATURES';
+
+    /**
+     * @var string
+     */
+    protected $table                    = 'system';
+
+    /**
+     * @var array
+     */
+    protected $staticSystemDataCache    = [];
+
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -120,7 +151,7 @@ class SystemModel extends AbstractMapTrackingModel {
     ];
 
     /**
-     * set map data by an associative array
+     * set data by associative array
      * @param array $data
      */
     public function setData(array $data){
@@ -515,8 +546,8 @@ class SystemModel extends AbstractMapTrackingModel {
      * @param CharacterModel $characterModel
      * @return bool
      */
-    public function hasAccess(CharacterModel $characterModel){
-        return ($this->mapId) ? $this->mapId->hasAccess($characterModel) : false;
+    public function hasAccess(CharacterModel $characterModel) : bool {
+        return $this->mapId ? $this->mapId->hasAccess($characterModel) : false;
     }
 
     /**
@@ -567,23 +598,18 @@ class SystemModel extends AbstractMapTrackingModel {
 
     /**
      * get all signatures of this system
+     * -> might be filtered by active has() filter
      * @return SystemSignatureModel[]
      */
     public function getSignatures(){
-        $signatures = [];
-        $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
-        if($this->signatures){
-            $signatures = $this->signatures;
-        }
-
-        return $signatures;
+        return $this->signatures ? : [];
     }
 
     /**
      * get data for all Signatures in this system
      * @return \stdClass[]
      */
-    public function getSignaturesData(){
+    public function getSignaturesData() : array {
         $signaturesData = [];
         $signatures = $this->getSignatures();
         foreach($signatures as $signature){
@@ -595,38 +621,20 @@ class SystemModel extends AbstractMapTrackingModel {
 
     /**
      * get Signature by id and check for access
-     * @param CharacterModel $characterModel
-     * @param $id
-     * @return null|SystemSignatureModel
+     * @param int $id
+     * @return SystemSignatureModel|null
      */
-    public function getSignatureById(CharacterModel $characterModel, $id){
-        $signature = null;
-        if($this->hasAccess($characterModel)){
-            $this->filter('signatures', ['active = ? AND id = ?', 1, $id]);
-            if($this->signatures){
-                $signature = reset( $this->signatures );
-            }
-        }
-
-        return $signature;
+    public function getSignatureById(int $id) : ?SystemSignatureModel {
+        return $this->relFindOne('signatures', self::getFilter('id', $id));
     }
 
     /**
      * get a signature by its "unique" 3-digit name
-     * @param CharacterModel $characterModel
      * @param string $name
-     * @return null|SystemSignatureModel
+     * @return SystemSignatureModel|null
      */
-    public function getSignatureByName(CharacterModel $characterModel, $name){
-        $signature = null;
-        if($this->hasAccess($characterModel)){
-            $this->filter('signatures', ['active = ? AND name = ?', 1, $name]);
-            if($this->signatures){
-                $signature = reset( $this->signatures );
-            }
-        }
-
-        return $signature;
+    public function getSignatureByName(string $name) : ?SystemSignatureModel {
+        return $this->relFindOne('signatures', self::getFilter('name', $name));
     }
 
     /**
@@ -775,13 +783,68 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * see parent
+     * @param string $stamp
+     * @return array|null
+     */
+    public function getSignatureHistoryData(string $stamp) : ?array {
+        $signatureHistoryData = array_filter($this->getSignaturesHistoryData(), function($historyEntry) use ($stamp){
+            return md5($historyEntry['stamp']) == $stamp;
+        });
+        return empty($signatureHistoryData) ? null : reset($signatureHistoryData);
+    }
+
+    /**
+     * @return array
+     */
+    public function getSignaturesHistoryData() : array {
+        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_SIGNATURES))){
+            $signaturesHistoryData = [];
+        }
+        return $signaturesHistoryData;
+    }
+
+    /**
+     * CharacterModel $character
+     * @param CharacterModel $character
+     * @param string $action
+     * @throws \Exception
+     */
+    public function updateSignaturesHistory(CharacterModel $character, string $action = 'edit'){
+        if(!$this->dry()){
+            $signaturesHistoryData = $this->getSignaturesHistoryData();
+            $historyEntry = [
+                'stamp'         => microtime(true),
+                'character'     => $character->getBasicData(),
+                'action'        => $action,
+                'signatures'    => $this->getSignaturesData()
+            ];
+
+            array_unshift($signaturesHistoryData, $historyEntry);
+
+            // limit max history data
+            array_splice($signaturesHistoryData, self::MAX_HISTORY_SIGNATURES);
+
+            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_SIGNATURES, self::TTL_HISTORY_SIGNATURES);
+        }
+    }
+
+    /**
+     * @see parent
      */
     public function clearCacheData(){
         parent::clearCacheData();
 
         // clear map cache as well
         $this->mapId->clearCacheData();
+    }
+
+    /**
+     * @see parent
+     */
+    public function filterRel() : void {
+        $this->filter('signatures', self::getFilter('active', true), ['order' => 'name']);
+        $this->filter('connectionsTarget', self::getFilter('active', true));
+        $this->filter('connectionsSource', self::getFilter('active', true));
     }
 
     /**

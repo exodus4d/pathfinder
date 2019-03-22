@@ -8,9 +8,41 @@
 
 namespace Controller\Api\Rest;
 
+
 use Model;
 
 class System extends AbstractRestController {
+
+    /**
+     * get system
+     * @param \Base $f3
+     * @param $params
+     * @throws \Exception
+     */
+    public function get(\Base $f3, $params){
+        $requestData = $this->getRequestData($f3);
+        $systemData = null;
+
+        if(
+            ($systemId = (int)$params['id']) &&
+            ($mapId = (int)$requestData['mapId'])
+        ){
+            $activeCharacter = $this->getCharacter();
+            $isCcpId = (bool)$requestData['isCcpId'];
+
+            if(
+                !is_null($map = $activeCharacter->getMap($mapId)) &&
+                !is_null($system = $isCcpId ? $map->getSystemByCCPId($systemId) : $map->getSystemById($systemId))
+            ){
+                $systemData = $system->getData();
+                $systemData->signatures = $system->getSignaturesData();
+                $systemData->sigHistory = $system->getSignaturesHistoryData();
+                $systemData->structures = $system->getStructuresData();
+            }
+        }
+
+        $this->out($systemData);
+    }
 
     /**
      * put (insert) system

@@ -75,6 +75,14 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
     ];
 
     /**
+     * set data by associative array
+     * @param array $data
+     */
+    public function setData(array $data){
+        $this->copyfrom($data, ['name', 'groupId', 'typeId', 'description', 'connectionId']);
+    }
+
+    /**
      * get signature data
      * @return \stdClass
      */
@@ -91,20 +99,20 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
         $signatureData->description                 = $this->description;
 
         if($connection = $this->getConnection()){
-            $signatureData->connection                 = (object) [];
-            $signatureData->connection->id             = $connection->_id;
+            $signatureData->connection              = (object) [];
+            $signatureData->connection->id          = $connection->_id;
         }
 
         $signatureData->created                     = (object) [];
         $signatureData->created->created            = strtotime($this->created);
         if( is_object($this->createdCharacterId) ){
-            $signatureData->created->character      = $this->createdCharacterId->getData();
+            $signatureData->created->character      = $this->createdCharacterId->getBasicData();
         }
 
         $signatureData->updated                     = (object) [];
         $signatureData->updated->updated            = strtotime($this->updated);
         if( is_object($this->updatedCharacterId) ){
-            $signatureData->updated->character      = $this->updatedCharacterId->getData();
+            $signatureData->updated->character      = $this->updatedCharacterId->getBasicData();
         }
 
         return $signatureData;
@@ -214,24 +222,16 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      * @param CharacterModel $characterModel
      * @return bool
      */
-    public function hasAccess(CharacterModel $characterModel){
-        return $this->systemId->hasAccess($characterModel);
+    public function hasAccess(CharacterModel $characterModel) : bool {
+        return $this->systemId ? $this->systemId->hasAccess($characterModel) : false;
     }
 
     /**
      * delete signature
-     * @param CharacterModel $characterModel
      * @return bool
      */
-    public function delete(CharacterModel $characterModel) : bool {
-        $deleted = false;
-        if( !$this->dry() ){
-            // check if character has access
-            if($this->hasAccess($characterModel)){
-                $deleted = $this->erase();
-            }
-        }
-        return $deleted;
+    public function delete() : bool {
+        return !$this->dry() ? $this->erase() : false;
     }
 
     /**

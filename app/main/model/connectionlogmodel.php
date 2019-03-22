@@ -68,7 +68,7 @@ class ConnectionLogModel extends BasicModel {
     ];
 
     /**
-     * set map data by an associative array
+     * set data by associative array
      * @param array $data
      */
     public function setData(array $data){

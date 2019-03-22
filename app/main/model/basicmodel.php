@@ -514,17 +514,6 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * get single dataSet by id
-     * @param $id
-     * @param int $ttl
-     * @param bool $isActive
-     * @return \DB\Cortex
-     */
-    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true){
-        return $this->getByForeignKey('id', (int)$id, ['limit' => 1], $ttl, $isActive);
-    }
-
-    /**
      * checks whether this model is active or not
      * each model should have an "active" column
      * @return bool
@@ -546,31 +535,73 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * get single dataSet by id
+     * @param int $id
+     * @param int $ttl
+     * @param bool $isActive
+     * @return bool
+     */
+    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true) : bool {
+        return $this->getByForeignKey('id', $id, ['limit' => 1], $ttl, $isActive);
+    }
+
+    /**
      * get dataSet by foreign column (single result)
-     * @param $key
+     * @param string $key
      * @param $value
      * @param array $options
      * @param int $ttl
      * @param bool $isActive
-     * @return \DB\Cortex
+     * @return bool
      */
-    public function getByForeignKey($key, $value, $options = [], $ttl = 0, $isActive = true){
-        $querySet = [];
-        $query = [];
+    public function getByForeignKey(string $key, $value, array $options = [], int $ttl = 0, bool $isActive = true) : bool {
+        $filters = [];
         if($this->exists($key)){
-            $query[] = $key . " = :" . $key;
-            $querySet[':' . $key] = $value;
+            $filters[] = [$key . ' = :' . $key, ':' . $key => $value];
         }
 
-        // check active column
         if($isActive && $this->exists('active')){
-            $query[] = "active = :active";
-            $querySet[':active'] = 1;
+            $filters[] = self::getFilter('active', true);
         }
 
-        array_unshift($querySet, implode(' AND ', $query));
+        $this->filterRel();
 
-        return $this->load( $querySet, $options, $ttl );
+        return $this->load($this->mergeFilter($filters), $options, $ttl);
+    }
+
+    /**
+     * apply filter() for relations
+     * -> overwrite in child classes
+     * @see https://github.com/ikkez/f3-cortex#filter
+     */
+    protected function filterRel() : void {}
+
+    /**
+     * get first model from a relation that matches $filter
+     * @param string $key
+     * @param array $filter
+     * @return mixed|null
+     */
+    protected function relFindOne(string $key, array $filter){
+        $relModel = null;
+        $relFilter = [];
+        if($this->exists($key, true)){
+            $fieldConf = $this->getFieldConfiguration();
+            if(array_key_exists($key, $fieldConf)){
+                if(array_key_exists($type = 'has-many', $fieldConf[$key])){
+                    $fromConf = $fieldConf[$key][$type];
+                    $relFilter = self::getFilter($fromConf[1], $this->getRaw($fromConf['relField']));
+                }
+            }
+
+            /**
+             * @var $relModel self|bool
+             */
+            $relModel = $this->rel($key)->findone($this->mergeFilter([$this->mergeWithRelFilter($key, $filter), $relFilter]));
+        }
+
+        return $relModel ? : null;
+
     }
 
     /**
@@ -645,7 +676,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @param CharacterModel $characterModel
      * @return bool
      */
-    public function hasAccess(CharacterModel $characterModel){
+    public function hasAccess(CharacterModel $characterModel) : bool {
         return true;
     }
 
@@ -904,6 +935,16 @@ abstract class BasicModel extends \DB\Cortex {
      */
     public static function getF3(){
         return \Base::instance();
+    }
+
+    /**
+     * get filter for Cortex
+     * @param string $key
+     * @param $value
+     * @return array
+     */
+    public static function getFilter(string $key, $value) : array {
+        return [$key . ' = :' . $key, ':' . $key => $value];
     }
 
     /**

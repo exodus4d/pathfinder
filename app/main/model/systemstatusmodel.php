@@ -96,7 +96,8 @@ class SystemStatusModel extends BasicModel {
      * @return self|null
      */
     public static function getStatusById(int $statusId = 1){
-        $status = (new self())->getById($statusId);
+        $status = new self();
+        $status->getById($statusId);
         return $status->dry() ? null : $status;
     }
 } 

@@ -181,7 +181,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * check whether this connection is a wormhole or not
      * @return bool
      */
-    public function isWormhole(){
+    public function isWormhole() : bool {
         return ($this->scope === 'wh');
     }
 

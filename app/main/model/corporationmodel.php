@@ -142,19 +142,22 @@ class CorporationModel extends BasicModel {
 
     /**
      * get cooperation data
-     * @return object
+     * @param bool $addRights
+     * @return \stdClass
      * @throws \Exception
      */
-    public function getData(){
+    public function getData(bool $addRights = true) : \stdClass {
         $cooperationData = (object) [];
 
         $cooperationData->id = $this->id;
         $cooperationData->name = $this->name;
         $cooperationData->shared = $this->shared;
 
-        if($corporationRights = $this->getRights()){
-            foreach($corporationRights as $corporationRight){
-                $cooperationData->rights[] = $corporationRight->getData();
+        if($addRights){
+            if($corporationRights = $this->getRights()){
+                foreach($corporationRights as $corporationRight){
+                    $cooperationData->rights[] = $corporationRight->getData();
+                }
             }
         }
 
@@ -184,14 +187,13 @@ class CorporationModel extends BasicModel {
      */
     public function getMaps($mapIds = [], $options = []){
         $maps = [];
-        $filter = ['active = ?', 1];
+        $this->filterRel();
 
-        if( !empty($mapIds) ){
-            $filter[0] .= ' AND mapId IN (?)';
-            $filter[] =  $mapIds;
+        if(!empty($mapIds)){
+            $filters = [];
+            $filters[] = ['mapId IN (:mapId)', ':mapId' => $mapIds];
+            $this->filter('mapCorporations', $this->mergeWithRelFilter('mapCorporations', $this->mergeFilter($filters)), $this->getRelFilterOption('mapCorporations'));
         }
-
-        $this->filter('mapCorporations', $filter, ['order' => 'created']);
 
         if($this->mapCorporations){
             $mapCount = 0;
@@ -342,26 +344,23 @@ class CorporationModel extends BasicModel {
      * @param int $id
      * @param int $ttl
      * @param bool $isActive
-     * @return \DB\Cortex
+     * @return bool
      */
-    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true){
-        /**
-         * @var CorporationModel $corporation
-         */
-        $corporation = parent::getById($id, $ttl, $isActive);
-        if($corporation->isOutdated()){
+    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true) : bool {
+        $loaded = parent::getById($id, $ttl, $isActive);
+        if($this->isOutdated()){
             // request corporation data
             $corporationData = self::getF3()->ccpClient()->getCorporationData($id);
             if( !empty($corporationData) ){
                 // check for NPC corporation
                 $corporationData['isNPC'] = self::getF3()->ccpClient()->isNpcCorporation($id);
 
-                $corporation->copyfrom($corporationData, ['id', 'name', 'ticker', 'memberCount', 'isNPC']);
-                $corporation->save();
+                $this->copyfrom($corporationData, ['id', 'name', 'ticker', 'memberCount', 'isNPC']);
+                $this->save();
             }
         }
 
-        return $corporation;
+        return $loaded;
     }
 
     /**
@@ -375,6 +374,13 @@ class CorporationModel extends BasicModel {
             $corporationStructure->structureId = $structure;
             $corporationStructure->save();
         }
+    }
+
+    /**
+     * @see parent
+     */
+    public function filterRel() : void {
+        $this->filter('mapCorporations', self::getFilter('active', true), ['order' => 'created']);
     }
 
     /**

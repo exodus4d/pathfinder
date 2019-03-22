@@ -12,7 +12,6 @@ use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
 use lib\Config;
-use lib\Socket;
 use Model\Universe;
 
 class CharacterModel extends BasicModel {
@@ -186,17 +185,17 @@ class CharacterModel extends BasicModel {
         if(is_null($characterData)){
             // no cached character data found
 
-            $characterData = (object) [];
-            $characterData->id = $this->_id;
-            $characterData->name = $this->name;
-            $characterData->role = $this->roleId->getData();
-            $characterData->shared = $this->shared;
-            $characterData->logLocation = $this->logLocation;
-            $characterData->selectLocation = $this->selectLocation;
+            $characterData                  = (object) [];
+            $characterData->id              = $this->_id;
+            $characterData->name            = $this->name;
+            $characterData->role            = $this->roleId->getData();
+            $characterData->shared          = $this->shared;
+            $characterData->logLocation     = $this->logLocation;
+            $characterData->selectLocation  = $this->selectLocation;
 
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
-                    $characterData->log = $logModel->getData();
+                    $characterData->log     = $logModel->getData();
                 }
             }
 
@@ -218,7 +217,30 @@ class CharacterModel extends BasicModel {
 
         // temp "authStatus" should not be cached
         if($this->authStatus){
-            $characterData->authStatus = $this->authStatus;
+            $characterData->authStatus      = $this->authStatus;
+        }
+
+        return $characterData;
+    }
+
+    /**
+     * get "basic" character data
+     * @return \stdClass
+     * @throws \Exception
+     */
+    public function getBasicData() : \stdClass {
+        $characterData = (object) [];
+        $characterData->id = $this->_id;
+        $characterData->name = $this->name;
+
+        // check for corporation
+        if($corporation = $this->getCorporation()){
+            $characterData->corporation = $corporation->getData(false);
+        }
+
+        // check for alliance
+        if($alliance = $this->getAlliance()){
+            $characterData->alliance = $alliance->getData();
         }
 
         return $characterData;
@@ -407,7 +429,7 @@ class CharacterModel extends BasicModel {
      * check whether this character has already a user assigned to it
      * @return bool
      */
-    public function hasUserCharacter(){
+    public function hasUserCharacter() : bool {
         return is_object($this->userCharacter);
     }
 
@@ -415,7 +437,7 @@ class CharacterModel extends BasicModel {
      * check whether this character has an active location log
      * @return bool
      */
-    public function hasLog(){
+    public function hasLog() : bool {
         return is_object($this->characterLog);
     }
 
@@ -423,7 +445,7 @@ class CharacterModel extends BasicModel {
      * check whether this character has a corporation
      * @return bool
      */
-    public function hasCorporation(){
+    public function hasCorporation() : bool {
         return is_object($this->corporationId);
     }
 
@@ -431,14 +453,14 @@ class CharacterModel extends BasicModel {
      * check whether this character has an alliance
      * @return bool
      */
-    public function hasAlliance(){
+    public function hasAlliance() : bool {
         return is_object($this->allianceId);
     }
 
     /**
      * @return UserModel|null
      */
-    public function getUser(){
+    public function getUser() : ?UserModel {
         $user = null;
         if($this->hasUserCharacter()){
             /**
@@ -450,18 +472,18 @@ class CharacterModel extends BasicModel {
     }
 
     /**
-     * get the corporation for this user
-     * @return \Model\CorporationModel|null
+     * get the corporation from character
+     * @return CorporationModel|null
      */
-    public function getCorporation(){
+    public function getCorporation() : ?CorporationModel {
         return $this->corporationId;
     }
 
     /**
-     * get the alliance of this user
-     * @return \Model\AllianceModel|null
+     * get the alliance from character
+     * @return AllianceModel|null
      */
-    public function getAlliance(){
+    public function getAlliance() : ?AllianceModel {
         return $this->allianceId;
     }
 
@@ -924,7 +946,6 @@ class CharacterModel extends BasicModel {
         }
 
         if($deleteLog){
-            self::log('DELETE LOG!');
             $this->deleteLog();
         }
 
@@ -1010,32 +1031,21 @@ class CharacterModel extends BasicModel {
      * @return MapModel|null
      * @throws \Exception
      */
-    public function getMap($mapId){
+    public function getMap(int $mapId) : ?MapModel {
         /**
          * @var $map MapModel
          */
         $map = self::getNew('MapModel');
-        $map->getById( (int)$mapId );
+        $map->getById($mapId);
 
-        $returnMap = null;
-        if($map->hasAccess($this)){
-            $returnMap = $map;
-        }
-
-        return $returnMap;
+        return $map->hasAccess($this) ? $map : null;
     }
 
     /**
      * get all accessible map models for this character
      * @return MapModel[]
      */
-    public function getMaps(){
-        $this->filter(
-            'characterMaps',
-            ['active = ?', 1],
-            ['order' => 'created']
-        );
-
+    public function getMaps() : array {
         $maps = [];
 
         if($alliance = $this->getAlliance()){
@@ -1046,7 +1056,7 @@ class CharacterModel extends BasicModel {
             $maps = array_merge($maps,  $corporation->getMaps());
         }
 
-        if( is_object($this->characterMaps) ){
+        if(is_object($this->characterMaps)){
             $mapCountPrivate = 0;
             foreach($this->characterMaps as $characterMap){
                 if(
@@ -1117,6 +1127,16 @@ class CharacterModel extends BasicModel {
         if($deleteCookie){
             $this->deleteAuthentications();
         }
+    }
+
+    /**
+     * @see parent
+     */
+    public function filterRel() : void {
+        $this->filter('userCharacter', self::getFilter('active', true));
+        $this->filter('corporationId', self::getFilter('active', true));
+        $this->filter('allianceId', self::getFilter('active', true));
+        $this->filter('characterMaps', self::getFilter('active', true), ['order' => 'created']);
     }
 
     /**

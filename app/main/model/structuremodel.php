@@ -13,6 +13,9 @@ use DB\SQL\Schema;
 
 class StructureModel extends BasicModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'structure';
 
     /**
@@ -20,6 +23,9 @@ class StructureModel extends BasicModel {
      */
     const CATEGORY_STRUCTURE_ID = 65;
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -75,6 +81,13 @@ class StructureModel extends BasicModel {
     ];
 
     /**
+     * set data by associative array
+     * @param array $data
+     */
+    public function setData(array $data){
+        $this->copyfrom($data, ['structureId', 'corporationId', 'systemId', 'statusId', 'name', 'description']);
+    }
+    /**
      * get structure data
      * @return \stdClass
      * @throws \Exception
@@ -108,7 +121,7 @@ class StructureModel extends BasicModel {
      * @param $structureId
      * @return int|null
      */
-    public function set_structureId($structureId){
+    public function set_structureId($structureId) : ?int {
         $structureId = (int)$structureId;
         return $structureId ? : null;
     }
@@ -116,12 +129,11 @@ class StructureModel extends BasicModel {
     /**
      * set corporationId (owner) for this structure
      * -> if corporation does not exists in DB -> load from API
-     * @param $corporationId
+     * @param int $corporationId
      * @return int|null
      */
-    public function set_corporationId($corporationId){
+    public function set_corporationId(int $corporationId) : ?int {
         $oldCorporationId = $this->get('corporationId', true) ? : 0;
-        $corporationId = !is_string($corporationId) ? : (int)$corporationId;
 
         if($corporationId){
             if($corporationId !== $oldCorporationId){
@@ -225,6 +237,12 @@ class StructureModel extends BasicModel {
         return $structuresData;
     }
 
+    /**
+     * load structure by $corporation, $name and $systemId
+     * @param CorporationModel $corporation
+     * @param string $name
+     * @param int $systemId
+     */
     public function getByName(CorporationModel $corporation, string $name, int $systemId) {
         if( !$corporation->dry() && $name){
             $this->has('structureCorporations', ['corporationId = :corporationId', ':corporationId' => $corporation->_id]);
@@ -246,8 +264,8 @@ class StructureModel extends BasicModel {
         /**
          * @var $type Universe\TypeModel
          */
-        $type = Universe\BasicUniverseModel::getNew('TypeModel')->getById($structureId);
+        $type = Universe\BasicUniverseModel::getNew('TypeModel');
+        $type->getById($structureId);
         return $type->dry() ? (object)[] : $type->getData();
     }
-
 }

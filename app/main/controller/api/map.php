@@ -11,7 +11,6 @@ namespace Controller\Api;
 use Controller;
 use data\file\FileHandler;
 use lib\Config;
-use lib\Socket;
 use Model;
 use Exception;
 
@@ -27,7 +26,6 @@ class Map extends Controller\AccessController {
     const CACHE_KEY_MAP_DATA                        = 'CACHED.MAP_DATA.%s';
     const CACHE_KEY_USER_DATA                       = 'CACHED.USER_DATA.%s';
     const CACHE_KEY_HISTORY                         = 'CACHED_MAP_HISTORY_%s';
-
 
     /**
      * get user data cache key
@@ -228,9 +226,18 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($wormholesData) : $validInitData;
 
             // universe category data ---------------------------------------------------------------------------------
+            /**
+             * @var $categoryUniverseModel Model\Universe\CategoryModel
+             */
+            $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            $categoryUniverseModel->getById(6);
+            $shipData = $categoryUniverseModel->getData(['mass']);
+            $categoryUniverseModel->getById(65);
+            $structureData = $categoryUniverseModel->getData();
+
             $return->universeCategories = [
-                6  => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(6)->getData(['mass']),
-                65 => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(65)->getData()
+                6  => $shipData,
+                65 => $structureData
             ];
 
             $validInitData = $validInitData ? !empty($return->universeCategories[65]) : $validInitData;
@@ -451,7 +458,7 @@ class Map extends Controller\AccessController {
 
                         // share map between characters -> set access
                         if(isset($formData['mapCharacters'])){
-                            // remove character corporation (re-add later)
+                            // remove character (re-add later)
                             $accessCharacters = array_diff($formData['mapCharacters'], [$activeCharacter->_id]);
 
                             // avoid abuse -> respect share limits
@@ -755,7 +762,6 @@ class Map extends Controller\AccessController {
                     count($systems) > 0 ||
                     count($connections) > 0
                 ){
-
                     // map changes expected ===========================================================================
 
                     // loop current user maps and check for changes
@@ -764,68 +770,30 @@ class Map extends Controller\AccessController {
 
                         // update system data -------------------------------------------------------------------------
                         foreach($systems as $i => $systemData){
-
                             // check if current system belongs to the current map
-                            $map->filter('systems', ['id = ?', $systemData['id'] ]);
-                            $filteredMap = $map->find(
-                                ['id = ?', $map->id ],
-                                ['limit' => 1]
-                            );
-
-                            // this should never fail
-                            if(is_object($filteredMap)){
-                                $filteredMap = $filteredMap->current();
-
-                                // system belongs to the current map
-                                if(is_object($filteredMap->systems)){
-                                    // update
-                                    /**
-                                     * @var $system Model\SystemModel
-                                     */
-                                    $system = $filteredMap->systems->current();
-                                    $system->copyfrom($systemData, ['alias', 'status', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
-
-                                    if($system->save($activeCharacter)){
-                                        $mapChanged = true;
-                                        // one system belongs to ONE  map -> speed up for multiple maps
-                                        unset($systemData[$i]);
-                                    }else{
-                                        $return->error = array_merge($return->error, $system->getErrors());
-                                    }
+                            if($system = $map->getSystemById((int)$systemData['id'])){
+                                $system->copyfrom($systemData, ['alias', 'status', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
+                                if($system->save($activeCharacter)){
+                                    $mapChanged = true;
+                                    // one system belongs to ONE  map -> speed up for multiple maps
+                                    unset($systemData[$i]);
+                                }else{
+                                    $return->error = array_merge($return->error, $system->getErrors());
                                 }
                             }
                         }
 
                         // update connection data ---------------------------------------------------------------------
                         foreach($connections as $i => $connectionData){
-
                             // check if the current connection belongs to the current map
-                            $map->filter('connections', ['id = ?', $connectionData['id'] ]);
-                            $filteredMap = $map->find(
-                                ['id = ?', $map->_id ],
-                                ['limit' => 1]
-                            );
-
-                            // this should never fail
-                            if(is_object($filteredMap)){
-                                $filteredMap = $filteredMap->current();
-
-                                // connection belongs to the current map
-                                if(is_object($filteredMap->connections)){
-                                    // update
-                                    /**
-                                     * @var $connection Model\ConnectionModel
-                                     */
-                                    $connection = $filteredMap->connections->current();
-                                    $connection->copyfrom($connectionData, ['scope', 'type']);
-
-                                    if($connection->save($activeCharacter)){
-                                        $mapChanged = true;
-                                        // one connection belongs to ONE  map -> speed up for multiple maps
-                                        unset($connectionData[$i]);
-                                    }else{
-                                        $return->error = array_merge($return->error, $connection->getErrors());
-                                    }
+                            if($connection = $map->getConnectionById((int)$connectionData['id'])){
+                                $connection->copyfrom($connectionData, ['scope', 'type']);
+                                if($connection->save($activeCharacter)){
+                                    $mapChanged = true;
+                                    // one connection belongs to ONE  map -> speed up for multiple maps
+                                    unset($connectionData[$i]);
+                                }else{
+                                    $return->error = array_merge($return->error, $connection->getErrors());
                                 }
                             }
                         }
@@ -917,6 +885,7 @@ class Map extends Controller\AccessController {
                     // data for currently selected system
                     $return->system = $system->getData();
                     $return->system->signatures = $system->getSignaturesData();
+                    $return->system->sigHistory = $system ->getSignaturesHistoryData();
                     $return->system->structures = $system->getStructuresData();
 
                 }
@@ -975,14 +944,14 @@ class Map extends Controller\AccessController {
                 // -> NO target system available
                 if($sourceSystemId === $targetSystemId){
                     // check if previous (solo) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [Model\BasicModel::getFilter('active', true)]);
                     $sameSystem = true;
                 }else{
                     // check if previous (source) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [Model\BasicModel::getFilter('active', true)]);
 
                     // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId($targetSystemId, ['active' => 1]);
+                    $targetSystem = $map->getSystemByCCPId($targetSystemId, [Model\BasicModel::getFilter('active', true)]);
                 }
 
                 // if systems don´t already exists on map -> get "blank" system

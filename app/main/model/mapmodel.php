@@ -169,7 +169,7 @@ class MapModel extends AbstractMapTrackingModel {
     ];
 
     /**
-     * set map data by an associative array
+     * set data by associative array
      * @param array $data
      */
     public function setData($data){
@@ -321,7 +321,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws \Exception\ValidationException
      */
-    protected function validate_name(string $key, string $val): bool {
+    protected function validate_name(string $key, string $val) : bool {
         $valid = true;
         if(mb_strlen($val) < 3){
             $valid = false;
@@ -337,7 +337,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws \Exception\ValidationException
      */
-    protected function validate_slackWebHookURL(string $key, string $val): bool {
+    protected function validate_slackWebHookURL(string $key, string $val) : bool {
         return $this->validate_WebHookURL($key, $val, 'slack');
     }
 
@@ -348,7 +348,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws \Exception\ValidationException
      */
-    protected function validate_discordWebHookURLHistory(string $key, string $val): bool {
+    protected function validate_discordWebHookURLHistory(string $key, string $val) : bool {
         return $this->validate_WebHookURL($key, $val, 'discord');
     }
 
@@ -359,7 +359,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws \Exception\ValidationException
      */
-    protected function validate_discordWebHookURLRally(string $key, string $val): bool {
+    protected function validate_discordWebHookURLRally(string $key, string $val) : bool {
         return $this->validate_WebHookURL($key, $val, 'discord');
     }
 
@@ -371,7 +371,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws \Exception\ValidationException
      */
-    protected function validate_WebHookURL(string $key, string $val, string $type): bool {
+    protected function validate_WebHookURL(string $key, string $val, string $type) : bool {
         $valid = true;
         if( !empty($val) ){
             $hosts = [
@@ -508,19 +508,22 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * search for a system by id
      * @param int $id
-     * @return null|SystemModel
+     * @return SystemModel|null
      */
-    public function getSystemById(int $id){
+    public function getSystemById(int $id) : ?SystemModel {
         /**
          * @var $system SystemModel
          */
         $system = $this->rel('systems');
-        $result = $system->findone([
-            'active = 1 AND mapId = :mapId AND id = :id',
-            ':mapId' => $this->id,
-            ':id' => $id
-        ]);
-        return is_object($result) ? $result : null;
+        $system->filterRel();
+
+        $filters = [
+            self::getFilter('id', $id),
+            self::getFilter('mapId', $this->_id),
+            self::getFilter('active', true)
+        ];
+
+        return $system->findone($this->mergeFilter($filters)) ? : null;
     }
 
     /**
@@ -528,29 +531,27 @@ class MapModel extends AbstractMapTrackingModel {
      * -> "active" column is NOT checked
      * -> removed systems become "active" = 0
      * @param int $systemId
-     * @param array $filter
-     * @return null|SystemModel
+     * @param array $addFilters
+     * @return SystemModel|null
      */
-    public function getSystemByCCPId(int $systemId, array $filter = []){
+    public function getSystemByCCPId(int $systemId, array $addFilters = []) : ?SystemModel {
         /**
          * @var $system SystemModel
          */
         $system = $this->rel('systems');
+        $system->filterRel();
 
-        $query = [
-            'mapId = :mapId AND systemId = :systemId',
-            ':mapId' => $this->_id,
-            ':systemId' => $systemId
+        $filters = [
+            self::getFilter('systemId', $systemId),
+            self::getFilter('mapId', $this->_id)
         ];
 
         // add optional filter -> e.g. search for "active = 1" system
-        foreach($filter as $column => $value){
-            $query[0] .= ' AND' . $this->db->quotekey($column) . ' = :' . $column;
-            $query[':' . $column] = $value;
+        foreach($addFilters as $filter){
+            $filters[] = $filter;
         }
 
-        $result = $system->findone($query);
-        return is_object($result) ? $result : null;
+        return $system->findone($this->mergeFilter($filters)) ? : null;
     }
 
     /**
@@ -594,19 +595,22 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * search for a connection by id
      * @param int $id
-     * @return null|ConnectionModel
+     * @return ConnectionModel|null
      */
-    public function getConnectionById(int $id){
+    public function getConnectionById(int $id) : ?ConnectionModel {
         /**
          * @var $connection ConnectionModel
          */
         $connection = $this->rel('connections');
-        $result = $connection->findone([
-            'active = 1 AND mapId = :mapId AND id = :id',
-            ':mapId' => $this->id,
-            ':id' => $id
-        ]);
-        return is_object($result) ? $result : null;
+        $connection->filterRel();
+
+        $filters = [
+            self::getFilter('id', $id),
+            self::getFilter('mapId', $this->_id),
+            self::getFilter('active', true)
+        ];
+
+        return $connection->findone($this->mergeFilter($filters)) ? : null;
     }
 
     /**
@@ -707,13 +711,13 @@ class MapModel extends AbstractMapTrackingModel {
             if($result === false){
                 // grant access for the character
                 $characterMap = self::getNew('CharacterMapModel');
-                $characterMap->	characterId = $obj;
+                $characterMap->characterId = $obj;
                 $characterMap->mapId = $this;
                 $characterMap->save();
 
                 $newAccessGranted = true;
             }
-        } elseif($obj instanceof CorporationModel){
+        }elseif($obj instanceof CorporationModel){
 
             // check whether the corporation already has map access
             $this->has('mapCorporations', ['active = 1 AND corporationId = :corporationId', ':corporationId' => $obj->id]);
@@ -728,7 +732,7 @@ class MapModel extends AbstractMapTrackingModel {
 
                 $newAccessGranted = true;
             }
-        } elseif($obj instanceof AllianceModel){
+        }elseif($obj instanceof AllianceModel){
 
             // check whether the alliance already has map access
             $this->has('mapAlliances', ['active = 1 AND allianceId = :allianceId', ':allianceId' => $obj->id]);
@@ -973,7 +977,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return logging\LogInterface
      * @throws ConfigException
      */
-    public function newLog($action = ''): Logging\LogInterface{
+    public function newLog($action = '') : Logging\LogInterface{
         $logChannelData = $this->getLogChannelData();
         $logObjectData = $this->getLogObjectData();
         $log = (new logging\MapLog($action, $logChannelData))->setTempData($logObjectData);
@@ -1012,7 +1016,7 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * @return MapModel
      */
-    public function getMap(): MapModel{
+    public function getMap() : MapModel{
         return $this;
     }
 
@@ -1051,7 +1055,7 @@ class MapModel extends AbstractMapTrackingModel {
      * check if "activity logging" is enabled for this map type
      * @return bool
      */
-    public function isActivityLogEnabled(): bool {
+    public function isActivityLogEnabled() : bool {
         return $this->logActivity && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_activity_enabled'];
     }
 
@@ -1059,7 +1063,7 @@ class MapModel extends AbstractMapTrackingModel {
      * check if "history logging" is enabled for this map type
      * @return bool
      */
-    public function isHistoryLogEnabled(): bool {
+    public function isHistoryLogEnabled() : bool {
         return $this->logHistory && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_history_enabled'];
     }
 
@@ -1069,7 +1073,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws ConfigException
      */
-    public function isSlackChannelEnabled(string $channel): bool {
+    public function isSlackChannelEnabled(string $channel) : bool {
         $enabled = false;
         // check global Slack status
         if((bool)Config::getPathfinderData('slack.status')){
@@ -1097,7 +1101,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws ConfigException
      */
-    public function isDiscordChannelEnabled(string $channel): bool {
+    public function isDiscordChannelEnabled(string $channel) : bool {
         $enabled = false;
         // check global Slack status
         if((bool)Config::getPathfinderData('discord.status')){
@@ -1124,7 +1128,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $type
      * @return bool
      */
-    public function isMailSendEnabled(string $type): bool{
+    public function isMailSendEnabled(string $type) : bool{
         $enabled = false;
         if((bool) Config::getMapsDefaultConfig($this->typeId->name)['send_rally_mail_enabled']){
             $enabled = Config::isValidSMTPConfig($this->getSMTPConfig($type));
@@ -1138,7 +1142,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param bool $abs absolute path
      * @return \stdClass
      */
-    public function getStreamConfig(bool $abs = false): \stdClass{
+    public function getStreamConfig(bool $abs = false) : \stdClass{
         $config = (object) [];
         $config->stream = '';
         if( $this->getF3()->exists('PATHFINDER.HISTORY.LOG', $dir) ){
@@ -1153,7 +1157,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get config for Socket connection (e.g. where to send log data)
      * @return \stdClass
      */
-    public function getSocketConfig(): \stdClass{
+    public function getSocketConfig() : \stdClass{
         $config = (object) [];
         $config->dsn = Config::getSocketUri();
         $config->streamConf = $this->getStreamConfig(true);
@@ -1166,7 +1170,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $channel
      * @return \stdClass
      */
-    public function getSlackWebHookConfig(string $channel = ''): \stdClass{
+    public function getSlackWebHookConfig(string $channel = '') : \stdClass{
         $config = (object) [];
         $config->slackWebHookURL = $this->slackWebHookURL;
         $config->slackUsername = $this->slackUsername;
@@ -1182,7 +1186,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $channel
      * @return \stdClass
      */
-    public function getDiscordWebHookConfig(string $channel = ''): \stdClass {
+    public function getDiscordWebHookConfig(string $channel = '') : \stdClass {
         $config = (object) [];
         $config->slackUsername = $this->discordUsername;
         if($channel && $this->exists($channel) && !empty($this->$channel)){
@@ -1197,7 +1201,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param bool $addJson
      * @return \stdClass
      */
-    public function getSMTPConfig(string $type, bool $addJson = true): \stdClass{
+    public function getSMTPConfig(string $type, bool $addJson = true) : \stdClass {
         $config = Config::getSMTPConfig();
         $config->to = Config::getNotificationMail($type);
         $config->addJson = $addJson;
