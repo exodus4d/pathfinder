@@ -107,7 +107,7 @@ abstract class AbstractClient extends \Prefab {
 
         return function() use ($poolConfig) : ?CacheItemPoolInterface {
             // an active CachePool should be re-used
-            // -> no need for e.g. a new Redis->connect()
+            // -> no need for e.g. a new Redis->pconnect()
             //    and/or re-init when it is used the next time
             if(!is_null($this->cachePool)){
                 return $this->cachePool;
@@ -122,7 +122,7 @@ abstract class AbstractClient extends \Prefab {
             ){
                 $client = new \Redis();
                 if(
-                    $client->connect(
+                    $client->pconnect(
                         $poolConfig['host'],
                         $poolConfig['port'],
                         Config::REDIS_OPT_TIMEOUT,
@@ -141,6 +141,8 @@ abstract class AbstractClient extends \Prefab {
                     //    This helps to separate keys by a namespace
                     // @see http://www.php-cache.com/en/latest/
                     $this->cachePool = new NamespacedCachePool($poolRedis, static::CLIENT_NAME);
+
+                    register_shutdown_function([$this,'unloadCache'], $client);
                 }
             }
 
@@ -262,6 +264,16 @@ abstract class AbstractClient extends \Prefab {
             $config->stream = $f3->fixslashes($config->stream);
         }
         return $config;
+    }
+
+    /**
+     * unload function
+     * @param \Redis $client
+     */
+    public function unloadCache(\Redis $client){
+        if($client->isConnected()){
+            $client->close();
+        }
     }
 
     /**

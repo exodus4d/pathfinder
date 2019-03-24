@@ -76,9 +76,10 @@ class Setup extends Controller\Controller {
                 $buildInfo = $controller->setupCategory($categoryId, $offset, $length);
 
                 $categoryUniverseModel =  Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+                $categoryUniverseModel->getById($categoryId, 0);
                 $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES');
                 $return->countBuild = array_reduce($buildInfo, $sum, 0);
-                $return->countBuildAll = $categoryUniverseModel->getById($categoryId, 0)->getTypesCount(false);
+                $return->countBuildAll = $categoryUniverseModel->getTypesCount(false);
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
                 break;
             case 'Ships':
@@ -88,9 +89,10 @@ class Setup extends Controller\Controller {
                 $buildInfo = $controller->setupCategory($categoryId, $offset, $length);
 
                 $categoryUniverseModel =  Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+                $categoryUniverseModel->getById($categoryId, 0);
                 $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.SHIPS');
                 $return->countBuild = array_reduce($buildInfo, $sum, 0);
-                $return->countBuildAll = $categoryUniverseModel->getById($categoryId, 0)->getTypesCount(false);
+                $return->countBuildAll = $categoryUniverseModel->getTypesCount(false);
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
                 break;
             case 'SystemNeighbour':

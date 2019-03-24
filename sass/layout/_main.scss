@@ -716,7 +716,7 @@ table{
 
 // maps module ====================================================================================
 #pf-map-module{
-  margin: 20px 10px 0 10px;
+  margin: 15px 10px 0 10px;
 
   // Tabs (colored)
   #pf-map-tabs {
@@ -775,6 +775,10 @@ table{
 .pf-map-content-row{
   margin-top: 10px;
   padding-bottom: 40px; // space for footer
+
+  >.pf-map-content-col:first-child{
+    padding-right: 0; // overwrite default
+  }
 
   // all modules within a row
   .pf-module{
@@ -1499,6 +1503,11 @@ code {
 
   .pf-head-program-status{
     cursor: pointer;
+  }
+
+  .pf-head-map-tracking{
+    margin-bottom: 4px;
+    margin-top: 4px;
   }
 
   .navbar-text{

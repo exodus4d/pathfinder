@@ -130,15 +130,19 @@ class Database extends \Prefab {
         $f3 = \Base::instance();
 
         $options = [
-            \PDO::MYSQL_ATTR_COMPRESS  => true,
-            \PDO::ATTR_TIMEOUT => \Base::instance()->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT'),
+            \PDO::MYSQL_ATTR_COMPRESS       => true,
+            \PDO::ATTR_TIMEOUT              => \Base::instance()->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT'),
         ];
+
+        if(Config::getPathfinderData('experiments.persistent_db_connections')){
+            $options[\PDO::ATTR_PERSISTENT] = true;
+        }
 
         // set ERRMODE depending on pathfinders global DEBUG level
         if($f3->get('DEBUG') >= 1){
-            $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_WARNING;
+            $options[\PDO::ATTR_ERRMODE]    = \PDO::ERRMODE_WARNING;
         }else{
-            $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
+            $options[\PDO::ATTR_ERRMODE]    = \PDO::ERRMODE_EXCEPTION;
         }
 
         try {

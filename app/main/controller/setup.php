@@ -747,6 +747,7 @@ class Setup extends Controller {
 
                 if($client->isConnected()){
                     $redisServerInfo = (array)$client->info('SERVER');
+                    $redisClientsInfo = (array)$client->info('CLIENTS');
                     $redisMemoryInfo = (array)$client->info('MEMORY');
                     $redisStatsInfo = (array)$client->info('STATS');
 
@@ -783,6 +784,18 @@ class Setup extends Controller {
                             'version' => $redisMemoryInfo['maxmemory_policy'],
                             'check' => $redisMemoryInfo['maxmemory_policy'] == $f3->get('REQUIREMENTS.REDIS.MAXMEMORY_POLICY'),
                             'tooltip' => 'How Redis behaves if \'maxmemory\' limit reached'
+                        ],
+                        'connectedClients' => [
+                            'label' => 'connected_clients',
+                            'version' => $redisClientsInfo['connected_clients'],
+                            'check' => (bool)$redisClientsInfo['connected_clients'],
+                            'tooltip' => 'Number of client connections (excluding connections from replicas)'
+                        ],
+                        'blockedClients' => [
+                            'label' => 'blocked_clients',
+                            'version' => $redisClientsInfo['blocked_clients'],
+                            'check' => !(bool)$redisClientsInfo['blocked_clients'],
+                            'tooltip' => 'Number of clients pending on a blocking call (BLPOP, BRPOP, BRPOPLPUSH)'
                         ],
                         'evictedKeys' => [
                             'label' => 'evicted_keys',
@@ -846,7 +859,7 @@ class Setup extends Controller {
                     $client = new \Redis();
 
                     try{
-                        $client->connect($conf['host'], $conf['port'], 0.3);
+                        $client->pconnect($conf['host'], $conf['port'], 0.3);
                         if(isset($conf['db'])) {
                             $client->select($conf['db']);
                         }
@@ -1077,6 +1090,8 @@ class Setup extends Controller {
 
             // DB connection status
             $dbConnected = false;
+            // DB initialized as persistent connection
+            $dbPersistent = false;
             // DB type (e.g. MySql,..)
             $dbDriver = 'unknown';
             // enable database ::create() function on UI
@@ -1130,6 +1145,7 @@ class Setup extends Controller {
 
                 // db connect was successful
                 $dbConnected = true;
+                $dbPersistent = $db->pdo()->getAttribute(\PDO::ATTR_PERSISTENT);
                 $dbDriver = $db->driver();
                 $dbConfig = $this->checkDBConfig($f3, $db);
 
@@ -1377,6 +1393,7 @@ class Setup extends Controller {
                 'dbCreate'          => $dbCreate,
                 'setupEnable'       => $dbSetupEnable,
                 'connected'         => $dbConnected,
+                'persistent'        => $dbPersistent,
                 'statusCheckCount'  => $dbStatusCheckCount,
                 'columnQueries'     => $dbColumnQueries,
                 'tableData'         => $requiredTables,
@@ -1820,7 +1837,7 @@ class Setup extends Controller {
      */
     protected function flushRedisDb(string $host, int $port, int $db = 0){
         $client = new \Redis();
-        $client->connect($host, $port, 0.3);
+        $client->pconnect($host, $port, 0.3);
         $client->select($db);
         $client->flushDB();
         $client->close();

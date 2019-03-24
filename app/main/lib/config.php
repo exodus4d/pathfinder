@@ -240,7 +240,7 @@ class Config extends \Prefab {
      * @param string $dbKey
      * @return array
      */
-    static function getDatabaseConfig(string $dbKey  = 'PF'){
+    static function getDatabaseConfig(string $dbKey  = 'PF') : array {
         $dbKey = strtoupper($dbKey);
         return [
             'DNS'   => self::getEnvironmentData('DB_' . $dbKey . '_DNS'),

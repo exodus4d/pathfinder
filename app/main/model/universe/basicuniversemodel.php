@@ -153,9 +153,9 @@ abstract class BasicUniverseModel extends BasicModel {
         /**
          * @var $model self
          */
-        $model = $this->getById($id, 0);
-        if($model->isOutdated()){
-            $model->loadData($id, $accessToken, $additionalOptions);
+        $this->getById($id, 0);
+        if($this->isOutdated()){
+            $this->loadData($id, $accessToken, $additionalOptions);
         }
     }
 
@@ -173,7 +173,7 @@ abstract class BasicUniverseModel extends BasicModel {
      * @param $value
      * @return string
      */
-    public static function generateHashKeyRow(string $table, $value){
+    public static function generateHashKeyRow(string $table, $value) : string {
         return self::generateHashKeyTable($table) . '_' .  md5(strtolower((string)$value));
     }
 
@@ -183,7 +183,7 @@ abstract class BasicUniverseModel extends BasicModel {
      * @param string $table
      * @return string
      */
-    public static function generateHashKeyTable(string $table){
+    public static function generateHashKeyTable(string $table) : string {
         return self::CACHE_KEY_PREFIX . strtolower($table);
     }
 

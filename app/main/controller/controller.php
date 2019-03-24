@@ -152,7 +152,6 @@ class Controller {
                 new DB\SQL\MySQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
             }
         }
-
     }
 
     /**

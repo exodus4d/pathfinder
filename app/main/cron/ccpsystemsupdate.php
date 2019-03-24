@@ -13,11 +13,6 @@ class CcpSystemsUpdate extends AbstractCron {
 
     const LOG_TEXT = '%s prepare table (%.3F s), jump (%.3F s), kill (%.3F s), update all (%.3F s)';
 
-    protected  $apiRequestOptions = [
-        'timeout' => 5,
-        'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
-    ];
-
     /**
      * table names for all system log tables
      * @var array

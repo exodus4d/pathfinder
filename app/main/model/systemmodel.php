@@ -32,7 +32,7 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * TTL for history signature data
      */
-    const TTL_HISTORY_SIGNATURES        = 5000;
+    const TTL_HISTORY_SIGNATURES        = 7200;
 
     /**
      * cache key prefix for getData(); result WITH log data

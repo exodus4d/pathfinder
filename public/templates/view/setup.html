@@ -472,11 +472,12 @@
                                 </tr>
                                 <tr>
                                     <td>DB status</td>
-                                    <td class="text-right col-sm-3 col-md-3"></td>
-                                    <td class="text-right col-sm-3 col-md-3">
+                                    <td class="text-right col-sm-3 col-md-3" colspan="2">
                                         <check if="{{ @dbInformation.info.connected }}">
                                             <true>
-                                                <kbd class="txt-color txt-color-success">connected</kbd>
+                                                <kbd class="txt-color txt-color-success">
+                                                    connected<check if="{{ @dbInformation.info.persistent }}"> (persistent)</check>
+                                                </kbd>
                                             </true>
                                             <false>
                                                 <kbd class="txt-color txt-color-danger">failed</kbd>
