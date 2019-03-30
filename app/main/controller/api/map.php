@@ -54,7 +54,7 @@ class Map extends Controller\AccessController {
         // expire time in seconds
         $expireTimeCache = 60 * 60;
 
-        if( !$f3->exists(self::CACHE_KEY_INIT, $return )){
+        if(!$f3->exists(self::CACHE_KEY_INIT, $return)){
             // response should not be cached if invalid -> e.g. missing static data
             $validInitData = true;
 

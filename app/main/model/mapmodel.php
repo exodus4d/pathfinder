@@ -985,7 +985,7 @@ class MapModel extends AbstractMapTrackingModel {
         // update map history *.log files -----------------------------------------------------------------------------
         if($this->isHistoryLogEnabled()){
             // check socket config
-            if(Config::validSocketConnect()){
+            if(Config::validSocketConnect(Config::getSocketUri())){
                 $log->addHandler('socket', 'json', $this->getSocketConfig());
             }else{
                 // update log file local (slow)

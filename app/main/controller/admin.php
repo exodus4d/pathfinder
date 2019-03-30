@@ -348,7 +348,7 @@ class Admin extends Controller{
      * @param string $type
      * @return \Log
      */
-    static function getLogger($type = 'ADMIN'){
+    static function getLogger($type = 'ADMIN') : \Log {
         return parent::getLogger('ADMIN');
     }
 

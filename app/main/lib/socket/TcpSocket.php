@@ -13,8 +13,14 @@ use React\Socket;
 
 class TcpSocket extends AbstractSocket {
 
+    /**
+     * name of Socket
+     */
     const SOCKET_NAME = 'webSocket';
 
+    /**
+     * @return Socket\ConnectorInterface
+     */
     protected function getConnector(): Socket\ConnectorInterface {
         return new Socket\Connector($this->getLoop(), $this->options);
     }

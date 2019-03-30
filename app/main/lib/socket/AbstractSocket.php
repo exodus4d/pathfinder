@@ -52,7 +52,7 @@ abstract class AbstractSocket implements SocketInterface {
     /**
      * @return EventLoop\LoopInterface
      */
-    public function getLoop(): EventLoop\LoopInterface {
+    protected function getLoop(): EventLoop\LoopInterface {
         if(!($this->loop instanceof EventLoop\LoopInterface)){
             $this->loop = EventLoop\Factory::create();
         }
@@ -239,4 +239,19 @@ abstract class AbstractSocket implements SocketInterface {
         return $payload;
     }
 
+    /**
+     * use this function to create new Socket instances
+     * @param string $class
+     * @param string $uri
+     * @param array $options
+     * @return SocketInterface
+     */
+    public static function factory(string $class, string $uri, array $options = []) : SocketInterface {
+        if(class_exists($class) && $uri){
+            return new $class($uri, $options);
+        }else{
+            // invalid Socket requirements -> return NullSocket
+            return new NullSocket($uri);
+        }
+    }
 }

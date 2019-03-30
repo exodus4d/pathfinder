@@ -720,13 +720,12 @@ define([
             // valid signature data parsed
 
             // check if signatures will be added to a system where character is currently in
-            // if user is not in any system -> id === undefined -> no "confirmation required
+            // if character is not in any system -> id === undefined -> no "confirmation required
             let currentLocationData = Util.getCurrentLocationData();
             if(
                 currentLocationData.id &&
                 currentLocationData.id !== systemData.id
             ){
-
                 let systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
                 systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 

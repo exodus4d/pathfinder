@@ -12,6 +12,7 @@ namespace lib;
 use lib\api\CcpClient;
 use lib\api\GitHubClient;
 use lib\api\SsoClient;
+use lib\socket\AbstractSocket;
 use lib\socket\SocketInterface;
 use lib\socket\TcpSocket;
 
@@ -109,7 +110,7 @@ class Config extends \Prefab {
 
         // Socket connectors
         $f3->set(TcpSocket::SOCKET_NAME, function(array $options = ['timeout' => 1]) : SocketInterface {
-            return new TcpSocket(self::getSocketUri(), $options);
+            return AbstractSocket::factory(TcpSocket::class, self::getSocketUri(), $options);
         });
     }
 
@@ -355,7 +356,7 @@ class Config extends \Prefab {
      * -> see pingDomain()
      * @return bool
      */
-    static function validSocketConnect(): bool{
+    static function validSocketConnect(string $uri) : bool{
         $valid = false;
         $f3 = \Base::instance();
 
@@ -391,17 +392,17 @@ class Config extends \Prefab {
      * @param int $timeout
      * @return int
      */
-    static function pingDomain(string $domain, int $port, $timeout = 1): int {
-        $starttime = microtime(true);
+    static function pingDomain(string $domain, int $port, $timeout = 1) : int {
+        $startTime = microtime(true);
         $file      = @fsockopen ($domain, $port, $errno, $errstr, $timeout);
-        $stoptime  = microtime(true);
+        $stopTime  = microtime(true);
 
         if (!$file){
             // Site is down
             $status = -1;
         }else {
             fclose($file);
-            $status = ($stoptime - $starttime) * 1000;
+            $status = ($stopTime - $startTime) * 1000;
             $status = floor($status);
         }
         return $status;

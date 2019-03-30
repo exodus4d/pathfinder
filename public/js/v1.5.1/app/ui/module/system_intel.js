@@ -258,12 +258,16 @@ define([
                                 formData.corporationId = Util.getObjVal(formData, 'corporationId') | 0;
                                 formData.systemId = systemId | 0;
 
-                                let method = formData.id ? 'PATCH' : 'PUT';
+                                moduleElement.showLoadingAnimation();
 
-                                Util.request(method, 'structure', formData.id, formData, {
-                                    moduleElement: moduleElement,
-                                    tableApi: tableApi
-                                }).then(
+                                let method = formData.id ? 'PATCH' : 'PUT';
+                                Util.request(method, 'structure', formData.id, formData,
+                                    {
+                                        moduleElement: moduleElement,
+                                        tableApi: tableApi
+                                    },
+                                    context => context.moduleElement.hideLoadingAnimation()
+                                ).then(
                                     payload => callbackUpdateStructureRows(payload.context, {structures: payload.data}),
                                     Util.handleAjaxErrorResponse
                                 );
@@ -582,10 +586,14 @@ define([
                                     // let deleteRowElement = $(cell).parents('tr');
                                     // tableApi.rows(deleteRowElement).remove().draw();
 
-                                    Util.request('DELETE', 'structure', rowData.id, {}, {
-                                        moduleElement: moduleElement,
-                                        tableApi: tableApi
-                                    }).then(
+                                    moduleElement.showLoadingAnimation();
+                                    Util.request('DELETE', 'structure', rowData.id, {},
+                                        {
+                                            moduleElement: moduleElement,
+                                            tableApi: tableApi
+                                        },
+                                        context => context.moduleElement.hideLoadingAnimation()
+                                    ).then(
                                         payload => callbackDeleteStructures(payload.context, payload.data),
                                         Util.handleAjaxErrorResponse
                                     );
@@ -732,13 +740,40 @@ define([
      * @param context
      */
     let updateStructureTableByClipboard = (systemData, clipboard, context) => {
-        let structureData = parseDscanString(systemData, clipboard);
-        if(structureData.length){
-            Util.request('POST', 'structure', [], structureData, context)
+
+        let saveStructureData = (structureData, context) => {
+            context.moduleElement.showLoadingAnimation();
+
+            Util.request('POST', 'structure', [], structureData, context, context => context.moduleElement.hideLoadingAnimation())
                 .then(
                     payload => callbackUpdateStructureRows(payload.context, {structures: payload.data}),
                     Util.handleAjaxErrorResponse
                 );
+        };
+
+        let structureData = parseDscanString(systemData, clipboard);
+        if(structureData.length){
+            // valid structure data parsed
+
+            // check if structures will be added to a system where character is currently in
+            // if character is not in any system -> id === undefined -> no "confirmation required
+            let currentLocationData = Util.getCurrentLocationData();
+            if(
+                currentLocationData.id &&
+                currentLocationData.id !== systemData.id
+            ){
+                let systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
+                systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
+
+                let msg = 'Update structures in ' + systemNameStr + ' ? This not your current location, "' + currentLocationData.name + '" !';
+                bootbox.confirm(msg, result => {
+                    if(result){
+                        saveStructureData(structureData, context);
+                    }
+                });
+            }else{
+                saveStructureData(structureData, context);
+            }
         }
     };
 

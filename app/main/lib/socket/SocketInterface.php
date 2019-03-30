@@ -15,14 +15,17 @@ use React\Promise;
 interface SocketInterface {
 
     /**
-     * @return EventLoop\LoopInterface
-     */
-    public function getLoop(): EventLoop\LoopInterface;
-
-    /**
      * @param string $action
      * @param null $data
      * @return Promise\PromiseInterface
      */
     public function write(string $action, $data = null) : Promise\PromiseInterface;
+
+    /**
+     * @param string $class
+     * @param string $uri
+     * @param array $options
+     * @return SocketInterface
+     */
+    public static function factory(string $class, string $uri, array $options = []) : SocketInterface;
 }
