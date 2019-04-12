@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 21.04.2018
  * Time: 15:49
  */
@@ -66,7 +66,7 @@ class Universe extends Controller\AccessController {
 
         if( strlen($search) >= 3 ){
             $offset = ($page - 1) * self::PAGE_SIZE_SYSTEMS;
-            $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+            $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
 
             $filter = [
                 'id LIKE :id OR name LIKE :name',
@@ -110,7 +110,7 @@ class Universe extends Controller\AccessController {
         $return->error = [];
         $return->systemsData = [];
 
-        $constellation = Model\Universe\BasicUniverseModel::getNew('ConstellationModel');
+        $constellation = Model\Universe\AbstractUniverseModel::getNew('ConstellationModel');
         $constellation->getById($constellationId);
         if( !$constellation->dry() && $constellation->systems){
             /**

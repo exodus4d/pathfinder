@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 22.09.2017
  * Time: 16:50
  */
@@ -10,7 +10,7 @@ namespace lib\logging;
 
 use lib\Config;
 
-class RallyLog extends AbstractCharacterLog{
+class RallyLog extends AbstractCharacterLog {
 
     /**
      * List of possible handlers (tested)

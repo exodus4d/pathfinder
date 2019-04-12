@@ -7,9 +7,10 @@
  */
 
 namespace cron;
-use DB;
+
+
 use lib\Config;
-use Model;
+use Model\Pathfinder;
 
 class MapUpdate extends AbstractCron {
 
@@ -28,14 +29,13 @@ class MapUpdate extends AbstractCron {
         $privateMapLifetime = (int)Config::getMapsDefaultConfig('private.lifetime');
 
         if($privateMapLifetime > 0){
-            $pfDB = DB\Database::instance()->getDB('PF');
-            if($pfDB){
+            if($pfDB = $f3->DB->getDB('PF')){
                 $sqlDeactivateExpiredMaps = "UPDATE map SET
-                active = 0
-            WHERE
-                map.active = 1 AND
-                map.typeId = 2 AND
-                TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
+                        active = 0
+                    WHERE
+                        map.active = 1 AND
+                        map.typeId = 2 AND
+                        TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
 
                 $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
             }
@@ -50,10 +50,9 @@ class MapUpdate extends AbstractCron {
      */
     function deleteMapData(\Base $f3){
         $this->setMaxExecutionTime();
-        $pfDB = DB\Database::instance()->getDB('PF');
         $deletedMapsCount = 0;
 
-        if($pfDB){
+        if($pfDB = $f3->DB->getDB('PF')){
             $sqlDeleteDisabledMaps = "SELECT
                 id 
             FROM
@@ -65,7 +64,7 @@ class MapUpdate extends AbstractCron {
             $disabledMaps = $pfDB->exec($sqlDeleteDisabledMaps, ['deletion_time' => self::DAYS_UNTIL_MAP_DELETION]);
 
             if($deletedMapsCount = $pfDB->count()){
-                $mapModel =  Model\BasicModel::getNew('MapModel');
+                $mapModel =  Pathfinder\AbstractPathfinderModel::getNew('MapModel');
                 foreach($disabledMaps as $data){
                     $mapModel->getById( (int)$data['id'], 3, false );
                     if( !$mapModel->dry() ){
@@ -92,8 +91,7 @@ class MapUpdate extends AbstractCron {
         $eolExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_EOL');
 
         if($eolExpire > 0){
-            $pfDB = DB\Database::instance()->getDB('PF');
-            if($pfDB){
+            if($pfDB = $f3->DB->getDB('PF')){
                 $sql = "SELECT
                     `con`.`id`
                 FROM
@@ -112,9 +110,9 @@ class MapUpdate extends AbstractCron {
 
                 if($connectionsData){
                     /**
-                     * @var $connection Model\ConnectionModel
+                     * @var $connection Pathfinder\ConnectionModel
                      */
-                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
                     foreach($connectionsData as $data){
                         $connection->getById( (int)$data['id'] );
                         if( !$connection->dry() ){
@@ -137,8 +135,7 @@ class MapUpdate extends AbstractCron {
         $whExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_WH');
 
         if($whExpire > 0){
-            $pfDB = DB\Database::instance()->getDB('PF');
-            if($pfDB){
+            if($pfDB = $f3->DB->getDB('PF')){
                 $sql = "SELECT
                     `con`.`id`
                 FROM
@@ -159,9 +156,9 @@ class MapUpdate extends AbstractCron {
 
                 if($connectionsData){
                     /**
-                     * @var $connection Model\ConnectionModel
+                     * @var $connection Pathfinder\ConnectionModel
                      */
-                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
                     foreach($connectionsData as $data){
                         $connection->getById( (int)$data['id'] );
                         if( !$connection->dry() ){
@@ -183,8 +180,7 @@ class MapUpdate extends AbstractCron {
         $signatureExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_SIGNATURES');
 
         if($signatureExpire > 0){
-            $pfDB = DB\Database::instance()->getDB('PF');
-            if($pfDB){
+            if($pfDB = $f3->DB->getDB('PF')){
                 $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
                     `system_signature` `sigs` INNER JOIN
                     `system` ON 

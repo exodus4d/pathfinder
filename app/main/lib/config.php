@@ -9,6 +9,7 @@
 namespace lib;
 
 
+use lib\db\Pool;
 use lib\api\CcpClient;
 use lib\api\GitHubClient;
 use lib\api\SsoClient;
@@ -18,11 +19,34 @@ use lib\socket\TcpSocket;
 
 class Config extends \Prefab {
 
+    /**
+     * prefix for custom Pathfinder env vars
+     */
     const PREFIX_KEY                                = 'PF';
+
+    /**
+     * delimiter for custom Pathfinder env vars
+     */
     const ARRAY_DELIMITER                           = '-';
+
+    /**
+     * Hive key for all Pathfinder config vars (*.ini files)
+     */
     const HIVE_KEY_PATHFINDER                       = 'PATHFINDER';
+
+    /**
+     * Hive key for all environment config vars (*.ini files)
+     */
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
+
+    /**
+     * Hive key for Socket validation check
+     */
     const CACHE_KEY_SOCKET_VALID                    = 'CACHED_SOCKET_VALID';
+
+    /**
+     * Cache time for Socket validation check
+     */
     const CACHE_TTL_SOCKET_VALID                    = 60;
 
     // ================================================================================================================
@@ -58,7 +82,14 @@ class Config extends \Prefab {
      */
     const DOWNTIME_BUFFER                           = 1;
 
+    /**
+     * error message for missing Composer dependency class
+     */
     const ERROR_CLASS_NOT_EXISTS_COMPOSER           = 'Class "%s" not found. → Check installed Composer packages';
+
+    /**
+     * error message for missing Composer dependency method
+     */
     const ERROR_METHOD_NOT_EXISTS_COMPOSER          = 'Method "%s()" not found in class "%s". → Check installed Composer packages';
 
 
@@ -68,6 +99,9 @@ class Config extends \Prefab {
      */
     const ARRAY_KEYS                                = ['CCP_ESI_SCOPES', 'CCP_ESI_SCOPES_ADMIN'];
 
+    /**
+     * custom HTTP status codes
+     */
     const
         HTTP_422='Unprocessable Entity';
 
@@ -103,12 +137,24 @@ class Config extends \Prefab {
            return new \DateTime($time, $timeZone);
         });
 
-        // lazy init Web Api clients
+        // database connection pool -----------------------------------------------------------------------------------
+        $f3->set(Pool::POOL_NAME, Pool::instance(
+            function(string $alias) use ($f3) : array {
+                // get DB config by alias for new connections
+                return self::getDatabaseConfig($f3, $alias);
+            },
+            function(string $schema) use ($f3) : array {
+                // get DB requirement vars from requirements.ini
+                return self::getRequiredDbVars($f3, $schema);
+            }
+        ));
+
+        // lazy init Web Api clients ----------------------------------------------------------------------------------
         $f3->set(SsoClient::CLIENT_NAME, SsoClient::instance());
         $f3->set(CcpClient::CLIENT_NAME, CcpClient::instance());
         $f3->set(GitHubClient::CLIENT_NAME, GitHubClient::instance());
 
-        // Socket connectors
+        // Socket connectors ------------------------------------------------------------------------------------------
         $f3->set(TcpSocket::SOCKET_NAME, function(array $options = ['timeout' => 1]) : SocketInterface {
             return AbstractSocket::factory(TcpSocket::class, self::getSocketUri(), $options);
         });
@@ -205,13 +251,13 @@ class Config extends \Prefab {
     protected function setServerData(){
         $data = [];
         foreach($_SERVER as $key => $value){
-            if( strpos($key, self::PREFIX_KEY . self::ARRAY_DELIMITER) === 0 ){
+            if(strpos($key, self::PREFIX_KEY . self::ARRAY_DELIMITER) === 0){
                 $path = explode( self::ARRAY_DELIMITER, $key);
                 // remove prefix
                 array_shift($path);
 
                 $tmp = &$data;
-                foreach ($path as $segment) {
+                foreach($path as $segment){
                     $tmp[$segment] = (array)$tmp[$segment];
                     $tmp = &$tmp[$segment];
                 }
@@ -238,32 +284,66 @@ class Config extends \Prefab {
 
     /**
      * get database config values
-     * @param string $dbKey
+     * @param \Base $f3
+     * @param string $alias
      * @return array
      */
-    static function getDatabaseConfig(string $dbKey  = 'PF') : array {
-        $dbKey = strtoupper($dbKey);
-        return [
-            'DNS'   => self::getEnvironmentData('DB_' . $dbKey . '_DNS'),
-            'NAME'  => self::getEnvironmentData('DB_' . $dbKey . '_NAME'),
-            'USER'  => self::getEnvironmentData('DB_' . $dbKey . '_USER'),
-            'PASS'  => self::getEnvironmentData('DB_' . $dbKey . '_PASS'),
-            'ALIAS' => $dbKey
+    static function getDatabaseConfig(\Base $f3, string $alias) : array {
+        $alias = strtoupper($alias);
+
+        $config = [
+            'ALIAS'     => $alias,
+            'SCHEME'    => 'mysql',
+            'HOST'      => 'localhost',
+            'PORT'      => 3306,
+            'SOCKET'    => null,
+            'NAME'      => self::getEnvironmentData('DB_' . $alias . '_NAME'),
+            'USER'      => self::getEnvironmentData('DB_' . $alias . '_USER'),
+            'PASS'      => self::getEnvironmentData('DB_' . $alias . '_PASS')
         ];
+
+        $pdoReg = '/^(?<SCHEME>[[:alpha:]]+):((host=(?<HOST>[a-zA-Z0-9\.]*))|(unix_socket=(?<SOCKET>[a-zA-Z0-9\/]*\.sock)))((;dbname=(?<NAME>\w*))|(;port=(?<PORT>\d*))){0,2}/';
+        if(preg_match($pdoReg, self::getEnvironmentData('DB_' . $alias . '_DNS'), $matches)){
+            // remove unnamed matches
+            $matches = array_intersect_key($matches, $config);
+            // remove empty matches
+            $matches = array_filter($matches);
+            // merge matches with default config
+            $config = array_merge($config, $matches);
+        }
+
+        // connect options --------------------------------------------------------------------------------------------
+        $options = [
+            \PDO::ATTR_ERRMODE          => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_TIMEOUT          => $f3->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT')
+        ];
+
+        if($config['SCHEME'] == 'mysql'){
+            $options[\PDO::MYSQL_ATTR_COMPRESS]     = true;
+            $options[\PDO::MYSQL_ATTR_INIT_COMMAND] = implode(',', [
+                "SET NAMES " . strtolower(str_replace('-','', $f3->ENCODING)),
+                "@@session.time_zone = '+00:00'",
+                "@@session.default_storage_engine = " . self::getRequiredDbVars($f3, $config['SCHEME'])['DEFAULT_STORAGE_ENGINE']
+            ]);
+        }
+
+        if(self::getPathfinderData('experiments.persistent_db_connections')){
+            $options[\PDO::ATTR_PERSISTENT] = true;
+        }
+
+        $config['OPTIONS'] = $options;
+
+        return $config;
     }
 
     /**
-     * get DB config value from PDO connect $dns string
-     * @param string $dns
-     * @param string $key
-     * @return bool
+     * get required MySQL variables from requirements.ini
+     * @param \Base $f3
+     * @param string $schema
+     * @return array
      */
-    static function getDatabaseDNSValue(string $dns, string $key = 'dbname'){
-        $value = false;
-        if(preg_match('/' . preg_quote($key, '/') . '=([[:alnum:]]+)/is', $dns, $parts)){
-            $value = $parts[1];
-        }
-        return $value;
+    static function getRequiredDbVars(\Base $f3, string $schema) : array {
+        return $f3->exists('REQUIREMENTS[' . strtoupper($schema) . '][VARS]', $vars) ? $vars : [];
     }
 
     /**
@@ -354,6 +434,7 @@ class Config extends \Prefab {
      * This function is intended to pre-check a Socket connection if it MIGHT exists.
      * No data will be send to the Socket, this function just validates if a socket is available
      * -> see pingDomain()
+     * @param string $uri
      * @return bool
      */
     static function validSocketConnect(string $uri) : bool{

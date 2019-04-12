@@ -12,10 +12,11 @@ use Controller\Api as Api;
 use Exception\PathfinderException;
 use lib\api\CcpClient;
 use lib\Config;
+use lib\db\SQL;
 use lib\Resource;
 use lib\Monolog;
 use lib\Util;
-use Model;
+use Model\Pathfinder;
 use DB;
 
 class Controller {
@@ -57,8 +58,17 @@ class Controller {
      * get $f3 base object
      * @return \Base
      */
-    protected function getF3(){
+    protected function getF3() : \Base {
         return \Base::instance();
+    }
+
+    /**
+     * get DB connection
+     * @param string $alias
+     * @return SQL|null
+     */
+    protected function getDB(string $alias = 'PF') : ?SQL {
+        return $this->getF3()->DB->getDB($alias);
     }
 
     /**
@@ -68,10 +78,7 @@ class Controller {
      * @param $params
      * @return bool
      */
-    function beforeroute(\Base $f3, $params): bool {
-        // initiate DB connection
-        DB\Database::instance()->getDB('PF');
-
+    function beforeroute(\Base $f3, $params) : bool {
         // init user session
         $this->initSession($f3);
 
@@ -111,15 +118,6 @@ class Controller {
     }
 
     /**
-     * set change the DB connection
-     * @param string $database
-     * @return DB\SQL
-     */
-    protected function getDB($database = 'PF'){
-        return DB\Database::instance()->getDB($database);
-    }
-
-    /**
      * init new Session handler
      * @param \Base $f3
      */
@@ -128,7 +126,7 @@ class Controller {
 
         if(
             $f3->get('SESSION_CACHE') === 'mysql' &&
-            $this->getDB('PF') instanceof DB\SQL
+            ($db = $f3->DB->getDB('PF')) instanceof SQL
         ){
             if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
                 /**
@@ -149,7 +147,7 @@ class Controller {
                     return false;
                 };
 
-                new DB\SQL\MySQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+                new DB\SQL\MySQL\Session($db, 'sessions', true, $onSuspect);
             }
         }
     }
@@ -186,7 +184,7 @@ class Controller {
      * -> whether user accepts cookies
      * @return bool
      */
-    protected function getCookieState(){
+    protected function getCookieState() : bool {
         return (bool)count( $this->getCookieByName(self::COOKIE_NAME_STATE) );
     }
 
@@ -198,7 +196,7 @@ class Controller {
      * @param bool $prefix
      * @return array
      */
-    protected function getCookieByName($cookieName, $prefix = false){
+    protected function getCookieByName($cookieName, $prefix = false) : array {
         $data = [];
 
         if(!empty($cookieName)){
@@ -222,10 +220,10 @@ class Controller {
     /**
      * set/update logged in cookie by character model
      * -> store validation data in DB
-     * @param Model\CharacterModel $character
+     * @param Pathfinder\CharacterModel $character
      * @throws \Exception
      */
-    protected function setLoginCookie(Model\CharacterModel $character){
+    protected function setLoginCookie(Pathfinder\CharacterModel $character){
         if( $this->getCookieState() ){
             $expireSeconds = (int)Config::getPathfinderData('login.cookie_expire');
             $expireSeconds *= 24 * 60 * 60;
@@ -279,10 +277,10 @@ class Controller {
      *
      * @param array $cookieData
      * @param bool $checkAuthorization
-     * @return Model\CharacterModel[]
+     * @return Pathfinder\CharacterModel[]
      * @throws \Exception
      */
-    protected function getCookieCharacters($cookieData = [], $checkAuthorization = true){
+    protected function getCookieCharacters($cookieData = [], $checkAuthorization = true) : array {
         $characters = [];
 
         if(
@@ -290,9 +288,9 @@ class Controller {
             !empty($cookieData)
         ){
             /**
-             * @var $characterAuth Model\CharacterAuthenticationModel
+             * @var $characterAuth Pathfinder\CharacterAuthenticationModel
              */
-            $characterAuth = Model\BasicModel::getNew('CharacterAuthenticationModel');
+            $characterAuth = Pathfinder\AbstractPathfinderModel::getNew('CharacterAuthenticationModel');
 
             $timezone = $this->getF3()->get('getTimeZone')();
             $currentTime = new \DateTime('now', $timezone);
@@ -318,7 +316,7 @@ class Controller {
                             // -> try to update character information from ESI
                             // e.g. Corp has changed, this also ensures valid "access_token"
                             /**
-                             * @var $character Model\CharacterModel
+                             * @var $character Pathfinder\CharacterModel
                              */
                             $updateStatus = $characterAuth->characterId->updateFromESI();
 
@@ -413,17 +411,17 @@ class Controller {
     /**
      * get current character
      * @param int $ttl
-     * @return Model\CharacterModel|null
+     * @return Pathfinder\CharacterModel|null
      * @throws \Exception
      */
-    public function getCharacter(int $ttl = 0) : ?Model\CharacterModel {
+    public function getCharacter(int $ttl = 0) : ?Pathfinder\CharacterModel {
         $character = null;
 
         if(!empty($characterData = $this->getSessionCharacterData())){
             /**
-             * @var $characterModel Model\CharacterModel
+             * @var $characterModel Pathfinder\CharacterModel
              */
-            $characterModel = Model\BasicModel::getNew('CharacterModel');
+            $characterModel = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
             $characterModel->getById((int)$characterData['ID'], $ttl);
             if(
                 !$characterModel->dry() &&
@@ -439,17 +437,17 @@ class Controller {
     /**
      * get current user
      * @param int $ttl
-     * @return Model\UserModel|null
+     * @return Pathfinder\UserModel|null
      * @throws \Exception
      */
-    public function getUser($ttl = 0){
+    public function getUser($ttl = 0) : ?Pathfinder\UserModel {
         $user = null;
 
         if($this->getF3()->exists(Api\User::SESSION_KEY_USER_ID, $userId)){
             /**
-             * @var $userModel Model\UserModel
+             * @var $userModel Pathfinder\UserModel
              */
-            $userModel = Model\BasicModel::getNew('UserModel');
+            $userModel = Pathfinder\AbstractPathfinderModel::getNew('UserModel');
             $userModel->getById($userId, $ttl);
 
             if(
@@ -495,9 +493,9 @@ class Controller {
         if($sessionCharacterData){
             $activeCharacterId = ($activeCharacter = $this->getCharacter()) ? $activeCharacter->_id : 0;
             /**
-             * @var Model\CharacterModel $character
+             * @var $character Pathfinder\CharacterModel
              */
-            $character = Model\BasicModel::getNew('CharacterModel');
+            $character = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
             $characterIds = [];
             foreach($sessionCharacterData as $characterData){
                 if($characterData['ID'] === $activeCharacterId){
@@ -689,7 +687,7 @@ class Controller {
      * get a custom userAgent string for API calls
      * @return string
      */
-    protected function getUserAgent(){
+    protected function getUserAgent() : string {
         $userAgent = '';
         $userAgent .= Config::getPathfinderData('name');
         $userAgent .=  ' - ' . Config::getPathfinderData('version');
@@ -812,7 +810,7 @@ class Controller {
      * get controller by class name
      * -> controller class is searched within all controller directories
      * @param $className
-     * @return null|\Controller\
+     * @return null|Controller
      * @throws \Exception
      */
     static function getController($className){
@@ -862,7 +860,7 @@ class Controller {
      * getallheaders() is not available under nginx
      * @return array (string $key -> string $value)
      */
-    static function getRequestHeaders(){
+    static function getRequestHeaders() : array {
         $headers = [];
 
         $serverData = self::getServerData();
@@ -871,10 +869,10 @@ class Controller {
             function_exists('apache_request_headers') &&
             $serverData->type === 'apache'
         ){
-            // Apache Webserver
+            // Apache WebServer
             $headers = apache_request_headers();
         }else{
-            // Other webserver, e.g. Nginx
+            // Other WebServer, e.g. Nginx
             // Unfortunately this "fallback" does not work for me (Apache)
             // Therefore we can´t use this for all servers
             // https://github.com/exodus4d/pathfinder/issues/58
@@ -956,9 +954,9 @@ class Controller {
      * @param $key
      * @return string
      */
-    static function formatHiveKey($key){
+    static function formatHiveKey($key) : string {
         $illegalCharacters = ['-', ' '];
-        return strtolower( str_replace($illegalCharacters, '', $key) );
+        return strtolower(str_replace($illegalCharacters, '', $key));
     }
 
     /**

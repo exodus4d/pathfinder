@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 14.10.2017
  * Time: 15:56
  */
@@ -10,7 +10,7 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class TypeModel extends BasicUniverseModel {
+class TypeModel extends AbstractUniverseModel {
 
     protected $table = 'type';
 
@@ -138,6 +138,9 @@ class TypeModel extends BasicUniverseModel {
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient()->getUniverseTypesData($id);
         if(!empty($data)){
+            /**
+             * @var $group GroupModel
+             */
             $group = $this->rel('groupId');
             $group->loadById($data['groupId'], $accessToken, $additionalOptions);
             $data['groupId'] = $group;

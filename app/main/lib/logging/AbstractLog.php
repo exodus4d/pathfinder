@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 04.08.2017
  * Time: 22:13
  */
@@ -416,6 +416,10 @@ abstract class AbstractLog implements LogInterface {
     }
 
     // Handler parameters for Monolog\Handler\AbstractHandler ---------------------------------------------------------
+
+    /**
+     * @return array
+     */
     protected function getHandlerParamsStream() : array{
         $params = [];
         if( !empty($conf = $this->handlerParamsConfig['stream']) ){

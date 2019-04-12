@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 13.05.2018
  * Time: 18:36
  */
@@ -10,7 +10,7 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class WormholeModel extends BasicUniverseModel {
+class WormholeModel extends AbstractUniverseModel {
 
     protected $table = 'wormhole';
 
@@ -178,10 +178,15 @@ class WormholeModel extends BasicUniverseModel {
     public function exportData(array $fields = [
         'id', 'name', 'typeId', 'static', 'security', 'massTotal', 'massIndividual',
         'massRegeneration', 'maxStableTime', 'signatureStrength']
-    ){
+    ) : bool {
         return parent::exportData($fields);
     }
 
+    /**
+     * @param int $id
+     * @param string $accessToken
+     * @param array $additionalOptions
+     */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){}
 
 }

@@ -14,7 +14,12 @@ use lib\Resource;
 
 class AppController extends Controller {
 
-    public function beforeroute(\Base $f3, $params) : bool{
+    /**
+     * @param \Base $f3
+     * @param $params
+     * @return bool
+     */
+    public function beforeroute(\Base $f3, $params) : bool {
         // page title
         $f3->set('tplPageTitle',  Config::getPathfinderData('name'));
 
@@ -58,7 +63,7 @@ class AppController extends Controller {
      * show main login (index) page
      * @param \Base $f3
      */
-    public function init(\Base $f3) {
+    public function init(\Base $f3){
         $resource = Resource::instance();
         $resource->register('script', 'app/login');
         $resource->register('script', 'app/mappage', 'prefetch');

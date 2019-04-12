@@ -2035,6 +2035,38 @@ define([
     };
 
     /**
+     * get a HTML table with universe region information
+     * e.g. for popover
+     * @param regionName
+     * @param faction
+     * @returns {string}
+     */
+    let getSystemRegionTable = (regionName, faction) => {
+        let table = '<table>';
+        table += '<tr>';
+        table += '<td>';
+        table += 'Region';
+        table += '</td>';
+        table += '<td class="text-right">';
+        table += regionName;
+        table += '</td>';
+        table += '</tr>';
+        table += '<tr>';
+        if(faction){
+            table += '<td>';
+            table += 'Faction';
+            table += '</td>';
+            table += '<td class="text-right">';
+            table += faction.name;
+            table += '</td>';
+            table += '</tr>';
+        }
+        table += '</table>';
+
+        return table;
+    };
+
+    /**
      * get a HTML table with pilots/ship names
      * @param users
      * @returns {string}
@@ -3197,6 +3229,7 @@ define([
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
         getSystemPlanetsTable: getSystemPlanetsTable,
+        getSystemRegionTable: getSystemRegionTable,
         getSystemPilotsTable: getSystemPilotsTable,
         getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,

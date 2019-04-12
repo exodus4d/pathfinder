@@ -11,7 +11,9 @@ namespace Controller\Api;
 use Controller;
 use data\file\FileHandler;
 use lib\Config;
-use Model;
+use Model\AbstractModel;
+use Model\Pathfinder;
+use Model\Universe;
 use Exception;
 
 /**
@@ -65,7 +67,7 @@ class Map extends Controller\AccessController {
             $return->timer = Config::getPathfinderData('timer');
 
             // get all available map types ----------------------------------------------------------------------------
-            $mapType = Model\BasicModel::getNew('MapTypeModel');
+            $mapType = Pathfinder\AbstractPathfinderModel::getNew('MapTypeModel');
             $rows = $mapType->find('active = 1');
 
             // default map type config
@@ -86,7 +88,7 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($mapTypeData) : $validInitData;
 
             // get all available map scopes ---------------------------------------------------------------------------
-            $mapScope = Model\BasicModel::getNew('MapScopeModel');
+            $mapScope = Pathfinder\AbstractPathfinderModel::getNew('MapScopeModel');
             $rows = $mapScope->find('active = 1');
             $mapScopeData = [];
             foreach((array)$rows as $rowData){
@@ -101,7 +103,7 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($mapScopeData) : $validInitData;
 
             // get all available system status ------------------------------------------------------------------------
-            $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
+            $systemStatus = Pathfinder\AbstractPathfinderModel::getNew('SystemStatusModel');
             $rows = $systemStatus->find('active = 1');
             $systemScopeData = [];
             foreach((array)$rows as $rowData){
@@ -117,7 +119,7 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($systemScopeData) : $validInitData;
 
             // get all available system types -------------------------------------------------------------------------
-            $systemType = Model\BasicModel::getNew('SystemTypeModel');
+            $systemType = Pathfinder\AbstractPathfinderModel::getNew('SystemTypeModel');
             $rows = $systemType->find('active = 1');
             $systemTypeData = [];
             foreach((array)$rows as $rowData){
@@ -132,7 +134,7 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($systemTypeData) : $validInitData;
 
             // get available connection scopes ------------------------------------------------------------------------
-            $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
+            $connectionScope = Pathfinder\AbstractPathfinderModel::getNew('ConnectionScopeModel');
             $rows = $connectionScope->find('active = 1');
             $connectionScopeData = [];
             foreach((array)$rows as $rowData){
@@ -148,7 +150,7 @@ class Map extends Controller\AccessController {
             $validInitData = $validInitData ? !empty($connectionScopeData) : $validInitData;
 
             // get available character status -------------------------------------------------------------------------
-            $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
+            $characterStatus = Pathfinder\AbstractPathfinderModel::getNew('CharacterStatusModel');
             $rows = $characterStatus->find('active = 1');
             $characterStatusData = [];
             foreach((array)$rows as $rowData){
@@ -197,7 +199,7 @@ class Map extends Controller\AccessController {
             ];
 
             // structure status ---------------------------------------------------------------------------------------
-            $structureStatus = Model\StructureStatusModel::getAll();
+            $structureStatus = Pathfinder\StructureStatusModel::getAll();
             $structureData = [];
             foreach($structureStatus as $status){
                 $structureData[$status->_id] = $status->getData();
@@ -208,9 +210,9 @@ class Map extends Controller\AccessController {
 
             // get available wormhole types ---------------------------------------------------------------------------
             /**
-             * @var $wormhole Model\Universe\WormholeModel
+             * @var $wormhole Universe\WormholeModel
              */
-            $wormhole = Model\Universe\BasicUniverseModel::getNew('WormholeModel');
+            $wormhole = Universe\AbstractUniverseModel::getNew('WormholeModel');
             $wormholesData = [];
             if($rows = $wormhole->find(null, ['order' => 'name asc'])){
                 foreach($rows as $rowData){
@@ -227,9 +229,9 @@ class Map extends Controller\AccessController {
 
             // universe category data ---------------------------------------------------------------------------------
             /**
-             * @var $categoryUniverseModel Model\Universe\CategoryModel
+             * @var $categoryUniverseModel Universe\CategoryModel
              */
-            $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            $categoryUniverseModel = Universe\AbstractUniverseModel::getNew('CategoryModel');
             $categoryUniverseModel->getById(6);
             $shipData = $categoryUniverseModel->getData(['mass']);
             $categoryUniverseModel->getById(65);
@@ -280,14 +282,14 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $map Model\MapModel
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
 
             /**
-             * @var $mapType Model\MapTypeModel
+             * @var $mapType Pathfinder\MapTypeModel
              */
-            $mapType = Model\BasicModel::getNew('MapTypeModel');
+            $mapType = Pathfinder\AbstractPathfinderModel::getNew('MapTypeModel');
             $mapType->getById((int)$importData['typeId']);
 
             if( !$mapType->dry() ){
@@ -302,9 +304,9 @@ class Map extends Controller\AccessController {
                         $mapDataData = (array)$mapData['data'];
 
                         /**
-                         * @var $mapScope Model\MapScopeModel
+                         * @var $mapScope Pathfinder\MapScopeModel
                          */
-                        $mapScope = Model\BasicModel::getNew('MapScopeModel');
+                        $mapScope = Pathfinder\AbstractPathfinderModel::getNew('MapScopeModel');
                         $mapScope->getById((int)$mapDataConfig['scope']['id']);
 
                         if( !$mapScope->dry() ){
@@ -340,9 +342,9 @@ class Map extends Controller\AccessController {
                                     }
 
                                     /**
-                                     * @var $connection Model\ConnectionModel
+                                     * @var $connection Pathfinder\ConnectionModel
                                      */
-                                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                                    $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
                                     $connection->setActivityLogging(false);
 
                                     foreach($mapDataConnections as $connectionData){
@@ -437,9 +439,9 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $map Model\MapModel
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById( (int)$formData['id'] );
 
             if(
@@ -470,9 +472,9 @@ class Map extends Controller\AccessController {
 
                             if($accessCharacters){
                                 /**
-                                 * @var $tempCharacter Model\CharacterModel
+                                 * @var $tempCharacter Pathfinder\CharacterModel
                                  */
-                                $tempCharacter = Model\BasicModel::getNew('CharacterModel');
+                                $tempCharacter = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
 
                                 foreach($accessCharacters as $characterId){
                                     $tempCharacter->getById( (int)$characterId );
@@ -513,9 +515,9 @@ class Map extends Controller\AccessController {
 
                                 if($accessCorporations){
                                     /**
-                                     * @var $tempCorporation Model\CorporationModel
+                                     * @var $tempCorporation Pathfinder\CorporationModel
                                      */
-                                    $tempCorporation = Model\BasicModel::getNew('CorporationModel');
+                                    $tempCorporation = Pathfinder\AbstractPathfinderModel::getNew('CorporationModel');
 
                                     foreach($accessCorporations as $corporationId){
                                         $tempCorporation->getById( (int)$corporationId );
@@ -556,9 +558,9 @@ class Map extends Controller\AccessController {
 
                                 if($accessAlliances){
                                     /**
-                                     * @var $tempAlliance Model\AllianceModel
+                                     * @var $tempAlliance Pathfinder\AllianceModel
                                      */
-                                    $tempAlliance = Model\BasicModel::getNew('AllianceModel');
+                                    $tempAlliance = Pathfinder\AbstractPathfinderModel::getNew('AllianceModel');
 
                                     foreach($accessAlliances as $allianceId){
                                         $tempAlliance->getById( (int)$allianceId );
@@ -623,9 +625,9 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $map Model\MapModel
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
 
             if($map->hasAccess($activeCharacter)){
@@ -644,10 +646,10 @@ class Map extends Controller\AccessController {
     /**
      * broadcast characters with map access rights to WebSocket server
      * -> if characters with map access found -> broadcast mapData to them
-     * @param Model\MapModel $map
+     * @param Pathfinder\MapModel $map
      * @throws Exception
      */
-    protected function broadcastMapAccess(Model\MapModel $map){
+    protected function broadcastMapAccess(Pathfinder\MapModel $map){
         $mapAccess =  [
             'id' => $map->_id,
             'characterIds' => array_map(function ($data){
@@ -820,11 +822,11 @@ class Map extends Controller\AccessController {
 
     /**
      * get formatted map data
-     * @param Model\MapModel[] $mapModels
+     * @param Pathfinder\MapModel[] $mapModels
      * @return array
      * @throws Exception
      */
-    protected function getFormattedMapsData($mapModels){
+    protected function getFormattedMapsData(array $mapModels) : array {
         $mapData = [];
         foreach($mapModels as $mapModel){
             $mapData[] = $this->getFormattedMapData($mapModel);
@@ -905,12 +907,12 @@ class Map extends Controller\AccessController {
 
     /**
      * add new map connection based on current $character location
-     * @param Model\CharacterModel $character
-     * @param Model\MapModel $map
-     * @return Model\MapModel
+     * @param Pathfinder\CharacterModel $character
+     * @param Pathfinder\MapModel $map
+     * @return Pathfinder\MapModel
      * @throws Exception
      */
-    protected function updateMapData(Model\CharacterModel $character, Model\MapModel $map){
+    protected function updateMapData(Pathfinder\CharacterModel $character, Pathfinder\MapModel $map){
 
         // map changed. update cache (system/connection) changed
         $mapDataChanged = false;
@@ -944,14 +946,14 @@ class Map extends Controller\AccessController {
                 // -> NO target system available
                 if($sourceSystemId === $targetSystemId){
                     // check if previous (solo) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [Model\BasicModel::getFilter('active', true)]);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [AbstractModel::getFilter('active', true)]);
                     $sameSystem = true;
                 }else{
                     // check if previous (source) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [Model\BasicModel::getFilter('active', true)]);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [AbstractModel::getFilter('active', true)]);
 
                     // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId($targetSystemId, [Model\BasicModel::getFilter('active', true)]);
+                    $targetSystem = $map->getSystemByCCPId($targetSystemId, [AbstractModel::getFilter('active', true)]);
                 }
 
                 // if systems don´t already exists on map -> get "blank" system
@@ -1131,9 +1133,9 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\MapModel $map
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
 
             if($map->hasAccess($activeCharacter)){
@@ -1187,9 +1189,9 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\MapModel $map
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
 
             if($map->hasAccess($activeCharacter)){

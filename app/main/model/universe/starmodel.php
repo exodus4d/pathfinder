@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 18.05.2018
  * Time: 23:52
  */
@@ -10,7 +10,7 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class StarModel extends BasicUniverseModel {
+class StarModel extends AbstractUniverseModel {
 
     protected $table = 'star';
 

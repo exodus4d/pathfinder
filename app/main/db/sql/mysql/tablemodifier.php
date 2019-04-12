@@ -23,7 +23,7 @@ class TableModifier extends SQL\TableModifier {
     /**
      * return table foreign key constraints as assoc array
      * -> if §constraint is passed, constraints are limited to that column
-     * @param null| \DB\SQL\MySQL\Constraint $constraint
+     * @param null| SQL\MySQL\Constraint $constraint
      * @return Constraint[]
      */
     public function listConstraint($constraint = null){
@@ -65,7 +65,7 @@ class TableModifier extends SQL\TableModifier {
     /**
      * checks whether a constraint name exists or not
      * -> does not check constraint params
-     * @param \DB\SQL\MySQL\Constraint $constraint
+     * @param SQL\MySQL\Constraint $constraint
      * @return bool
      */
     public function constraintExists($constraint){
@@ -75,7 +75,7 @@ class TableModifier extends SQL\TableModifier {
 
     /**
      * drop foreign key constraint
-     * @param \DB\SQL\MySQL\Constraint $constraint
+     * @param SQL\MySQL\Constraint $constraint
      */
     public function dropConstraint($constraint){
         if($constraint->isValid()){
@@ -88,7 +88,7 @@ class TableModifier extends SQL\TableModifier {
 
     /**
      * Add/Update foreign key constraint
-     * @param \DB\SQL\MySQL\Constraint $constraint
+     * @param SQL\MySQL\Constraint $constraint
      */
     public function addConstraint($constraint){
 
@@ -147,7 +147,7 @@ class Column extends SQL\Column {
      * $constraintData['on-update'] => ON UPDATE action (optional) default: see \DB\SQL\MySQL\Constraint const
      *
      * @param array $constraintData
-     * @return \DB\SQL\MySQL\Constraint
+     * @return SQL\MySQL\Constraint
      */
     public function newConstraint($constraintData){
 

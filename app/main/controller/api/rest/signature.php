@@ -9,7 +9,7 @@
 namespace Controller\Api\Rest;
 
 
-use Model;
+use Model\Pathfinder;
 
 class Signature extends AbstractRestController {
 
@@ -26,9 +26,9 @@ class Signature extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $system Model\SystemModel
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId, 0);
             if($system->hasAccess($activeCharacter)){
                 // if there is any changed/deleted/updated signature
@@ -112,9 +112,9 @@ class Signature extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $system Model\SystemModel
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId);
             if($system->hasAccess($activeCharacter)){
                 $signature = $system->getNewSignature();
@@ -143,9 +143,9 @@ class Signature extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $signature Model\SystemSignatureModel
+             * @var $signature Pathfinder\SystemSignatureModel
              */
-            $signature = Model\BasicModel::getNew('SystemSignatureModel');
+            $signature = Pathfinder\AbstractPathfinderModel::getNew('SystemSignatureModel');
             $signature->getById($signatureId);
             if($signature->hasAccess($activeCharacter)){
                 // if groupId changed
@@ -183,9 +183,9 @@ class Signature extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $system Model\SystemModel
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){
@@ -194,7 +194,7 @@ class Signature extends AbstractRestController {
                 $updateSignaturesHistory = false;
 
                 /**
-                 * @var Model\SystemSignatureModel $signature
+                 * @var $signature Pathfinder\SystemSignatureModel
                  */
                 $signature = $system->rel('signatures');
                 foreach($signatureIds as $signatureId){

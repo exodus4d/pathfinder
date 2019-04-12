@@ -9,7 +9,7 @@
 namespace Controller\Api;
 
 use Controller;
-use Model;
+use Model\Pathfinder;
 
 class System extends Controller\AccessController {
 
@@ -58,7 +58,7 @@ class System extends Controller\AccessController {
                 $cacheSystem = false;
 
                 foreach($logTables as $label => $ModelClass){
-                    $systemLogModel = Model\BasicModel::getNew($ModelClass);
+                    $systemLogModel = Pathfinder\AbstractPathfinderModel::getNew($ModelClass);
                     $systemLogExists = false;
 
                     // 10min cache (could be up to 1h cache time)
@@ -167,9 +167,9 @@ class System extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\SystemModel $system
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){

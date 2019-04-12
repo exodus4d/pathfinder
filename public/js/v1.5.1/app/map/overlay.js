@@ -324,24 +324,29 @@ define([
                 over: function(e){
                     let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).each(function(){
-                        let system = $(this);
-                        // init tooltip if not already exists
-                        if( !system.data('bs.tooltip') ){
-                            system.tooltip({
-                                container: mapElement,
+                        let systemHead = $(this);
+                        // init popover if not already exists
+                        if(!systemHead.data('bs.popover')){
+                            let system = systemHead.parent();
+                            systemHead.popover({
                                 placement: 'right',
-                                title: function(){
-                                    return $(this).parent().data('region');
-                                },
-                                trigger: 'manual'
+                                html: true,
+                                trigger: 'manual',
+                                container: mapElement,
+                                title: false,
+                                content: Util.getSystemRegionTable(
+                                    system.data('region'),
+                                    system.data('faction') || null
+                                )
                             });
                         }
-                        system.tooltip('show');
+                        systemHead.setPopoverSmall();
+                        systemHead.popover('show');
                     });
                 },
                 out: function(e){
                     let mapElement = Util.getMapElementFromOverlay(this);
-                    mapElement.find('.' + config.systemHeadClass).tooltip('hide');
+                    mapElement.find('.' + config.systemHeadClass).popover('hide');
                 }
             }
         },

@@ -9,7 +9,7 @@
 namespace Controller;
 
 
-use Model;
+use Model\Pathfinder;
 
 class AccessController extends Controller {
 
@@ -20,7 +20,7 @@ class AccessController extends Controller {
      * @return bool
      * @throws \Exception
      */
-    function beforeroute(\Base $f3, $params): bool {
+    function beforeroute(\Base $f3, $params) : bool {
         if($return = parent::beforeroute($f3, $params)){
             // Any route/endpoint of a child class of this one,
             // requires a valid logged in user!
@@ -41,7 +41,7 @@ class AccessController extends Controller {
      * @return string
      * @throws \Exception
      */
-    protected function isLoggedIn(\Base $f3): string {
+    protected function isLoggedIn(\Base $f3) : string {
         $loginStatus = 'UNKNOWN';
         if($character = $this->getCharacter()){
             if($character->checkLoginTimer()){
@@ -63,7 +63,7 @@ class AccessController extends Controller {
             $f3->get('DEBUG') === 3
         ){
             self::getLogger('CHARACTER_ACCESS')->write(
-                sprintf(Model\CharacterModel::LOG_ACCESS,
+                sprintf(Pathfinder\CharacterModel::LOG_ACCESS,
                     $character->_id ,
                     $loginStatus,
                     $character->name
@@ -77,21 +77,21 @@ class AccessController extends Controller {
     /**
      * broadcast map data to clients
      * -> send over TCP Socket
-     * @param Model\MapModel $map
+     * @param Pathfinder\MapModel $map
      * @throws \Exception
      */
-    protected function broadcastMapData(Model\MapModel $map) : void {
+    protected function broadcastMapData(Pathfinder\MapModel $map) : void {
         $mapData = $this->getFormattedMapData($map);
         $this->getF3()->webSocket()->write('mapUpdate', $mapData);
     }
 
     /**
      * get formatted Map Data
-     * @param Model\MapModel $map
+     * @param Pathfinder\MapModel $map
      * @return array
      * @throws \Exception
      */
-    protected function getFormattedMapData(Model\MapModel $map){
+    protected function getFormattedMapData(Pathfinder\MapModel $map) : array {
         $mapData = $map->getData();
 
         return [

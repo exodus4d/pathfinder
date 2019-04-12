@@ -7,8 +7,10 @@
  */
 
 namespace Controller\Api;
+
+
 use Controller;
-use Model;
+use Model\Pathfinder;
 use Exception;
 
 class User extends Controller\Controller{
@@ -41,11 +43,11 @@ class User extends Controller\Controller{
 
     /**
      * login a valid character
-     * @param Model\CharacterModel $character
+     * @param Pathfinder\CharacterModel $character
      * @return bool
      * @throws Exception
      */
-    protected function loginByCharacter(Model\CharacterModel &$character) : bool {
+    protected function loginByCharacter(Pathfinder\CharacterModel &$character) : bool {
         $login = false;
 
         if($user = $character->getUser()){

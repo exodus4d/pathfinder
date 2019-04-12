@@ -11,7 +11,7 @@ namespace Controller\Api;
 use Controller;
 use Controller\Ccp\Universe;
 use lib\Config;
-use Model;
+use Model\Pathfinder;
 
 /**
  * Routes controller
@@ -20,6 +20,9 @@ use Model;
  */
 class Route extends Controller\AccessController {
 
+    /**
+     * route search depth
+     */
     const ROUTE_SEARCH_DEPTH_DEFAULT = 1;
 
     /**
@@ -670,9 +673,9 @@ class Route extends Controller\AccessController {
             $validMaps = [];
 
             /**
-             * @var $map Model\MapModel
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
 
             // limit max search routes to max limit
             array_splice($routesData, Config::getPathfinderData('route.limit'));
@@ -686,7 +689,7 @@ class Route extends Controller\AccessController {
                 // check map access (filter requested mapIDs and format) ----------------------------------------------
                 array_walk($mapData, function(&$item, &$key, $data){
                     /**
-                     * @var Model\MapModel $data[0]
+                     * @var Pathfinder\MapModel $data[0]
                      */
                     if( isset($data[1][$key]) ){
                         // character has map access -> do not check again

@@ -1,14 +1,14 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 13.10.2018
  * Time: 15:28
  */
 
 namespace Controller\Api\Rest;
 
-use Model;
+use Model\Pathfinder;
 
 class Log extends AbstractRestController {
 
@@ -25,9 +25,9 @@ class Log extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\ConnectionModel $connection
+             * @var $connection Pathfinder\ConnectionModel
              */
-            $connection = Model\BasicModel::getNew('ConnectionModel');
+            $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
             $connection->getById($connectionId);
 
             if($connection->hasAccess($activeCharacter)){
@@ -84,7 +84,7 @@ class Log extends AbstractRestController {
      * update existing connectionLog with new data
      * @param int $logId
      * @param array $logData
-     * @return bool|Model\ConnectionLogModel
+     * @return bool|Pathfinder\ConnectionLogModel
      * @throws \Exception
      */
     private function update(int $logId, array $logData){
@@ -92,9 +92,9 @@ class Log extends AbstractRestController {
         if($logId){
             $activeCharacter = $this->getCharacter();
             /**
-             * @var Model\ConnectionLogModel $log
+             * @var $log Pathfinder\ConnectionLogModel
              */
-            $log = Model\BasicModel::getNew('ConnectionLogModel');
+            $log = Pathfinder\AbstractPathfinderModel::getNew('ConnectionLogModel');
             $log->getById($logId, 0, false);
 
             if($log->hasAccess($activeCharacter)){

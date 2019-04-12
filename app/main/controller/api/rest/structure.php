@@ -9,7 +9,7 @@
 namespace Controller\Api\Rest;
 
 
-use Model;
+use Model\Pathfinder;
 
 class Structure extends AbstractRestController {
 
@@ -55,9 +55,9 @@ class Structure extends AbstractRestController {
         if($structureId = (int)$params['id']){
             $activeCharacter = $this->getCharacter();
             /**
-             * @var $structure Model\StructureModel
+             * @var $structure Pathfinder\StructureModel
              */
-            $structure = Model\BasicModel::getNew('StructureModel');
+            $structure = Pathfinder\AbstractPathfinderModel::getNew('StructureModel');
             $structure->getById($structureId);
             if($structure->hasAccess($activeCharacter) && $structure->erase()){
                 $deletedStructureIds[] = $structureId;
@@ -78,9 +78,9 @@ class Structure extends AbstractRestController {
         if($activeCharacter->hasCorporation()){
             // structures always belong to a corporation
             /**
-             * @var $structure Model\StructureModel
+             * @var $structure Pathfinder\StructureModel
              */
-            $structure = Model\BasicModel::getNew('StructureModel');
+            $structure = Pathfinder\AbstractPathfinderModel::getNew('StructureModel');
             foreach($structuresData as $structureData){
                 // reset on loop start because of potential "continue"
                 $structure->reset();

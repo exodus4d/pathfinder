@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 19.05.2018
  * Time: 04:30
  */
@@ -10,7 +10,7 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class StargateModel extends BasicUniverseModel {
+class StargateModel extends AbstractUniverseModel {
 
     protected $table = 'stargate';
 
@@ -152,13 +152,10 @@ class StargateModel extends BasicUniverseModel {
      * @return bool
      * @throws \Exception
      */
-    public static function setup($db=null, $table=null, $fields=null){
-        $status = parent::setup($db,$table,$fields);
-
-        if($status === true){
+    public static function setup($db = null, $table = null, $fields = null){
+        if($status = parent::setup($db, $table, $fields)){
             $status = parent::setMultiColumnIndex(['systemId', 'destinationSystemId'], true);
         }
-
         return $status;
     }
 }

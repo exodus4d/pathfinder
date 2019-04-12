@@ -9,7 +9,7 @@
 namespace Controller\Api;
 
 use Controller;
-use Model;
+use Model\Pathfinder;
 
 class Access extends Controller\AccessController {
 
@@ -33,13 +33,13 @@ class Access extends Controller\AccessController {
             $accessModel = null;
             switch($searchType){
                 case 'character':
-                    $accessModel = Model\BasicModel::getNew('CharacterModel');
+                    $accessModel = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
                     break;
                 case 'corporation':
-                    $accessModel = Model\BasicModel::getNew('CorporationModel');
+                    $accessModel = Pathfinder\AbstractPathfinderModel::getNew('CorporationModel');
                     break;
                 case 'alliance':
-                    $accessModel = Model\BasicModel::getNew('AllianceModel');
+                    $accessModel = Pathfinder\AbstractPathfinderModel::getNew('AllianceModel');
                     break;
             }
 

@@ -9,7 +9,7 @@
 namespace Controller\Api\Rest;
 
 
-use Model;
+use Model\Pathfinder;
 use lib\Config;
 
 class SignatureHistory extends AbstractRestController {
@@ -27,9 +27,9 @@ class SignatureHistory extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $system Model\SystemModel
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){
@@ -69,9 +69,9 @@ class SignatureHistory extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $system Model\SystemModel
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId, 0);
             if($system->hasAccess($activeCharacter)){
                 if($historyEntry = $system->getSignatureHistoryData($stamp)){

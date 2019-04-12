@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 19.05.2018
  * Time: 03:46
  */
@@ -172,7 +172,7 @@ class Universe extends AbstractCron {
         $count = 0;
         $importCount = [];
         $modelClass = '';
-        $setupModel = function(Model\Universe\BasicUniverseModel &$model, int $id){};
+        $setupModel = function(Model\Universe\AbstractUniverseModel &$model, int $id){};
 
         switch($type){
             case 'system':
@@ -223,7 +223,7 @@ class Universe extends AbstractCron {
             /**
              * @var $model Model\Universe\SystemModel
              */
-            $model = Model\Universe\BasicUniverseModel::getNew($modelClass);
+            $model = Model\Universe\AbstractUniverseModel::getNew($modelClass);
             foreach($ids as $id){
                 $timeLoopStart = microtime(true);
                 $this->echoLoading(++$count, $importCount, $id);
@@ -252,7 +252,7 @@ class Universe extends AbstractCron {
     function updateUniverseSystems(\Base $f3){
         $this->setMaxExecutionTime();
 
-        $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+        $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
         $systems = $system->find( null, ['order' => 'updated', 'limit' => 2]);
         if($systems){
             foreach ($systems as $system){

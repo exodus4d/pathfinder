@@ -10,7 +10,7 @@ namespace controller\api;
 
 use Controller;
 use lib\Config;
-use Model\CharacterModel;
+use Model\Pathfinder\CharacterModel;
 
 class Statistic extends Controller\AccessController {
 
@@ -31,10 +31,14 @@ class Statistic extends Controller\AccessController {
      * @param $year
      * @return int
      */
-    protected function getIsoWeeksInYear($year) {
-        $date = new \DateTime;
-        $date->setISODate($year, 53);
-        return ($date->format('W') === '53' ? 53 : 52);
+    protected function getIsoWeeksInYear($year){
+        $week = 0;
+        try{
+            $date = new \DateTime;
+            $date->setISODate($year, 53);
+            $week = ($date->format('W') === '53' ? 53 : 52);
+        }catch(\Exception $e){}
+        return $week;
     }
 
     /**
@@ -124,7 +128,7 @@ class Statistic extends Controller\AccessController {
      * @param int $weekEnd
      * @return array
      */
-    protected function queryStatistic( CharacterModel $character, $typeId, $yearStart, $weekStart, $yearEnd, $weekEnd){
+    protected function queryStatistic(CharacterModel $character, $typeId, $yearStart, $weekStart, $yearEnd, $weekEnd){
         $data = [];
 
         // can be either "characterId" || "corporationId" || "allianceId"
@@ -281,9 +285,9 @@ class Statistic extends Controller\AccessController {
         $offsetPrev         = $this->calculateYearWeekOffset($yearStart, $weekStart, $weekCount + 1, true);
 
         // check if "next" button is available (not in future)
-        $currentCurrentDataConcat = intval( $this->concatYearWeek($currentYear, $currentWeek) );
-        $offsetNextDateConcat =  intval( $this->concatYearWeek($offsetNext['year'], $offsetNext['week']) );
-        if( $offsetNextDateConcat <= $currentCurrentDataConcat){
+        $currentCurrentDataConcat = intval($this->concatYearWeek($currentYear, $currentWeek));
+        $offsetNextDateConcat =  intval($this->concatYearWeek($offsetNext['year'], $offsetNext['week']));
+        if($offsetNextDateConcat <= $currentCurrentDataConcat){
             $return->next       = $offsetNext;
         }
 

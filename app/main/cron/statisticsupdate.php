@@ -7,7 +7,6 @@
  */
 
 namespace cron;
-use DB;
 
 class StatisticsUpdate extends AbstractCron {
 
@@ -26,7 +25,7 @@ class StatisticsUpdate extends AbstractCron {
         $currentWeek = (int)date('W');
         $expiredYear = $currentYear - 1;
 
-        $pfDB = DB\Database::instance()->getDB('PF');
+        $pfDB = $f3->DB->getDB('PF');
 
         $queryData = [
             'yearWeekEnd' => strval($expiredYear) . str_pad($currentWeek, 2, 0, STR_PAD_LEFT)

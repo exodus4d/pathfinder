@@ -302,7 +302,7 @@ abstract class AbstractClient extends \Prefab {
     /**
      * init web client on __invoke()
      * -> no need to init client on __construct()
-     *    maybe it is nerer used...
+     *    maybe it is never used...
      * @return AbstractClient
      */
     function __invoke() : self {
