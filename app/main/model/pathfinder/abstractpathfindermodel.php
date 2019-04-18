@@ -108,6 +108,6 @@ abstract class AbstractPathfinderModel extends AbstractModel {
         // parent::save() resets the schema and old values get replaced with new values
         $this->fieldChanges = $this->getFieldChanges();
 
-        parent::save();
+        return parent::save();
     }
 }

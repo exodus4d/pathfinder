@@ -499,7 +499,7 @@ class Sso extends Api\User{
     protected function updateCharacter(\stdClass $characterData) : ?Pathfinder\CharacterModel {
         $character = null;
 
-        if( !empty($characterData->character) ){
+        if(!empty($characterData->character)){
             /**
              * @var $character Pathfinder\CharacterModel
              */
@@ -511,7 +511,7 @@ class Sso extends Api\User{
 
             $character->corporationId = $characterData->corporation;
             $character->allianceId = $characterData->alliance;
-            $character = $character->save();
+            $character->save();
         }
 
         return $character;

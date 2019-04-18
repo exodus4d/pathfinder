@@ -234,7 +234,6 @@ class Config extends \Prefab {
             $f3->set(self::HIVE_KEY_ENVIRONMENT, $environmentData);
         }
 
-
         return $environmentData;
     }
 

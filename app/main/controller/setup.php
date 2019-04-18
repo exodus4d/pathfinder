@@ -1410,6 +1410,7 @@ class Setup extends Controller {
      * @return array
      */
     protected function checkDBConfig(\Base $f3, \lib\db\SQL $db) : array {
+        $checkAll = true;
         // some db like "Maria DB" have some strange version strings....
         $dbVersionString = $db->version();
         $dbVersionParts = explode('-', $dbVersionString);
@@ -1423,11 +1424,13 @@ class Setup extends Controller {
         }
 
         $dbConfig = [
-            'version' => [
-                'label' => 'DB version',
-                'required' => $f3->get('REQUIREMENTS.MYSQL.VERSION'),
-                'version' => $dbVersion,
-                'check' => version_compare($dbVersion, $f3->get('REQUIREMENTS.MYSQL.VERSION'), '>=' )
+            'data' => [
+                'version' => [
+                    'label' => 'DB version',
+                    'required' => $f3->get('REQUIREMENTS.MYSQL.VERSION'),
+                    'version' => $dbVersion,
+                    'check' => version_compare($dbVersion, $f3->get('REQUIREMENTS.MYSQL.VERSION'), '>=' ) ? : $checkAll = false
+                ]
             ]
         ];
 
@@ -1443,15 +1446,31 @@ class Setup extends Controller {
             return !empty($match) ? end(reset($match)) : 'unknown';
         };
 
+        $checkValue = function($requiredValue, $value) : bool {
+            $check = true;
+            if(!empty($requiredValue)){
+                if(is_int($requiredValue)){
+                    $check = $requiredValue <= $value;
+                }else{
+                    $check = $requiredValue == $value;
+                }
+            }
+            return $check;
+        };
+
         foreach($mySQLConfig as $param => $requiredValue){
             $value = $getValue($param);
-            $dbConfig[] = [
+            $dbConfig['data'][] = [
                 'label' => $param,
                 'required' => $requiredValue,
                 'version' => $value,
-                'check' => !empty($requiredValue) ? ($requiredValue == $value) : true
+                'check' => $checkValue($requiredValue, $value) ? : $checkAll = false
             ];
         }
+
+        $dbConfig['meta'] = [
+            'check' => $checkAll
+        ];
 
         return $dbConfig;
     }
