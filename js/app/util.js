@@ -1046,6 +1046,10 @@ define([
                     data.selected = true;
                 }
 
+                if(option.disabled === true){
+                    data.disabled = true;
+                }
+
                 // optional "metaData" that belongs to this option
                 if(option.hasOwnProperty('metaData')){
                    data.metaData = option.metaData;

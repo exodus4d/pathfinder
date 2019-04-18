@@ -1083,16 +1083,69 @@ define([
     /**
      * helper function - set 'shown' observer for xEditable connection cell
      * -> enable Select2 for xEditable form
+     * @param tableApi
      * @param cell
      */
-    let editableConnectionOnShown = cell => {
+    let editableConnectionOnShown = (tableApi, cell) => {
         $(cell).on('shown', function(e, editable){
             let inputField = editable.input.$input;
 
+            if(!$(tableApi.table().node()).hasClass(config.sigTablePrimaryClass)){
+                // we need the primary table API to get selected connections
+                let metaData = getTableMetaData(tableApi);
+                tableApi = getDataTableInstance(metaData.mapId, metaData.systemId, 'primary');
+            }
+
             // Select2 init would work without passing select options as "data", Select2 would grap data from DOM
             // -> We want to pass "meta" data for each option into Select2 for formatting
+            let selectOptions = Util.convertXEditableOptionsToSelect2(editable);
+
+            // for better UX, systems that are already linked to a wh signatures should be "disabled"
+            // -> and grouped into a new <optgroup>
+            let linkedConnectionIds = tableApi.column('connection:name').data().toArray();
+            linkedConnectionIds = linkedConnectionIds.filter(id => id > 0);
+
+            if(linkedConnectionIds.length){
+                let groupedSelectOptions = [];
+                let newSelectOptionGroupDisabled = [];
+                for(let selectOptionGroup of selectOptions){
+                    if(Array.isArray(selectOptionGroup.children)){
+                        let newSelectOptionGroup = [];
+                        for(let option of selectOptionGroup.children){
+                            if(!option.selected && linkedConnectionIds.includes(option.id)){
+                                // connection already linked -> move to "disabled" group
+                                option.disabled = true;
+                                newSelectOptionGroupDisabled.push(option);
+                            }else{
+                                // connection is available for link
+                                newSelectOptionGroup.push(option);
+                            }
+                        }
+
+                        if(newSelectOptionGroup.length){
+                            groupedSelectOptions.push({
+                                text: selectOptionGroup.text,
+                                children: newSelectOptionGroup
+                            });
+                        }
+                    }else{
+                        // option has no children -> is prepend (id = 0) option
+                        groupedSelectOptions.push(selectOptionGroup);
+                    }
+                }
+
+                if(newSelectOptionGroupDisabled.length){
+                    groupedSelectOptions.push({
+                        text: 'linked',
+                        children: newSelectOptionGroupDisabled
+                    });
+                }
+
+                selectOptions = groupedSelectOptions;
+            }
+
             let options = {
-                data: Util.convertXEditableOptionsToSelect2(editable)
+                data: selectOptions
             };
 
             inputField.addClass('pf-select2').initSignatureConnectionSelect(options);
@@ -1484,7 +1537,7 @@ define([
                         editableOnSave(tableApi, cell, [], ['action:name']);
                         editableOnHidden(tableApi, cell);
                         editableConnectionOnInit(cell);
-                        editableConnectionOnShown(cell);
+                        editableConnectionOnShown(tableApi, cell);
                         editableConnectionOnSave(cell);
 
                         $(cell).editable($.extend({
