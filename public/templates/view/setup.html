@@ -652,6 +652,7 @@
                                             </tr>
                                             <repeat group="{{ @tableData.fieldConf }}" key="{{ @columnName }}" value="{{ @columnData }}" counter="{{ @countCol }}">
                                                 <check if="{{ @columnData.type }}">
+                                                    {* Required colums *}
                                                     <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse">
                                                         <td class="text-right bg-color bg-color-tealDarker">{{@countCol}}.</td>
                                                         <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
@@ -742,6 +743,25 @@
                                                                     <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                                                 </false>
                                                             </check>
+                                                        </td>
+                                                    </tr>
+                                                </check>
+                                                <check if="{{ @columnData.deprecated }}">
+                                                    {* Deprecated colums *}
+                                                    <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse txt-color txt-color-yellowDark">
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <i class="fas fa-fw fa-bolt"></i>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker">
+                                                            <kbd class="txt-color txt-color-yellowDark">{{ @columnData.currentType }}</kbd>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker text-right">
+                                                            <i class="fas fa-fw fa-exclamation-triangle"></i>
                                                         </td>
                                                     </tr>
                                                 </check>

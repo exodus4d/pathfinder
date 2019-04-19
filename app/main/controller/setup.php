@@ -1165,6 +1165,21 @@ class Setup extends Controller {
                         $currentColumns = $tableModifierTemp->getCols(true);
                         // get row count
                         $tableRows = $db->getRowCount($requiredTableName);
+
+
+                        // find deprecated columns that are no longer needed ------------------------------------------
+                        $deprecatedColumnNames = array_diff(array_keys($currentColumns), array_keys($data['fieldConf']), ['id']);
+                        foreach($deprecatedColumnNames as $deprecatedColumnName){
+                            $requiredTables[$requiredTableName]['fieldConf'][$deprecatedColumnName]['deprecated'] = true;
+                            $requiredTables[$requiredTableName]['fieldConf'][$deprecatedColumnName]['currentType'] = 'deprecated';
+                            //$requiredTables[$requiredTableName]['fieldConf'][$deprecatedColumnName]['statusCheck'] = false;
+                            //$tableStatusCheckCount++;
+
+                            //$tableModifierTemp->dropColumn($deprecatedColumnName);
+                        }
+
+                        //$buildStatus = $tableModifierTemp->build(false);
+                        //$dbColumnQueries = array_merge($dbColumnQueries, (array)$buildStatus);
                     }else{
                         // table missing
                         $dbStatusCheckCount++;
