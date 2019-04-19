@@ -16,6 +16,9 @@ use Model\Universe;
 
 class CharacterModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'character';
 
     /**
@@ -23,6 +26,9 @@ class CharacterModel extends AbstractPathfinderModel {
      */
     const DATA_CACHE_KEY_LOG                        = 'LOG';
 
+    /**
+     * log message for character access
+     */
     const LOG_ACCESS                                = 'charId: [%20s], status: %s, charName: %s';
 
     /**
@@ -52,8 +58,10 @@ class CharacterModel extends AbstractPathfinderModel {
      * @var bool
      */
     private $allowBanChange = false;
-    
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'lastLogin' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -123,6 +131,16 @@ class CharacterModel extends AbstractPathfinderModel {
                     'on-delete' => 'CASCADE'
                 ]
             ],
+        ],
+        'cloneLocationId' => [
+            'type' => Schema::DT_BIGINT,
+            'index' => true,
+            'activity-log' =>  true
+        ],
+        'cloneLocationType' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ],
         'kicked' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -490,39 +508,42 @@ class CharacterModel extends AbstractPathfinderModel {
     /**
      * get ESI API "access_token" from OAuth
      * @return bool|mixed
-     * @throws \Exception
      */
     public function getAccessToken(){
         $accessToken = false;
         $refreshToken = true;
 
-        $timezone = self::getF3()->get('getTimeZone')();
-        $now = new \DateTime('now', $timezone);
+        try{
+            $timezone = self::getF3()->get('getTimeZone')();
+            $now = new \DateTime('now', $timezone);
 
-        if(
-            !empty($this->esiAccessToken) &&
-            !empty($this->esiAccessTokenExpires)
-        ){
-            $expireTime = \DateTime::createFromFormat(
-                'Y-m-d H:i:s',
-                $this->esiAccessTokenExpires,
-                $timezone
-            );
+            if(
+                !empty($this->esiAccessToken) &&
+                !empty($this->esiAccessTokenExpires)
+            ){
+                $expireTime = \DateTime::createFromFormat(
+                    'Y-m-d H:i:s',
+                    $this->esiAccessTokenExpires,
+                    $timezone
+                );
 
-            // check if token is not expired
-            if($expireTime->getTimestamp() > $now->getTimestamp()){
-                // token still valid
-                $accessToken = $this->esiAccessToken;
-
-                // check if token should be renewed (close to expire)
-                $timeBuffer = 2 * 60;
-                $expireTime->sub(new \DateInterval('PT' . $timeBuffer . 'S'));
-
+                // check if token is not expired
                 if($expireTime->getTimestamp() > $now->getTimestamp()){
-                    // token NOT close to expire
-                    $refreshToken = false;
+                    // token still valid
+                    $accessToken = $this->esiAccessToken;
+
+                    // check if token should be renewed (close to expire)
+                    $timeBuffer = 2 * 60;
+                    $expireTime->sub(new \DateInterval('PT' . $timeBuffer . 'S'));
+
+                    if($expireTime->getTimestamp() > $now->getTimestamp()){
+                        // token NOT close to expire
+                        $refreshToken = false;
+                    }
                 }
             }
+        }catch(\Exception $e){
+            self::getF3()->error(500, $e->getMessage(), $e->getTrace());
         }
 
         // no valid "accessToken" found OR
@@ -673,7 +694,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return RoleModel
      * @throws \Exception
      */
-    public function requestRole() : RoleModel{
+    protected function requestRole() : RoleModel {
         $role = null;
 
         // check config files for hardcoded character roles
@@ -718,7 +739,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return array
      * @throws \Exception
      */
-    protected function requestRoles(){
+    protected function requestRoles() : array {
         $rolesData = [];
 
         // check if character has accepted all admin scopes (one of them is required for "role" request)
@@ -741,16 +762,39 @@ class CharacterModel extends AbstractPathfinderModel {
      * check whether this char has accepted all "basic" api scopes
      * @return bool
      */
-    public function hasBasicScopes(){
-        return empty( array_diff(Sso::getScopesByAuthType(), $this->esiScopes) );
+    public function hasBasicScopes() : bool {
+        return empty(array_diff(Sso::getScopesByAuthType(), $this->esiScopes));
     }
 
     /**
      * check whether this char has accepted all admin api scopes
      * @return bool
      */
-    public function hasAdminScopes(){
-        return empty( array_diff(Sso::getScopesByAuthType('admin'), $this->esiScopes) );
+    public function hasAdminScopes() : bool {
+        return empty(array_diff(Sso::getScopesByAuthType('admin'), $this->esiScopes));
+    }
+
+    /**
+     * update clone data
+     */
+    public function updateCloneData(){
+        if($accessToken = $this->getAccessToken()){
+            $clonesData = self::getF3()->ccpClient()->getCharacterClonesData($this->_id, $accessToken);
+            if(!isset($clonesData['error'])){
+                if(!empty($homeLocationData = $clonesData['home']['location'])){
+                    // clone home location data
+                    $this->cloneLocationId = (int)$homeLocationData['id'];
+                    $this->cloneLocationType = (string)$homeLocationData['type'];
+                }
+            }
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function updateRoleData(){
+        $this->roleId = $this->requestRole();
     }
 
     /**
@@ -760,7 +804,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return CharacterModel
      * @throws \Exception
      */
-    public function updateLog($additionalOptions = []){
+    public function updateLog($additionalOptions = []) : self {
         $deleteLog = false;
         $invalidResponse = false;
 
@@ -966,7 +1010,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return array (some status messages)
      * @throws \Exception
      */
-    public function updateFromESI(){
+    public function updateFromESI() : array {
         $status = [];
 
         if( $accessToken = $this->getAccessToken() ){
@@ -1005,7 +1049,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * -> but is should be unique
      * @return string
      */
-    public function getCookieName(){
+    public function getCookieName() : string {
         return md5($this->name);
     }
 

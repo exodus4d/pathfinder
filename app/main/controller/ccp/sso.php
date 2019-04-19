@@ -69,7 +69,7 @@ class Sso extends Api\User{
             isset($params['characterId']) &&
             ( $activeCharacter = $this->getCharacter() )
         ){
-            // authentication restricted to a characterId -----------------------------------------------
+            // authentication restricted to a characterId -------------------------------------------------------------
             // restrict login to this characterId e.g. for character switch on map page
             $characterId = (int)trim((string)$params['characterId']);
 
@@ -114,7 +114,7 @@ class Sso extends Api\User{
             $f3->set(self::SESSION_KEY_SSO_FROM, 'map');
         }
 
-        // redirect to CCP SSO ----------------------------------------------------------------------
+        // redirect to CCP SSO ----------------------------------------------------------------------------------------
         $scopes = self::getScopesByAuthType();
         $this->rerouteAuthorization($f3, $scopes);
     }

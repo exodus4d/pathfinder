@@ -37,7 +37,7 @@ class User extends Controller\Controller{
 
     /**
      * valid reasons for captcha images
-     * @var string array
+     * @var array
      */
     private static $captchaReason = [self::SESSION_CAPTCHA_ACCOUNT_UPDATE, self::SESSION_CAPTCHA_ACCOUNT_DELETE];
 
@@ -68,25 +68,27 @@ class User extends Controller\Controller{
                 is_null($currentUser) ||
                 $currentUser->_id !== $user->_id
             ){
-                // user has changed OR new user ---------------------------------------------------
+                // user has changed OR new user -----------------------------------------------------------------------
                 //-> set user/character data to session
                 $this->getF3()->set(self::SESSION_KEY_USER, [
                     'ID' => $user->_id,
                     'NAME' => $user->name
                 ]);
             }else{
-                // user has NOT changed -----------------------------------------------------------
+                // user has NOT changed -------------------------------------------------------------------------------
                 $sessionCharacters = $character::mergeSessionCharacterData($sessionCharacters);
             }
 
             $this->getF3()->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
 
-            // save user login information --------------------------------------------------------
-            $character->roleId = $character->requestRole();
+            $character->updateCloneData();
+            $character->updateRoleData();
+
+            // save user login information ----------------------------------------------------------------------------
             $character->touch('lastLogin');
             $character->save();
 
-            // write login log --------------------------------------------------------------------
+            // write login log ----------------------------------------------------------------------------------------
             self::getLogger('CHARACTER_LOGIN')->write(
                 sprintf(self::LOG_LOGGED_IN,
                     $user->_id,
@@ -96,7 +98,7 @@ class User extends Controller\Controller{
                 )
             );
 
-            // set temp character data ------------------------------------------------------------
+            // set temp character data --------------------------------------------------------------------------------
             // -> pass character data over for next http request (reroute())
             $this->setTempCharacterData($character->_id);
 
@@ -263,7 +265,7 @@ class User extends Controller\Controller{
                 if($activeCharacter = $this->getCharacter()){
                     $user = $activeCharacter->getUser();
 
-                    // captcha is send -> check captcha -------------------------------------------
+                    // captcha is send -> check captcha ---------------------------------------------------------------
                     if(
                         isset($formData['captcha']) &&
                         !empty($formData['captcha'])
@@ -303,7 +305,7 @@ class User extends Controller\Controller{
                         }
                     }
 
-                    // sharing config -------------------------------------------------------------
+                    // sharing config ---------------------------------------------------------------------------------
                     if(isset($formData['share'])){
                         $privateSharing = (int)$formData['privateSharing'];
                         $corporationSharing = (int)$formData['corporationSharing'];
@@ -327,7 +329,7 @@ class User extends Controller\Controller{
                         $activeCharacter->save();
                     }
 
-                    // character config -----------------------------------------------------------
+                    // character config -------------------------------------------------------------------------------
                     if(isset($formData['character'])){
                         $activeCharacter->copyfrom($formData, ['logLocation', 'selectLocation']);
 

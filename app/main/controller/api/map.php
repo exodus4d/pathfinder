@@ -317,7 +317,7 @@ class Map extends Controller\AccessController {
                                 $mapDataSystems = (array)$mapDataData['systems'];
                                 $mapDataConnections = (array)$mapDataData['connections'];
                                 $systemCount = count($mapDataSystems);
-                                if( $systemCount <= $defaultConfig['max_systems']){
+                                if($systemCount <= $defaultConfig['max_systems']){
 
                                     $map->copyfrom($mapDataConfig, ['name', 'icon', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
                                     $map->typeId = $mapType;
@@ -583,7 +583,7 @@ class Map extends Controller\AccessController {
                     }
                     // reload the same map model (refresh)
                     // this makes sure all data is up2date
-                    $map->getById( $map->_id, 0 );
+                    $map->getById($map->_id, 0);
 
                     // broadcast map Access -> and send map Data
                     $this->broadcastMapAccess($map);
@@ -717,7 +717,7 @@ class Map extends Controller\AccessController {
 
         $return->status = $status;
 
-        echo json_encode( $return );
+        echo json_encode($return);
     }
 
     /**
@@ -817,7 +817,7 @@ class Map extends Controller\AccessController {
             $return->userData = $activeCharacter->getUser()->getData();
         }
 
-        echo json_encode( $return );
+        echo json_encode($return);
     }
 
     /**
@@ -901,7 +901,7 @@ class Map extends Controller\AccessController {
         // add error (if exists)
         $return->error = [];
 
-        echo json_encode( $return );
+        echo json_encode($return);
     }
 
 
@@ -987,6 +987,7 @@ class Map extends Controller\AccessController {
                     $addSourceSystem = false;
                     $addTargetSystem = false;
                     $addConnection = false;
+                    $route = [];
 
                     switch($mapScope->name){
                         case 'all':
@@ -1031,10 +1032,9 @@ class Map extends Controller\AccessController {
                             ){
                                 // check distance between systems (in jumps)
                                 // -> if > 1 it is !very likely! a wormhole
-                                $routeController = new Route();
-                                $route = $routeController->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
+                                $route = (new Route())->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
 
-                                if( !$route['routePossible'] ){
+                                if(!$route['routePossible']){
                                     $addSourceSystem = true;
                                     $addTargetSystem = true;
                                     $addConnection = true;
@@ -1043,7 +1043,7 @@ class Map extends Controller\AccessController {
                             break;
                     }
 
-                    // save source system ---------------------------------------------------------------------------------
+                    // save source system =============================================================================
                     if(
                         $addSourceSystem &&
                         $sourceSystem &&
@@ -1061,7 +1061,7 @@ class Map extends Controller\AccessController {
                         }
                     }
 
-                    // save target system ---------------------------------------------------------------------------------
+                    // save target system =============================================================================
                     if(
                         $addTargetSystem &&
                         $targetSystem &&
@@ -1082,23 +1082,52 @@ class Map extends Controller\AccessController {
                         $sourceSystem &&
                         $targetSystem
                     ){
-                        $connection = $map->searchConnection( $sourceSystem, $targetSystem);
+                        $connection = $map->searchConnection($sourceSystem, $targetSystem);
 
-                        // save connection --------------------------------------------------------------------------------
+                        // save connection ============================================================================
                         if(
                             $addConnection &&
                             !$connection
                         ){
-                            $connection = $map->getNewConnection($sourceSystem, $targetSystem);
-                            $connection = $map->saveConnection($connection, $character);
-                            // get updated maps object
-                            if($connection){
-                                $map = $connection->mapId;
-                                $mapDataChanged = true;
+                            // .. do not add connection if character got "podded" -------------------------------------
+                            if(
+                                $log->shipTypeId == 670 &&
+                                $character->cloneLocationId
+                            ){
+                                // .. current character location must be clone location
+                                if(
+                                    (
+                                        'station' == $character->cloneLocationType &&
+                                        $character->cloneLocationId == $log->stationId
+                                    ) || (
+                                        'structure' == $character->cloneLocationType &&
+                                        $character->cloneLocationId == $log->structureId
+                                    )
+                                ){
+                                    // .. now we need to check jump distance between systems
+                                    // -> if > 1 it is !very likely! podded jump
+                                    if(empty($route)){
+                                        $route = (new Route())->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
+                                    }
+
+                                    if(!$route['routePossible']){
+                                        $addConnection = false;
+                                    }
+                                }
+                            }
+
+                            if($addConnection){
+                                $connection = $map->getNewConnection($sourceSystem, $targetSystem);
+                                $connection = $map->saveConnection($connection, $character);
+                                // get updated maps object
+                                if($connection){
+                                    $map = $connection->mapId;
+                                    $mapDataChanged = true;
+                                }
                             }
                         }
 
-                        // log jump mass ----------------------------------------------------------------------------------
+                        // log jump mass ==============================================================================
                         if(
                             $connection &&
                             $connection->isWormhole()
@@ -1122,7 +1151,7 @@ class Map extends Controller\AccessController {
      * @param \Base $f3
      * @throws Exception
      */
-    public function getConnectionData (\Base $f3){
+    public function getConnectionData(\Base $f3){
         $postData = (array)$f3->get('POST');
 
         $addData = (array)$postData['addData'];
@@ -1217,16 +1246,3 @@ class Map extends Controller\AccessController {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

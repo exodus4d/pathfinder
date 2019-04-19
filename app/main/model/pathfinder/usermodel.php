@@ -209,7 +209,7 @@ class UserModel extends AbstractPathfinderModel {
      * @return array
      * @throws Exception
      */
-    public function getSessionCharacterData($characterId = 0, $objectCheck = true){
+    public function getSessionCharacterData($characterId = 0, $objectCheck = true) : array {
         $data = [];
         $characterId = (int)$characterId;
         $currentSessionUser = (array)$this->getF3()->get(User::SESSION_KEY_USER);
@@ -254,7 +254,7 @@ class UserModel extends AbstractPathfinderModel {
      * @param int $characterId
      * @return array
      */
-    public function findSessionCharacterData(int $characterId): array{
+    public function findSessionCharacterData(int $characterId): array {
         $data = [];
         if($characterId){
             $sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);

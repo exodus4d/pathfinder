@@ -384,13 +384,11 @@ class Controller {
      * @return array
      * @throws \Exception
      */
-    public function getSessionCharacterData(){
+    public function getSessionCharacterData() : array {
         $data = [];
-
         if($user = $this->getUser()){
             $header                 = self::getRequestHeaders();
             $requestedCharacterId   = (int)$header['Pf-Character'];
-
             if( !$this->getF3()->get('AJAX') ){
                 $requestedCharacterId = (int)$_COOKIE['old_char_id'];
                 if(!$requestedCharacterId){
@@ -398,7 +396,6 @@ class Controller {
                     if((int)$tempCharacterData['ID'] > 0){
                         $requestedCharacterId = (int)$tempCharacterData['ID'];
                     }
-
                 }
             }
 

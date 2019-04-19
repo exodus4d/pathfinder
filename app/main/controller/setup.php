@@ -1376,7 +1376,6 @@ class Setup extends Controller {
             ksort($requiredTables);
 
             $this->databases[$dbAlias]['info'] = [
-           //     'db' => $db,
                 'label'             => $dbLabel,
                 'host'              => $dbConfigValues['SOCKET'] ? : $dbConfigValues['HOST'],
                 'port'              => $dbConfigValues['PORT'] && !$dbConfigValues['SOCKET'] ? $dbConfigValues['PORT'] : '',
