@@ -2259,32 +2259,6 @@ define([
     };
 
     /**
-     * get the typeID of a signature name
-     * @param systemData
-     * @param sigGroupId
-     * @param name
-     * @returns {number}
-     */
-    let getSignatureTypeIdByName = (systemData, sigGroupId, name) => {
-        let signatureTypeId = 0;
-        let areaId = getAreaIdBySecurity(systemData.security);
-        if(areaId > 0){
-            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId);
-            name = name.toLowerCase();
-            for(let prop in signatureNames){
-                if(
-                    signatureNames.hasOwnProperty(prop) &&
-                    signatureNames[prop].toLowerCase() === name
-                ){
-                    signatureTypeId = parseInt(prop);
-                    break;
-                }
-            }
-        }
-        return signatureTypeId;
-    };
-
-    /**
      * get array key that points to map data catching mapId
      * @param data
      * @param mapId
@@ -3242,7 +3216,6 @@ define([
         getStatusInfoForSystem: getStatusInfoForSystem,
         getSignatureGroupOptions: getSignatureGroupOptions,
         getAllSignatureNames: getAllSignatureNames,
-        getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
         setCurrentMapUserData: setCurrentMapUserData,
         getCurrentMapUserData: getCurrentMapUserData,

@@ -639,8 +639,22 @@ define([
 
                         // wormhole type cant be extracted from signature string -> skip function call
                         if(sigGroupId !== 5){
-                            // try to get "typeId" by description string
-                            typeId = Util.getSignatureTypeIdByName(systemData, sigGroupId, sigDescription);
+                            // try to get "typeId" from description string
+                            let sigDescriptionLowerCase = sigDescription.toLowerCase();
+
+                            let typeOptions = getAllSignatureNames(
+                                systemData,
+                                systemData.type.id,
+                                Util.getAreaIdBySecurity(systemData.security),
+                                sigGroupId
+                            );
+
+                            for(let [key, name] of Object.entries(Util.flattenXEditableSelectArray(typeOptions))){
+                                if(name.toLowerCase() === sigDescriptionLowerCase){
+                                    typeId = parseInt(key);
+                                    break;
+                                }
+                            }
 
                             // set signature name as "description" if signature matching failed
                             sigDescription = (typeId === 0) ? sigDescription : '';
@@ -651,7 +665,7 @@ define([
                         // map array values to signature Object
                         let signatureObj = {
                             systemId: systemData.id,
-                            name: $.trim( rowData[0] ).toLowerCase(),
+                            name: $.trim(rowData[0]).toLowerCase(),
                             groupId: sigGroupId,
                             typeId: typeId,
                             description: sigDescription
@@ -2494,11 +2508,16 @@ define([
             }
         };
 
+        let getPromiseForRow = (action, rowId) => {
+            return new Promise((resolve, reject) => {
+                resolve({action: action, rowId: rowId});
+            });
+        };
+
         // update signatures ------------------------------------------------------------------------------------------
         allRows.every(function(rowIdx, tableLoop, rowLoop){
             let row = this;
             let rowData = row.data();
-            let rowElement = row.nodes().to$();
 
             for(let i = 0; i < signaturesData.length; i++){
                 if(signaturesData[i].id === rowData.id){
@@ -2513,9 +2532,7 @@ define([
                         row.cells(row.id(true), ['id:name', 'group:name', 'type:name', 'description:name', 'connection:name', 'updated:name'])
                             .every(rowUpdate);
 
-                        promisesChanged.push(new Promise((resolve, reject) => {
-                            resolve({action: 'changed', rowId: rowId});
-                        }));
+                        promisesChanged.push(getPromiseForRow('changed', rowId));
                     }
 
                     rowIdsExist.push(rowId);
@@ -2556,9 +2573,7 @@ define([
             let rowElement = row.nodes().to$();
             rowElement.pulseBackgroundColor('added');
 
-            promisesAdded.push(new Promise((resolve, reject) => {
-                resolve({action: 'added', rowId: rowId});
-            }));
+            promisesAdded.push(getPromiseForRow('added', rowId));
         }
 
         // done -------------------------------------------------------------------------------------------------------
