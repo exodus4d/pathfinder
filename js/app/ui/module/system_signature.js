@@ -65,12 +65,16 @@ define([
     let validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
         'Cosmic Signature',
-        'Kosmische Anomalie',
-        'Kosmische Signatur',
-        'Anomalie cosmique',
-        'Signature cosmique',
-        'Космическая аномалия',                                                 // == "Cosmic Anomaly"
-        'Источники сигналов'                                                    // == "Cosmic Signature"
+        'Kosmische Anomalie',                                                   // de: "Cosmic Anomaly"
+        'Kosmische Signatur',                                                   // de: "Cosmic Signature"
+        'Космическая аномалия',                                                 // ru: "Cosmic Anomaly"
+        'Скрытый сигнал',                                                       // rm: "Cosmic Signature"
+        'Anomalie cosmique',                                                    // fr: "Cosmic Anomaly"
+        'Signature cosmique',                                                   // fr: "Cosmic Signature"
+        '宇宙の特異点',                                                               // ja: "Cosmic Anomaly"
+        '宇宙のシグネチャ',                                                             // ja: "Cosmic Signature"
+        '异常空间',                                                                 // zh: "Cosmic Anomaly"
+        '空间信号'                                                                  // zh: "Cosmic Signature"
     ];
 
     let emptySignatureData = {
