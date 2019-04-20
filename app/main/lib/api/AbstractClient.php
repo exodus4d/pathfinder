@@ -37,6 +37,9 @@ use Psr\Http\Message\RequestInterface;
  */
 abstract class AbstractClient extends \Prefab {
 
+    /**
+     * error msg for missing Composer package
+     */
     const ERROR_CLIENT_INVALID = "HTTP API client not found → Check installed Composer packages";
 
     /**
@@ -158,11 +161,10 @@ abstract class AbstractClient extends \Prefab {
                 in_array($poolConfig['type'], ['redis', 'folder']) &&
                 class_exists(FilesystemCachePool::class)
             ){
-                $filesystemAdapter  = new Local('./');
+                $filesystemAdapter  = new Local(\Base::instance()->get('ROOT'));
                 $filesystem         = new Filesystem($filesystemAdapter);
+                $poolFilesystem     = new FilesystemCachePool($filesystem, $poolConfig['folder']);
 
-                $poolFilesystem = new FilesystemCachePool($filesystem);
-                $poolFilesystem->setFolder($poolConfig['folder']);
                 $this->cachePool = $poolFilesystem;
             }
 
