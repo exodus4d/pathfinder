@@ -6,9 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'bootbox',
     'app/map/util',
+    'app/map/contextmenu',
     'app/map/system',
     'app/map/layout',
     'app/map/magnetizing',
@@ -16,7 +16,7 @@ define([
     'dragToSelect',
     'app/map/overlay',
     'app/map/local'
-], ($, Init, Util, Render, bootbox, MapUtil, System, Layout, MagnetizerWrapper) => {
+], ($, Init, Util, bootbox, MapUtil, MapContextMenu, System, Layout, MagnetizerWrapper) => {
 
     'use strict';
 
@@ -48,11 +48,6 @@ define([
         // endpoint classes
         endpointSourceClass: 'pf-map-endpoint-source',
         endpointTargetClass: 'pf-map-endpoint-target',
-
-        // context menus
-        mapContextMenuId: 'pf-map-contextmenu',
-        connectionContextMenuId: 'pf-map-connection-contextmenu',
-        systemContextMenuId: 'pf-map-system-contextmenu',
 
         // system security classes
         systemSec: 'pf-system-sec'
@@ -113,6 +108,7 @@ define([
             // uniqueEndpoint: false,
             anchor: 'Continuous'
         },
+        endpointTypes: Init.endpointTypes,
         connectionTypes: Init.connectionTypes
     };
 
@@ -513,100 +509,266 @@ define([
     };
 
     /**
+     * system actions (e.g. for contextmenu)
+     * @param action
+     * @param system
+     */
+    let systemActions = (action, system) => {
+        let mapContainer = system.closest('.' + config.mapClass);
+        let map = MapUtil.getMapInstance(system.attr('data-mapid'));
+        let systemData = {};
+
+        switch(action){
+            case 'add_system':
+                // add a new system
+                System.showNewSystemDialog(map, {sourceSystem: system}, saveSystemCallback);
+
+                break;
+            case 'lock_system':
+                // lock system
+                system.toggleLockSystem(true, {map: map});
+
+                // repaint connections, -> system changed its size!
+                map.repaint(system);
+
+                system.markAsChanged();
+                break;
+            case 'set_rally':
+                // toggle rally point
+                if( !system.data('rallyUpdated') ){
+                    $.fn.showRallyPointDialog(system);
+                }else{
+                    // remove rally point
+                    system.setSystemRally(0);
+                    system.markAsChanged();
+                }
+                break;
+            case 'find_route':
+                // show find route dialog
+                systemData = system.getSystemData();
+                MapUtil.showFindRouteDialog(mapContainer, {
+                    systemId: systemData.systemId,
+                    name: systemData.name
+                });
+                break;
+            case 'select_connections':
+                let connections = MapUtil.searchConnectionsBySystems(map, [system], '*');
+                MapUtil.showConnectionInfo(map, connections);
+                break;
+            case 'change_status_unknown':
+            case 'change_status_friendly':
+            case 'change_status_occupied':
+            case 'change_status_hostile':
+            case 'change_status_empty':
+            case 'change_status_unscanned':
+                // change system status
+                system.getMapOverlay('timer').startMapUpdateCounter();
+
+                let statusString = action.split('_');
+
+                system.setSystemStatus(statusString[2]);
+
+                system.markAsChanged();
+                break;
+            case 'delete_system':
+                // delete this system AND delete selected systems as well
+                let selectedSystems = mapContainer.getSelectedSystems();
+                $.merge(selectedSystems, system);
+                $.uniqueSort(selectedSystems);
+                $.fn.showDeleteSystemDialog(map, selectedSystems);
+                break;
+            case 'set_destination':
+            case 'add_first_waypoint':
+            case 'add_last_waypoint':
+                systemData = system.getSystemData();
+                Util.setDestination(systemData, action);
+                break;
+        }
+    };
+
+    /**
+     * map actions (e.g. for contextmenu)
+     * @param action
+     * @param map
+     * @param e
+     */
+    let mapActions = (action, map, e) => {
+        let mapElement = $(map.getContainer());
+        let mapId = parseInt(mapElement.data('id'));
+
+        switch(action){
+            case 'add_system':
+                // add new system dialog
+                let position = Layout.getEventCoordinates(e);
+
+                let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
+                let positionFinder = new Layout.Position({
+                    container: mapElement[0],
+                    center: [position.x, position.y],
+                    loops: 5,
+                    defaultGapX: 10,
+                    defaultGapY: 10,
+                    grid: mapElement.hasClass(MapUtil.config.mapGridClass) ? grid : false,
+                    debug: false
+                });
+
+                let dimensions = positionFinder.findNonOverlappingDimensions(1, 8);
+
+                if(dimensions.length){
+                    position.x = dimensions[0].left;
+                    position.y = dimensions[0].top;
+                }
+
+                System.showNewSystemDialog(map, {position: position}, saveSystemCallback);
+                break;
+            case 'select_all':
+                mapElement.selectAllSystems();
+                break;
+            case 'filter_wh':
+            case 'filter_stargate':
+            case 'filter_jumpbridge':
+            case 'filter_abyssal':
+                // filter (show/hide)
+                let filterScope = action.split('_')[1];
+                let filterScopeLabel = MapUtil.getScopeInfoForConnection( filterScope, 'label');
+
+                let promiseStore = MapUtil.getLocaleData('map', mapId);
+                promiseStore.then(data => {
+                    let filterScopes = [];
+                    if(data && data.filterScopes){
+                        filterScopes = data.filterScopes;
+                    }
+                    // add or remove this scope from filter
+                    let index = filterScopes.indexOf(filterScope);
+                    if(index >= 0){
+                        filterScopes.splice(index, 1);
+                    }else{
+                        filterScopes.push(filterScope);
+                        // "all filters active" == "no filter"
+                        if(filterScopes.length === Object.keys(Init.connectionScopes).length){
+                            filterScopes = [];
+                        }
+                    }
+
+                    // save filterScopes in IndexDB
+                    MapUtil.storeLocalData('map', mapId, 'filterScopes', filterScopes);
+                    MapUtil.filterMapByScopes(map, filterScopes);
+
+                    Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
+                });
+                break;
+            case 'delete_systems':
+                // delete all selected systems with its connections
+                let selectedSystems = mapElement.getSelectedSystems();
+                $.fn.showDeleteSystemDialog(map, selectedSystems);
+                break;
+            case 'map_edit':
+                // open map edit dialog tab
+                $(document).triggerMenuEvent('ShowMapSettings', {tab: 'edit'});
+                break;
+            case 'map_info':
+                // open map info dialog tab
+                $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
+                break;
+
+        }
+    };
+
+    /**
+     * connection actions (e.g. for contextmenu)
+     * @param action
+     * @param connection
+     */
+    let connectionActions = (action, connection) => {
+        let map = connection._jsPlumb.instance;
+        let mapElement = $(map.getContainer());
+
+        let scope = connection.scope;
+        let scopeName = MapUtil.getScopeInfoForConnection(scope, 'label');
+
+        switch(action){
+            case 'delete_connection':
+                // delete a single connection
+
+                // confirm dialog
+                bootbox.confirm('Is this connection really gone?', function(result){
+                    if(result){
+                        MapUtil.deleteConnections([connection]);
+                    }
+                });
+                break;
+            case 'frigate':         // set as frigate hole
+            case 'preserve_mass':   // set "preserve mass
+            case 'wh_eol':          // set "end of life"
+                mapElement.getMapOverlay('timer').startMapUpdateCounter();
+                connection.toggleType(action);
+                $(connection).markAsChanged();
+                break;
+            case 'status_fresh':
+            case 'status_reduced':
+            case 'status_critical':
+                let newStatus = action.split('_')[1];
+                mapElement.getMapOverlay('timer').startMapUpdateCounter();
+
+                MapUtil.setConnectionWHStatus(connection, 'wh_' + newStatus);
+                $(connection).markAsChanged();
+                break;
+            case 'scope_wh':
+            case 'scope_stargate':
+            case 'scope_jumpbridge':
+                let newScope = action.split('_')[1];
+                let newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
+
+                bootbox.confirm('Change scope from ' + scopeName + ' to ' + newScopeName + '?', function(result){
+                    if(result){
+                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
+
+                        setConnectionScope(connection, newScope);
+
+                        Util.showNotify({title: 'Connection scope changed', text: 'New scope: ' + newScopeName, type: 'success'});
+
+                        $(connection).markAsChanged();
+                    }
+                });
+                break;
+        }
+    };
+
+    /**
+     * endpoint actions (e.g. for contextmenu)
+     * @param action
+     * @param endpoint
+     */
+    let endpointActions = (action, endpoint) => {
+        let map = endpoint._jsPlumb.instance;
+        let mapElement = $(map.getContainer());
+
+        switch(action){
+            case 'bubble':
+                console.log(endpoint.getType())
+                //console.log(endpoint.getParameters() )
+                mapElement.getMapOverlay('timer').startMapUpdateCounter();
+                endpoint.toggleType(action);
+                //endpoint.setParameter('test', 123);
+
+                for(let connection of endpoint.connections){
+                    $(connection).markAsChanged();
+                }
+                //$(connection).markAsChanged();
+
+                console.log(endpoint.getType())
+                //console.log(endpoint.getParameters() )
+                break;
+        }
+    };
+
+    /**
      * set observer for a given connection
      * @param map
      * @param connection
      */
-    let setConnectionObserver = function(map, connection){
-
-        // get map container
-        let mapElement = $( map.getContainer() );
+    let setConnectionObserver = (map, connection) => {
         let connectionCanvas = $(connection.canvas);
-
-        // if the connection already exists -> do not set it twice
-        connection.unbind('contextmenu').bind('contextmenu', function(component, e){
-            e.preventDefault();
-            e.stopPropagation();
-
-            // trigger menu "open
-            Promise.all([
-                getHiddenContextMenuOptions(component),
-                getActiveContextMenuOptions(component),
-                getDisabledContextMenuOptions(component)
-            ]).then(payload => {
-                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1], payload[2]]);
-            });
-
-            return false;
-        });
-
-        /**
-         *  init context menu for all connections
-         *  must be triggered manually on demand
-         */
-        connectionCanvas.contextMenu({
-            menuSelector: '#' + config.connectionContextMenuId,
-            menuSelected: function(params){
-
-                let action = params.selectedMenu.attr('data-action');
-                let activeConnection = params.component;
-                let activeScope = activeConnection.scope;
-                let activeScopeName = MapUtil.getScopeInfoForConnection( activeScope, 'label');
-
-                switch(action){
-                    case 'delete_connection':
-                        // delete a single connection
-
-                        // confirm dialog
-                        bootbox.confirm('Is this connection really gone?', function(result){
-                            if(result){
-                                MapUtil.deleteConnections([activeConnection]);
-                            }
-                        });
-                        break;
-                    case 'frigate':         // set as frigate hole
-                    case 'preserve_mass':   // set "preserve mass
-                    case 'wh_eol':          // set "end of life"
-                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                        activeConnection.toggleType( action );
-
-                        $(activeConnection).markAsChanged();
-                        break;
-                    case 'status_fresh':
-                    case 'status_reduced':
-                    case 'status_critical':
-                        let newStatus = action.split('_')[1];
-                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                        MapUtil.setConnectionWHStatus(activeConnection, 'wh_' + newStatus);
-                        $(activeConnection).markAsChanged();
-                        break;
-                    case 'scope_wh':
-                    case 'scope_stargate':
-                    case 'scope_jumpbridge':
-                        let newScope = action.split('_')[1];
-                        let newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
-
-                        bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result){
-                            if(result){
-
-                                mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                                setConnectionScope(activeConnection, newScope);
-
-                                Util.showNotify({title: 'Connection scope changed', text: 'New scope: ' + newScopeName, type: 'success'});
-
-                                $(activeConnection).markAsChanged();
-                            }
-                        });
-                        break;
-                }
-
-            }
-        });
-
-        // connection click events ====================================================================================
 
         let single = function(e){
             let connection = this;
@@ -638,7 +800,7 @@ define([
      * @param connection
      * @param scope
      */
-    let setConnectionScope = function(connection, scope){
+    let setConnectionScope = (connection, scope) => {
         let map = connection._jsPlumb.instance;
         let currentConnector = connection.getConnector();
         let newConnector = MapUtil.getScopeInfoForConnection(scope, 'connectorDefinition');
@@ -669,7 +831,7 @@ define([
      * @param connectionData
      * @returns new connection
      */
-    let drawConnection = function(map, connectionData){
+    let drawConnection = (map, connectionData) => {
         let mapContainer = $( map.getContainer() );
         let mapId = mapContainer.data('id');
         let connectionId = connectionData.id || 0;
@@ -702,7 +864,7 @@ define([
             });
 
             // check if connection is valid (e.g. source/target exist
-            if( connection instanceof jsPlumb.Connection ){
+            if(connection instanceof jsPlumb.Connection){
 
                 // set connection parameters
                 // they should persist even through connection type change (e.g. wh -> stargate,..)
@@ -728,6 +890,23 @@ define([
                     scope = connectionData.scope;
                 }
                 setConnectionScope(connection, scope);
+
+                // add endpoint types ---------------------------------------------------------------------------------
+                if(connectionData.endpoints){
+                    for(let endpoint of connection.endpoints){
+                        let label = MapUtil.getLabelByEndpoint(endpoint);
+                        if(
+                            label && connectionData.endpoints[label] &&
+                            Array.isArray(connectionData.endpoints[label].types)
+                        ){
+                            console.log('draw con add Type: ', connectionData.endpoints[label].types)
+
+                            for(let type of connectionData.endpoints[label].types){
+                                endpoint.addType(type);
+                            }
+                        }
+                    }
+                }
             }
 
             // set Observer for new Connection -> is automatically set
@@ -750,8 +929,7 @@ define([
      * @param newConnectionData
      * @returns {*}
      */
-    let updateConnection = function(connection, connectionData, newConnectionData){
-
+    let updateConnection = (connection, connectionData, newConnectionData) => {
         let map = connection._jsPlumb.instance;
         let mapContainer = $( map.getContainer() );
         let mapId = mapContainer.data('id');
@@ -768,8 +946,8 @@ define([
             setConnectionObserver(map, connection);
         }
 
-        let addType = newConnectionData.type.diff( connectionData.type );
-        let removeType = connectionData.type.diff( newConnectionData.type );
+        let addType = newConnectionData.type.diff(connectionData.type);
+        let removeType = connectionData.type.diff(newConnectionData.type);
 
         // check if source or target has changed
         if(connectionData.source !== newConnectionData.source ){
@@ -814,6 +992,10 @@ define([
         connection.setParameter('updated', newConnectionData.updated);
         connection.setParameter('eolUpdated', newConnectionData.eolUpdated);
         connection.setParameter('changed', false);
+
+        console.log('update con -------------', connectionData.id)
+        console.log(connectionData)
+        console.log(newConnectionData)
 
         return connection;
     };
@@ -936,8 +1118,7 @@ define([
                 parentElement.prepend(mapWrapper);
 
                 // set main Container for current map -> the container exists now in DOM !! very important
-               // mapConfig.map.setContainer( config.mapIdPrefix + mapId );
-                mapConfig.map.setContainer( mapContainer );
+                mapConfig.map.setContainer(mapContainer);
 
                 // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
@@ -971,7 +1152,7 @@ define([
      * @param mapConfig
      * @returns {Promise<any>}
      */
-    let updateMap = (mapConfig) => {
+    let updateMap = mapConfig => {
 
         /**
          * update map promise
@@ -1165,7 +1346,7 @@ define([
      * update local connections cache (cache all connections from a map)
      * @param map
      */
-    let updateConnectionsCache = (map) => {
+    let updateConnectionsCache = map => {
         let connections = map.getAllConnections();
         let mapContainer = $( map.getContainer() );
         let mapId = mapContainer.data('id');
@@ -1187,8 +1368,7 @@ define([
      * @param mapId
      * @param connection
      */
-    let updateConnectionCache = function(mapId, connection){
-
+    let updateConnectionCache = (mapId, connection) => {
         if(
             mapId > 0 &&
             connection
@@ -1228,7 +1408,7 @@ define([
      * @param map
      * @param system
      */
-    let makeSource = function(map, system){
+    let makeSource = (map, system) => {
         if( !map.isSource(system) ){
             // get scope from map defaults
             let sourceConfig = globalMapConfig.source;
@@ -1246,7 +1426,7 @@ define([
      * @param map
      * @param system
      */
-    let makeTarget = function(map, system){
+    let makeTarget = (map, system) => {
         if( !map.isTarget(system) ){
             // get scope from map defaults
             let targetConfig = globalMapConfig.target;
@@ -1261,9 +1441,8 @@ define([
      * @param systemData
      * @returns {boolean}
      */
-    let isValidSystem = function(systemData){
+    let isValidSystem = systemData => {
         let isValid = true;
-
         if(
             !systemData.hasOwnProperty('name') ||
             systemData.name.length === 0
@@ -1325,7 +1504,7 @@ define([
      * make a system name/alias editable by x-editable
      * @param system
      */
-    let makeEditable = function(system){
+    let makeEditable = system => {
         system = $(system);
         let headElement = $(system).find('.' + config.systemHeadNameClass);
 
@@ -1385,7 +1564,7 @@ define([
      * stores a connection in database
      * @param connection
      */
-    let saveConnection = function(connection){
+    let saveConnection = connection => {
         if(connection instanceof jsPlumb.Connection){
 
             let map = connection._jsPlumb.instance;
@@ -1457,136 +1636,171 @@ define([
     };
 
     /**
-     * get hidden menu entry options for a context menu
+     * get context menu config for a map component (e.g. system, connection,..)
      * @param component
      * @returns {Promise<any>}
      */
-    let getHiddenContextMenuOptions = component => {
-
-        let getHiddenContextMenuOptionsExecutor = (resolve, reject) => {
-            let hiddenOptions = [];
-
-            if(component instanceof jsPlumb.Connection){
-                // disable connection menu entries
-                let scope = component.scope;
-                if(scope === 'abyssal'){
-                    hiddenOptions.push('frigate');
-                    hiddenOptions.push('preserve_mass');
-                    hiddenOptions.push('change_status');
-
-                    hiddenOptions.push('change_scope');
-                    hiddenOptions.push('separator');
-                }else if(scope === 'stargate'){
-                    hiddenOptions.push('frigate');
-                    hiddenOptions.push('preserve_mass');
-                    hiddenOptions.push('change_status');
-
-                    hiddenOptions.push('scope_stargate');
-                }else if(scope === 'jumpbridge'){
-                    hiddenOptions.push('frigate');
-                    hiddenOptions.push('preserve_mass');
-                    hiddenOptions.push('change_status');
-                    hiddenOptions.push('scope_jumpbridge');
-                }else if(scope === 'wh'){
-                    hiddenOptions.push('scope_wh');
-                }
-            }else if( component.hasClass(config.systemClass) ){
-                // disable system menu entries
-                if(component.data('locked') === true){
-                    hiddenOptions.push('delete_system');
-                }
-
-                let mapElement = component.closest('.' + config.mapClass);
-                if( !mapElement.find('.' + config.systemActiveClass).length ){
-                    hiddenOptions.push('find_route');
-                }
-            }
-
-            resolve(hiddenOptions);
-        };
-
-        return new Promise(getHiddenContextMenuOptionsExecutor);
+    let getContextMenuConfig = component => {
+        if(component instanceof $ && component.hasClass(config.systemClass)){
+            return getSystemContextMenuConfig(component);
+        }else if(component instanceof window.jsPlumbInstance){
+            return getMapContextMenuConfig(component);
+        }else if(component instanceof jsPlumb.Connection){
+            return getConnectionContextMenuConfig(component);
+        }else if(component instanceof jsPlumb.Endpoint){
+            return getEndpointContextMenuConfig(component);
+        }
     };
 
     /**
-     * get active menu entry options for a context menu
-     * @param component
+     * get context menu config for system
+     * @param system
      * @returns {Promise<any>}
      */
-    let getActiveContextMenuOptions = component => {
+    let getSystemContextMenuConfig = system => {
+        let executor = resolve => {
+            let options = MapContextMenu.defaultMenuOptionConfig();
+            options.id = MapContextMenu.config.systemContextMenuId;
+            options.selectCallback = systemActions;
 
-        let getActiveContextMenuOptionsExecutor = (resolve, reject) => {
-            let activeOptions = [];
+            let mapContainer = system.closest('.' + config.mapClass);
 
-            if(component instanceof jsPlumb.Connection){
-                let scope = component.scope;
-
-                if(component.hasType('wh_eol') === true){
-                    activeOptions.push('wh_eol');
-                }
-
-                if(component.hasType('frigate') === true){
-                    activeOptions.push('frigate');
-                }
-                if(component.hasType('preserve_mass') === true){
-                    activeOptions.push('preserve_mass');
-                }
-                if(component.hasType('wh_reduced') === true){
-                    activeOptions.push('status_reduced');
-                }else if(component.hasType('wh_critical') === true){
-                    activeOptions.push('status_critical');
-                }else{
-                    // not reduced is default
-                    activeOptions.push('status_fresh');
-                }
-
-                resolve(activeOptions);
-            }else if( component.hasClass(config.mapClass) ){
-                // active map menu entries
-                let promiseStore = MapUtil.getLocaleData('map', component.data('id'));
-                promiseStore.then(dataStore => {
-                    if(dataStore && dataStore.filterScopes){
-                        activeOptions = dataStore.filterScopes.map(scope => 'filter_' + scope);
-                    }
-                    resolve(activeOptions);
-                });
-            }else if( component.hasClass(config.systemClass) ){
-                // active system menu entries
-                if(component.data('locked') === true){
-                    activeOptions.push('lock_system');
-                }
-                if(component.data('rallyUpdated') > 0){
-                    activeOptions.push('set_rally');
-                }
-
-                resolve(activeOptions);
+            // hidden menu actions
+            if(system.data('locked') === true){
+                options.hidden.push('delete_system');
             }
+
+            if( !mapContainer.find('.' + config.systemActiveClass).length){
+                options.hidden.push('find_route');
+            }
+
+            // active menu actions
+            if(system.data('locked') === true){
+                options.active.push('lock_system');
+            }
+            if(system.data('rallyUpdated') > 0){
+                options.active.push('set_rally');
+            }
+
+            // disabled menu actions
+            if(system.hasClass(config.systemActiveClass)){
+                options.disabled.push('find_route');
+            }
+
+            resolve(options);
         };
 
-        return new Promise(getActiveContextMenuOptionsExecutor);
+        return new Promise(executor);
     };
 
     /**
-     * get disabled menu entry options for a context menu
-     * @param component
+     * get context menu config for map
+     * @param map
      * @returns {Promise<any>}
      */
-    let getDisabledContextMenuOptions = component => {
+    let getMapContextMenuConfig = map => {
+        let executor = resolve => {
+            let options = MapContextMenu.defaultMenuOptionConfig();
+            options.id = MapContextMenu.config.mapContextMenuId;
+            options.selectCallback = mapActions;
 
-        let getDisabledContextMenuOptionsExecutor = (resolve, reject) => {
-            let disabledOptions = [];
+            let mapContainer = $(map.getContainer());
 
-            if( component.hasClass(config.systemClass) ){
-                // disable system menu entries
-                if( component.hasClass(config.systemActiveClass) ){
-                    disabledOptions.push('find_route');
+            // active menu actions
+            let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id'));
+            promiseStore.then(dataStore => {
+                if(dataStore && dataStore.filterScopes){
+                    options.active = dataStore.filterScopes.map(scope => 'filter_' + scope);
                 }
-            }
-
-            resolve(disabledOptions);
+                resolve(options);
+            });
         };
 
-        return new Promise(getDisabledContextMenuOptionsExecutor);
+        return new Promise(executor);
+    };
+
+    /**
+     * get context menu config for connection
+     * @param connection
+     * @returns {Promise<any>}
+     */
+    let getConnectionContextMenuConfig = connection => {
+        let executor = resolve => {
+            let options = MapContextMenu.defaultMenuOptionConfig();
+            options.id = MapContextMenu.config.connectionContextMenuId;
+            options.selectCallback = connectionActions;
+
+            let scope = connection.scope;
+
+            // hidden menu actions
+            if(scope === 'abyssal'){
+                options.hidden.push('frigate');
+                options.hidden.push('preserve_mass');
+                options.hidden.push('change_status');
+
+                options.hidden.push('change_scope');
+                options.hidden.push('separator');
+            }else if(scope === 'stargate'){
+                options.hidden.push('frigate');
+                options.hidden.push('preserve_mass');
+                options.hidden.push('change_status');
+
+                options.hidden.push('scope_stargate');
+            }else if(scope === 'jumpbridge'){
+                options.hidden.push('frigate');
+                options.hidden.push('preserve_mass');
+                options.hidden.push('change_status');
+                options.hidden.push('scope_jumpbridge');
+            }else if(scope === 'wh'){
+                options.hidden.push('scope_wh');
+            }
+
+            // active menu actions
+            if(connection.hasType('wh_eol') === true){
+                options.active.push('wh_eol');
+            }
+
+            if(connection.hasType('frigate') === true){
+                options.active.push('frigate');
+            }
+            if(connection.hasType('preserve_mass') === true){
+                options.active.push('preserve_mass');
+            }
+            if(connection.hasType('wh_reduced') === true){
+                options.active.push('status_reduced');
+            }else if(connection.hasType('wh_critical') === true){
+                options.active.push('status_critical');
+            }else{
+                // not reduced is default
+                options.active.push('status_fresh');
+            }
+
+            resolve(options);
+        };
+
+        return new Promise(executor);
+    };
+
+    /**
+     * get context menu config for endpoint
+     * @param endpoint
+     * @returns {Promise<any>}
+     */
+    let getEndpointContextMenuConfig = endpoint => {
+        let executor = resolve => {
+            let options = MapContextMenu.defaultMenuOptionConfig();
+            options.id = MapContextMenu.config.endpointContextMenuId;
+            options.selectCallback = endpointActions;
+
+            // active menu actions
+            if(endpoint.hasType('bubble') === true){
+                options.active.push('bubble');
+            }
+
+            resolve(options);
+        };
+
+        return new Promise(executor);
     };
 
     /**
@@ -1599,8 +1813,6 @@ define([
 
         // get map container
         let mapContainer = $( map.getContainer() );
-        let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
-        let systemBody = $( system.find('.' + config.systemBodyClass) );
         let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
         // map overlay will be set on "drag" start
         let mapOverlayTimer = null;
@@ -1705,112 +1917,6 @@ define([
             viewport: system.id
         };
         system.find('.fas').tooltip(systemTooltipOptions);
-
-        // context menu ===============================================================================================
-
-        // trigger context menu
-        system.off('contextmenu').on('contextmenu', function(e){
-            e.preventDefault();
-            e.stopPropagation();
-
-            let systemElement = $(this);
-
-            // trigger menu "open
-            Promise.all([
-                getHiddenContextMenuOptions(systemElement),
-                getActiveContextMenuOptions(systemElement),
-                getDisabledContextMenuOptions(systemElement)
-            ]).then(payload => {
-                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1], payload[2]]);
-            });
-
-            return false;
-        });
-
-        // init context menu
-        system.contextMenu({
-            menuSelector: '#' + config.systemContextMenuId,
-            menuSelected: function(params){
-
-                // click action
-                let action = params.selectedMenu.attr('data-action');
-
-                // current system
-                let currentSystem = $(params.component);
-
-                // system name
-                let currentSystemName = currentSystem.getSystemInfo( ['alias'] );
-
-                let systemData = {};
-
-                switch(action){
-                    case 'add_system':
-                        // add a new system
-                        System.showNewSystemDialog(map, {sourceSystem: currentSystem}, saveSystemCallback);
-
-                        break;
-                    case 'lock_system':
-                        // lock system
-                        currentSystem.toggleLockSystem(true, {map: map});
-
-                        // repaint connections, -> system changed its size!
-                        map.repaint( currentSystem );
-
-                        currentSystem.markAsChanged();
-                        break;
-                    case 'set_rally':
-                        // toggle rally point
-                        if( !currentSystem.data('rallyUpdated') ){
-                            $.fn.showRallyPointDialog(currentSystem);
-                        }else{
-                            // remove rally point
-                            currentSystem.setSystemRally(0);
-                            currentSystem.markAsChanged();
-                        }
-                        break;
-                    case 'find_route':
-                        // show find route dialog
-                        systemData = system.getSystemData();
-                        MapUtil.showFindRouteDialog(mapContainer, {
-                            systemId: systemData.systemId,
-                            name: systemData.name
-                        });
-                        break;
-                    case 'select_connections':
-                        let connections = MapUtil.searchConnectionsBySystems(map, [currentSystem], '*');
-                        MapUtil.showConnectionInfo(map, connections);
-                        break;
-                    case 'change_status_unknown':
-                    case 'change_status_friendly':
-                    case 'change_status_occupied':
-                    case 'change_status_hostile':
-                    case 'change_status_empty':
-                    case 'change_status_unscanned':
-                        // change system status
-                        currentSystem.getMapOverlay('timer').startMapUpdateCounter();
-
-                        let statusString = action.split('_');
-
-                        currentSystem.setSystemStatus(statusString[2]);
-
-                        currentSystem.markAsChanged();
-                        break;
-                    case 'delete_system':
-                        // delete this system AND delete selected systems as well
-                        let selectedSystems = mapContainer.getSelectedSystems();
-                        $.merge(selectedSystems, currentSystem);
-                        $.uniqueSort(selectedSystems);
-                        $.fn.showDeleteSystemDialog(map, selectedSystems);
-                        break;
-                    case 'set_destination':
-                    case 'add_first_waypoint':
-                    case 'add_last_waypoint':
-                        systemData = system.getSystemData();
-                        Util.setDestination(systemData, action);
-                        break;
-                }
-            }
-        });
 
         // system click events ========================================================================================
         let double = function(e){
@@ -2012,6 +2118,9 @@ define([
                 LogEnabled: true
             });
 
+            // register all available endpoint types ------------------------------------------------------------------
+            newJsPlumbInstance.registerEndpointTypes(globalMapConfig.endpointTypes);
+
             // register all available connection types ----------------------------------------------------------------
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
@@ -2109,6 +2218,16 @@ define([
                 return (targetEndpoint.connections.length === 0);
             });
 
+            // event for context menu (right click) for Connections and Endpoints -------------------------------------
+            newJsPlumbInstance.bind('contextmenu', function(component, e){
+                getContextMenuConfig(component).then(payload => {
+                    let context = {
+                        component: component
+                    };
+                    MapContextMenu.openMenu(payload, e, context);
+                });
+            });
+
             MapUtil.setMapInstance(mapId, newJsPlumbInstance);
         }
 
@@ -2167,124 +2286,38 @@ define([
      * set observer for a map container
      * @param map
      */
-    let setMapObserver = function(map){
+    let setMapObserver = map => {
         // get map container
         let mapContainer = $(map.getContainer());
 
-        mapContainer.bind('contextmenu', function(e){
+        // context menu for mapContainer
+        mapContainer.on('contextmenu', function(e){
             e.preventDefault();
             e.stopPropagation();
 
             // make sure map is clicked and NOT a connection
-            if($(e.target).hasClass( config.mapClass )){
-                let mapElement = $(this);
-
-                // trigger menu "open
-                Promise.all([
-                    getHiddenContextMenuOptions(mapElement),
-                    getActiveContextMenuOptions(mapElement),
-                    getDisabledContextMenuOptions(mapElement)
-                ]).then(payload => {
-                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1], payload[2]]);
+            if($(e.target).hasClass(config.mapClass)){
+                getContextMenuConfig(map).then(payload => {
+                    let context = {
+                        component: map
+                    };
+                    MapContextMenu.openMenu(payload, e, context);
                 });
             }
-
-            return false;
         });
 
-        mapContainer.contextMenu({
-            menuSelector: '#' + config.mapContextMenuId,
-            menuSelected: function(params){
+        // context menu for systems
+        mapContainer.on('contextmenu', '.' + config.systemClass, function(e){
+            e.preventDefault();
+            e.stopPropagation();
 
-                // click action
-                let action = params.selectedMenu.attr('data-action');
-
-                // current map
-                let currentMapElement = $(params.component);
-
-                let currentMapId = parseInt( currentMapElement.data('id') );
-
-                // get map instance
-                let currentMap = getMapInstance(currentMapId);
-
-                // click position
-                let position = params.position;
-
-                switch(action){
-                    case 'add_system':
-                        // add new system dialog
-                        let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
-                        let positionFinder = new Layout.Position({
-                            container: currentMapElement[0],
-                            center: [position.x, position.y],
-                            loops: 5,
-                            defaultGapX: 10,
-                            defaultGapY: 10,
-                            grid: currentMapElement.hasClass(MapUtil.config.mapGridClass) ? grid : false,
-                            debug: false
-                        });
-
-                        let dimensions = positionFinder.findNonOverlappingDimensions(1, 8);
-
-                        if(dimensions.length){
-                            position.x = dimensions[0].left;
-                            position.y = dimensions[0].top;
-                        }
-
-                        System.showNewSystemDialog(currentMap, {position: position}, saveSystemCallback);
-                        break;
-                    case 'select_all':
-                        currentMapElement.selectAllSystems();
-                        break;
-                    case 'filter_wh':
-                    case 'filter_stargate':
-                    case 'filter_jumpbridge':
-                    case 'filter_abyssal':
-                        // filter (show/hide)
-                        let filterScope = action.split('_')[1];
-                        let filterScopeLabel = MapUtil.getScopeInfoForConnection( filterScope, 'label');
-
-                        let promiseStore = MapUtil.getLocaleData('map', currentMapId);
-                        promiseStore.then(data => {
-                            let filterScopes = [];
-                            if(data && data.filterScopes){
-                                filterScopes = data.filterScopes;
-                            }
-                            // add or remove this scope from filter
-                            let index = filterScopes.indexOf(filterScope);
-                            if(index >= 0){
-                                filterScopes.splice(index, 1);
-                            }else{
-                                filterScopes.push(filterScope);
-                                // "all filters active" == "no filter"
-                                if(filterScopes.length === Object.keys(Init.connectionScopes).length){
-                                    filterScopes = [];
-                                }
-                            }
-
-                            // save filterScopes in IndexDB
-                            MapUtil.storeLocalData('map', currentMapId, 'filterScopes', filterScopes);
-                            MapUtil.filterMapByScopes(currentMap, filterScopes);
-
-                            Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
-                        });
-                        break;
-                    case 'delete_systems':
-                        // delete all selected systems with its connections
-                        let selectedSystems = currentMapElement.getSelectedSystems();
-                        $.fn.showDeleteSystemDialog(currentMap, selectedSystems);
-                        break;
-                    case 'map_edit':
-                        // open map edit dialog tab
-                        $(document).triggerMenuEvent('ShowMapSettings', {tab: 'edit'});
-                        break;
-                    case 'map_info':
-                        // open map info dialog tab
-                        $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
-                        break;
-
-                }
-            }
+            let systemElement = $(e.currentTarget);
+            getContextMenuConfig(systemElement).then(payload => {
+                let context = {
+                    component: systemElement
+                };
+                MapContextMenu.openMenu(payload, e, context);
+            });
         });
 
         // init drag-frame selection

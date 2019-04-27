@@ -2933,7 +2933,7 @@ define([
     };
 
     /**
-     * check an element for attached event by name
+     * check an element for attached jQuery event by name
      * -> e.g. eventName = 'click.myNamespace'
      * @param element
      * @param eventName
@@ -2941,22 +2941,25 @@ define([
      */
     let hasEvent = (element, eventName) => {
         let exists = false;
-        let parts = eventName.split('.');
-        let name =  parts[0];
-        let namespace = parts.length === 2 ? parts[1] : false;
-        let events = $._data( element[0], 'events')[name];
-        if(events){
-            if(namespace){
-                // seach events by namespace
-                for(let event of events){
-                    if(event.namespace === namespace){
-                        exists = true;
-                        break;
+        let allEvents = $._data(element[0], 'events');
+        if(allEvents){
+            let parts = eventName.split('.');
+            let name =  parts[0];
+            let events = allEvents[name];
+            if(events){
+                let namespace = parts.length === 2 ? parts[1] : false;
+                if(namespace){
+                    // search events by namespace
+                    for(let event of events){
+                        if(event.namespace === namespace){
+                            exists = true;
+                            break;
+                        }
                     }
+                }else{
+                    // at least ONE event of the given name found
+                    exists = true;
                 }
-            }else{
-                // at least ONE event of the given name found
-                exists = true;
             }
         }
         return exists;

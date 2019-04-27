@@ -749,6 +749,11 @@ define([
                 .select2('destroy');
         });
 
+        // global "close" trigger for context menus
+        documentElement.on('click', function(){
+            MapContextMenu.closeMenus();
+        });
+
         // disable menu links based on current map config
         documentElement.on('pf:updateMenuOptions', function(e, data){
             let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
@@ -1181,12 +1186,15 @@ define([
     /**
      * add "hidden" context menu elements to page
      */
-    let initMapContextMenus = () => {
-        $('#' + config.dynamicElementWrapperId).append(
-            MapContextMenu.initMapContextMenu(),
-            MapContextMenu.initConnectionContextMenu(),
-            MapContextMenu.initSystemContextMenu(Init.systemStatus)
-        );
+    let renderMapContextMenus = () => {
+        Promise.all([
+            MapContextMenu.renderMapContextMenu(),
+            MapContextMenu.renderConnectionContextMenu(),
+            MapContextMenu.renderEndpointContextMenu(),
+            MapContextMenu.renderSystemContextMenu(Init.systemStatus)
+        ]).then(payloads => {
+            $('#' + config.dynamicElementWrapperId).append(payloads.join(''));
+        });
     };
 
     /**
@@ -1315,7 +1323,7 @@ define([
 
     return {
         initTabChangeObserver: initTabChangeObserver,
-        initMapContextMenus: initMapContextMenus
+        renderMapContextMenus: renderMapContextMenus
     };
 
 });

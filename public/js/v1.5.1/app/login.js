@@ -213,20 +213,6 @@ define([
                 .addClass('text-content')
                 .attr('imgTitle', obj.title);
 
-            let moduleConfig = {
-                name: obj.href, // template name
-                position: newSlideContent,
-                functions: {
-                    after: function(){
-                        // element inserted -> load complete
-                        callback({
-                            type: 'complete',
-                            target: newSlideContent[0]
-                        });
-                    }
-                }
-            };
-
             // render HTML file (template)
             let moduleData = {
                 id: config.headHeaderMapId,
@@ -236,7 +222,9 @@ define([
                 mapBgImageId: config.mapBgImageId
             };
 
-            Render.showModule(moduleConfig, moduleData);
+            Render.render(obj.href, moduleData)
+                .then(payload => newSlideContent.append(payload))
+                .then(payload => callback({type: 'complete', target: payload[0]}));
 
             return newSlideContent[0];
         };

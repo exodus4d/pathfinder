@@ -789,7 +789,7 @@ class Map extends Controller\AccessController {
                         foreach($connections as $i => $connectionData){
                             // check if the current connection belongs to the current map
                             if($connection = $map->getConnectionById((int)$connectionData['id'])){
-                                $connection->copyfrom($connectionData, ['scope', 'type']);
+                                $connection->copyfrom($connectionData, ['scope', 'type', 'endpoints']);
                                 if($connection->save($activeCharacter)){
                                     $mapChanged = true;
                                     // one connection belongs to ONE  map -> speed up for multiple maps

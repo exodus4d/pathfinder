@@ -209,7 +209,7 @@ define([
                 Page.initTabChangeObserver();
 
                 // init hidden context menu elements
-                Page.initMapContextMenus();
+                Page.renderMapContextMenus();
 
                 // init map module
                 mapModule.initMapModule();
@@ -415,7 +415,7 @@ define([
                                 // map update done, init new trigger
 
                                 // get the current update delay (this can change if a user is inactive)
-                                let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
+                                let mapUpdateDelay = Util.getCurrentTriggerDelay(logKeyServerMapData, 0);
 
                                 // init new trigger
                                 initMapUpdatePing(false);

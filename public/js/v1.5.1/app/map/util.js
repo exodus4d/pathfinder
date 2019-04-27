@@ -283,6 +283,26 @@ define([
         return mapElement.find('.' + config.systemSelectedClass);
     };
 
+    let filterDefaultTypes = types => {
+        return types.filter(type => type.length > 0 && type !== 'default' && type !== 'active');
+    };
+
+    /**
+     * returns "target/source"  label from endpoint
+     * @param endpoint
+     * @returns {string}
+     */
+    let getLabelByEndpoint = endpoint => {
+        return endpoint.isSource ? 'source' : endpoint.isTarget ? 'target' : false;
+    };
+
+    let getDataByEndpoint = endpoint => {
+        return {
+            label: getLabelByEndpoint(endpoint),
+            types: filterDefaultTypes(endpoint.getType())
+        };
+    };
+
     /**
      * filter connections by type
      * @param map
@@ -304,37 +324,38 @@ define([
     /**
      * get all relevant data for a connection object
      * @param connection
-     * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
+     * @returns {{targetName: *, endpoints, scope: *, targetAlias: *, id: number, source: number, sourceName: *, type, updated: number, sourceAlias: *, target: number}}
      */
-    let getDataByConnection = (connection) => {
+    let getDataByConnection = connection => {
         let source = $(connection.source);
         let target = $(connection.target);
 
         let id = connection.getParameter('connectionId');
         let updated = connection.getParameter('updated');
 
-        let connectionTypes = connection.getType();
+        let endpoints = {source: {}, target: {}};
+        for(let endpoint of connection.endpoints){
+            let endpointData = getDataByEndpoint(endpoint);
+            if(endpointData.label === 'source'){
+                endpoints.source = endpointData;
+            }else if(endpointData.label === 'target'){
+                endpoints.target = endpointData;
+            }
+        }
 
-        // normalize connection array
-        connectionTypes = $.grep(connectionTypes, function(n){
-            // 'default' is added by jsPlumb by default -_-
-            return ( n.length > 0 && n !== 'default' && n !== 'active');
-        });
-
-        let data = {
+        return {
             id: id ? id : 0,
-            source: parseInt( source.data('id') ),
+            source: parseInt(source.data('id')),
             sourceName: source.data('name'),
             sourceAlias: source.getSystemInfo(['alias']) || source.data('name'),
-            target: parseInt( target.data('id') ),
+            target: parseInt(target.data('id')),
             targetName: target.data('name'),
             targetAlias: target.getSystemInfo(['alias']) || target.data('name'),
             scope: connection.scope,
-            type: connectionTypes,
+            type: filterDefaultTypes(connection.getType()),
+            endpoints: endpoints,
             updated: updated ? updated : 0
         };
-
-        return data;
     };
 
     /**
@@ -342,7 +363,7 @@ define([
      * @param connections
      * @returns {Array}
      */
-    let getDataByConnections = (connections) => {
+    let getDataByConnections = connections => {
         let data = [];
         for(let connection of connections){
             data.push(getDataByConnection(connection));
@@ -430,7 +451,6 @@ define([
         ){
             let SystemSignatures = require('app/ui/module/system_signature');
 
-            let connectionId        = connection.getParameter('connectionId');
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
             let sourceSystem        = $(sourceEndpoint.element);
@@ -1704,6 +1724,7 @@ define([
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         showFindRouteDialog: showFindRouteDialog,
+        getLabelByEndpoint: getLabelByEndpoint,
         getConnectionsByType: getConnectionsByType,
         getDataByConnection: getDataByConnection,
         searchConnectionsBySystems: searchConnectionsBySystems,

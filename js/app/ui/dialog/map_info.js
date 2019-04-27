@@ -200,7 +200,7 @@ define([
            let mapUrl = $(this).find('span').text().trim();
             Util.copyToClipboard(mapUrl).then(payload => {
                 if(payload.data){
-                    Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
+                    Util.showNotify({title: 'Copied to clipboard', text: mapUrl, type: 'success'});
                 }
             });
         });
@@ -1155,26 +1155,33 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // unset formatted string (to much content)
 
-                        if(cellData.formatted){
-                            // clone data before delete() values
-                            cellData = Object.assign({}, cellData);
-                            delete(cellData.formatted);
-                        }
+                        $(cell).on('mouseenter', function(e){
+                            let cell = $(this);
+                            if(!cell.data('bs.popover')){
+                                if(cellData.formatted){
+                                    // clone data before delete() values
+                                    cellData = Object.assign({}, cellData);
+                                    delete(cellData.formatted);
+                                }
 
-                        let jsonHighlighted = Render.highlightJson(cellData);
-                        let content = '<pre><code>' + jsonHighlighted + '</code></pre>';
+                                let jsonHighlighted = Render.highlightJson(cellData);
+                                let content = '<pre><code>' + jsonHighlighted + '</code></pre>';
 
-                        // open popover with raw log data
-                        $(cell).popover({
-                            placement: 'left',
-                            html: true,
-                            trigger: 'hover',
-                            content: content,
-                            container: 'body',
-                            title: 'Raw data',
-                            delay: {
-                                show: 180,
-                                hide: 0
+                                // open popover with raw log data
+                                cell.popover({
+                                    placement: 'left',
+                                    html: true,
+                                    trigger: 'hover',
+                                    content: content,
+                                    container: 'body',
+                                    title: 'Raw data',
+                                    delay: {
+                                        show: 180,
+                                        hide: 0
+                                    }
+                                });
+
+                                cell.popover('show');
                             }
                         });
                     }

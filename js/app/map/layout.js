@@ -394,7 +394,30 @@ define(() => {
         }
     }
 
+    /**
+     * return mouse coordinates from event
+     * @param e
+     * @returns {{x: number, y: number}}
+     */
+    let getEventCoordinates = e => {
+        let posX = 0;
+        let posY = 0;
+
+        if(e.offsetX && e.offsetY){
+            // Chrome
+            posX = e.offsetX;
+            posY = e.offsetY;
+        }else if(e.originalEvent){
+            // Firefox -> #415
+            posX = e.originalEvent.layerX;
+            posY = e.originalEvent.layerY;
+        }
+
+        return {x: posX, y: posY};
+    };
+
     return {
-        Position: Position
+        Position: Position,
+        getEventCoordinates: getEventCoordinates
     };
 });

@@ -35,6 +35,36 @@
   }
 };
 
+// bubble =========================================================================================
+@include keyframes(pfBubbleWobble){
+  from {
+    transform: scale(1, 1);
+  }
+  6.5% {
+    transform: scale(1, 1.4);
+  }
+  13% {
+    transform: scale(1.4, 1);
+  }
+  20% {
+    transform: scale(1, 1);
+  }
+  to {
+    transform: scale(1, 1);
+  }
+}
+
+@include keyframes(pfBubblePop){
+  from {
+    opacity: 1;
+    transform: translateZ(0) scale(1, 1);
+  }
+  to {
+    opacity: 0;
+    transform: translateZ(0) scale(1.75, 1.75);
+  }
+}
+
 // SVG pulse "fill" ===============================================================================
 @include keyframes(pfPulseDanger){
   0% {

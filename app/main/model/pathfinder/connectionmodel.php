@@ -68,6 +68,14 @@ class ConnectionModel extends AbstractMapTrackingModel {
             'type' => self::DT_JSON,
             'activity-log' => true
         ],
+        'sourceEndpointType' => [
+            'type' => self::DT_JSON,
+            'activity-log' => true
+        ],
+        'targetEndpointType' => [
+            'type' => self::DT_JSON,
+            'activity-log' => true
+        ],
         'eolUpdated' => [
             'type' => Schema::DT_TIMESTAMP,
             'default' => null
@@ -96,6 +104,10 @@ class ConnectionModel extends AbstractMapTrackingModel {
         $connectionData->updated        = strtotime($this->updated);
         $connectionData->created        = strtotime($this->created);
         $connectionData->eolUpdated     = strtotime($this->eolUpdated);
+
+        if( !empty($endpointsData = $this->getEndpointsData()) ){
+            $connectionData->endpoints = $endpointsData;
+        }
 
         if($addSignatureData){
             if( !empty($signaturesData = $this->getSignaturesData()) ){
@@ -132,6 +144,33 @@ class ConnectionModel extends AbstractMapTrackingModel {
         }
 
         return $type;
+    }
+
+    /**
+     * setter for endpoints data (data for source/target endpoint)
+     * @param $endpointsData
+     */
+    public function set_endpoints($endpointsData){
+        if(!empty($endpointData = (array)$endpointsData['source'])){
+            $this->setEndpointData('source', $endpointData);
+        }
+        if(!empty($endpointData = (array)$endpointsData['target'])){
+            $this->setEndpointData('target', $endpointData);
+        }
+    }
+
+    /**
+     * set connection endpoint related data
+     * @param string $label (source||target)
+     * @param array $endpointData
+     */
+    public function setEndpointData(string $label, array $endpointData = []){
+        if($this->exists($field = $label . 'EndpointType')){
+            $types = empty($types = (array)$endpointData['types']) ? null : $types;
+            if($this->$field != $types){
+                $this->$field = $types;
+            }
+        }
     }
 
     /**
@@ -340,6 +379,38 @@ class ConnectionModel extends AbstractMapTrackingModel {
         }
 
         return $logs;
+    }
+
+    /**
+     * get endpoint data for $type (source || target)
+     * @param string $type
+     * @return array
+     */
+    protected function getEndpointData(string $type) : array {
+        $endpointData = [];
+
+        if($this->exists($field = $type . 'EndpointType') && !empty($types = (array)$this->$field)){
+            $endpointData['types'] = $types;
+        }
+
+        return $endpointData;
+    }
+
+    /**
+     * get all endpoint data for this connection
+     * @return array
+     */
+    protected function getEndpointsData() : array {
+        $endpointsData = [];
+
+        if(!empty($endpointData = $this->getEndpointData('source'))){
+            $endpointsData['source'] = $endpointData;
+        }
+        if(!empty($endpointData = $this->getEndpointData('target'))){
+            $endpointsData['target'] = $endpointData;
+        }
+
+        return $endpointsData;
     }
 
     /**

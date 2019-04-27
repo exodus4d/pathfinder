@@ -1,35 +1,24 @@
-
-
 $mapHeight:             1500px;
 $mapWidth:              2500px;
 
-$mapWrapperHeight:       520px + 35px;
-$mapWrapperMinHeight:    250px;
-$mapWrapperMaxHeight:    1000px;              // no vertical scrollbar: $mapHeight + 35px;
-$mapWrapperMaxWidth:     $mapWidth + 35px;
+$mapWrapperHeight:      520px + 35px;
+$mapWrapperMinHeight:   250px;
+$mapWrapperMaxHeight:   1000px;              // no vertical scrollbar: $mapHeight + 35px;
+$mapWrapperMaxWidth:    $mapWidth + 35px;
+
+$mapBubbleWidth:        30px;
 
 // start bounce mixin =================================================================================================
 @mixin bounce-up-down{
-  @include animation-duration( 1s);
-  @include animation-delay(0.5s);
-  -webkit-animation-fill-mode: both;
+  animation-duration: 1s;
+  animation-delay: 0.5s;
   animation-fill-mode: both;
-  -webkit-animation-timing-function: linear;
   animation-timing-function: linear;
-  animation-iteration-count:infinite;
-  -webkit-animation-iteration-count:infinite;
-
-  -webkit-animation-name: bounce;
+  animation-iteration-count: infinite;
   animation-name: bounce;
 }
 
-@-webkit-keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {-webkit-transform: translateY(0);}
-  40% {-webkit-transform: translateY(-8px);}
-  60% {-webkit-transform: translateY(-4px);}
-}
-
-@keyframes bounce {
+@include keyframes(bounce){
   0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
   40% {transform: translateY(-8px);}
   60% {transform: translateY(-4px);}
@@ -530,6 +519,15 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     &.jsplumb-hover{
       // increase z-index -> prevent overlapping multiple endpoints
       z-index: 95;
+
+      &.pf-map-endpoint-bubble{
+        &:after{
+          filter: drop-shadow( -3px 3px 4px rgba(0,0,0, 0.3));
+          animation-iteration-count: infinite;
+          animation-delay: 0.5s;
+          animation-fill-mode: both;
+        }
+      }
     }
 
     // while dragging
@@ -551,6 +549,37 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     circle {
       stroke: $red-darker !important;
       fill: $red-darker !important;
+    }
+  }
+
+  .jsplumb-endpoint{
+    &:after{
+      content: url("#{$base-url}/bubble.svg");
+      position: absolute;
+      display: block;
+      pointer-events: none;
+      top: ($mapBubbleWidth / -2) + 5;
+      left: ($mapBubbleWidth / -2) + 5;
+      width: $mapBubbleWidth;
+      height: $mapBubbleWidth;
+      z-index: -1;
+      will-change: opacity, transform;
+
+      animation-name: pfBubblePop;
+      animation-duration: 0.09s;
+      animation-timing-function: cubic-bezier(0.16, 0.87, 0.48, 0.99);
+      animation-fill-mode: forwards;
+      animation-iteration-count: 1;
+    }
+  }
+
+  .pf-map-endpoint-bubble{
+    &:after{
+      display: block;
+      animation-name: pfBubbleWobble;
+      animation-duration: 1s;
+      animation-timing-function: linear;
+      animation-iteration-count: 1;
     }
   }
 
@@ -741,11 +770,10 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
   // Endpoint overlays ================================================================================================
   .pf-map-connection-small-overlay{
-    filter: blur(0.000001px);
     -webkit-font-smoothing: antialiased;
     font-family: Arial, sans-serif;         // fix for element width on custom font family
     padding: 2px;
-    font-size: 9.5px;
+    font-size: 10px;
     line-height: 100%;
     z-index: 1020;
     background-color: $gray;

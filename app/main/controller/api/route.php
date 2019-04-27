@@ -125,6 +125,8 @@ class Route extends Controller\AccessController {
             $excludeTypes = [];
             $includeEOL = true;
 
+            $excludeEndpointTypes = [];
+
             if( $filterData['stargates'] === true){
                 // include "stargates" for search
                 $includeScopes[] = 'stargate';
@@ -161,6 +163,10 @@ class Route extends Controller\AccessController {
                 }
             }
 
+            if( $filterData['endpointsBubble'] !== true ){
+                $excludeEndpointTypes[] = 'bubble';
+            }
+
             // search connections -------------------------------------------------------------------------------------
 
             if( !empty($includeScopes) ){
@@ -176,6 +182,11 @@ class Route extends Controller\AccessController {
 
                 if(!$includeEOL){
                     $whereQuery .= " `connection`.`eolUpdated` IS NULL AND ";
+                }
+
+                if( !empty($excludeEndpointTypes) ){
+                    $whereQuery .= " CONCAT_WS(' ', `connection`.`sourceEndpointType`, `connection`.`targetEndpointType`) ";
+                    $whereQuery .= " NOT REGEXP '" . implode("|", $excludeEndpointTypes) . "' AND ";
                 }
 
                 $query = "SELECT 
@@ -717,22 +728,23 @@ class Route extends Controller\AccessController {
 
                 // search route with filter options
                 $filterData = [
-                    'stargates' => (bool) $routeData['stargates'],
-                    'jumpbridges' => (bool) $routeData['jumpbridges'],
-                    'wormholes' => (bool) $routeData['wormholes'],
-                    'wormholesReduced' => (bool) $routeData['wormholesReduced'],
-                    'wormholesCritical' => (bool) $routeData['wormholesCritical'],
-                    'wormholesFrigate' => (bool) $routeData['wormholesFrigate'],
-                    'wormholesEOL' => (bool) $routeData['wormholesEOL'],
-                    'flag' => $routeData['flag']
+                    'stargates'             => (bool) $routeData['stargates'],
+                    'jumpbridges'           => (bool) $routeData['jumpbridges'],
+                    'wormholes'             => (bool) $routeData['wormholes'],
+                    'wormholesReduced'      => (bool) $routeData['wormholesReduced'],
+                    'wormholesCritical'     => (bool) $routeData['wormholesCritical'],
+                    'wormholesFrigate'      => (bool) $routeData['wormholesFrigate'],
+                    'wormholesEOL'          => (bool) $routeData['wormholesEOL'],
+                    'endpointsBubble'       => (bool) $routeData['endpointsBubble'],
+                    'flag'                  => $routeData['flag']
                 ];
 
                 $returnRoutData = [
-                    'systemFromData' => $routeData['systemFromData'],
-                    'systemToData' => $routeData['systemToData'],
-                    'skipSearch' => (bool) $routeData['skipSearch'],
-                    'maps' => $mapData,
-                    'mapIds' => $mapIds
+                    'systemFromData'        => $routeData['systemFromData'],
+                    'systemToData'          => $routeData['systemToData'],
+                    'skipSearch'            => (bool) $routeData['skipSearch'],
+                    'maps'                  => $mapData,
+                    'mapIds'                => $mapIds
                 ];
 
                 // add filter options for each route as well
@@ -742,10 +754,10 @@ class Route extends Controller\AccessController {
                     !$returnRoutData['skipSearch'] &&
                     count($mapIds) > 0
                 ){
-                    $systemFrom = $routeData['systemFromData']['name'];
-                    $systemFromId = (int)$routeData['systemFromData']['systemId'];
-                    $systemTo = $routeData['systemToData']['name'];
-                    $systemToId = (int)$routeData['systemToData']['systemId'];
+                    $systemFrom     = $routeData['systemFromData']['name'];
+                    $systemFromId   = (int)$routeData['systemFromData']['systemId'];
+                    $systemTo       = $routeData['systemToData']['name'];
+                    $systemToId     = (int)$routeData['systemToData']['systemId'];
 
                     $cacheKey = $this->getRouteCacheKey(
                         $mapIds,

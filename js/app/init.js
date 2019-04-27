@@ -316,6 +316,12 @@ define(['jquery'], ($) => {
         },
         // map scopes
         defaultMapScope: 'wh',                                              // default scope for connection
+        // map endpoint types
+        endpointTypes: {
+            bubble: {
+                cssClass: 'pf-map-endpoint-bubble',
+            }
+        },
         // map connection types
         connectionTypes: {
             abyssal: {

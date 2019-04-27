@@ -10388,7 +10388,8 @@
 
                 // in IE the top left corner is what it placed at the desired location.  This will not
                 // be fixed. IE8 is not going to be supported for much longer.
-                var ts = "translate(-50%, calc(-50% - .5px))";
+                //var ts = "translate(-50%, -50%)";
+                var ts = "translate3d(-8px, 5px, 0)";
                 div.style.webkitTransform = ts;
                 div.style.mozTransform = ts;
                 div.style.msTransform = ts;

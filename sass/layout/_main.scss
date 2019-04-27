@@ -1,3 +1,5 @@
+$endpointBubbleWidth: 18px;
+
 body{
   // prevent marking text
   -webkit-touch-callout: none;
@@ -889,6 +891,23 @@ table{
 
 .pf-user-status-own{
   color: $indigo;
+}
+
+// Connection Endpoint types ======================================================================
+.pf-endpoint-bubble{
+  display: inline-block;
+  position: relative;
+  width: $endpointBubbleWidth;
+  height: $endpointBubbleWidth;
+
+  &:after{
+    content: url("#{$base-url}/bubble.svg");
+    display: inline-block;
+    pointer-events: none;
+    width: $endpointBubbleWidth;
+    height: $endpointBubbleWidth;
+    vertical-align: top;
+  }
 }
 
 // WH effects =====================================================================================
