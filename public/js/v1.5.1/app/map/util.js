@@ -283,6 +283,12 @@ define([
         return mapElement.find('.' + config.systemSelectedClass);
     };
 
+    /**
+     * filter jsPlumb connection or endpoint types
+     * -> remove default type(s)
+     * @param types
+     * @returns {*}
+     */
     let filterDefaultTypes = types => {
         return types.filter(type => type.length > 0 && type !== 'default' && type !== 'active');
     };
@@ -296,6 +302,11 @@ define([
         return endpoint.isSource ? 'source' : endpoint.isTarget ? 'target' : false;
     };
 
+    /**
+     * get data from endpoint
+     * @param endpoint
+     * @returns {{types: *, label: string}}
+     */
     let getDataByEndpoint = endpoint => {
         return {
             label: getLabelByEndpoint(endpoint),

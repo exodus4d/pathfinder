@@ -522,7 +522,6 @@ define([
             case 'add_system':
                 // add a new system
                 System.showNewSystemDialog(map, {sourceSystem: system}, saveSystemCallback);
-
                 break;
             case 'lock_system':
                 // lock system
@@ -670,7 +669,6 @@ define([
                 // open map info dialog tab
                 $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                 break;
-
         }
     };
 
@@ -745,19 +743,12 @@ define([
 
         switch(action){
             case 'bubble':
-                console.log(endpoint.getType())
-                //console.log(endpoint.getParameters() )
                 mapElement.getMapOverlay('timer').startMapUpdateCounter();
                 endpoint.toggleType(action);
-                //endpoint.setParameter('test', 123);
 
                 for(let connection of endpoint.connections){
                     $(connection).markAsChanged();
                 }
-                //$(connection).markAsChanged();
-
-                console.log(endpoint.getType())
-                //console.log(endpoint.getParameters() )
                 break;
         }
     };
@@ -899,8 +890,6 @@ define([
                             label && connectionData.endpoints[label] &&
                             Array.isArray(connectionData.endpoints[label].types)
                         ){
-                            console.log('draw con add Type: ', connectionData.endpoints[label].types)
-
                             for(let type of connectionData.endpoints[label].types){
                                 endpoint.addType(type);
                             }
@@ -992,10 +981,6 @@ define([
         connection.setParameter('updated', newConnectionData.updated);
         connection.setParameter('eolUpdated', newConnectionData.eolUpdated);
         connection.setParameter('changed', false);
-
-        console.log('update con -------------', connectionData.id)
-        console.log(connectionData)
-        console.log(newConnectionData)
 
         return connection;
     };
