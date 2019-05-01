@@ -13,7 +13,7 @@ define(['jquery', 'mustache'], ($, Mustache) => {
      * @returns {Promise<any>}
      */
     let render = (path, data) => {
-        let renderExecutor = (resolve) => {
+        let renderExecutor = resolve => {
             requirejs(['text!templates/' + path + '.html'], template => {
                 resolve(Mustache.render(template, data));
             });

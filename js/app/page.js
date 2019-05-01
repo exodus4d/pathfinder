@@ -603,12 +603,11 @@ define([
      */
     let setPageObserver = function(){
         let documentElement = $(document);
+        let bodyElement = $(document.body);
 
         // on "full-screen" change event
         documentElement.on('fscreenchange', function(e, state, elem){
-
             let menuButton = $('#' + Util.config.menuButtonFullScreenId);
-
             if(state === true){
                 // full screen active
 
@@ -739,7 +738,7 @@ define([
         });
 
         // global "modal" callback (for all modals)
-        $('body').on('hide.bs.modal', '> .modal', function(e){
+        bodyElement.on('hide.bs.modal', '> .modal', function(e){
             let modalElement = $(this);
             modalElement.destroyTimestampCounter(true);
 
@@ -750,7 +749,7 @@ define([
         });
 
         // global "close" trigger for context menus
-        documentElement.on('click', function(){
+        bodyElement.on('click.contextMenuClose', function(e){
             MapContextMenu.closeMenus();
         });
 

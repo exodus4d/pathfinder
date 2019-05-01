@@ -525,42 +525,7 @@ define([
         });
 
         // connections table ------------------------------------------------------------------------------------------
-
-        // prepare data for dataTables
-        let connectionData = [];
-        for(let j = 0; j < mapData.data.connections.length; j++){
-            let tempConnectionData = mapData.data.connections[j];
-
-            let tempConData = {};
-
-            tempConData.id = tempConnectionData.id;
-
-            tempConData.scope = {
-                scope: MapUtil.getScopeInfoForConnection(tempConnectionData.scope, 'label'),
-                scope_sort: tempConnectionData.scope
-            };
-
-            tempConData.source = {
-                id: tempConnectionData.source,
-                name: tempConnectionData.sourceName,
-            };
-
-            // connection
-            let connectionClasses = MapUtil.getConnectionFakeClassesByTypes(tempConnectionData.type);
-            connectionClasses = connectionClasses.join(' ');
-            tempConData.connection = '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
-
-            tempConData.target = {
-                id: tempConnectionData.target,
-                name: tempConnectionData.targetName,
-            };
-
-            tempConData.updated = tempConnectionData.updated;
-
-            tempConData.clear = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
-
-            connectionData.push(tempConData);
-        }
+console.log(mapData.data.connections);
 
         let connectionDataTable = connectionTable.dataTable({
             pageLength: 20,
@@ -570,7 +535,7 @@ define([
             order: [ 0, 'desc' ],
             autoWidth: false,
             hover: false,
-            data: connectionData,
+            data: mapData.data.connections,
             columnDefs: [],
             language: {
                 emptyTable:  'No connections',
@@ -582,46 +547,85 @@ define([
                 {
                     name: 'scope',
                     title: 'scope',
-                    width: '50px',
+                    width: 50,
                     orderable: true,
                     data: 'scope',
                     render: {
-                        _: 'scope',
-                        sort: 'scope_sort'
+                        display: (cellData, type, rowData, meta) => {
+                            return MapUtil.getScopeInfoForConnection(cellData, 'label');
+                        }
                     }
                 },{
                     name: 'sourceName',
                     title: 'source system',
-                    data: 'source.name',
+                    data: 'sourceName',
                     className: [config.tableCellLinkClass].join(' '),
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.source.id});
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.source});
                         });
+                    }
+                },{
+                    name: 'sourceBubble',
+                    title: '<i class="fas fa-globe" title="bubbled" data-toggle="tooltip"></i>',
+                    width: 10,
+                    data: 'endpoints.source',
+                    className: 'text-right',
+                    render: {
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData.types.includes('bubble')){
+                                value = '<span class="pf-endpoint-bubble"></span>';
+                            }
+                            return value;
+                        }
                     }
                 },{
                     name: 'connection',
                     title: 'connection',
-                    width: '80px',
+                    width: 80,
                     className: 'text-center',
                     orderable: false,
                     searchable: false,
-                    data: 'connection'
-                }, {
+                    data: 'type',
+                    render: {
+                        display: (cellData, type, rowData, meta) => {
+                            let connectionClasses = MapUtil.getConnectionFakeClassesByTypes(cellData);
+                            connectionClasses = connectionClasses.join(' ');
+                            return  '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
+                        }
+                    }
+                },{
+                    name: 'targetBubble',
+                    title: '<i class="fas fa-globe" title="bubbled" data-toggle="tooltip"></i>',
+                    width: 10,
+                    data: 'endpoints.target',
+                    className: 'text-left',
+                    render: {
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData.types.includes('bubble')){
+                                value = '<span class="pf-endpoint-bubble"></span>';
+                            }
+                            return value;
+                        }
+                    }
+                },{
+                    name: 'targetName',
                     title: 'target system',
-                    data: 'target.name',
+                    data: 'targetName',
                     className: [config.tableCellLinkClass].join(' '),
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.target.id});
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.target});
                         });
                     }
                 },{
                     name: 'updated',
                     title: 'updated',
-                    width: '80px',
+                    width: 80,
                     searchable: false,
                     className: ['text-right', config.tableCellCounterClass].join(' '),
                     data: 'updated',
@@ -640,9 +644,10 @@ define([
                     title: '',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     className: ['text-center', config.tableCellActionClass].join(' '),
-                    data: 'clear',
+                    data: null,
+                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDarker"></i>',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 

@@ -233,7 +233,7 @@ define([
         // remove menu list click event
         // -> required in case the close handler could not remove them properly
         // -> this happens if menu re-opens without closing (2x right click)
-        menuElement.off('click', 'li');
+        menuElement.off('click.contextMenuSelect', 'li');
 
         // hide/activate/disable
         menuElement = prepareMenu(menuElement, menuConfig.hidden, menuConfig.active, menuConfig.disabled);
@@ -253,7 +253,7 @@ define([
                     selectCallback: menuConfig.selectCallback
                 };
 
-                $(this).one('click', 'li', context, selectHandler);
+                $(this).one('click.contextMenuSelect', 'li', context, selectHandler);
             }
         });
     };

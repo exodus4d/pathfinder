@@ -754,36 +754,29 @@ define([
     };
 
     /**
-     * set observer for a given connection
-     * @param map
+     * click event handler for a Connection
      * @param connection
+     * @param e
      */
-    let setConnectionObserver = (map, connection) => {
-        let connectionCanvas = $(connection.canvas);
-
-        let single = function(e){
-            let connection = this;
-            // left mouse button
-            if(e.which === 1){
-                if(e.ctrlKey === true){
-                    // an "active" connection is required before adding more "selected" connections
-                    let activeConnections = MapUtil.getConnectionsByType(map, 'active');
-                    if(activeConnections.length >= config.maxActiveConnections && !connection.hasType('active')){
-                        Util.showNotify({title: 'Connection select limit', text: 'You can´t select more connections', type: 'warning'});
-                    }else{
-                        if(activeConnections.length > 0){
-                            MapUtil.toggleConnectionActive(map, [connection]);
-                        }else{
-                            MapUtil.showConnectionInfo(map, [connection]);
-                        }
-                    }
+    let connectionClickHandler = (connection, e) => {
+        if(e.which === 1){
+            let map = connection._jsPlumb.instance;
+            if(e.ctrlKey === true){
+                // an "active" connection is required before adding more "selected" connections
+                let activeConnections = MapUtil.getConnectionsByType(map, 'active');
+                if(activeConnections.length >= config.maxActiveConnections && !connection.hasType('active')){
+                    Util.showNotify({title: 'Connection select limit', text: 'You can´t select more connections', type: 'warning'});
                 }else{
-                    MapUtil.showConnectionInfo(map, [connection]);
+                    if(activeConnections.length > 0){
+                        MapUtil.toggleConnectionActive(map, [connection]);
+                    }else{
+                        MapUtil.showConnectionInfo(map, [connection]);
+                    }
                 }
+            }else{
+                MapUtil.showConnectionInfo(map, [connection]);
             }
-        }.bind(connection);
-
-        Util.singleDoubleClick(connectionCanvas, single, () => {});
+        }
     };
 
     /**
@@ -792,14 +785,12 @@ define([
      * @param scope
      */
     let setConnectionScope = (connection, scope) => {
-        let map = connection._jsPlumb.instance;
         let currentConnector = connection.getConnector();
         let newConnector = MapUtil.getScopeInfoForConnection(scope, 'connectorDefinition');
 
         if(currentConnector.type !== newConnector[0]){
             // connector has changed
-
-            connection.setConnector( newConnector );
+            connection.setConnector(newConnector);
 
             // remove all connection types
             connection.clearTypes();
@@ -810,9 +801,6 @@ define([
 
             // change scope
             connection.scope = scope;
-
-            // new observer is required after scope change
-            setConnectionObserver(map, connection);
         }
     };
 
@@ -839,13 +827,15 @@ define([
             connection = map.connect({
                 source: sourceSystem[0],
                 target: targetSystem[0],
-                /*
-                 parameters: {
-                 connectionId: connectionId,
-                 updated: connectionData.updated
-                 },
-                 */
-                type: null
+                scope: connectionData.scope || map.Defaults.Scope,
+                type:  (connectionData.type || MapUtil.getDefaultConnectionTypeByScope(map.Defaults.Scope)).join(' '),
+                /* experimental set "static" connection parameters in initial load
+                parameters: {
+                    connectionId:   connectionId,
+                    updated:        connectionData.updated,
+                    created:        connectionData.created,
+                    eolUpdated:     connectionData.eolUpdated
+                }*/
                 /* experimental (straight connections)
                  anchors: [
                  [ "Perimeter", { shape: 'Rectangle' }],
@@ -859,33 +849,26 @@ define([
 
                 // set connection parameters
                 // they should persist even through connection type change (e.g. wh -> stargate,..)
-                // therefore they should be part of the connection not of the connector
+                // therefore they should be part of the connection not of the "Endpoint" or "connectionType"
                 connection.setParameters({
-                    connectionId: connectionId,
-                    updated: connectionData.updated,
-                    created: connectionData.created,
-                    eolUpdated: connectionData.eolUpdated
+                    connectionId:   connectionId,
+                    updated:        connectionData.updated,
+                    created:        connectionData.created,
+                    eolUpdated:     connectionData.eolUpdated
                 });
 
-                // add connection types -------------------------------------------------------------------------------
-                if(connectionData.type){
-                    for(let i = 0; i < connectionData.type.length; i++){
-                        connection.addType(connectionData.type[i]);
-                    }
-                }
+                if(connection.scope !== map.Defaults.Scope){
+                    let newConnector = MapUtil.getScopeInfoForConnection(connection.scope, 'connectorDefinition');
+                    connection.setConnector(newConnector);
 
-                // add connection scope -------------------------------------------------------------------------------
-                // connection have the default map Scope scope
-                let scope = map.Defaults.Scope;
-                if(connectionData.scope){
-                    scope = connectionData.scope;
+                    // we need to "reapply" the types after "Connector" was changed
+                    connection.reapplyTypes();
                 }
-                setConnectionScope(connection, scope);
 
                 // add endpoint types ---------------------------------------------------------------------------------
                 if(connectionData.endpoints){
                     for(let endpoint of connection.endpoints){
-                        let label = MapUtil.getLabelByEndpoint(endpoint);
+                        let label = MapUtil.getEndpointLabel(connection, endpoint);
                         if(
                             label && connectionData.endpoints[label] &&
                             Array.isArray(connectionData.endpoints[label].types)
@@ -897,8 +880,6 @@ define([
                     }
                 }
             }
-
-            // set Observer for new Connection -> is automatically set
         }else{
             if( !sourceSystem.length ){
                 console.warn('drawConnection(): source system (id: ' + connectionData.source + ') not found');
@@ -914,11 +895,11 @@ define([
     /**
      * compares the current data and new data of a connection and updates status
      * @param connection
-     * @param connectionData
      * @param newConnectionData
      * @returns {*}
      */
-    let updateConnection = (connection, connectionData, newConnectionData) => {
+    let updateConnection = (connection, newConnectionData) => {
+        let connectionData = MapUtil.getDataByConnection(connection);
         let map = connection._jsPlumb.instance;
         let mapContainer = $( map.getContainer() );
         let mapId = mapContainer.data('id');
@@ -931,8 +912,6 @@ define([
         // check scope
         if(connectionData.scope !== newConnectionData.scope){
             setConnectionScope(connection, newConnectionData.scope);
-            // for some reason the observers are gone after scope change...
-            setConnectionObserver(map, connection);
         }
 
         let addType = newConnectionData.type.diff(connectionData.type);
@@ -946,31 +925,40 @@ define([
             map.setTarget(connection, MapUtil.getSystemId(mapId, newConnectionData.target) );
         }
 
-        // connection.targetId
+        let checkAvailability = (arr, val) => arr.some(arrVal => arrVal === val);
+
         // add types
-        for(let i = 0; i < addType.length; i++){
-            if(
-                addType[i].indexOf('fresh') !== -1 ||
-                addType[i].indexOf('reduced') !== -1 ||
-                addType[i].indexOf('critical') !== -1
-            ){
-                MapUtil.setConnectionWHStatus(connection, addType[i]);
-            }else if( connection.hasType(addType[i]) !== true ){
+        for(let type of addType){
+            if(checkAvailability(['fresh', 'reduced', 'critical'], type)){
+                MapUtil.setConnectionWHStatus(connection, type);
+            }else if(connection.hasType(type) !== true){
                 // additional types e.g. eol, frig, preserve mass
-                connection.addType(addType[i]);
-                setConnectionObserver(map, connection);
+                connection.addType(type);
             }
         }
 
         // remove types
-        for(let j = 0; j < removeType.length; j++){
-            if(
-                removeType[j] === 'wh_eol' ||
-                removeType[j] === 'frigate' ||
-                removeType[j] === 'preserve_mass'
-            ){
-                connection.removeType(removeType[j]);
-                setConnectionObserver(map, connection);
+        for(let type of removeType){
+            if(checkAvailability(['wh_eol', 'frigate', 'preserve_mass'], type)){
+                connection.removeType(type);
+            }
+        }
+
+        // update endpoints
+        for(let endpoint of connection.endpoints){
+            let label = MapUtil.getEndpointLabel(connection, endpoint);
+            let endpointTypes = Util.getObjVal(connectionData, ['endpoints', label, 'types'].join('.')) || [];
+            let newEndpointTypes = Util.getObjVal(newConnectionData, ['endpoints', label, 'types'].join('.')) || [];
+
+            let addEndpointTypes = newEndpointTypes.diff(endpointTypes);
+            let removeEndpointTypes = endpointTypes.diff(newEndpointTypes);
+
+            for(let type of addEndpointTypes){
+                endpoint.addType(type);
+            }
+
+            for(let type of removeEndpointTypes){
+                endpoint.removeType(type);
             }
         }
 
@@ -1239,7 +1227,7 @@ define([
                                     ){
                                         // connection changed -> update
                                         let tempConnection = $().getConnectionById(mapData.config.id, connectionData.id);
-                                        updateConnection(tempConnection, currentConnectionData[c], connectionData);
+                                        updateConnection(tempConnection, connectionData);
                                     }
 
                                     addNewConnection = false;
@@ -1471,11 +1459,13 @@ define([
             // connect new system (if connection data is given)
             if(connectedSystem){
 
-                // hint: "type" will be auto detected by jump distance
+                // hint: "scope + type" might be changed automatically when it gets saved
+                // -> based on jump distance,..
                 let connectionData = {
                     source: $(connectedSystem).data('id'),
                     target: newSystem.data('id'),
-                    type: ['wh_fresh'] // default type.
+                    scope: map.Defaults.Scope,
+                    type: [MapUtil.getDefaultConnectionTypeByScope(map.Defaults.Scope)]
                 };
                 let connection = drawConnection(map, connectionData);
 
@@ -1591,7 +1581,7 @@ define([
 
                         if(updateCon){
                             // update connection data e.g. "scope" has auto detected
-                            connection = updateConnection(connection, payload.context.oldConnectionData, newConnectionData);
+                            connection = updateConnection(connection, newConnectionData);
 
                             // new/updated connection should be cached immediately!
                             updateConnectionCache(payload.context.mapId, connection);
@@ -2103,24 +2093,18 @@ define([
                 LogEnabled: true
             });
 
-            // register all available endpoint types ------------------------------------------------------------------
+            // register all available endpoint types
             newJsPlumbInstance.registerEndpointTypes(globalMapConfig.endpointTypes);
 
-            // register all available connection types ----------------------------------------------------------------
+            // register all available connection types
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
-            // event after a new connection is established ------------------------------------------------------------
-            newJsPlumbInstance.bind('connection', function(info, e){
-                // set connection observer
-                setConnectionObserver(newJsPlumbInstance, info.connection);
-            });
+            // ========================================================================================================
+            // Event Interceptors https://community.jsplumbtoolkit.com/doc/interceptors.html
+            //=========================================================================================================
 
-            // event after connection moved ---------------------------------------------------------------------------
-            newJsPlumbInstance.bind('connectionMoved', function(info, e){
-
-            });
-
-            // event after DragStop a connection or new connection ----------------------------------------------------
+            // This is called when a new or existing connection has been dropped
+            // If you return false (or nothing) from this callback, the new Connection is aborted and removed from the UI.
             newJsPlumbInstance.bind('beforeDrop', function(info){
                 let connection = info.connection;
                 let dropEndpoint = info.dropEndpoint;
@@ -2178,32 +2162,49 @@ define([
                 return true;
             });
 
-            // event before detach (existing connection) --------------------------------------------------------------
+            // This is called when the user starts to drag an existing Connection.
+            // Returning false from beforeStartDetach prevents the Connection from being dragged.
             newJsPlumbInstance.bind('beforeStartDetach', function(info){
                 return true;
             });
 
-            // event before detach connection -------------------------------------------------------------------------
+            // This is called when the user has detached a Connection, which can happen for a number of reasons:
+            // by default, jsPlumb allows users to drag Connections off of target Endpoints, but this can also result from a programmatic 'detach' call.
             newJsPlumbInstance.bind('beforeDetach', function(info){
                 return true;
             });
 
+            // ========================================================================================================
+            // Events https://community.jsplumbtoolkit.com/doc/events.html
+            //=========================================================================================================
+
+            // Notification a Connection was established.
+            // Note: jsPlumb.connect causes this event to be fired, but there is of course no original event when a connection is established programmatically.
+            newJsPlumbInstance.bind('connection', function(info, e){
+
+            });
+
+            // Notification a Connection or Endpoints was clicked.
+            newJsPlumbInstance.bind('click', function(component, e){
+                if(component instanceof jsPlumb.Connection){
+                    connectionClickHandler(component,e);
+                }
+            });
+
+            // Notification that an existing connection's source or target endpoint was dragged to some new location.
+            newJsPlumbInstance.bind('connectionMoved', function(info, e){
+
+            });
+
+            // Notification a Connection was detached.
+            // In the event that the Connection was new and had never been established between two Endpoints, it has a pending flag set on it.
             newJsPlumbInstance.bind('connectionDetached', function(info, e){
                 // a connection is manually (drag&drop) detached! otherwise this event should not be send!
                 let connection = info.connection;
                 MapUtil.deleteConnections([connection]);
             });
 
-            newJsPlumbInstance.bind('checkDropAllowed', function(params){
-                let sourceEndpoint = params.sourceEndpoint;
-                let targetEndpoint = params.targetEndpoint;
-
-                // connections can not be attached to foreign endpoints
-                // the only endpoint available is the endpoint from where the connection was dragged away (re-attach)
-                return (targetEndpoint.connections.length === 0);
-            });
-
-            // event for context menu (right click) for Connections and Endpoints -------------------------------------
+            // Right-click on some given component. jsPlumb will report right clicks on both Connections and Endpoints.
             newJsPlumbInstance.bind('contextmenu', function(component, e){
                 getContextMenuConfig(component).then(payload => {
                     let context = {
@@ -2211,6 +2212,21 @@ define([
                     };
                     MapContextMenu.openMenu(payload, e, context);
                 });
+
+            });
+
+            // ========================================================================================================
+            // Events for interactive CSS classes https://community.jsplumbtoolkit.com/doc/styling-via-css.html
+            //=========================================================================================================
+
+            // This event is responsible for dynamic CSS classes "_jsPlumb_target_hover", "_jsPlumb_drag_select"
+            newJsPlumbInstance.bind('checkDropAllowed', function(params){
+                let sourceEndpoint = params.sourceEndpoint;
+                let targetEndpoint = params.targetEndpoint;
+
+                // connections can not be attached to foreign endpoints
+                // the only endpoint available is the endpoint from where the connection was dragged away (re-attach)
+                return (targetEndpoint.connections.length === 0);
             });
 
             MapUtil.setMapInstance(mapId, newJsPlumbInstance);

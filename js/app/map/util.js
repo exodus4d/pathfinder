@@ -81,24 +81,20 @@ define([
      * @param mapId
      * @returns {*}
      */
-    let getMapInstance = (mapId) => {
-        return activeInstances[mapId];
-    };
+    let getMapInstance = mapId => activeInstances[mapId];
 
     /**
      * check for mapInstance is set
      * @param mapId
      * @returns {boolean}
      */
-    let existsMapInstance = (mapId) => {
-        return typeof activeInstances[mapId] === 'object';
-    };
+    let existsMapInstance = mapId => typeof activeInstances[mapId] === 'object';
 
     /**
      * removes a map instance
      * @param mapId
      */
-    let clearMapInstance = (mapId) => {
+    let clearMapInstance = mapId => {
         if(existsMapInstance(mapId)){
             delete activeInstances[mapId];
         }
@@ -295,21 +291,23 @@ define([
 
     /**
      * returns "target/source"  label from endpoint
+     * @param connection
      * @param endpoint
      * @returns {string}
      */
-    let getLabelByEndpoint = endpoint => {
-        return endpoint.isSource ? 'source' : endpoint.isTarget ? 'target' : false;
+    let getEndpointLabel = (connection, endpoint) => {
+        return endpoint.element === connection.source ? 'source' : endpoint.element === connection.target ? 'target' : false;
     };
 
     /**
      * get data from endpoint
+     * @param connection
      * @param endpoint
      * @returns {{types: *, label: string}}
      */
-    let getDataByEndpoint = endpoint => {
+    let getDataByEndpoint = (connection, endpoint) => {
         return {
-            label: getLabelByEndpoint(endpoint),
+            label: getEndpointLabel(connection, endpoint),
             types: filterDefaultTypes(endpoint.getType())
         };
     };
@@ -346,7 +344,7 @@ define([
 
         let endpoints = {source: {}, target: {}};
         for(let endpoint of connection.endpoints){
-            let endpointData = getDataByEndpoint(endpoint);
+            let endpointData = getDataByEndpoint(connection, endpoint);
             if(endpointData.label === 'source'){
                 endpoints.source = endpointData;
             }else if(endpointData.label === 'target'){
@@ -1735,7 +1733,7 @@ define([
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         showFindRouteDialog: showFindRouteDialog,
-        getLabelByEndpoint: getLabelByEndpoint,
+        getEndpointLabel: getEndpointLabel,
         getConnectionsByType: getConnectionsByType,
         getDataByConnection: getDataByConnection,
         searchConnectionsBySystems: searchConnectionsBySystems,

@@ -485,6 +485,16 @@ select:active, select:hover {
     .pf-table-cell-100{
       width: 110px;
     }
+
+    .pf-endpoint-bubble{
+      width: 15px;
+      height: 15px;
+
+      &:after{
+        width: 15px;
+        height: 15px;
+      }
+    }
   }
 
   // column separator
