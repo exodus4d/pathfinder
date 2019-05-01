@@ -678,6 +678,11 @@ define([
      * @param connection
      */
     let connectionActions = (action, connection) => {
+        if(!connection._jsPlumb){
+            Util.showNotify({title: 'Connection not found', type: 'error'});
+            return;
+        }
+
         let map = connection._jsPlumb.instance;
         let mapElement = $(map.getContainer());
 
@@ -762,9 +767,9 @@ define([
         if(e.which === 1){
             let map = connection._jsPlumb.instance;
             if(e.ctrlKey === true){
-                // an "active" connection is required before adding more "selected" connections
-                let activeConnections = MapUtil.getConnectionsByType(map, 'active');
-                if(activeConnections.length >= config.maxActiveConnections && !connection.hasType('active')){
+                // an "state_active" connection is required before adding more "selected" connections
+                let activeConnections = MapUtil.getConnectionsByType(map, 'state_active');
+                if(activeConnections.length >= config.maxActiveConnections && !connection.hasType('state_active')){
                     Util.showNotify({title: 'Connection select limit', text: 'You can´t select more connections', type: 'warning'});
                 }else{
                     if(activeConnections.length > 0){
@@ -1541,6 +1546,7 @@ define([
      */
     let saveConnection = connection => {
         if(connection instanceof jsPlumb.Connection){
+            connection.addType('state_process');
 
             let map = connection._jsPlumb.instance;
             let mapContainer = $(map.getContainer());
@@ -1559,6 +1565,8 @@ define([
                     let newConnectionData = payload.data;
 
                     if( !$.isEmptyObject(newConnectionData) ){
+                        payload.context.connection.removeType('state_process');
+
                         let updateCon = false;
 
                         if(payload.context.oldConnectionData.id > 0){

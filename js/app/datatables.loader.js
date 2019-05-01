@@ -36,7 +36,10 @@ define([
             let table = $(this);
             let tableApi = new $.fn.dataTable.Api(settings);
             // end all active processes (e.g. table lock)
-            tableApi.endProcesses();
+            // -> this custom extension is only available if "StatusTable" feature is enabled with it
+            if(typeof tableApi.endProcesses === 'function'){
+                tableApi.endProcesses();
+            }
 
             // remove all active counters in table
             table.destroyTimestampCounter(true);

@@ -525,8 +525,6 @@ define([
         });
 
         // connections table ------------------------------------------------------------------------------------------
-console.log(mapData.data.connections);
-
         let connectionDataTable = connectionTable.dataTable({
             pageLength: 20,
             paging: true,

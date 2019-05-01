@@ -375,7 +375,7 @@ define(['jquery'], ($) => {
                     ['Label',
                         {
                             label: 'frig',
-                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' '),
+                            cssClass: ['pf-map-component-overlay', 'frig'].join(' '),
                             location: 0.6
                         }]
                 ]
@@ -386,13 +386,24 @@ define(['jquery'], ($) => {
                     ['Label',
                         {
                             label: '<i class="fas fa-fw fa-exclamation-triangle"></i>&nbsp;save mass',
-                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' '),
+                            cssClass: ['pf-map-component-overlay', 'mass'].join(' '),
                             location: 0.6
                         }]
                 ]
             },
-            active: {
+            state_active: {
                 cssClass: 'pf-map-connection-active'
+            },
+            state_process: {
+                cssClass: 'pf-map-connection-process',
+                overlays:[
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-fw fa-sync fa-spin"></i>',
+                            cssClass: ['pf-map-connection-state-overlay'].join(' '),
+                            location: 0.6
+                        }]
+                ]
             }
         },
         // signature groups

@@ -286,7 +286,8 @@ define([
      * @returns {*}
      */
     let filterDefaultTypes = types => {
-        return types.filter(type => type.length > 0 && type !== 'default' && type !== 'active');
+        let defaultTypes = ['', 'default', 'state_active', 'state_process'];
+        return types.diff(defaultTypes);
     };
 
     /**
@@ -402,6 +403,8 @@ define([
             // connectionIds for delete request
             let connectionIds = [];
             for(let connection of connections){
+                connection.addType('state_process');
+
                 let connectionId = connection.getParameter('connectionId');
                 // drag&drop a new connection does not have an id yet, if connection is not established correct
                 if(connectionId !== undefined){
@@ -416,6 +419,13 @@ define([
                     connections: connections
                 }).then(
                     payload => {
+                        for(let connection of payload.context.connections){
+                            // connection might be removed rom global map update before this requests ends
+                            if(connection._jsPlumb){
+                                connection.removeType('state_process');
+                            }
+                        }
+
                         // check if all connections were deleted that should get deleted
                         let deletedConnections = payload.context.connections.filter(
                             function(connection){
@@ -545,7 +555,7 @@ define([
      * @returns {boolean}
      */
     let hasActiveConnection = map => {
-        let activeConnections = getConnectionsByType(map, 'active');
+        let activeConnections = getConnectionsByType(map, 'state_active');
         return activeConnections.length > 0;
     };
 
@@ -676,12 +686,12 @@ define([
      */
     let setConnectionsActive = (map, connections) => {
         // set all inactive
-        for(let connection of getConnectionsByType(map, 'active')){
-            connection.removeType('active');
+        for(let connection of getConnectionsByType(map, 'state_active')){
+            connection.removeType('state_active');
         }
 
         for(let connection of connections){
-            connection.addType('active');
+            connection.addType('state_active');
         }
     };
 
@@ -723,11 +733,11 @@ define([
         let selectedConnections = [];
         let deselectedConnections = [];
         for(let connection of connections){
-            if(connection.hasType('active')){
-                connection.removeType('active');
+            if(connection.hasType('state_active')){
+                connection.removeType('state_active');
                 deselectedConnections.push(connection);
             }else{
-                connection.addType('active');
+                connection.addType('state_active');
                 selectedConnections.push(connection);
             }
         }
