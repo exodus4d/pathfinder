@@ -74,13 +74,18 @@ define([
          * @param label
          */
         let addEndpointOverlay = (endpoint, label) => {
+            label = label.join(', ');
+
             endpoint.addOverlay([
                 'Label',
                 {
                     label: MapUtil.getEndpointOverlayContent(label),
                     id: config.endpointOverlayId,
                     cssClass: [config.componentOverlayClass, label.length ? 'small' : 'icon'].join(' '),
-                    location: [ 0.9, 0.9 ]
+                    location: MapUtil.getLabelEndpointOverlayLocation(endpoint, label),
+                    parameters: {
+                        label: label
+                    }
                 }
             ]);
         };

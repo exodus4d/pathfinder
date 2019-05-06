@@ -308,8 +308,8 @@ define([
 
                         let sourceLabel =  signatureTypeNames.sourceLabels;
                         let targetLabel =  signatureTypeNames.targetLabels;
-                        sourceLabelElement.html(MapUtil.getEndpointOverlayContent(sourceLabel));
-                        targetLabelElement.html(MapUtil.getEndpointOverlayContent(targetLabel));
+                        sourceLabelElement.html(MapUtil.getEndpointOverlayContent(sourceLabel.join(', ')));
+                        targetLabelElement.html(MapUtil.getEndpointOverlayContent(targetLabel.join(', ')));
 
                         // remove K162
                         sourceLabel = sourceLabel.diff(['K162']);
@@ -1153,7 +1153,7 @@ define([
      */
     let getConnectionsDataFromModule = (moduleElement, mapId) => {
         let activeMap = Util.getMapModule().getActiveMap();
-        let mapData = activeMap.getMapDataFromClient({forceData: true});
+        let mapData = activeMap.getMapDataFromClient(['hasId']);
         let connectionsData = {
             connectionsDataUpdate: [],
             connectionsDataRemove: [],

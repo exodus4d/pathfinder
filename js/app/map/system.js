@@ -145,7 +145,7 @@ define([
         let statusData = [{id: 0, text: 'auto'}];
 
         // get current map data ---------------------------------------------------------------------------------------
-        let mapData = mapContainer.getMapDataFromClient({forceData: true});
+        let mapData = mapContainer.getMapDataFromClient(['hasId']);
         let mapSystems = mapData.data.systems;
         let mapSystemCount = mapSystems.length;
         let mapTypeName = mapContainer.data('typeName');

@@ -322,7 +322,8 @@ define([
                 },{
                     name: 'region',
                     title: 'region',
-                    data: 'region.name'
+                    data: 'region.name',
+                    className: 'min-screen-l',
                 },{
                     name: 'planets',
                     title: '<i class="fas fa-circle" title="planets" data-toggle="tooltip"></i>',
@@ -442,7 +443,7 @@ define([
                     title: 'updated',
                     width: 80,
                     searchable: false,
-                    className: ['text-right', config.tableCellCounterClass, 'min-screen-l'].join(' '),
+                    className: ['text-right', config.tableCellCounterClass].join(' '),
                     data: 'updated.updated',
                     defaultContent: '',
                 },{
@@ -480,7 +481,7 @@ define([
 
                                             // refresh connection table (connections might have changed) --------------
                                             let connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                            let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
+                                            let mapDataNew = activeMap.getMapDataFromClient(['hasId']);
 
                                             connectionsElement.initConnectionInfoTable(mapDataNew);
                                         }else{
@@ -522,6 +523,10 @@ define([
         // table init complete
         connectionTable.on('init.dt', function(){
             connectionsElement.hideLoadingAnimation();
+
+            // init table tooltips
+            let tooltipElements = connectionsElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip();
         });
 
         // connections table ------------------------------------------------------------------------------------------
@@ -530,7 +535,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [ 0, 'desc' ],
+            order: [ 6, 'desc' ],
             autoWidth: false,
             hover: false,
             data: mapData.data.connections,
@@ -1264,7 +1269,7 @@ define([
      */
     $.fn.showMapInfoDialog = function(options){
         let activeMap = Util.getMapModule().getActiveMap();
-        let mapData = activeMap ? activeMap.getMapDataFromClient({forceData: true}) : false;
+        let mapData = activeMap ? activeMap.getMapDataFromClient(['hasId']) : false;
 
         if(mapData !== false){
             // "log" tab -> get "Origin", not all config options are set in mapData
@@ -1321,7 +1326,7 @@ define([
                         let menuAction = $(this).attr('data-action');
                         if(menuAction === 'refresh'){
                             // get new map data
-                            let mapData = activeMap.getMapDataFromClient({forceData: true});
+                            let mapData = activeMap.getMapDataFromClient(['hasId']);
                             // find active tab
                             let activeTabLink = $(this).parents('.navbar').find('.navbar-header.pull-left li.active a');
                             if(activeTabLink.attr('href') === '#' + config.dialogMapInfoLogsId){

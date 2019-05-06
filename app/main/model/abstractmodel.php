@@ -155,6 +155,22 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
+     * clear existing table Schema cache
+     * @return bool
+     */
+    public function clearSchemaCache() : bool {
+        $f3 = self::getF3();
+        $cache=\Cache::instance();
+        if(
+            $f3->CACHE && is_object($this->db) &&
+            $cache->exists($hash = $f3->hash($this->db->getDSN() . $this->table) . '.schema')
+        ){
+            return (bool)$cache->clear($hash);
+        }
+        return false;
+    }
+
+    /**
      * @param string $key
      * @param mixed $val
      * @return mixed

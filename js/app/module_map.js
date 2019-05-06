@@ -1350,7 +1350,7 @@ define([
         let data = [];
         for(let i = 0; i < mapElements.length; i++){
             // get all changed (system / connection) data from this map
-            let mapData = $(mapElements[i]).getMapDataFromClient({forceData: false, checkForChange: true});
+            let mapData = Map.getMapDataForSync($(mapElements[i]), ['hasId', 'hasChanged']);
             if(mapData !== false){
                 if(
                     mapData.data.systems.length > 0 ||

@@ -496,10 +496,7 @@ define([
                                     // IMPORTANT: Get map data from client (NOT from global mapData which is available in here)
                                     // -> This excludes some data (e.g. wh statics)
                                     // -> Bring export inline with main map toggle requests
-                                    let exportMapData = mapElement.getMapDataFromClient({
-                                        forceData: true,
-                                        getAll: true
-                                    });
+                                    let exportMapData = mapElement.getMapDataFromClient(['hasId']);
 
                                     let exportButton = $(this);
                                     // set map data right before download

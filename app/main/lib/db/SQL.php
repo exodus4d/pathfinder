@@ -20,6 +20,14 @@ class SQL extends \DB\SQL {
     }
 
     /**
+     * get DB DSN config string
+     * @return string
+     */
+    public function getDSN() : string {
+        return $this->dsn;
+    }
+
+    /**
      * get all table names
      * @return array|bool
      */
@@ -27,6 +35,7 @@ class SQL extends \DB\SQL {
         $schema = new Schema($this);
         return $schema->getTables();
     }
+
     /**
      * checks whether a table exists or not
      * @param string $table

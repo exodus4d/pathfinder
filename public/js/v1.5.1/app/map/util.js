@@ -5,9 +5,8 @@
 define([
     'jquery',
     'app/init',
-    'app/util',
-    'bootbox'
-], ($, Init, Util, bootbox) => {
+    'app/util'
+], ($, Init, Util) => {
     'use strict';
 
     let config = {
@@ -263,6 +262,33 @@ define([
     };
 
     /**
+     * flag map component (map, system, connection) as "changed"
+     * @param component
+     */
+    let markAsChanged = component => {
+        if(component instanceof $ && component.hasClass(config.systemClass)){
+            component.data('changed', true);
+        }else if(component instanceof jsPlumb.Connection){
+            component.setParameter('changed', true);
+        }
+    };
+
+    /**
+     * check if map component (system, connection) is flagged as "changed"
+     * @param component
+     * @returns {boolean}
+     */
+    let hasChanged = component => {
+        let changed = false;
+        if(component instanceof $ && component.hasClass(config.systemClass)){
+            changed = component.data('changed') || false;
+        }else if(component instanceof jsPlumb.Connection){
+            changed = component.getParameter('changed') || false;
+        }
+        return changed;
+    };
+
+    /**
      * get system elements on a map
      * @returns {*|jQuery}
      */
@@ -317,55 +343,71 @@ define([
      * filter connections by type
      * @param map
      * @param type
+     * @param exclude
      * @returns {Array}
      */
-    let getConnectionsByType = (map, type) => {
+    let getConnectionsByType = (map, type, exclude = false) => {
         let connections = [];
-        // iterate through ALL connections and filter...
-        // -> there is no "filterByScope()" method in jsPlumb
-        for(let connection of map.getAllConnections()){
-            if(connection.getType().indexOf(type) !== -1){
-                connections.push(connection);
+        for(let data of map.select().hasType(type)){
+            if(data[0] !== exclude){
+                connections.push(data[1]);
             }
         }
         return connections;
     };
 
     /**
-     * get all relevant data for a connection object
+     * get endpoints data from connection
      * @param connection
-     * @returns {{targetName: *, endpoints, scope: *, targetAlias: *, id: number, source: number, sourceName: *, type, updated: number, sourceAlias: *, target: number}}
+     * @returns {{source: {}, target: {}}}
      */
-    let getDataByConnection = connection => {
-        let source = $(connection.source);
-        let target = $(connection.target);
-
-        let id = connection.getParameter('connectionId');
-        let updated = connection.getParameter('updated');
-
-        let endpoints = {source: {}, target: {}};
+    let getEndpointsDataByConnection = connection => {
+        let endpointsData = {source: {}, target: {}};
         for(let endpoint of connection.endpoints){
             let endpointData = getDataByEndpoint(connection, endpoint);
             if(endpointData.label === 'source'){
-                endpoints.source = endpointData;
+                endpointsData.source = endpointData;
             }else if(endpointData.label === 'target'){
-                endpoints.target = endpointData;
+                endpointsData.target = endpointData;
             }
         }
+        return endpointsData;
+    };
 
-        return {
-            id: id ? id : 0,
+    /**
+     * get connection data from connection
+     * @param connection
+     * @param minimal
+     * @returns {{id: (*|number), updated: (*|number)}}
+     */
+    let getDataByConnection = (connection, minimal = false) => {
+        let source = $(connection.source);
+        let target = $(connection.target);
+
+        let connectionData = {
+            id: connection.getParameter('connectionId') || 0,
+            updated: connection.getParameter('updated') || 0,
             source: parseInt(source.data('id')),
-            sourceName: source.data('name'),
-            sourceAlias: source.getSystemInfo(['alias']) || source.data('name'),
-            target: parseInt(target.data('id')),
-            targetName: target.data('name'),
-            targetAlias: target.getSystemInfo(['alias']) || target.data('name'),
-            scope: connection.scope,
-            type: filterDefaultTypes(connection.getType()),
-            endpoints: endpoints,
-            updated: updated ? updated : 0
+            target: parseInt(target.data('id'))
         };
+
+        if(minimal){
+            connectionData = Object.assign(connectionData, {
+                connection: connection
+            });
+        }else{
+            connectionData = Object.assign(connectionData, {
+                sourceName: source.data('name'),
+                sourceAlias: source.getSystemInfo(['alias']) || source.data('name'),
+                targetName: target.data('name'),
+                targetAlias: target.getSystemInfo(['alias']) || target.data('name'),
+                scope: connection.scope,
+                type: filterDefaultTypes(connection.getType()),
+                endpoints: getEndpointsDataByConnection(connection)
+            });
+        }
+
+        return connectionData;
     };
 
     /**
@@ -517,29 +559,52 @@ define([
     };
 
     /**
+     * get Location [x,y] for Endpoint Overlays (e.g. wh type from Signature mapping)
+     * -> Coordinates are relative to the Endpoint (not the system!)
+     * -> jsPlumb specific format
+     * @param endpoint
+     * @param label
+     * @returns {number[]}
+     */
+    let getLabelEndpointOverlayLocation = (endpoint, label) => {
+        let chars   = label.length ? label.length : 2;
+        let xTop    = chars === 2 ? +0.05 : chars <= 4 ? -0.75 : 3;
+        let xLeft   = chars === 2 ? -1.10 : chars <= 4 ? -2.75 : 3;
+        let xRight  = chars === 2 ? +1.25 : chars <= 4 ? +1.25 : 3;
+        let xBottom = chars === 2 ? +0.05 : chars <= 4 ? -0.75 : 3;
+
+        let yTop    = chars === 2 ? -1.10 : chars <= 4 ? -1.75 : 3;
+
+        switch(endpoint._continuousAnchorEdge){
+            case 'top': return [xTop, yTop];
+            case 'left': return [xLeft, 0];
+            case 'right': return [xRight, 0];
+            case 'bottom': return [xBottom , 1.3];
+            default: return [0.0, 0.0];
+        }
+    };
+
+    /**
      * get overlay HTML for connection endpoints by Label array
      * @param label
      * @returns {string}
      */
     let getEndpointOverlayContent = label => {
-        let newLabel = '';
         let colorClass = 'txt-color-grayLighter';
 
         if(label.length > 0){
-            newLabel = label.join(', ');
-
             // check if multiple labels found => conflict
-            if( newLabel.includes(', ') ){
+            if( label.includes(', ') ){
                 colorClass = 'txt-color-orangeLight';
-            }else if( !newLabel.includes('K162') ){
+            }else if( !label.includes('K162') ){
                 colorClass = 'txt-color-yellow';
             }
         }else{
             // endpoint not connected with a signature
-            newLabel = '<i class="fas fa-question-circle"></i>';
+            label = '<i class="fas fa-question-circle"></i>';
             colorClass = 'txt-color-red';
         }
-        return '<span class="txt-color ' + colorClass + '">' + newLabel + '</span>';
+        return '<span class="txt-color ' + colorClass + '">' + label + '</span>';
     };
 
     /**
@@ -1737,6 +1802,8 @@ define([
         getSystemData: getSystemData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
+        markAsChanged: markAsChanged,
+        hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,
         toggleConnectionActive: toggleConnectionActive,
         setSystemActive: setSystemActive,
@@ -1745,6 +1812,7 @@ define([
         showFindRouteDialog: showFindRouteDialog,
         getEndpointLabel: getEndpointLabel,
         getConnectionsByType: getConnectionsByType,
+        getEndpointsDataByConnection: getEndpointsDataByConnection,
         getDataByConnection: getDataByConnection,
         searchConnectionsBySystems: searchConnectionsBySystems,
         searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
@@ -1757,6 +1825,7 @@ define([
         getDataByConnections: getDataByConnections,
         deleteConnections: deleteConnections,
         getConnectionDataFromSignatures: getConnectionDataFromSignatures,
+        getLabelEndpointOverlayLocation: getLabelEndpointOverlayLocation,
         getEndpointOverlayContent: getEndpointOverlayContent,
         getTabContentElementByMapElement: getTabContentElementByMapElement,
         hasActiveConnection: hasActiveConnection,

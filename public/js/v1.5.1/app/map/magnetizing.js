@@ -74,7 +74,7 @@ define([
             }
 
             if(markAsUpdated === true){
-                $(system).markAsChanged();
+                MapUtil.markAsChanged($(system));
             }
         };
 
