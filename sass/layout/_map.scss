@@ -497,7 +497,7 @@ $mapBubbleWidth:        30px;
     svg {
       overflow: visible; // this fixes a "half-pixel" bug on SVG circle with border
       circle{
-        @include transition( stroke 0.18s ease-out, fill 0.18s ease-out);
+        @include transition(stroke 0.18s ease-out, fill 0.18s ease-out);
       }
 
       *{
@@ -593,7 +593,7 @@ $mapBubbleWidth:        30px;
     will-change: all;
 
     path{
-      @include transition( stroke 0.18s ease-out);
+      @include transition(stroke 0.18s ease-out);
     }
 
     path:nth-child(2){

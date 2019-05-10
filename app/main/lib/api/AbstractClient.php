@@ -350,7 +350,7 @@ abstract class AbstractClient extends \Prefab {
             //$client->setProxy('127.0.0.1:8888');
 
             // disable SSL certificate verification -> allow proxy to decode(view) request
-            $client->setVerify(false);
+            //$client->setVerify(false);
 
             //$client->setDebugRequests(true);
 
