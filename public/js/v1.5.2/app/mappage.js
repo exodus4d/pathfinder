@@ -39,7 +39,7 @@ define([
         Util.initDefaultEditableConfig();
 
         // load page
-        $('body').loadPageStructure().setGlobalShortcuts();
+        Page.loadPageStructure().setGlobalShortcuts();
 
         // show app information in browser console
         Util.showVersionInfo();

@@ -653,21 +653,28 @@ table{
 
 // page menu ======================================================================================
 .pf-site{
+  //background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
+  background-color:  $body-background-color;
+  background-repeat: no-repeat;
   will-change: transform;
 }
 
-.sb-slidebar{
+.pf-menu{
+  color: $gray-light;
+  background-color: $gray-dark;
+  width: 150px;
+  transition-duration: 180ms;
   will-change: transform;
 }
 
-.sb-left{
+.pf-menu-left{
   .list-group-item{
     cursor: pointer;
     @include box-shadow(inset -10px 0px 5px -5px rgba(0,0,0,0.4));
   }
 }
 
-.sb-right{
+.pf-menu-right{
   .list-group-item{
     cursor: pointer;
     @include box-shadow(inset 10px 0px 5px -5px rgba(0,0,0,0.4));

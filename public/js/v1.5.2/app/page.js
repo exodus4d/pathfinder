@@ -10,6 +10,7 @@ define([
     'mustache',
     'app/map/util',
     'app/map/contextmenu',
+    'slidebars',
     'text!img/logo.svg!strip',
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
@@ -25,20 +26,16 @@ define([
     'dialog/delete_account',
     'dialog/credit',
     'xEditable',
-    'slidebars',
     'app/module_map'
-], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, TplLogo, TplHead, TplFooter) => {
+], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplLogo, TplHead, TplFooter) => {
 
     'use strict';
 
     let config = {
-        // page structure slidebars-menu classes
-        pageId: 'sb-site',
-        pageSlidebarClass: 'sb-slidebar',
-        pageSlidebarLeftClass: 'sb-left',                                       // class for left menu
-        pageSlidebarRightClass: 'sb-right',                                     // class for right menu
-        pageSlideLeftWidth: '150px',                                            // slide distance left menu
-        pageSlideRightWidth: '150px',                                           // slide distance right menu
+        // page structure and slide menus
+        pageMenuClass: 'pf-menu',
+        pageMenuLeftClass: 'pf-menu-left',                                      // class for left menu
+        pageMenuRightClass: 'pf-menu-right',                                    // class for right menu
         fullScreenClass: 'pf-fullscreen',                                       // class for the "full screen" element
 
         // page structure
@@ -75,55 +72,45 @@ define([
     let programStatusCounter = 0;                                               // current count down in s until next status change is possible
     let programStatusInterval = false;                                          // interval timer until next status change is possible
 
-
     /**
      * load main page structure elements and navigation container into body
-     * @returns {*|jQuery|HTMLElement}
+     * @returns {*|w.fn.init|jQuery|HTMLElement}
      */
-    $.fn.loadPageStructure = function(){
-        return this.each((i, body) => {
-            body = $(body);
+    let loadPageStructure = () => {
+        let body = $('body');
 
-            // menu left
-            body.prepend(
+        body.prepend(
+            $('<div>', {
+                class: config.pageClass
+            }).attr('canvas', 'container').append(
+                Util.getMapModule(),
                 $('<div>', {
-                    class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-                }).attr('data-sb-width', config.pageSlideLeftWidth)
-            );
+                    id: config.dynamicElementWrapperId
+                })
+            ),
+            $('<div>', {
+                class: [config.pageMenuClass, config.pageMenuLeftClass].join(' ')
+            }).attr('off-canvas', [config.pageMenuLeftClass, 'left', 'push'].join(' ')),
+            $('<div>', {
+                class: [config.pageMenuClass, config.pageMenuRightClass].join(' ')
+            }).attr('off-canvas', [config.pageMenuRightClass, 'right', 'push'].join(' '))
+        );
 
-            // menu right
-            body.prepend(
-                $('<div>', {
-                    class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-                }).attr('data-sb-width', config.pageSlideRightWidth)
-            );
+        // load footer
+        $('.' + config.pageClass).loadHeader().loadFooter();
 
-            // main page
-            body.prepend(
-                $('<div>', {
-                    id: config.pageId,
-                    class: config.pageClass
-                }).append(
-                    Util.getMapModule(),
-                    $('<div>', {
-                        id: config.dynamicElementWrapperId
-                    })
-                )
-            );
+        // load left menu
+        $('.' + config.pageMenuLeftClass).loadLeftMenu();
 
-            // load footer
-            $('.' + config.pageClass).loadHeader().loadFooter();
+        // load right menu
+        $('.' + config.pageMenuRightClass).loadRightMenu();
 
-            // load left menu
-            $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
+        // set page observer for global events
+        setPageObserver();
 
-            // load right menu
-            $('.' + config.pageSlidebarRightClass).loadRightMenu();
-
-            // set page observer for global events
-            setPageObserver();
-        });
+        return body;
     };
+
 
     /**
      * set global shortcuts to <body> element
@@ -203,67 +190,66 @@ define([
             }).append(
                 $('<a>', {
                     class: 'list-group-item',
-                    href: '/'
-                }).html('&nbsp;&nbsp;Home').prepend(
+                    href: '/',
+                    html: '&nbsp;&nbsp;Home'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-home fa-fw'
                     })
-                )
-            ).append(
-                getMenuHeadline('Information')
-            ).append(
+                ),
+                getMenuHeadline('Information'),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info'
-                }).html('&nbsp;&nbsp;Statistics').prepend(
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Statistics'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-chart-line fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowStatsDialog');
-                })
-            ).append(
+                }),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info'
-                }).html('&nbsp;&nbsp;Effect info').prepend(
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Effect info'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-crosshairs fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSystemEffectInfo');
-                })
-            ).append(
+                }),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info'
-                }).html('&nbsp;&nbsp;Jump info').prepend(
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Jump info'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-space-shuttle fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowJumpInfo');
-                })
-            ).append(
-                getMenuHeadline('Settings')
-            ).append(
+                }),
+                getMenuHeadline('Settings'),
                 $('<a>', {
-                    class: 'list-group-item'
-                }).html('&nbsp;&nbsp;Account').prepend(
+                    class: 'list-group-item',
+                    html: '&nbsp;&nbsp;Account'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-user fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
-                })
-            ).append(
+                }),
                 $('<a>', {
                     class: 'list-group-item hide',                      // trigger by js
-                    id: Util.config.menuButtonFullScreenId
-                }).html('&nbsp;&nbsp;Full screen').prepend(
+                    id: Util.config.menuButtonFullScreenId,
+                    html: '&nbsp;&nbsp;Full screen'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-expand-arrows-alt fa-fw'
                     })
                 ).on('click', function(){
                     let fullScreenElement = $('body');
-                    requirejs(['jquery', 'fullScreen'], function($){
+                    requirejs(['jquery', 'fullScreen'], $ => {
 
                         if($.fullscreen.isFullScreen()){
                             $.fullscreen.exit();
@@ -271,47 +257,45 @@ define([
                             fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
                         }
                     });
-                })
-            ).append(
+                }),
                 $('<a>', {
-                    class: 'list-group-item'
-                }).html('&nbsp;&nbsp;Notification test').prepend(
+                    class: 'list-group-item',
+                    html: '&nbsp;&nbsp;Notification test'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-volume-up fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('NotificationTest');
-                })
-            ).append(
-                getMenuHeadline('Danger zone')
-            ).append(
+                }),
+                getMenuHeadline('Danger zone'),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-danger'
-                }).html('&nbsp;&nbsp;Delete account').prepend(
+                    class: 'list-group-item list-group-item-danger',
+                    html: '&nbsp;&nbsp;Delete account'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-user-times fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('DeleteAccount');
-                })
-            ).append(
+                }),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-warning'
-                }).html('&nbsp;&nbsp;Logout').prepend(
+                    class: 'list-group-item list-group-item-warning',
+                    html: '&nbsp;&nbsp;Logout'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-sign-in-alt fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Logout', {clearCookies: 1});
-                })
-            ).append(
+                }),
                 $('<div>', {
                     class: config.menuClockClass
                 })
             )
         );
 
-        requirejs(['fullScreen'], function(){
+        requirejs(['fullScreen'], () => {
             if($.fullscreen.isNativelySupported() === true){
                 $('#' + Util.config.menuButtonFullScreenId).removeClass('hide');
             }
@@ -327,31 +311,31 @@ define([
                 class: 'list-group'
             }).append(
                 $('<a>', {
-                    class: 'list-group-item'
-                }).html('&nbsp;&nbsp;Information').prepend(
+                    class: 'list-group-item',
+                    html: '&nbsp;&nbsp;Information'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-street-view fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
-                })
-            ).append(
-                getMenuHeadline('Configuration')
-            ).append(
+                }),
+                getMenuHeadline('Configuration'),
                 $('<a>', {
-                    class: 'list-group-item'
-                }).html('&nbsp;&nbsp;Settings').prepend(
+                    class: 'list-group-item',
+                    html: '&nbsp;&nbsp;Settings'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-cogs fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
-                })
-            ).append(
+                }),
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonGridId
-                }).html('&nbsp;&nbsp;Grid snapping').prepend(
+                    id: Util.config.menuButtonGridId,
+                    html:'&nbsp;&nbsp;Grid snapping'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-th fa-fw'
                     })
@@ -360,12 +344,12 @@ define([
                         option: 'mapSnapToGrid',
                         toggle: true
                     });
-                })
-            ).append(
+                }),
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonMagnetizerId
-                }).html('&nbsp;&nbsp;Magnetizing').prepend(
+                    id: Util.config.menuButtonMagnetizerId,
+                    html: '&nbsp;&nbsp;Magnetizing'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-magnet fa-fw'
                     })
@@ -374,12 +358,12 @@ define([
                         option: 'mapMagnetizer',
                         toggle: true
                     });
-                })
-            ).append(
+                }),
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonEndpointId
-                }).html('&nbsp;&nbsp;Signatures').prepend(
+                    id: Util.config.menuButtonEndpointId,
+                    html: '&nbsp;&nbsp;Signatures'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-link fa-fw'
                     })
@@ -388,12 +372,12 @@ define([
                         option: 'mapEndpoint',
                         toggle: true
                     });
-                })
-            ).append(
+                }),
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonCompactId
-                }).html('&nbsp;&nbsp;Compact').prepend(
+                    id: Util.config.menuButtonCompactId,
+                    html: '&nbsp;&nbsp;Compact'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-compress fa-fw'
                     })
@@ -407,46 +391,44 @@ define([
                         option: 'mapCompact',
                         toggle: true
                     });
-                })
-            ).append(
-                getMenuHeadline('Help')
-            ).append(
+                }),
+                getMenuHeadline('Help'),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info'
-                }).html('&nbsp;&nbsp;Manual').prepend(
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Manual'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-book-reader fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Manual');
-                })
-            ).append(
+                }),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info'
-                }).html('&nbsp;&nbsp;Shortcuts').prepend(
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Shortcuts'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-keyboard fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Shortcuts');
-                })
-            ).append(
+                }),
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info'
-                }).html('&nbsp;&nbsp;Task-Manager').prepend(
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Task-Manager'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-tasks fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowTaskManager');
-                })
-            ).append(
-                getMenuHeadline('Danger zone')
-            ).append(
+                }),
+                getMenuHeadline('Danger zone'),
                 $('<a>', {
                     class: 'list-group-item list-group-item-danger',
-                    id: Util.config.menuButtonMapDeleteId
-                }).html('&nbsp;&nbsp;Delete map').prepend(
+                    id: Util.config.menuButtonMapDeleteId,
+                    html: '&nbsp;&nbsp;Delete map'
+                }).prepend(
                     $('<i>',{
                         class: 'fas fa-trash fa-fw'
                     })
@@ -494,19 +476,24 @@ define([
         // init header ================================================================================================
 
         // init slide menus
-        let slideMenu = new $.slidebars({
-            scrollLock: false
-        });
+        let slideBarsController = new SlideBars();
+        slideBarsController.init();
 
         // main menus
-        $('.' + config.headMenuClass).on('click', function(e){
-            e.preventDefault();
-            slideMenu.slidebars.toggle('left');
+        $('.' + config.pageClass).on('click.menuClose', function(e){
+            slideBarsController.close();
         });
 
-        $('.' + config.headMapClass).on('click', function(e){
+        $('.' + config.headMenuClass).on('click.menuOpen', function(e){
             e.preventDefault();
-            slideMenu.slidebars.toggle('right');
+            e.stopPropagation();
+            slideBarsController.toggle(config.pageMenuLeftClass);
+        });
+
+        $('.' + config.headMapClass).on('click.menuOpen', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            slideBarsController.toggle(config.pageMenuRightClass);
         });
 
         // active pilots
@@ -524,10 +511,9 @@ define([
             $(document).triggerMenuEvent('ShowTaskManager');
         });
 
-        // close menu
+        // close all menus
         $(document).on('pf:closeMenu', function(e){
-            // close all menus
-            slideMenu.slidebars.close();
+            slideBarsController.close();
         });
 
         // tracking toggle
@@ -601,7 +587,7 @@ define([
     /**
      * catch all global document events
      */
-    let setPageObserver = function(){
+    let setPageObserver = () => {
         let documentElement = $(document);
         let bodyElement = $(document.body);
 
@@ -1233,9 +1219,9 @@ define([
             programStatusInterval = false;
         }
 
-        if( statusElement.data('status') !== status ){
+        if(statusElement.data('status') !== status){
             // status has changed
-            if(! programStatusInterval){
+            if(!programStatusInterval){
                 // check if timer exists if not -> set default (in case of the "init" ajax call failed
                 let programStatusVisible = Init.timer ? Init.timer.PROGRAM_STATUS_VISIBLE : 5000;
 
@@ -1321,6 +1307,7 @@ define([
     };
 
     return {
+        loadPageStructure: loadPageStructure,
         initTabChangeObserver: initTabChangeObserver,
         renderMapContextMenus: renderMapContextMenus
     };
