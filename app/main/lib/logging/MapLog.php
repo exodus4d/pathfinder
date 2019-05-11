@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 04.08.2017
  * Time: 22:08
  */
@@ -11,7 +11,7 @@ namespace lib\logging;
 
 use controller\LogController;
 
-class MapLog extends AbstractCharacterLog{
+class MapLog extends AbstractCharacterLog {
 
     /**
      * List of possible handlers (tested)
@@ -19,8 +19,8 @@ class MapLog extends AbstractCharacterLog{
      * @var array
      */
     protected $handlerConfig        = [
-        //'stream' => 'json',
-        //'zmq' => 'json',
+        //'stream'   => 'json',
+        //'socket'   => 'json',
         //'slackMap' => 'json'
     ];
 
@@ -61,21 +61,21 @@ class MapLog extends AbstractCharacterLog{
     /**
      * @return string
      */
-    public function getChannelName(): string{
+    public function getChannelName() : string {
         return $this->getChannelType() . '_' . $this->getChannelId();
     }
 
     /**
      * @return string
      */
-    public function getMessage() : string{
+    public function getMessage() : string {
         return $this->getActionParts()[0] . " '{objName}'";
     }
 
     /**
      * @return array
      */
-    public function getData() : array{
+    public function getData() : array {
         $data = parent::getData();
 
         // add system, connection, signature data -------------------------------------------------
@@ -94,7 +94,7 @@ class MapLog extends AbstractCharacterLog{
      * @param array $data
      * @return string
      */
-    protected function formatData(array $data): string{
+    protected function formatData(array $data) : string {
         $actionParts = $this->getActionParts();
         $objectString = !empty($data['object']) ? "'" .  $data['object']['objName'] . "'" . ' #' . $data['object']['objId'] : '';
         $string = ucfirst($actionParts[1]) . 'd ' . $actionParts[0] . " " . $objectString;
@@ -103,7 +103,7 @@ class MapLog extends AbstractCharacterLog{
         switch($actionParts[1]){
             case 'create':
             case 'update':
-                $formatChanges = function(array $changes) use ( &$formatChanges ): string{
+                $formatChanges = function(array $changes) use (&$formatChanges) : string {
                     $string = '';
                     foreach($changes as $field => $value){
                         if(is_array($value)){
@@ -118,7 +118,7 @@ class MapLog extends AbstractCharacterLog{
                             }elseif(empty($value)){
                                 $formattedValue = "' '";
                             }elseif(is_string($value)){
-                                $formattedValue = "'" . $value . "'";
+                                $formattedValue = "'" . $this->f3->clean($value) . "'";
                             }else{
                                 $formattedValue = (string)$value;
                             }
@@ -143,7 +143,7 @@ class MapLog extends AbstractCharacterLog{
      * split $action "CamelCase" wise
      * @return array
      */
-    protected function getActionParts(): array{
+    protected function getActionParts() : array {
         return array_map('strtolower', preg_split('/(?=[A-Z])/', $this->getAction()));
     }
 

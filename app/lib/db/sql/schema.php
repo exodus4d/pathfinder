@@ -18,8 +18,8 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.2.2
- *  @date 06.03.2018
+ *  @version 2.2.3
+ *  @date 15.05.2018
  **/
 
 
@@ -375,7 +375,8 @@ abstract class TableBuilder {
                 if(strtoupper($search_cols[$index_cols[$i]]['type']) == 'TEXT')
                     $col.='('.$length.')';
         $cols = implode(',', $quotedCols);
-        $name = $this->db->quotekey($this->name.'___'.implode('__', $index_cols));
+        $name = $this->assembleIndexKey($index_cols,$this->name);
+        $name = $this->db->quotekey($name);
         $table = $this->db->quotekey($this->name);
         $index = $unique ? 'UNIQUE INDEX' : 'INDEX';
         $cmd = array(
@@ -386,6 +387,22 @@ abstract class TableBuilder {
         );
         $query = $this->findQuery($cmd);
         $this->queries[] = $query;
+    }
+
+    /**
+     * create index name from one or more given column names, max. 64 char lengths
+     * @param string|array $index_cols
+     * @return string
+     */
+    protected function assembleIndexKey($index_cols,$table_name) {
+        if (!is_array($index_cols))
+            $index_cols = array($index_cols);
+        $name = $table_name.'___'.implode('__', $index_cols);
+        if (strlen($name)>64)
+            $name=$table_name.'___'.\Base::instance()->hash(implode('__', $index_cols));
+        if (strlen($name)>64)
+            $name='___'.\Base::instance()->hash($table_name.'___'.implode('__', $index_cols));
+        return $name;
     }
 
     /**
@@ -651,9 +668,6 @@ class TableModifier extends TableBuilder {
                     unset($existing_columns[$name]);
                     // drop index
                     foreach (array_keys($indexes) as $col) {
-                        // for backward compatibility
-                        if ($col == $name)
-                            unset($indexes[$name]);
                         // new index names
                         if ($col == $this->name.'___'.$name)
                             unset($indexes[$this->name.'___'.$name]);
@@ -663,11 +677,10 @@ class TableModifier extends TableBuilder {
                                 $col = explode('___', $col);
                                 $ci = explode('__', $col[1]);
                                 $col = implode('___',$col);
-                            } else // for backward compatibility
-                                $ci = explode('__', $col);
-                            // drop combined index
-                            if (in_array($name, $ci))
-                                unset($indexes[$col]);
+                                // drop combined index
+                                if (in_array($name, $ci))
+                                    unset($indexes[$col]);
+                            }
                         }
                     }
                 }

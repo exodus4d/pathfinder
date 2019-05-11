@@ -355,10 +355,7 @@ define([
 
             // request "additional" system data (e.g. Structures, Description)
             // -> this is used to update some modules after initial draw
-            let promiseRequestData = MapUtil.requestSystemData({
-                mapId: currentSystemData.mapId,
-                systemId: currentSystemData.systemData.id
-            });
+            let promiseRequestData = Util.request('GET', 'system', currentSystemData.systemData.id, {mapId: currentSystemData.mapId});
 
             // draw modules -------------------------------------------------------------------------------------------
 
@@ -1353,7 +1350,7 @@ define([
         let data = [];
         for(let i = 0; i < mapElements.length; i++){
             // get all changed (system / connection) data from this map
-            let mapData = $(mapElements[i]).getMapDataFromClient({forceData: false, checkForChange: true});
+            let mapData = Map.getMapDataForSync($(mapElements[i]), ['hasId', 'hasChanged']);
             if(mapData !== false){
                 if(
                     mapData.data.systems.length > 0 ||

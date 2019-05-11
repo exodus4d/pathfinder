@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 13.10.2018
  * Time: 16:14
  */
@@ -21,7 +21,11 @@ abstract class AbstractRestController extends Controller\AccessController {
      */
     protected function getRequestData(\Base $f3) : array {
         $data = [];
-        if( !empty($body = $f3->get('BODY')) ){
+        if($f3->get('VERB') == 'GET'){
+            // get data from URL parameters
+            $data = (array)$f3->get('GET');
+        }elseif( !empty($body = $f3->get('BODY')) ){
+            // get data from HTTP body
             $bodyDecode = json_decode($body, true);
             if(($jsonError = json_last_error()) === JSON_ERROR_NONE){
                 $data = $bodyDecode;

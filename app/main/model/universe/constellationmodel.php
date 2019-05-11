@@ -10,10 +10,16 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class ConstellationModel extends BasicUniverseModel {
+class ConstellationModel extends AbstractUniverseModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'constellation';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,

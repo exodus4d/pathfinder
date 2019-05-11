@@ -15,7 +15,7 @@ namespace Controller\Ccp;
 
 use Controller;
 use Controller\Api as Api;
-use Model;
+use Model\Pathfinder;
 use Lib;
 
 class Sso extends Api\User{
@@ -69,14 +69,14 @@ class Sso extends Api\User{
             isset($params['characterId']) &&
             ( $activeCharacter = $this->getCharacter() )
         ){
-            // authentication restricted to a characterId -----------------------------------------------
+            // authentication restricted to a characterId -------------------------------------------------------------
             // restrict login to this characterId e.g. for character switch on map page
             $characterId = (int)trim((string)$params['characterId']);
 
             /**
-             * @var Model\CharacterModel $character
+             * @var $character Pathfinder\CharacterModel
              */
-            $character = Model\BasicModel::getNew('CharacterModel');
+            $character = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
             $character->getById($characterId, 0);
 
             // check if character is valid and exists
@@ -114,7 +114,7 @@ class Sso extends Api\User{
             $f3->set(self::SESSION_KEY_SSO_FROM, 'map');
         }
 
-        // redirect to CCP SSO ----------------------------------------------------------------------
+        // redirect to CCP SSO ----------------------------------------------------------------------------------------
         $scopes = self::getScopesByAuthType();
         $this->rerouteAuthorization($f3, $scopes);
     }
@@ -222,19 +222,19 @@ class Sso extends Api\User{
                                         if( is_null( $user = $characterModel->getUser()) ){
                                             // no user found (new character) -> create new user and connect to character
                                             /**
-                                             * @var $user Model\UserModel
+                                             * @var $user Pathfinder\UserModel
                                              */
-                                            $user = Model\BasicModel::getNew('UserModel');
+                                            $user = Pathfinder\AbstractPathfinderModel::getNew('UserModel');
                                             $user->name = $characterModel->name;
                                             $user->save();
                                         }
                                     }
 
                                     /**
-                                     * @var $userCharactersModel Model\UserCharacterModel
+                                     * @var $userCharactersModel Pathfinder\UserCharacterModel
                                      */
                                     if( is_null($userCharactersModel = $characterModel->userCharacter) ){
-                                        $userCharactersModel = Model\BasicModel::getNew('UserCharacterModel');
+                                        $userCharactersModel = Pathfinder\AbstractPathfinderModel::getNew('UserCharacterModel');
                                         $userCharactersModel->characterId = $characterModel;
                                     }
 
@@ -265,7 +265,7 @@ class Sso extends Api\User{
                                 }else{
                                     // character is not authorized to log in
                                     $f3->set(self::SESSION_KEY_SSO_ERROR,
-                                        sprintf(self::ERROR_CHARACTER_FORBIDDEN, $characterModel->name, Model\CharacterModel::AUTHORIZATION_STATUS[$authStatus])
+                                        sprintf(self::ERROR_CHARACTER_FORBIDDEN, $characterModel->name, Pathfinder\CharacterModel::AUTHORIZATION_STATUS[$authStatus])
                                     );
                                 }
                             }
@@ -465,9 +465,9 @@ class Sso extends Api\User{
 
                 if($corporationId = (int)$characterDataBasic['corporation']['id']){
                     /**
-                     * @var Model\CorporationModel $corporation
+                     * @var $corporation Pathfinder\CorporationModel
                      */
-                    $corporation = Model\BasicModel::getNew('CorporationModel');
+                    $corporation = Pathfinder\AbstractPathfinderModel::getNew('CorporationModel');
                     $corporation->getById($corporationId, 0);
                     if( !$corporation->dry() ){
                         $characterData->corporation = $corporation;
@@ -476,9 +476,9 @@ class Sso extends Api\User{
 
                 if($allianceId = (int)$characterDataBasic['alliance']['id']){
                     /**
-                     * @var Model\AllianceModel $allianceModel
+                     * @var $alliance Pathfinder\AllianceModel
                      */
-                    $alliance = Model\BasicModel::getNew('AllianceModel');
+                    $alliance = Pathfinder\AbstractPathfinderModel::getNew('AllianceModel');
                     $alliance->getById($allianceId, 0);
                     if( !$alliance->dry() ){
                         $characterData->alliance = $alliance;
@@ -493,17 +493,17 @@ class Sso extends Api\User{
     /**
      * update character
      * @param \stdClass $characterData
-     * @return \Model\CharacterModel|null
+     * @return Pathfinder\CharacterModel|null
      * @throws \Exception
      */
-    protected function updateCharacter(\stdClass $characterData){
+    protected function updateCharacter(\stdClass $characterData) : ?Pathfinder\CharacterModel {
         $character = null;
 
-        if( !empty($characterData->character) ){
+        if(!empty($characterData->character)){
             /**
-             * @var Model\CharacterModel $character
+             * @var $character Pathfinder\CharacterModel
              */
-            $character = Model\BasicModel::getNew('CharacterModel');
+            $character = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
             $character->getById((int)$characterData->character['id'], 0);
             $character->copyfrom($characterData->character, [
                 'id', 'name', 'ownerHash', 'esiAccessToken', 'esiAccessTokenExpires', 'esiRefreshToken', 'esiScopes', 'securityStatus'
@@ -511,7 +511,7 @@ class Sso extends Api\User{
 
             $character->corporationId = $characterData->corporation;
             $character->allianceId = $characterData->alliance;
-            $character = $character->save();
+            $character->save();
         }
 
         return $character;

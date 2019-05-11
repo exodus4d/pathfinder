@@ -7,11 +7,11 @@
  */
 
 namespace controller;
-use DB;
+
+
 use lib\Config;
 use lib\logging\MapLog;
-use Model\ActivityLogModel;
-use Model\BasicModel;
+use Model\Pathfinder;
 
 class LogController extends \Prefab  {
 
@@ -41,9 +41,9 @@ class LogController extends \Prefab  {
             $f3 = \Base::instance();
             if(!$f3->exists(self::CACHE_KEY_ACTIVITY_COLUMNS, $this->activityLogColumns)){
                 /**
-                 * @var $activityLogModel ActivityLogModel
+                 * @var $activityLogModel Pathfinder\ActivityLogModel
                  */
-                $activityLogModel = BasicModel::getNew('ActivityLogModel');
+                $activityLogModel = Pathfinder\AbstractPathfinderModel::getNew('ActivityLogModel');
                 $this->activityLogColumns = $activityLogModel->getCountableColumnNames();
                 $f3->set(self::CACHE_KEY_ACTIVITY_COLUMNS, self::CACHE_TTL_ACTIVITY_COLUMNS);
             }
@@ -86,7 +86,7 @@ class LogController extends \Prefab  {
      */
     public function logActivities(){
         if( !empty($this->activityLogBuffer) ){
-            $db = DB\Database::instance()->getDB('PF');
+            $db = \Base::instance()->DB->getDB('PF');
 
             $quoteStr = function($str) use ($db) {
                 return $db->quotekey($str);
@@ -166,12 +166,8 @@ class LogController extends \Prefab  {
      */
     public static function getLogger(string $type) : \Log {
         $logFiles = Config::getPathfinderData('logfiles');
-
         $logFileName = empty($logFiles[$type]) ? 'error' : $logFiles[$type];
-        $logFile = $logFileName . '.log';
-        $logger = new \Log($logFile);
-
-        return $logger;
+        return new \Log($logFileName . '.log');
     }
 
 }

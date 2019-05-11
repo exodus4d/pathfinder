@@ -34,16 +34,9 @@ define(['jquery'], ($) => {
             getMapConnectionData: '/api/map/getConnectionData',             // ajax URL - get connection data
             getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
             // system API
-            getSystemData: '/api/system/getData',                           // ajax URL - get system data
             getSystemGraphData: '/api/system/graphData',                    // ajax URL - get all system graph data
             setDestination: '/api/system/setDestination',                   // ajax URL - set destination
             pokeRally: '/api/system/pokeRally',                             // ajax URL - send rally point pokes
-            // signature API
-            saveSignatureData: '/api/signature/save',                       // ajax URL - save signature data for system
-            deleteSignatureData: '/api/signature/delete',                   // ajax URL - delete signature data for system
-            // structure API
-            saveStructureData: '/api/structure/save',                       // ajax URL - save structure data
-            deleteStructureData: '/api/structure/delete',                   // ajax URL - delete structure data
             // route API
             searchRoute: '/api/route/search',                               // ajax URL - search system routes
             // stats API
@@ -323,6 +316,12 @@ define(['jquery'], ($) => {
         },
         // map scopes
         defaultMapScope: 'wh',                                              // default scope for connection
+        // map endpoint types
+        endpointTypes: {
+            bubble: {
+                cssClass: 'pf-map-endpoint-bubble',
+            }
+        },
         // map connection types
         connectionTypes: {
             abyssal: {
@@ -376,7 +375,7 @@ define(['jquery'], ($) => {
                     ['Label',
                         {
                             label: 'frig',
-                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' '),
+                            cssClass: ['pf-map-component-overlay', 'frig'].join(' '),
                             location: 0.6
                         }]
                 ]
@@ -387,43 +386,54 @@ define(['jquery'], ($) => {
                     ['Label',
                         {
                             label: '<i class="fas fa-fw fa-exclamation-triangle"></i>&nbsp;save mass',
-                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' '),
+                            cssClass: ['pf-map-component-overlay', 'mass'].join(' '),
                             location: 0.6
                         }]
                 ]
             },
-            active: {
+            state_active: {
                 cssClass: 'pf-map-connection-active'
+            },
+            state_process: {
+                cssClass: 'pf-map-connection-process',
+                overlays:[
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-fw fa-sync fa-spin"></i>',
+                            cssClass: ['pf-map-connection-state-overlay'].join(' '),
+                            location: 0.6
+                        }]
+                ]
             }
         },
         // signature groups
         signatureGroups: {
             1: {
-                name: '(combat site|kampfgebiet|site de combat)', //*
+                name: '(combat site|kampfgebiet|site de combat|Боевой район)', //*
                 label: 'Combat'
             },
             2: {
-                name: '(relic site|reliktgebiet|site de reliques)', //*
+                name: '(relic site|reliktgebiet|site de reliques|Археологический район)', //*
                 label: 'Relic'
             },
             3: {
-                name: '(data site|datengebiet|site de données)',
+                name: '(data site|datengebiet|site de données|Информационный район)',
                 label: 'Data'
             },
             4: {
-                name: '(gas site|gasgebiet|site de collecte de gaz)',
+                name: '(gas site|gasgebiet|site de collecte de gaz|Газовый район)',
                 label: 'Gas'
             },
             5: {
-                name: '(wormhole|wurmloch|trou de ver)',
+                name: '(wormhole|wurmloch|trou de ver|Червоточина)',
                 label: 'Wormhole'
             },
             6: {
-                name: '(ore site|mineraliengebiet|site de minerai)',
+                name: '(ore site|mineraliengebiet|site de minerai|Астероидный район)',
                 label: 'Ore'
             },
             7: {
-                name: '(ghost)',
+                name: '(ghost|Призрачный)',
                 label: 'Ghost'
             }
         },

@@ -201,7 +201,7 @@ define([
             },
             status: {
                 type: 'warning',
-                label:  'CONNECTING...',
+                label:  'CONNECTING…',
                 class: 'txt-color-warning'
             }
         });
@@ -213,7 +213,7 @@ define([
             updateWebSocketPanel({
                 status: {
                     type: 'warning',
-                    label:  'OPEN wait for response...',
+                    label:  'OPEN wait for response…',
                     class: 'txt-color-warning'
                 }
             });

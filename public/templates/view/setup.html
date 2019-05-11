@@ -472,11 +472,12 @@
                                 </tr>
                                 <tr>
                                     <td>DB status</td>
-                                    <td class="text-right col-sm-3 col-md-3"></td>
-                                    <td class="text-right col-sm-3 col-md-3">
+                                    <td class="text-right col-sm-3 col-md-3" colspan="2">
                                         <check if="{{ @dbInformation.info.connected }}">
                                             <true>
-                                                <kbd class="txt-color txt-color-success">connected</kbd>
+                                                <kbd class="txt-color txt-color-success">
+                                                    connected<check if="{{ @dbInformation.info.persistent }}">&nbsp;(persistent)</check>
+                                                </kbd>
                                             </true>
                                             <false>
                                                 <kbd class="txt-color txt-color-danger">failed</kbd>
@@ -504,20 +505,22 @@
 
                                 <check if="{{ @dbInformation.info.dbConfig }}">
                                     <tr>
-                                        <th></th>
-                                        <th class="text-right">required</th>
-                                        <th class="text-right">installed</th>
-                                        <th class="text-right"></th>
+                                        <td data-target=".{{ @dbInformation.info.name }}_dbConfig_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @dbInformation.info.name }}__dbConfig_col">
+                                            <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
+                                        </td>
+                                        <td class="col-sm-3 col-md-3 text-right">required</td>
+                                        <td class="col-sm-3 col-md-3 text-right">installed</td>
+                                        <td class="col-sm-1 col-md-1 text-right"></td>
                                     </tr>
-                                    <repeat group="{{ @dbInformation.info.dbConfig }}" value="{{ @setting }}">
-                                        <tr>
-                                            <td>{{ @setting.label }}</td>
-                                            <td class="text-right">
+                                    <repeat group="{{ @dbInformation.info.dbConfig.data }}" value="{{ @setting }}">
+                                        <tr class="{{ @dbInformation.info.name }}_dbConfig_col {{ @dbInformation.info.dbConfig.meta.check ? 'collapse' : '' }}">
+                                            <td class="bg-color bg-color-tealDarker">{{ @setting.label }}</td>
+                                            <td class="text-right bg-color bg-color-tealDarker">
                                                 <check if="{{ @setting.required }}">
                                                     <kbd>{{ @setting.required }}</kbd>
                                                 </check>
                                             </td>
-                                            <td class="text-right">
+                                            <td class="text-right bg-color bg-color-tealDarker">
                                                 <check if="{{ @setting.check }}">
                                                     <true>
                                                         <kbd class="txt-color txt-color-success">{{ @setting.version }}</kbd>
@@ -527,7 +530,7 @@
                                                     </false>
                                                 </check>
                                             </td>
-                                            <td class="text-right">
+                                            <td class="text-right bg-color bg-color-tealDarker">
                                                 <check if="{{ @setting.check }}">
                                                     <true>
                                                         <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
@@ -649,6 +652,7 @@
                                             </tr>
                                             <repeat group="{{ @tableData.fieldConf }}" key="{{ @columnName }}" value="{{ @columnData }}" counter="{{ @countCol }}">
                                                 <check if="{{ @columnData.type }}">
+                                                    {* Required colums *}
                                                     <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse">
                                                         <td class="text-right bg-color bg-color-tealDarker">{{@countCol}}.</td>
                                                         <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
@@ -739,6 +743,25 @@
                                                                     <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                                                 </false>
                                                             </check>
+                                                        </td>
+                                                    </tr>
+                                                </check>
+                                                <check if="{{ @columnData.deprecated }}">
+                                                    {* Deprecated colums *}
+                                                    <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse txt-color txt-color-yellowDark">
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <i class="fas fa-fw fa-bolt"></i>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker">
+                                                            <kbd class="txt-color txt-color-yellowDark">{{ @columnData.currentType }}</kbd>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker"></td>
+                                                        <td class="bg-color bg-color-tealDarker text-right">
+                                                            <i class="fas fa-fw fa-exclamation-triangle"></i>
                                                         </td>
                                                     </tr>
                                                 </check>
@@ -997,7 +1020,14 @@
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                     <div id="pf-setup-{{ @socketType }}" data-token="{{ @socketData.token }}" class="panel panel-default pricing-big" style="position: relative">
                         <div class="panel-heading text-left">
-                            <h3 class="panel-title">{{ @socketData.label }}</h3>
+                            <h3 class="panel-title">{{ @socketData.label }}
+                                <check if="{{ @socketData.stats }}">
+                                    <span class="pull-right">
+                                        <kbd title="current active connections">{{ @socketData.stats.connections }} con</kbd>&nbsp;&nbsp;&nbsp;
+                                        <kbd title="max active connections since startup">{{ @socketData.stats.maxConnections }} con max</kbd>
+                                    </span>
+                                </check>
+                            </h3>
                         </div>
 
                         <div class="panel-body no-padding text-left">
@@ -1007,7 +1037,14 @@
                                         <tr>
                                             <td>{{ @entry.label }}</td>
                                             <td class="text-right col-md-8">
-                                                <kbd>{{@entry.value | raw}}</kbd>
+                                                <check if="{{ @entry.check !== false }}">
+                                                    <true>
+                                                        <kbd>{{@entry.value | raw}}</kbd>
+                                                    </true>
+                                                    <false>
+                                                        <kbd class="txt-color txt-color-danger">{{@entry.value | raw}}</kbd>
+                                                    </false>
+                                                </check>
                                             </td>
                                             <td class="text-right col-md-1">
                                                 <check if="{{ @entry.check }}">
@@ -1027,14 +1064,9 @@
                         </div>
 
                         <div class="panel-footer text-align-center">
-                            <check if="{{ @socketData.online }}">
-                                <true>
-                                    <h3 class="panel-title txt-color txt-color-success">PING SEND</h3>
-                                </true>
-                                <false>
-                                    <h3 class="panel-title txt-color txt-color-danger">INIT CONNECTION...</h3>
-                                    {{ @tplCounter('increment', 'socket_danger') }}
-                                </false>
+                            <h3 class="panel-title txt-color {{ @socketData.status.class }}">{{ @socketData.status.label }}</h3>
+                            <check if="{{ @socketData.status.type == 'danger' }}">
+                                {{ @tplCounter('increment', 'socket_danger') }}
                             </check>
                         </div>
 
@@ -1062,7 +1094,7 @@
                         <h3 class="panel-title">
                             <i class="fas fa-search"></i>&nbsp;&nbsp;Index data
                             <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="
-                            Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
+                            Indexed data is required for some queries (e.g. route finder module, static wormholes,…).
                             Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts." data-container="body"></i>
                         </h3>
                     </div>

@@ -26,16 +26,17 @@ define([
         systemHeadClass: 'pf-system-head',                                  // class for system head
 
         // overlay IDs
-        connectionOverlayId: 'pf-map-connection-overlay',                   // connection "normal size" ID (jsPlumb)
+        connectionOverlayWhId: 'pf-map-connection-wh-overlay',              // connection WH overlay ID (jsPlumb)
         connectionOverlayEolId: 'pf-map-connection-eol-overlay',            // connection EOL overlay ID (jsPlumb)
         connectionOverlayArrowId: 'pf-map-connection-arrow-overlay',        // connection Arrows overlay ID (jsPlumb)
-        connectionOverlaySmallId: 'pf-map-connection-small-overlay',        // connection "smaller" overlay ID (jsPlumb)
+
+        endpointOverlayId: 'pf-map-endpoint-overlay',                       // endpoint overlay ID (jsPlumb)
 
         // overlay classes
-        connectionOverlayClass: 'pf-map-connection-overlay',                // class for "normal size" overlay
+        componentOverlayClass: 'pf-map-component-overlay',                  // class for "normal size" overlay
+
         connectionArrowOverlayClass: 'pf-map-connection-arrow-overlay',     // class for "connection arrow" overlay
-        connectionDiamondOverlayClass: 'pf-map-connection-diamond-overlay', // class for "connection diamond" overlay
-        connectionOverlaySmallClass: 'pf-map-connection-small-overlay'      // class for "smaller" overlays
+        connectionDiamondOverlayClass: 'pf-map-connection-diamond-overlay'  // class for "connection diamond" overlay
     };
 
     /**
@@ -73,13 +74,18 @@ define([
          * @param label
          */
         let addEndpointOverlay = (endpoint, label) => {
+            label = label.join(', ');
+
             endpoint.addOverlay([
                 'Label',
                 {
                     label: MapUtil.getEndpointOverlayContent(label),
-                    id: config.connectionOverlaySmallId,
-                    cssClass: config.connectionOverlaySmallClass,
-                    location: [ 0.9, 0.9 ]
+                    id: config.endpointOverlayId,
+                    cssClass: [config.componentOverlayClass, label.length ? 'small' : 'icon'].join(' '),
+                    location: MapUtil.getLabelEndpointOverlayLocation(endpoint, label),
+                    parameters: {
+                        label: label
+                    }
                 }
             ]);
         };
@@ -89,10 +95,6 @@ define([
             let connectionId        = connection.getParameter('connectionId');
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
-            let sourceSystem        = $(sourceEndpoint.element);
-            let targetSystem        = $(targetEndpoint.element);
-            let sourceId            = sourceSystem.data('id');
-            let targetId            = targetSystem.data('id');
 
             let signatureTypeNames = {
                 sourceLabels: [],
@@ -165,7 +167,7 @@ define([
      * @param i
      */
     let removeEndpointOverlay = (endpoint, i) => {
-        endpoint.removeOverlays(config.connectionOverlaySmallId);
+        endpoint.removeOverlays(config.endpointOverlayId);
     };
 
     /**
@@ -324,24 +326,29 @@ define([
                 over: function(e){
                     let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).each(function(){
-                        let system = $(this);
-                        // init tooltip if not already exists
-                        if( !system.data('bs.tooltip') ){
-                            system.tooltip({
-                                container: mapElement,
+                        let systemHead = $(this);
+                        // init popover if not already exists
+                        if(!systemHead.data('bs.popover')){
+                            let system = systemHead.parent();
+                            systemHead.popover({
                                 placement: 'right',
-                                title: function(){
-                                    return $(this).parent().data('region');
-                                },
-                                trigger: 'manual'
+                                html: true,
+                                trigger: 'manual',
+                                container: mapElement,
+                                title: false,
+                                content: Util.getSystemRegionTable(
+                                    system.data('region'),
+                                    system.data('faction') || null
+                                )
                             });
                         }
-                        system.tooltip('show');
+                        systemHead.setPopoverSmall();
+                        systemHead.popover('show');
                     });
                 },
                 out: function(e){
                     let mapElement = Util.getMapElementFromOverlay(this);
-                    mapElement.find('.' + config.systemHeadClass).tooltip('hide');
+                    mapElement.find('.' + config.systemHeadClass).popover('hide');
                 }
             }
         },
@@ -369,7 +376,7 @@ define([
         connection: {
             title: 'WH data',
             trigger: 'hover',
-            class: 'pf-map-overlay-connection',
+            class: 'pf-map-overlay-connection-wh',
             iconClass: ['fas', 'fa-fw', 'fa-fighter-jet'],
             hoverIntent: {
                 over: function(e){
@@ -400,8 +407,8 @@ define([
                             'Label',
                             {
                                 label: labels.join('<br>'),
-                                id: config.connectionOverlayId,
-                                cssClass: config.connectionOverlaySmallClass,
+                                id: config.connectionOverlayWhId,
+                                cssClass: [config.componentOverlayClass, 'small'].join(' '),
                                 location: 0.35
                             }
                         ]);
@@ -413,7 +420,7 @@ define([
                     let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh');
 
                     for(let connection of connections){
-                        connection.removeOverlays(config.connectionOverlayId);
+                        connection.removeOverlays(config.connectionOverlayWhId);
                     }
                 }
             }
@@ -440,7 +447,7 @@ define([
                             {
                                 label: '<i class="far fa-fw fa-clock"></i>&nbsp;' + formatTimeParts(diff),
                                 id: config.connectionOverlayEolId,
-                                cssClass: [config.connectionOverlayClass, 'eol'].join(' '),
+                                cssClass: [config.componentOverlayClass, 'eol'].join(' '),
                                 location: 0.25
                             }
                         ]);

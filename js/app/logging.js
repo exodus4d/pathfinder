@@ -100,7 +100,7 @@ define([
 
             // init log table
             logDataTable = logTable.DataTable({
-                dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
+                dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"fS>>' +
                     '<"row"<"col-xs-12"tr>>' +
                     '<"row"<"col-xs-5"i><"col-xs-7"p>>',
                 buttons: {

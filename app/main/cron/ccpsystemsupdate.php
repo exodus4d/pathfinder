@@ -7,16 +7,11 @@
  */
 
 namespace Cron;
-use DB;
+use lib\db\SQL;
 
 class CcpSystemsUpdate extends AbstractCron {
 
     const LOG_TEXT = '%s prepare table (%.3F s), jump (%.3F s), kill (%.3F s), update all (%.3F s)';
-
-    protected  $apiRequestOptions = [
-        'timeout' => 5,
-        'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
-    ];
 
     /**
      * table names for all system log tables
@@ -31,23 +26,24 @@ class CcpSystemsUpdate extends AbstractCron {
 
     /**
      * checks if a table exists in DB or not
-     * @param DB\SQL $db
+     * @param SQL$db
      * @param string $table
      * @return bool
      */
-    protected function tableExists (DB\SQL $db, string $table) : bool {
+    protected function tableExists (SQL $db, string $table) : bool {
         return !empty($db->exec('SHOW TABLES LIKE :table', [':table' => $table]));
     }
 
     /**
      * check all system log tables for the correct number of system entries that will be locked
+     * @param \Base $f3
      * @return array
      */
-    private function prepareSystemLogTables() : array {
+    private function prepareSystemLogTables(\Base $f3) : array {
         $systemsData = [];
 
         // get all available systems from "universe" DB
-        $universeDB = DB\Database::instance()->getDB('UNIVERSE');
+        $universeDB = $f3->DB->getDB('UNIVERSE');
 
         if($this->tableExists($universeDB, 'system')){
             $systemsData = $universeDB->exec('SELECT 
@@ -62,7 +58,7 @@ class CcpSystemsUpdate extends AbstractCron {
                 [':ns' => '0.0', ':ls' => 'L', ':hs' => 'H']
             );
 
-            $pfDB = DB\Database::instance()->getDB('PF');
+            $pfDB = $f3->DB->getDB('PF');
 
             // insert systems into each log table if not exist
             $pfDB->begin();
@@ -95,12 +91,12 @@ class CcpSystemsUpdate extends AbstractCron {
 
         // prepare system jump log table ------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $systemsData = $this->prepareSystemLogTables();
+        $systemsData = $this->prepareSystemLogTables($f3);
         $time_end = microtime(true);
         $execTimePrepareSystemLogTables = $time_end - $time_start;
 
         // switch DB for data import..
-        $pfDB = DB\Database::instance()->getDB('PF');
+        $pfDB = $f3->DB->getDB('PF');
 
         // get current jump data --------------------------------------------------------------------------------------
         $time_start = microtime(true);

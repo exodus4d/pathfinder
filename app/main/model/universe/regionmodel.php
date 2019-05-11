@@ -8,12 +8,19 @@
 
 namespace Model\Universe;
 
+
 use DB\SQL\Schema;
 
-class RegionModel extends BasicUniverseModel {
+class RegionModel extends AbstractUniverseModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'region';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,
@@ -25,7 +32,7 @@ class RegionModel extends BasicUniverseModel {
         ],
         'constellations' => [
             'has-many' => ['Model\Universe\ConstellationModel', 'regionId']
-        ],
+        ]
     ];
 
     /**

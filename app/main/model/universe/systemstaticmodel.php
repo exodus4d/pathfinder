@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 18.05.2018
  * Time: 17:50
  */
@@ -10,7 +10,7 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class SystemStaticModel extends BasicUniverseModel {
+class SystemStaticModel extends AbstractUniverseModel {
 
     protected $table = 'system_static';
 
@@ -64,13 +64,10 @@ class SystemStaticModel extends BasicUniverseModel {
      * @return bool
      * @throws \Exception
      */
-    public static function setup($db=null, $table=null, $fields=null){
-        $status = parent::setup($db,$table,$fields);
-
-        if($status === true){
+    public static function setup($db = null, $table = null, $fields = null){
+        if($status = parent::setup($db, $table, $fields)){
             $status = parent::setMultiColumnIndex(['systemId', 'wormholeId'], true);
         }
-
         return $status;
     }
 }

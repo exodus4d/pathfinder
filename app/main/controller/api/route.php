@@ -11,7 +11,7 @@ namespace Controller\Api;
 use Controller;
 use Controller\Ccp\Universe;
 use lib\Config;
-use Model;
+use Model\Pathfinder;
 
 /**
  * Routes controller
@@ -20,6 +20,9 @@ use Model;
  */
 class Route extends Controller\AccessController {
 
+    /**
+     * route search depth
+     */
     const ROUTE_SEARCH_DEPTH_DEFAULT = 1;
 
     /**
@@ -122,6 +125,8 @@ class Route extends Controller\AccessController {
             $excludeTypes = [];
             $includeEOL = true;
 
+            $excludeEndpointTypes = [];
+
             if( $filterData['stargates'] === true){
                 // include "stargates" for search
                 $includeScopes[] = 'stargate';
@@ -158,6 +163,10 @@ class Route extends Controller\AccessController {
                 }
             }
 
+            if( $filterData['endpointsBubble'] !== true ){
+                $excludeEndpointTypes[] = 'bubble';
+            }
+
             // search connections -------------------------------------------------------------------------------------
 
             if( !empty($includeScopes) ){
@@ -173,6 +182,11 @@ class Route extends Controller\AccessController {
 
                 if(!$includeEOL){
                     $whereQuery .= " `connection`.`eolUpdated` IS NULL AND ";
+                }
+
+                if( !empty($excludeEndpointTypes) ){
+                    $whereQuery .= " CONCAT_WS(' ', `connection`.`sourceEndpointType`, `connection`.`targetEndpointType`) ";
+                    $whereQuery .= " NOT REGEXP '" . implode("|", $excludeEndpointTypes) . "' AND ";
                 }
 
                 $query = "SELECT 
@@ -670,9 +684,9 @@ class Route extends Controller\AccessController {
             $validMaps = [];
 
             /**
-             * @var $map Model\MapModel
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
 
             // limit max search routes to max limit
             array_splice($routesData, Config::getPathfinderData('route.limit'));
@@ -686,7 +700,7 @@ class Route extends Controller\AccessController {
                 // check map access (filter requested mapIDs and format) ----------------------------------------------
                 array_walk($mapData, function(&$item, &$key, $data){
                     /**
-                     * @var Model\MapModel $data[0]
+                     * @var Pathfinder\MapModel $data[0]
                      */
                     if( isset($data[1][$key]) ){
                         // character has map access -> do not check again
@@ -714,22 +728,23 @@ class Route extends Controller\AccessController {
 
                 // search route with filter options
                 $filterData = [
-                    'stargates' => (bool) $routeData['stargates'],
-                    'jumpbridges' => (bool) $routeData['jumpbridges'],
-                    'wormholes' => (bool) $routeData['wormholes'],
-                    'wormholesReduced' => (bool) $routeData['wormholesReduced'],
-                    'wormholesCritical' => (bool) $routeData['wormholesCritical'],
-                    'wormholesFrigate' => (bool) $routeData['wormholesFrigate'],
-                    'wormholesEOL' => (bool) $routeData['wormholesEOL'],
-                    'flag' => $routeData['flag']
+                    'stargates'             => (bool) $routeData['stargates'],
+                    'jumpbridges'           => (bool) $routeData['jumpbridges'],
+                    'wormholes'             => (bool) $routeData['wormholes'],
+                    'wormholesReduced'      => (bool) $routeData['wormholesReduced'],
+                    'wormholesCritical'     => (bool) $routeData['wormholesCritical'],
+                    'wormholesFrigate'      => (bool) $routeData['wormholesFrigate'],
+                    'wormholesEOL'          => (bool) $routeData['wormholesEOL'],
+                    'endpointsBubble'       => (bool) $routeData['endpointsBubble'],
+                    'flag'                  => $routeData['flag']
                 ];
 
                 $returnRoutData = [
-                    'systemFromData' => $routeData['systemFromData'],
-                    'systemToData' => $routeData['systemToData'],
-                    'skipSearch' => (bool) $routeData['skipSearch'],
-                    'maps' => $mapData,
-                    'mapIds' => $mapIds
+                    'systemFromData'        => $routeData['systemFromData'],
+                    'systemToData'          => $routeData['systemToData'],
+                    'skipSearch'            => (bool) $routeData['skipSearch'],
+                    'maps'                  => $mapData,
+                    'mapIds'                => $mapIds
                 ];
 
                 // add filter options for each route as well
@@ -739,10 +754,10 @@ class Route extends Controller\AccessController {
                     !$returnRoutData['skipSearch'] &&
                     count($mapIds) > 0
                 ){
-                    $systemFrom = $routeData['systemFromData']['name'];
-                    $systemFromId = (int)$routeData['systemFromData']['systemId'];
-                    $systemTo = $routeData['systemToData']['name'];
-                    $systemToId = (int)$routeData['systemToData']['systemId'];
+                    $systemFrom     = $routeData['systemFromData']['name'];
+                    $systemFromId   = (int)$routeData['systemFromData']['systemId'];
+                    $systemTo       = $routeData['systemToData']['name'];
+                    $systemToId     = (int)$routeData['systemToData']['systemId'];
 
                     $cacheKey = $this->getRouteCacheKey(
                         $mapIds,

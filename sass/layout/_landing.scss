@@ -711,6 +711,10 @@
 
 // setup page -----------------------------------------------------------------
 .pf-body[data-script='setup']{
+  body{
+    user-select: text;
+  }
+
   .navbar-brand:hover{
     color: #777; // overwrite default
   }

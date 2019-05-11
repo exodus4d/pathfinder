@@ -232,6 +232,7 @@ define([
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
             wormholesFrigate: (rowData.hasOwnProperty('wormholesFrigate')) ? rowData.wormholesFrigate | 0 : 1,
             wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
+            endpointsBubble: (rowData.hasOwnProperty('endpointsBubble')) ? rowData.endpointsBubble | 0 : 1,
             connections: (rowData.hasOwnProperty('connections')) ? rowData.connections.value | 0 : 0,
             flag: (rowData.hasOwnProperty('flag')) ? rowData.flag.value : 'shortest'
         };
@@ -324,7 +325,8 @@ define([
                                         wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt(routeDialogData.wormholesReduced) : 0,
                                         wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt(routeDialogData.wormholesCritical) : 0,
                                         wormholesFrigate: routeDialogData.hasOwnProperty('wormholesFrigate') ? parseInt(routeDialogData.wormholesFrigate) : 0,
-                                        wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt(routeDialogData.wormholesEOL) : 0
+                                        wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt(routeDialogData.wormholesEOL) : 0,
+                                        endpointsBubble: routeDialogData.hasOwnProperty('endpointsBubble') ? parseInt(routeDialogData.endpointsBubble) : 0
                                     }]
                                 };
 
@@ -731,7 +733,7 @@ define([
         // button class for flag (e.g. "secure" routes)
         let flagButtonClass = routeData.flag === 'secure' ? 'txt-color-success' : '';
 
-        let connectionButton = '<i class="fas ' + ['fa-link', 'txt-color'].join(' ') + '"></i>';
+        let connectionButton = '<i class="fas ' + ['fa-code-branch', 'fa-rotate-270', 'txt-color'].join(' ') + '"></i>';
         let flagButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', flagButtonClass].join(' ') + '"></i>';
         let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
         let searchButton = '<i class="fas ' + ['fa-search'].join(' ') + '"></i>';
@@ -760,6 +762,7 @@ define([
             wormholesCritical: routeData.wormholesCritical,
             wormholesFrigate: routeData.wormholesFrigate,
             wormholesEOL: routeData.wormholesEOL,
+            endpointsBubble: routeData.endpointsBubble,
             connections: {
                 value: 0,
                 button: connectionButton
@@ -994,7 +997,7 @@ define([
                     }
                 },{
                     targets: 5,
-                    title: '<i title="toggle connections" data-toggle="tooltip" class="fas fa-link text-right"></i>',
+                    title: '<i title="toggle connections" data-toggle="tooltip" class="fas fa-code-branch fa-rotate-270 text-right"></i>',
                     orderable: false,
                     searchable: false,
                     width: 10,
@@ -1354,14 +1357,24 @@ define([
 
             drawRouteTable(mapId, moduleElement, systemFromData, routesTable, systemsToData);
         });
+    };
 
+    /**
+     * before module destroy callback
+     * @param moduleElement
+     */
+    let beforeDestroy = moduleElement => {
+        let routeTableElement = moduleElement.find('.' + config.systemInfoRoutesTableClass);
+        let tableApi = routeTableElement.DataTable();
+        tableApi.destroy();
     };
 
     return {
         config: config,
         getModule: getModule,
         initModule: initModule,
-        updateModule: updateModule
+        updateModule: updateModule,
+        beforeDestroy: beforeDestroy
     };
 
 });

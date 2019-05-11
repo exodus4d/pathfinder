@@ -8,7 +8,7 @@
 
 namespace Controller\Api\Rest;
 
-use Model;
+use Model\Pathfinder;
 
 class Connection extends AbstractRestController {
 
@@ -17,7 +17,6 @@ class Connection extends AbstractRestController {
      * if a connection is changed (drag&drop) to another system. -> this function is called for update
      * @param \Base $f3
      * @throws \Exception
-     * @throws \ZMQSocketException
      */
     public function put(\Base $f3){
         $requestData = $this->getRequestData($f3);
@@ -27,11 +26,10 @@ class Connection extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\MapModel $map
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
-
             if($map->hasAccess($activeCharacter)){
                 $source = $map->getSystemById((int)$requestData['source']);
                 $target = $map->getSystemById((int)$requestData['target']);
@@ -41,9 +39,9 @@ class Connection extends AbstractRestController {
                     !is_null($target)
                 ){
                     /**
-                     * @var $connection Model\ConnectionModel
+                     * @var $connection Pathfinder\ConnectionModel
                      */
-                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
                     $connection->getById((int)$requestData['id']);
 
                     $connection->mapId = $map;
@@ -71,7 +69,6 @@ class Connection extends AbstractRestController {
      * @param \Base $f3
      * @param $params
      * @throws \Exception
-     * @throws \ZMQSocketException
      */
     public function delete(\Base $f3, $params){
         $requestData = $this->getRequestData($f3);
@@ -82,11 +79,10 @@ class Connection extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\MapModel $map
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
-
             if($map->hasAccess($activeCharacter)){
                 foreach($connectionIds as $connectionId){
                     if($connection = $map->getConnectionById($connectionId)){

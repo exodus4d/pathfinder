@@ -20,7 +20,7 @@
 .editable-buttons {
   display: inline-block; /* should be inline to take effect of parent's white-space: nowrap */
   vertical-align: top;
-  margin-left: 7px;
+  margin-left: 10px;
   /* inline-block emulation for IE7*/
   zoom: 1;
   *display: inline;
@@ -28,7 +28,7 @@
 
 .editable-buttons.editable-buttons-bottom {
   display: block;
-  margin-top: 7px;
+  margin-top: 5px;
   margin-left: 0;
 }
 
@@ -40,10 +40,6 @@
   /* display-inline emulation for IE7*/
   zoom: 1;
   *display: inline;
-}
-
-.editable-buttons .editable-cancel {
-  margin-left: 7px;
 }
 
 /*for jquery-ui buttons need set height to look more pretty*/
@@ -100,6 +96,7 @@
 
 /* checklist vertical alignment */
 .editable-checklist label input[type="checkbox"],
+.editable-checklist label input[type="radio"],
 .editable-checklist label span {
   vertical-align: middle;
   margin: 0;

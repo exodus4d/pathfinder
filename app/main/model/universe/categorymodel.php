@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 13.04.2018
  * Time: 23:49
  */
@@ -10,7 +10,7 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class CategoryModel extends BasicUniverseModel {
+class CategoryModel extends AbstractUniverseModel {
 
     protected $table = 'category';
 

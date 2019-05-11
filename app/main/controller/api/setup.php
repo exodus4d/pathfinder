@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 27.05.2018
  * Time: 14:17
  */
@@ -9,7 +9,6 @@
 namespace Controller\Api;
 
 use Controller;
-use DB\Database;
 use Model;
 
 class Setup extends Controller\Controller {
@@ -75,10 +74,11 @@ class Setup extends Controller\Controller {
                 $offset = $count * $length;
                 $buildInfo = $controller->setupCategory($categoryId, $offset, $length);
 
-                $categoryUniverseModel =  Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+                $categoryUniverseModel =  Model\Universe\AbstractUniverseModel::getNew('CategoryModel');
+                $categoryUniverseModel->getById($categoryId, 0);
                 $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES');
                 $return->countBuild = array_reduce($buildInfo, $sum, 0);
-                $return->countBuildAll = $categoryUniverseModel->getById($categoryId, 0)->getTypesCount(false);
+                $return->countBuildAll = $categoryUniverseModel->getTypesCount(false);
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
                 break;
             case 'Ships':
@@ -87,10 +87,11 @@ class Setup extends Controller\Controller {
                 $offset = $count * $length;
                 $buildInfo = $controller->setupCategory($categoryId, $offset, $length);
 
-                $categoryUniverseModel =  Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+                $categoryUniverseModel =  Model\Universe\AbstractUniverseModel::getNew('CategoryModel');
+                $categoryUniverseModel->getById($categoryId, 0);
                 $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.SHIPS');
                 $return->countBuild = array_reduce($buildInfo, $sum, 0);
-                $return->countBuildAll = $categoryUniverseModel->getById($categoryId, 0)->getTypesCount(false);
+                $return->countBuildAll = $categoryUniverseModel->getTypesCount(false);
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
                 break;
             case 'SystemNeighbour':
@@ -98,7 +99,7 @@ class Setup extends Controller\Controller {
                 $this->setupSystemJumpTable();
 
                 $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.NEIGHBOURS');
-                $return->countBuild = Database::instance()->getRowCount('system_neighbour');
+                $return->countBuild = $f3->DB->getDB('PF')->getRowCount('system_neighbour');
                 $return->countBuildAll = $return->countBuild;
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
                 break;
@@ -133,8 +134,8 @@ class Setup extends Controller\Controller {
         switch($type) {
             case 'Systems':
                 $controller->clearSystemsIndex();
-                $systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
-                $return->countAll = Database::instance()->getRowCount($systemUniverseModel->getTable(), 'UNIVERSE');
+                $systemUniverseModel =  Model\Universe\AbstractUniverseModel::getNew('SystemModel');
+                $return->countAll = $f3->DB->getDB('UNIVERSE')->getRowCount($systemUniverseModel->getTable());
                 break;
         }
 

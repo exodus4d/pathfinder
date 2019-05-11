@@ -76,10 +76,10 @@
         {{! wormhole ----------------------------------------------------------------- }}
 
         <div class="row">
-            <div class="col-sm-4">
+            <div class="col-xs-12 col-sm-4">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include wormhole connections">
+                        <div class="col-sm-12 checkbox checkbox-primary" title="include wormhole connections">
                             <input id="form_wormholes" name="wormholes" value="1" type="checkbox" checked>
                             <label for="form_wormholes">Wormholes</label>
                         </div>
@@ -87,10 +87,10 @@
                 </div>
             </div>
 
-            <div class="col-sm-4">
+            <div class="col-xs-6 col-sm-4">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox-warning checkbox-circle" title="include reduced connections">
+                        <div class="col-sm-12 checkbox checkbox-warning checkbox-circle" title="include reduced connections">
                             <input id="form_wormholes_reduced" name="wormholesReduced" value="1" type="checkbox" checked>
                             <label for="form_wormholes_reduced">Stage 2 (reduced)</label>
                         </div>
@@ -98,10 +98,10 @@
                 </div>
             </div>
 
-            <div class="col-sm-4">
+            <div class="col-xs-6 col-sm-4">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox-danger checkbox-circle" title="include critical connections">
+                        <div class="col-sm-12 checkbox checkbox-danger checkbox-circle" title="include critical connections">
                             <input id="form_wormholes_critical" name="wormholesCritical" value="1" type="checkbox" checked>
                             <label for="form_wormholes_critical">Stage 3 (critical)</label>
                         </div>
@@ -109,10 +109,10 @@
                 </div>
             </div>
 
-            <div class="col-sm-4 col-sm-offset-4">
+            <div class="col-xs-6 col-sm-4 col-sm-offset-4">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox checkbox-circle" title="include frigate connections">
+                        <div class="col-sm-12 checkbox checkbox checkbox-circle" title="include frigate connections">
                             <input id="form_wormholes_frigate" name="wormholesFrigate" value="1" type="checkbox" checked>
                             <label for="form_wormholes_frigate">Frigate</label>
                         </div>
@@ -120,12 +120,29 @@
                 </div>
             </div>
 
-            <div class="col-sm-4">
+            <div class="col-xs-6 col-sm-4">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox-danger checkbox-circle" title="include EOL connections">
+                        <div class="col-sm-12 checkbox checkbox-danger checkbox-circle" title="include EOL connections">
                             <input id="form_wormholes_eol" name="wormholesEOL" value="1" type="checkbox" checked>
                             <label for="form_wormholes_eol">End of life (EOL)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        {{! endpoint ----------------------------------------------------------------- }}
+
+        <div class="row">
+            <div class="col-xs-6 col-sm-4">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 checkbox checkbox-primary" title="include bubbled connections">
+                            <input id="form_endpoints_bubble" name="endpointsBubble" value="1" type="checkbox" checked>
+                            <label for="form_endpoints_bubble">Bubbled&nbsp;&nbsp;<span class="pf-endpoint-bubble"></span></label>
                         </div>
                     </div>
                 </div>

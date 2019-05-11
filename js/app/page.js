@@ -603,12 +603,11 @@ define([
      */
     let setPageObserver = function(){
         let documentElement = $(document);
+        let bodyElement = $(document.body);
 
         // on "full-screen" change event
         documentElement.on('fscreenchange', function(e, state, elem){
-
             let menuButton = $('#' + Util.config.menuButtonFullScreenId);
-
             if(state === true){
                 // full screen active
 
@@ -702,7 +701,7 @@ define([
             let activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
-                mapData = activeMap.getMapDataFromClient({forceData: true});
+                mapData = activeMap.getMapDataFromClient(['hasId']);
             }
 
             $.fn.showDeleteMapDialog(mapData);
@@ -739,7 +738,7 @@ define([
         });
 
         // global "modal" callback (for all modals)
-        $('body').on('hide.bs.modal', '> .modal', function(e){
+        bodyElement.on('hide.bs.modal', '> .modal', function(e){
             let modalElement = $(this);
             modalElement.destroyTimestampCounter(true);
 
@@ -747,6 +746,11 @@ define([
             modalElement.find('.' + Util.config.select2Class)
                 .filter((i, element) => $(element).data('select2'))
                 .select2('destroy');
+        });
+
+        // global "close" trigger for context menus
+        bodyElement.on('click.contextMenuClose', function(e){
+            MapContextMenu.closeMenus();
         });
 
         // disable menu links based on current map config
@@ -1181,12 +1185,15 @@ define([
     /**
      * add "hidden" context menu elements to page
      */
-    let initMapContextMenus = () => {
-        $('#' + config.dynamicElementWrapperId).append(
-            MapContextMenu.initMapContextMenu(),
-            MapContextMenu.initConnectionContextMenu(),
-            MapContextMenu.initSystemContextMenu(Init.systemStatus)
-        );
+    let renderMapContextMenus = () => {
+        Promise.all([
+            MapContextMenu.renderMapContextMenu(),
+            MapContextMenu.renderConnectionContextMenu(),
+            MapContextMenu.renderEndpointContextMenu(),
+            MapContextMenu.renderSystemContextMenu(Init.systemStatus)
+        ]).then(payloads => {
+            $('#' + config.dynamicElementWrapperId).append(payloads.join(''));
+        });
     };
 
     /**
@@ -1315,7 +1322,7 @@ define([
 
     return {
         initTabChangeObserver: initTabChangeObserver,
-        initMapContextMenus: initMapContextMenus
+        renderMapContextMenus: renderMapContextMenus
     };
 
 });

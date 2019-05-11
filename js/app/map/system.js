@@ -134,13 +134,8 @@ define([
             // show loading animation
             dialogElement.find('[data-type="spinner"]').addClass('in');
 
-            MapUtil.requestSystemData({
-                mapId: mapId,
-                systemId: systemId,
-                isCcpId: 1
-            }, {
-                dialogElement: dialogElement
-            }).then(payload => updateDialog(payload.context.dialogElement, payload.data))
+            Util.request('GET', 'system', systemId, {mapId: mapId, isCcpId: 1}, {dialogElement: dialogElement})
+                .then(payload => updateDialog(payload.context.dialogElement, payload.data))
                 .catch(payload => updateDialog(payload.context.dialogElement));
         };
 
@@ -150,7 +145,7 @@ define([
         let statusData = [{id: 0, text: 'auto'}];
 
         // get current map data ---------------------------------------------------------------------------------------
-        let mapData = mapContainer.getMapDataFromClient({forceData: true});
+        let mapData = mapContainer.getMapDataFromClient(['hasId']);
         let mapSystems = mapData.data.systems;
         let mapSystemCount = mapSystems.length;
         let mapTypeName = mapContainer.data('typeName');

@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 22.09.2017
  * Time: 19:05
  */
@@ -9,15 +9,20 @@
 namespace lib\logging;
 
 use lib\Config;
-use Model\CharacterModel;
+use Model\Pathfinder\CharacterModel;
 
-abstract class AbstractCharacterLog extends AbstractChannelLog{
+abstract class AbstractCharacterLog extends AbstractChannelLog {
 
     /**
      * @var CharacterModel
      */
     private $character              = null;
 
+    /**
+     * AbstractCharacterLog constructor.
+     * @param string $action
+     * @param array $objectData
+     */
     public function __construct(string $action, array $objectData){
         parent::__construct($action, $objectData);
 

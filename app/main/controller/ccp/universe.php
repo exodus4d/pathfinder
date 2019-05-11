@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 29.07.2017
  * Time: 11:31
  */
@@ -23,9 +23,9 @@ class Universe extends Controller {
             10000002 // The Forge (13 constellations -> 93 systems)
         ];
         $regionIds = $f3->ccpClient()->getUniverseRegions();
-        $regionIds = array_intersect ($regionsWhitelist, $regionIds);
+        $regionIds = array_intersect($regionsWhitelist, $regionIds);
 
-        $region = Model\Universe\BasicUniverseModel::getNew('RegionModel');
+        $region = Model\Universe\AbstractUniverseModel::getNew('RegionModel');
         foreach($regionIds as $regionId){
             $region->loadById($regionId);
             $region->loadConstellationsData();
@@ -44,8 +44,8 @@ class Universe extends Controller {
             20000014 // Mal (11 systems)
         ];
         $constellationIds = $f3->ccpClient()->getUniverseConstellations();
-        $constellationIds = array_intersect ($constellationsWhitelist, $constellationIds);
-        $constellation = Model\Universe\BasicUniverseModel::getNew('ConstellationModel');
+        $constellationIds = array_intersect($constellationsWhitelist, $constellationIds);
+        $constellation = Model\Universe\AbstractUniverseModel::getNew('ConstellationModel');
         foreach($constellationIds as $constellationId){
             $constellation->loadById($constellationId);
             $constellation->loadSystemsData();
@@ -62,13 +62,13 @@ class Universe extends Controller {
      * @return array
      * @throws \Exception
      */
-    public function setupCategory(int $categoryId, int $offset = 0, int $length = 0){
+    public function setupCategory(int $categoryId, int $offset = 0, int $length = 0) : array {
         $return = [];
         if($categoryId){
             /**
              * @var $category Model\Universe\CategoryModel
              */
-            $category = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            $category = Model\Universe\AbstractUniverseModel::getNew('CategoryModel');
             $category->loadById($categoryId);
             $groupIds =  $category->loadGroupsData($offset, $length);
             foreach((array)$category->groups as $group){
@@ -90,10 +90,10 @@ class Universe extends Controller {
      * @return array
      * @throws \Exception
      */
-    protected function setupCategories(array $categoriesWhitelist = []){
+    protected function setupCategories(array $categoriesWhitelist = []) : array {
         $return = [];
         $categoryIds = $this->getF3()->ccpClient()->getUniverseCategories();
-        $categoryIds = array_intersect ($categoriesWhitelist, $categoryIds);
+        $categoryIds = array_intersect($categoriesWhitelist, $categoryIds);
         foreach($categoryIds as $categoryId){
             $return[$categoryId] = $this->setupCategory($categoryId);
         }
@@ -110,14 +110,14 @@ class Universe extends Controller {
      * @return array
      * @throws \Exception
      */
-    protected function setupGroups(array $groupsWhitelist = []){
+    protected function setupGroups(array $groupsWhitelist = []) : array {
         $return = [];
         $groupIds = $this->getF3()->ccpClient()->getUniverseGroups();
-        $groupIds = array_intersect ($groupsWhitelist, $groupIds);
+        $groupIds = array_intersect($groupsWhitelist, $groupIds);
         /**
          * @var $group Model\Universe\GroupModel
          */
-        $group = Model\Universe\BasicUniverseModel::getNew('GroupModel');
+        $group = Model\Universe\AbstractUniverseModel::getNew('GroupModel');
         foreach($groupIds as $groupId){
             $group->loadById($groupId);
             $return[$group->_id] = $group->loadTypesData();
@@ -143,7 +143,7 @@ class Universe extends Controller {
         /**
          * @var $system Model\Universe\SystemModel
          */
-        $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+        $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
         $indexData = [];
         foreach($systemIds as $systemId){
             $system->getById($systemId);
@@ -174,7 +174,7 @@ class Universe extends Controller {
             /**
              * @var $system Model\Universe\SystemModel
              */
-            $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+            $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
             if($systems = $system->find()){
                 $systemIds = $systems->getAll('id');
                 if(count($systemIds)){
@@ -194,7 +194,7 @@ class Universe extends Controller {
      */
     public function getSystemsIndex(bool $all = false) : array {
         $index = [];
-        $cacheKeyTable = Model\Universe\BasicUniverseModel::generateHashKeyTable('system');
+        $cacheKeyTable = Model\Universe\AbstractUniverseModel::generateHashKeyTable('system');
         if($this->getF3()->exists($cacheKeyTable,$cacheKeys)){
             foreach((array)$cacheKeys as $cacheKeyRow){
                 if(($data = $this->get($cacheKeyRow)) && is_object($data)){
@@ -209,7 +209,7 @@ class Universe extends Controller {
      * clear complete systems search index for all systems
      */
     public function clearSystemsIndex(){
-        $cacheKeyTable = Model\Universe\BasicUniverseModel::generateHashKeyTable('system');
+        $cacheKeyTable = Model\Universe\AbstractUniverseModel::generateHashKeyTable('system');
         if($this->getF3()->exists($cacheKeyTable,$cacheKeys)){
             foreach((array)$cacheKeys as $cacheKeyRow) {
                 $this->clear($cacheKeyRow);
@@ -229,14 +229,14 @@ class Universe extends Controller {
         $data = null;
         if($systemId){
             // ...check index for data
-            $cacheKeyRow = Model\Universe\BasicUniverseModel::generateHashKeyRow('system', $systemId);
+            $cacheKeyRow = Model\Universe\AbstractUniverseModel::generateHashKeyRow('system', $systemId);
             $data = $this->get($cacheKeyRow);
             if(!$data){
                 // .. try to build index
                 /**
                  * @var $system Model\Universe\SystemModel
                  */
-                $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+                $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
                 $system->getById($systemId);
                 $data = $system->buildIndex();
             }
@@ -252,7 +252,7 @@ class Universe extends Controller {
     private function get(string $cacheKey){
         $data = null;
         if($this->getF3()->exists($cacheKey,$value)) {
-            if(is_string($value) && strpos($value, Model\Universe\BasicUniverseModel::CACHE_KEY_PREFIX) === 0) {
+            if(is_string($value) && strpos($value, Model\Universe\AbstractUniverseModel::CACHE_KEY_PREFIX) === 0) {
                 // value references an other cacheKey that holds data
                 return $this->get($value);
             }elseif( !empty((array)$value) ){
@@ -269,7 +269,7 @@ class Universe extends Controller {
      */
     private function clear(string $cacheKey){
         if($this->getF3()->exists($cacheKey,$value)) {
-            if(is_string($value) && strpos($value, Model\Universe\BasicUniverseModel::CACHE_KEY_PREFIX) === 0) {
+            if(is_string($value) && strpos($value, Model\Universe\AbstractUniverseModel::CACHE_KEY_PREFIX) === 0) {
                 // value references another cacheKey -> clear that one as well
                 $this->clear($value);
             }

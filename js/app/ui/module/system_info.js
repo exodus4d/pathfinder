@@ -343,7 +343,7 @@ define([
                 let mapUrl = $(this).attr('data-url');
                 Util.copyToClipboard(mapUrl).then(payload => {
                     if(payload.data){
-                        Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
+                        Util.showNotify({title: 'Copied to clipboard', text: mapUrl, type: 'success'});
                     }
                 });
             });

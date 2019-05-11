@@ -9,7 +9,7 @@
 namespace Controller\Api;
 
 use Controller;
-use Model;
+use Model\Pathfinder;
 
 class System extends Controller\AccessController {
 
@@ -58,7 +58,7 @@ class System extends Controller\AccessController {
                 $cacheSystem = false;
 
                 foreach($logTables as $label => $ModelClass){
-                    $systemLogModel = Model\BasicModel::getNew($ModelClass);
+                    $systemLogModel = Pathfinder\AbstractPathfinderModel::getNew($ModelClass);
                     $systemLogExists = false;
 
                     // 10min cache (could be up to 1h cache time)
@@ -167,9 +167,9 @@ class System extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\SystemModel $system
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){
@@ -181,31 +181,6 @@ class System extends Controller\AccessController {
 
                 $system->sendRallyPoke($rallyData, $activeCharacter);
             }
-        }
-
-        echo json_encode($return);
-    }
-
-    /**
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function getData(\Base $f3){
-        $requestData = (array)$f3->get('POST');
-        $mapId = (int)$requestData['mapId'];
-        $systemId = (int)$requestData['systemId'];
-        $isCcpId = (bool)$requestData['isCcpId'];
-        $activeCharacter = $this->getCharacter();
-
-        $return = (object) [];
-
-        if(
-            !is_null($map = $activeCharacter->getMap($mapId)) &&
-            !is_null($system = $isCcpId ? $map->getSystemByCCPId($systemId) : $map->getSystemById($systemId))
-        ){
-            $return->system = $system->getData();
-            $return->system->signatures = $system->getSignaturesData();
-            $return->system->structures = $system->getStructuresData();
         }
 
         echo json_encode($return);

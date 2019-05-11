@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 12.05.2017
  * Time: 20:30
  */
@@ -11,10 +11,10 @@ namespace Controller;
 
 use Controller\Ccp\Sso;
 use lib\Config;
-use Model\CharacterModel;
-use Model\CorporationModel;
-use Model\MapModel;
-use Model\RoleModel;
+use Model\Pathfinder\CharacterModel;
+use Model\Pathfinder\CorporationModel;
+use Model\Pathfinder\MapModel;
+use Model\Pathfinder\RoleModel;
 
 class Admin extends Controller{
 
@@ -348,7 +348,7 @@ class Admin extends Controller{
      * @param string $type
      * @return \Log
      */
-    static function getLogger($type = 'ADMIN'){
+    static function getLogger($type = 'ADMIN') : \Log {
         return parent::getLogger('ADMIN');
     }
 

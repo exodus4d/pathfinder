@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 04.08.2017
  * Time: 20:17
  */
@@ -34,11 +34,11 @@ class Monolog extends \Prefab {
     const HANDLER = [
         'stream'        => 'Monolog\Handler\StreamHandler',
         'mail'          => 'Monolog\Handler\SwiftMailerHandler',
+        'socket'        => 'lib\logging\handler\SocketHandler',
         'slackMap'      => 'lib\logging\handler\SlackMapWebhookHandler',
         'slackRally'    => 'lib\logging\handler\SlackRallyWebhookHandler',
         'discordMap'    => 'lib\logging\handler\DiscordMapWebhookHandler',
-        'discordRally'  => 'lib\logging\handler\DiscordRallyWebhookHandler',
-        'zmq'           => 'lib\logging\handler\ZMQHandler'
+        'discordRally'  => 'lib\logging\handler\DiscordRallyWebhookHandler'
     ];
 
     const PROCESSOR = [

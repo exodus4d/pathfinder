@@ -10,146 +10,58 @@ define([
     'use strict';
 
     let config = {
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for context menus (initial hidden)
+        mapContextMenuId: 'pf-map-contextmenu',                                     // id for "maps" context menu
+        connectionContextMenuId: 'pf-map-connection-contextmenu',                   // id for "connections" context menu
+        endpointContextMenuId: 'pf-map-endpoint-contextmenu',                       // id for "endpoints" context menu
+        systemContextMenuId: 'pf-map-system-contextmenu',                           // id for "systems" context menu
 
-        mapContextMenuId: 'pf-map-contextmenu',                         // id for "maps" context menu
-        connectionContextMenuId: 'pf-map-connection-contextmenu',       // id for "connections" context menu
-        systemContextMenuId: 'pf-map-system-contextmenu'                // id for "systems" context menu
-    };
-
-    $.fn.contextMenu = function(settings){
-
-        // animation
-        let animationInType = 'transition.flipXIn';
-        let animationInDuration = 150;
-        let animationOutType = 'transition.flipXOut';
-        let animationOutDuration = 150;
-
-        return this.each(function(){
-
-            // Open context menu
-            $(this).off('pf:openContextMenu').on('pf:openContextMenu', function(e, originalEvent, component, hiddenOptions, activeOptions, disabledOptions){
-
-                // hide all other open context menus
-               $('#pf-dialog-wrapper > .dropdown-menu').hide();
-
-                let contextMenu = $(settings.menuSelector);
-
-                let menuLiElements = contextMenu.find('li');
-
-                // reset all menu entries
-                menuLiElements.removeClass('active').removeClass('disabled').show();
-
-                // hide specific menu entries
-                for(let action of hiddenOptions){
-                    contextMenu.find('li[data-action="' + action + '"]').hide();
-                }
-
-                //set active specific menu entries
-                for(let action of activeOptions){
-                    contextMenu.find('li[data-action="' + action + '"]').addClass('active');
-                }
-
-                //disable specific menu entries
-                for(let action of disabledOptions){
-                    contextMenu.find('li[data-action="' + action + '"]').addClass('disabled');
-                }
-
-                //open menu
-                contextMenu.css({
-                    position: 'absolute',
-                    left: getLeftLocation(originalEvent),
-                    top: getTopLocation(originalEvent)
-                }).velocity(animationInType, {
-                    duration: animationInDuration,
-                    complete: function(){
-
-                        let posX = 0;
-                        let posY = 0;
-
-                        if(
-                            originalEvent.offsetX &&
-                            originalEvent.offsetY
-                        ){
-                            // Chrome
-                            posX = originalEvent.offsetX;
-                            posY = originalEvent.offsetY;
-                        }else if(originalEvent.originalEvent){
-                            // Firefox -> #415
-                            posX =  originalEvent.originalEvent.layerX;
-                            posY = originalEvent.originalEvent.layerY;
-                        }
-
-                        let position = {
-                            x: posX,
-                            y: posY
-                        };
-
-                        $(this).off('click').one('click', {component: component, position: position}, function(e){
-                            // hide contextmenu
-                            $(this).hide();
-
-                            let params = {
-                                selectedMenu: $(e.target),
-                                component: e.data.component,
-                                position: e.data.position
-                            };
-
-                            settings.menuSelected.call(this, params);
-                            return false;
-                        });
-                    }
-                });
-
-                //make sure menu closes on any click
-                $(document).one('click.closeContextmenu', function(){
-                    $('.dropdown-menu[role="menu"]').velocity(animationOutType, {
-                        duration: animationOutDuration
-                    });
-                });
-
-                return false;
-            });
-
-        });
-
-        function getLeftLocation(e){
-            let mouseWidth = e.pageX;
-            let pageWidth = $(window).width();
-            let menuWidth = $(settings.menuSelector).width();
-
-            // opening menu would pass the side of the page
-            if(mouseWidth + menuWidth > pageWidth &&
-                menuWidth < mouseWidth){
-                return mouseWidth - menuWidth;
-            }
-            return mouseWidth;
-        }
-
-        function getTopLocation(e){
-            let mouseHeight = e.pageY;
-            let pageHeight = $(window).height();
-            let menuHeight = $(settings.menuSelector).height();
-
-            // opening menu would pass the bottom of the page
-            if(mouseHeight + menuHeight > pageHeight &&
-                menuHeight < mouseHeight){
-                return mouseHeight - menuHeight;
-            }
-            return mouseHeight;
-        }
-
+        animationInType: 'transition.flipXIn',
+        animationInDuration: 150,
+        animationOutType: 'transition.flipXOut',
+        animationOutDuration: 150
     };
 
     /**
-     * load context menu template for maps
+     * calc menu X coordinate
+     * @param e
+     * @param menuWidth
+     * @returns {number|*}
      */
-    let initMapContextMenu = () => {
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
+    let getMenuLeftCoordinate = (e, menuWidth) => {
+        let mouseWidth = e.pageX;
+        let pageWidth = $(window).width();
 
+        // opening menu would pass the side of the page
+        if(mouseWidth + menuWidth > pageWidth &&
+            menuWidth < mouseWidth){
+            return mouseWidth - menuWidth;
+        }
+        return mouseWidth;
+    };
+
+    /**
+     * calc menu Y coordinate
+     * @param e
+     * @param menuHeight
+     * @returns {number|*}
+     */
+    let getMenuTopCoordinate = (e, menuHeight) => {
+        let mouseHeight = e.pageY;
+        let pageHeight = $(window).height();
+
+        // opening menu would pass the bottom of the page
+        if(mouseHeight + menuHeight > pageHeight &&
+            menuHeight < mouseHeight){
+            return mouseHeight - menuHeight;
+        }
+        return mouseHeight;
+    };
+
+    /**
+     * render context menu template for maps
+     * @returns {*}
+     */
+    let renderMapContextMenu = () => {
         let moduleData = {
             id: config.mapContextMenuId,
             items: [
@@ -170,18 +82,14 @@ define([
             ]
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        return Render.render('modules/contextmenu', moduleData);
     };
 
     /**
-     * load context menu template for connections
+     * render context menu template for connections
+     * @returns {*}
      */
-    let initConnectionContextMenu = () => {
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
-
+    let renderConnectionContextMenu = () => {
         let moduleData = {
             id: config.connectionContextMenuId,
             items: [
@@ -206,15 +114,30 @@ define([
             ]
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        return Render.render('modules/contextmenu', moduleData);
     };
 
     /**
-     * load context menu template for systems
-     * @param systemStatusData
+     * render context menu template for endpoints
+     * @returns {*}
      */
-    let initSystemContextMenu = (systemStatusData) => {
+    let renderEndpointContextMenu = () => {
+        let moduleData = {
+            id: config.endpointContextMenuId,
+            items: [
+                {icon: 'fa-globe', action: 'bubble', text: 'bubbled'}
+            ]
+        };
 
+        return Render.render('modules/contextmenu', moduleData);
+    };
+
+    /**
+     * render context menu template for systems
+     * @param systemStatusData
+     * @returns {*}
+     */
+    let renderSystemContextMenu = systemStatusData => {
         let statusData = [];
         for(let [statusName, data] of Object.entries(systemStatusData)){
             statusData.push({
@@ -224,11 +147,6 @@ define([
                 subText:        data.label
             });
         }
-
-        let moduleConfig = {
-            name: 'modules/contextmenu',
-            position: $('#' + config.dynamicElementWrapperId)
-        };
 
         let moduleData = {
             id: config.systemContextMenuId,
@@ -250,12 +168,132 @@ define([
             ]
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        return Render.render('modules/contextmenu', moduleData);
+    };
+
+    /**
+     * prepare (hide/activate/disable) some menu options
+     * @param menuElement
+     * @param hiddenOptions
+     * @param activeOptions
+     * @param disabledOptions
+     * @returns {*}
+     */
+    let prepareMenu = (menuElement, hiddenOptions, activeOptions, disabledOptions) => {
+        let menuLiElements = menuElement.find('li');
+
+        // reset all menu entries
+        menuLiElements.removeClass('active').removeClass('disabled').show();
+
+        // hide specific menu entries
+        for(let action of hiddenOptions){
+            menuElement.find('li[data-action="' + action + '"]').hide();
+        }
+
+        //set active specific menu entries
+        for(let action of activeOptions){
+            menuElement.find('li[data-action="' + action + '"]').addClass('active');
+        }
+
+        //disable specific menu entries
+        for(let action of disabledOptions){
+            menuElement.find('li[data-action="' + action + '"]').addClass('disabled');
+        }
+
+        return menuElement;
+    };
+
+    /**
+     * close all context menus (map, connection,...)
+     * @param excludeMenu
+     */
+    let closeMenus = excludeMenu => {
+        let allMenus = $('.dropdown-menu[role="menu"]');
+        if(excludeMenu){
+            allMenus = allMenus.not(excludeMenu);
+        }
+
+        allMenus.velocity(config.animationOutType, {
+            duration: config.animationOutDuration
+        });
+    };
+
+    /**
+     * open menu handler
+     * @param menuConfig
+     * @param e
+     * @param context
+     */
+    let openMenu = (menuConfig, e, context) => {
+        let menuElement = $('#' + menuConfig.id);
+
+        // close all other context menus
+        closeMenus(menuElement);
+
+        // remove menu list click event
+        // -> required in case the close handler could not remove them properly
+        // -> this happens if menu re-opens without closing (2x right click)
+        menuElement.off('click.contextMenuSelect', 'li');
+
+        // hide/activate/disable
+        menuElement = prepareMenu(menuElement, menuConfig.hidden, menuConfig.active, menuConfig.disabled);
+
+        menuElement.css({
+            position: 'absolute',
+            left: getMenuLeftCoordinate(e, menuElement.width()),
+            top: getMenuTopCoordinate(e, menuElement.height())
+        }).velocity(config.animationInType, {
+            duration: config.animationInDuration,
+            complete: function(){
+                context = {
+                    original: {
+                        event: e,
+                        context: context,
+                    },
+                    selectCallback: menuConfig.selectCallback
+                };
+
+                $(this).one('click.contextMenuSelect', 'li', context, selectHandler);
+            }
+        });
+    };
+
+    /**
+     * menu item select handler
+     * @param e
+     */
+    let selectHandler = e => {
+        if(e.data.selectCallback){
+            e.data.selectCallback(
+                $(e.currentTarget).attr('data-action'),
+                e.data.original.context.component,
+                e.data.original.event
+            );
+        }
+    };
+
+    /**
+     * default config (skeleton) for valid context menu configuration
+     * @returns {{hidden: Array, active: Array, disabled: Array, id: string, selectCallback: null}}
+     */
+    let defaultMenuOptionConfig = () => {
+        return {
+            'id': '',
+            'selectCallback': null,
+            'hidden': [],
+            'active': [],
+            'disabled': []
+        };
     };
 
     return {
-        initMapContextMenu: initMapContextMenu,
-        initConnectionContextMenu: initConnectionContextMenu,
-        initSystemContextMenu: initSystemContextMenu
+        config: config,
+        defaultMenuOptionConfig: defaultMenuOptionConfig,
+        renderMapContextMenu: renderMapContextMenu,
+        renderConnectionContextMenu: renderConnectionContextMenu,
+        renderEndpointContextMenu: renderEndpointContextMenu,
+        renderSystemContextMenu: renderSystemContextMenu,
+        openMenu: openMenu,
+        closeMenus: closeMenus
     };
 });

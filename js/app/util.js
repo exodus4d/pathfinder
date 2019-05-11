@@ -1046,6 +1046,10 @@ define([
                     data.selected = true;
                 }
 
+                if(option.disabled === true){
+                    data.disabled = true;
+                }
+
                 // optional "metaData" that belongs to this option
                 if(option.hasOwnProperty('metaData')){
                    data.metaData = option.metaData;
@@ -1228,12 +1232,14 @@ define([
     let initDefaultEditableConfig = () => {
         // use fontAwesome buttons template
         $.fn.editableform.buttons =
-            '<button type="submit" class="btn btn-primary btn-sm editable-submit">'+
-            '<i class="fa fa-fw fa-check"></i>'+
-            '</button>'+
+            '<div class="btn-group">'+
             '<button type="button" class="btn btn-default btn-sm editable-cancel">'+
             '<i class="fa fa-fw fa-times"></i>'+
-            '</button>';
+            '</button>' +
+            '<button type="submit" class="btn btn-success btn-sm editable-submit">'+
+            '<i class="fa fa-fw fa-check"></i>'+
+            '</button>'+
+            '</div>';
 
         // loading spinner template
         $.fn.editableform.loading =
@@ -1618,14 +1624,23 @@ define([
             }
             url += path;
 
-            $.ajax({
+            let ajaxOptions = {
                 type: action,
                 url: url,
-                data: JSON.stringify(data),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
+                dataType: 'json',   // expected response dataType
                 context: context
-            }).done(function(response){
+            };
+
+            if(action === 'GET'){
+                // data as url params
+                ajaxOptions.data = data;
+            }else{
+                // json data in body
+                ajaxOptions.data = JSON.stringify(data);
+                ajaxOptions.contentType = 'application/json; charset=utf-8';
+            }
+
+            $.ajax(ajaxOptions).done(function(response){
                 payload.data = response;
                 payload.context = this;
                 resolve(payload);
@@ -2024,6 +2039,38 @@ define([
     };
 
     /**
+     * get a HTML table with universe region information
+     * e.g. for popover
+     * @param regionName
+     * @param faction
+     * @returns {string}
+     */
+    let getSystemRegionTable = (regionName, faction) => {
+        let table = '<table>';
+        table += '<tr>';
+        table += '<td>';
+        table += 'Region';
+        table += '</td>';
+        table += '<td class="text-right">';
+        table += regionName;
+        table += '</td>';
+        table += '</tr>';
+        table += '<tr>';
+        if(faction){
+            table += '<td>';
+            table += 'Faction';
+            table += '</td>';
+            table += '<td class="text-right">';
+            table += faction.name;
+            table += '</td>';
+            table += '</tr>';
+        }
+        table += '</table>';
+
+        return table;
+    };
+
+    /**
      * get a HTML table with pilots/ship names
      * @param users
      * @returns {string}
@@ -2209,32 +2256,6 @@ define([
         }
 
         return signatureNames;
-    };
-
-    /**
-     * get the typeID of a signature name
-     * @param systemData
-     * @param sigGroupId
-     * @param name
-     * @returns {number}
-     */
-    let getSignatureTypeIdByName = (systemData, sigGroupId, name) => {
-        let signatureTypeId = 0;
-        let areaId = getAreaIdBySecurity(systemData.security);
-        if(areaId > 0){
-            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId);
-            name = name.toLowerCase();
-            for(let prop in signatureNames){
-                if(
-                    signatureNames.hasOwnProperty(prop) &&
-                    signatureNames[prop].toLowerCase() === name
-                ){
-                    signatureTypeId = parseInt(prop);
-                    break;
-                }
-            }
-        }
-        return signatureTypeId;
     };
 
     /**
@@ -2912,7 +2933,7 @@ define([
     };
 
     /**
-     * check an element for attached event by name
+     * check an element for attached jQuery event by name
      * -> e.g. eventName = 'click.myNamespace'
      * @param element
      * @param eventName
@@ -2920,22 +2941,25 @@ define([
      */
     let hasEvent = (element, eventName) => {
         let exists = false;
-        let parts = eventName.split('.');
-        let name =  parts[0];
-        let namespace = parts.length === 2 ? parts[1] : false;
-        let events = $._data( element[0], 'events')[name];
-        if(events){
-            if(namespace){
-                // seach events by namespace
-                for(let event of events){
-                    if(event.namespace === namespace){
-                        exists = true;
-                        break;
+        let allEvents = $._data(element[0], 'events');
+        if(allEvents){
+            let parts = eventName.split('.');
+            let name =  parts[0];
+            let events = allEvents[name];
+            if(events){
+                let namespace = parts.length === 2 ? parts[1] : false;
+                if(namespace){
+                    // search events by namespace
+                    for(let event of events){
+                        if(event.namespace === namespace){
+                            exists = true;
+                            break;
+                        }
                     }
+                }else{
+                    // at least ONE event of the given name found
+                    exists = true;
                 }
-            }else{
-                // at least ONE event of the given name found
-                exists = true;
             }
         }
         return exists;
@@ -3186,6 +3210,7 @@ define([
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
         getSystemPlanetsTable: getSystemPlanetsTable,
+        getSystemRegionTable: getSystemRegionTable,
         getSystemPilotsTable: getSystemPilotsTable,
         getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,
@@ -3194,7 +3219,6 @@ define([
         getStatusInfoForSystem: getStatusInfoForSystem,
         getSignatureGroupOptions: getSignatureGroupOptions,
         getAllSignatureNames: getAllSignatureNames,
-        getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
         setCurrentMapUserData: setCurrentMapUserData,
         getCurrentMapUserData: getCurrentMapUserData,

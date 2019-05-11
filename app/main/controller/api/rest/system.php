@@ -8,9 +8,41 @@
 
 namespace Controller\Api\Rest;
 
-use Model;
+
+use Model\Pathfinder;
 
 class System extends AbstractRestController {
+
+    /**
+     * get system
+     * @param \Base $f3
+     * @param $params
+     * @throws \Exception
+     */
+    public function get(\Base $f3, $params){
+        $requestData = $this->getRequestData($f3);
+        $systemData = null;
+
+        if(
+            ($systemId = (int)$params['id']) &&
+            ($mapId = (int)$requestData['mapId'])
+        ){
+            $activeCharacter = $this->getCharacter();
+            $isCcpId = (bool)$requestData['isCcpId'];
+
+            if(
+                !is_null($map = $activeCharacter->getMap($mapId)) &&
+                !is_null($system = $isCcpId ? $map->getSystemByCCPId($systemId) : $map->getSystemById($systemId))
+            ){
+                $systemData = $system->getData();
+                $systemData->signatures = $system->getSignaturesData();
+                $systemData->sigHistory = $system->getSignaturesHistoryData();
+                $systemData->structures = $system->getStructuresData();
+            }
+        }
+
+        $this->out($systemData);
+    }
 
     /**
      * put (insert) system
@@ -25,9 +57,9 @@ class System extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $map Model\MapModel
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
             if($map->hasAccess($activeCharacter)){
                 $system = $map->getNewSystem($requestData['systemId']);
@@ -52,9 +84,9 @@ class System extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var $system Model\SystemModel
+             * @var $system Pathfinder\SystemModel
              */
-            $system = Model\BasicModel::getNew('SystemModel');
+            $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){
@@ -68,7 +100,6 @@ class System extends AbstractRestController {
     /**
      * @param \Base $f3
      * @param $params
-     * @throws \ZMQSocketException
      * @throws \Exception
      */
     public function delete(\Base $f3, $params){
@@ -80,13 +111,13 @@ class System extends AbstractRestController {
             $activeCharacter = $this->getCharacter();
 
             /**
-             * @var Model\MapModel $map
+             * @var $map Pathfinder\MapModel
              */
-            $map = Model\BasicModel::getNew('MapModel');
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
             $map->getById($mapId);
 
             if($map->hasAccess($activeCharacter)){
-                $newSystemModel = Model\BasicModel::getNew('SystemModel');
+                $newSystemModel = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
                 foreach($systemIds as $systemId){
                     if($system = $map->getSystemById($systemId)){
                         // check whether system should be deleted OR set "inactive"
@@ -125,13 +156,12 @@ class System extends AbstractRestController {
 
     /**
      * update system with new data
-     * @param Model\SystemModel $system
+     * @param Pathfinder\SystemModel $system
      * @param array $systemData
-     * @return Model\SystemModel
-     * @throws \ZMQSocketException
+     * @return Pathfinder\SystemModel
      * @throws \Exception
      */
-    private function update(Model\SystemModel $system, array $systemData) : Model\SystemModel {
+    private function update(Pathfinder\SystemModel $system, array $systemData) : Pathfinder\SystemModel {
         $activeCharacter = $this->getCharacter();
 
         // statusId === 0  is 'auto' status -> keep current status
@@ -150,9 +180,9 @@ class System extends AbstractRestController {
 
         // get data from "fresh" model (e.g. some relational data has changed: "statusId")
         /**
-         * @var $newSystem Model\SystemModel
+         * @var $newSystem Pathfinder\SystemModel
          */
-        $newSystem = Model\BasicModel::getNew('SystemModel');
+        $newSystem = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
         $newSystem->getById($system->_id, 0);
         $newSystem->clearCacheData();
 
@@ -164,11 +194,11 @@ class System extends AbstractRestController {
 
     /**
      * checks whether a system should be "deleted" or set "inactive" (keep some data)
-     * @param Model\MapModel $map
-     * @param Model\SystemModel $system
+     * @param Pathfinder\MapModel $map
+     * @param Pathfinder\SystemModel $system
      * @return bool
      */
-    private function checkDeleteMode(Model\MapModel $map, Model\SystemModel $system) : bool {
+    private function checkDeleteMode(Pathfinder\MapModel $map, Pathfinder\SystemModel $system) : bool {
         $delete = true;
 
         if( !empty($system->description) ){

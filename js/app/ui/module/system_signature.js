@@ -60,19 +60,21 @@ define([
         signatureGroupsNames: Util.getSignatureGroupOptions('name')
     };
 
-    let lockedTables = {};                                                      // locked tables (e.g. disable cops&paste, disable table update)
-
     let sigNameCache = {};                                                      // cache signature names
 
     let validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
         'Cosmic Signature',
-        'Kosmische Anomalie',
-        'Kosmische Signatur',
-        'Anomalie cosmique',
-        'Signature cosmique',
-        'Космическая аномалия',                                                 // == "Cosmic Anomaly"
-        'Источники сигналов'                                                    // == "Cosmic Signature"
+        'Kosmische Anomalie',                                                   // de: "Cosmic Anomaly"
+        'Kosmische Signatur',                                                   // de: "Cosmic Signature"
+        'Космическая аномалия',                                                 // ru: "Cosmic Anomaly"
+        'Скрытый сигнал',                                                       // rm: "Cosmic Signature"
+        'Anomalie cosmique',                                                    // fr: "Cosmic Anomaly"
+        'Signature cosmique',                                                   // fr: "Cosmic Signature"
+        '宇宙の特異点',                                                               // ja: "Cosmic Anomaly"
+        '宇宙のシグネチャ',                                                             // ja: "Cosmic Signature"
+        '异常空间',                                                                 // zh: "Cosmic Anomaly"
+        '空间信号'                                                                  // zh: "Cosmic Signature"
     ];
 
     let emptySignatureData = {
@@ -83,7 +85,23 @@ define([
     };
 
     let editableDefaults = {                                                    // xEditable default options for signature fields
-        url: Init.path.saveSignatureData,
+        url: function(params){
+            let saveExecutor =  (resolve, reject) => {
+                // only submit params if id (pk) is set
+                if(params.pk){
+                    let requestData = {};
+                    requestData[params.name] = params.value;
+
+                    Util.request('PATCH', 'signature', params.pk, requestData)
+                        .then(payload => resolve(payload.data))
+                        .catch(payload => reject(payload.data.jqXHR));
+                }else{
+                    resolve();
+                }
+            };
+
+            return new Promise(saveExecutor);
+        },
         dataType: 'json',
         container: 'body',
         highlight: false,   // i use a custom implementation. xEditable uses inline styles for bg color animation -> does not work properly on datatables "sort" cols
@@ -119,68 +137,6 @@ define([
             data = tableApi.init().pfMeta;
         }
         return data;
-    };
-
-    /**
-     * lock signature tableApi and lockType
-     * @param tableApi
-     * @param lockType
-     */
-    let lockTable = (tableApi, lockType = 'update') => {
-        let metaData = getTableMetaData(tableApi);
-        if(metaData.systemId){
-            if( !lockedTables.hasOwnProperty(metaData.systemId) ){
-                lockedTables[metaData.systemId] = {};
-            }
-            lockedTables[metaData.systemId][lockType] = true;
-        }else{
-            console.warn('metaData.systemId required in lockTable()', metaData.systemId);
-        }
-    };
-
-    /**
-     * check whether a signature tableApi is locked by lockType
-     * @param tableApi
-     * @param lockType
-     * @returns {boolean}
-     */
-    let isLockedTable = (tableApi, lockType = 'update') => {
-        let locked = false;
-        if(tableApi){
-            let metaData = getTableMetaData(tableApi);
-            if(metaData.systemId){
-                if(
-                    lockedTables.hasOwnProperty(metaData.systemId) &&
-                    lockedTables[metaData.systemId].hasOwnProperty(lockType)
-                ){
-                    locked = true;
-                }
-            }else{
-                console.warn('metaData.systemId required in isLockedTable()', metaData.systemId);
-            }
-        }
-
-        return locked;
-    };
-
-    /**
-     * unlock signature tableApi and lockType
-     * @param tableApi
-     * @param lockType
-     */
-    let unlockTable = (tableApi, lockType = 'update') => {
-        if(tableApi){
-            let metaData = getTableMetaData(tableApi);
-            if(isLockedTable(tableApi, lockType)){
-                delete lockedTables[metaData.systemId][lockType];
-            }
-            if(
-                lockedTables.hasOwnProperty(metaData.systemId) &&
-                !Object.getOwnPropertyNames(lockedTables[metaData.systemId]).length
-            ){
-                delete lockedTables[metaData.systemId];
-            }
-        }
     };
 
     /**
@@ -683,8 +639,22 @@ define([
 
                         // wormhole type cant be extracted from signature string -> skip function call
                         if(sigGroupId !== 5){
-                            // try to get "typeId" by description string
-                            typeId = Util.getSignatureTypeIdByName(systemData, sigGroupId, sigDescription);
+                            // try to get "typeId" from description string
+                            let sigDescriptionLowerCase = sigDescription.toLowerCase();
+
+                            let typeOptions = getAllSignatureNames(
+                                systemData,
+                                systemData.type.id,
+                                Util.getAreaIdBySecurity(systemData.security),
+                                sigGroupId
+                            );
+
+                            for(let [key, name] of Object.entries(Util.flattenXEditableSelectArray(typeOptions))){
+                                if(name.toLowerCase() === sigDescriptionLowerCase){
+                                    typeId = parseInt(key);
+                                    break;
+                                }
+                            }
 
                             // set signature name as "description" if signature matching failed
                             sigDescription = (typeId === 0) ? sigDescription : '';
@@ -695,7 +665,7 @@ define([
                         // map array values to signature Object
                         let signatureObj = {
                             systemId: systemData.id,
-                            name: $.trim( rowData[0] ).toLowerCase(),
+                            name: $.trim(rowData[0]).toLowerCase(),
                             groupId: sigGroupId,
                             typeId: typeId,
                             description: sigDescription
@@ -726,42 +696,40 @@ define([
      * @param options
      */
     let updateSignatureTableByClipboard = (tableApi, systemData, clipboard, options) => {
-        if(isLockedTable(tableApi, 'clipboard')) return;
+        if(tableApi.hasProcesses('request')){
+            console.info('Update signature table By clipboard locked.');
+            return;
+        }
 
         let saveSignatureData = signatureData => {
             // lock update function until request is finished
-            lockTable(tableApi);
+            let processLockPromise = tableApi.newProcess('lock');
+            let processRequestPromise = tableApi.newProcess('request');
 
-            // lock copy during request (prevent spamming (ctrl + c )
-            lockTable(tableApi, 'clipboard');
-
-            let requestData = {
-                signatures: signatureData,
-                deleteOld: (options.deleteOld) ? 1 : 0,
-                systemId: parseInt(systemData.id)
-            };
-
-            $.ajax({
-                type: 'POST',
-                url: Init.path.saveSignatureData,
-                data: requestData,
-                dataType: 'json',
-                context: {
-                    tableApi: tableApi
-                }
-            }).done(function(responseData){
-                // unlock table for update
-                unlockTable(this.tableApi);
-                // updates table with new/updated signature information
-                updateSignatureTable(this.tableApi, responseData.signatures, false);
-            }).fail(function(jqXHR, status, error){
-                let reason = status + ' ' + error;
-                Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
-                $(document).setProgramStatus('problem');
-            }).always(function(){
-                unlockTable(this.tableApi);
-                unlockTable(this.tableApi, 'clipboard');
-            });
+            Util.request(
+                'POST',
+                'signature',
+                [],
+                {
+                    signatures: signatureData,
+                    deleteOld: options.deleteOld,
+                    systemId: parseInt(systemData.id)
+                },
+                {
+                    tableApi: tableApi,
+                    processLockPromise: processLockPromise,
+                    processRequestPromise: processRequestPromise
+                },
+                context => {
+                    context.tableApi.endProcess(context.processLockPromise);
+                    context.tableApi.endProcess(context.processRequestPromise);
+                }).then(
+                payload => {
+                    // updates table with new/updated signature information
+                    updateSignatureTable(payload.context.tableApi, payload.data, !!options.deleteOld);
+                },
+                Util.handleAjaxErrorResponse
+            );
         };
 
         // parse input stream
@@ -770,13 +738,12 @@ define([
             // valid signature data parsed
 
             // check if signatures will be added to a system where character is currently in
-            // if user is not in any system -> id === undefined -> no "confirmation required
+            // if character is not in any system -> id === undefined -> no "confirmation required
             let currentLocationData = Util.getCurrentLocationData();
             if(
                 currentLocationData.id &&
                 currentLocationData.id !== systemData.id
             ){
-
                 let systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
                 systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 
@@ -801,60 +768,60 @@ define([
     let deleteSignatures = (tableApi, rows) => {
         // get unique id array from rows -> in case there are 2 rows with same id -> you never know
         let signatureIds = [...new Set(rows.data().toArray().map(rowData => rowData.id))];
+        let metaData = getTableMetaData(tableApi);
 
-        let requestData = {
-            signatureIds: signatureIds
-        };
+        let processRequestPromise = tableApi.newProcess('request');
 
-        $.ajax({
-            type: 'POST',
-            url: Init.path.deleteSignatureData,
-            data: requestData,
-            dataType: 'json',
-            context: {
-                tableApi: tableApi
-            }
-        }).done(function(responseData){
-            // promises for all delete rows
-            let promisesToggleRow = [];
-            // get deleted rows -> match with response data
-            let rows = this.tableApi.rows((idx, rowData, node) => responseData.deletedSignatureIds.includes(rowData.id));
-            // toggle hide animation for rows one by one...
-            rows.every(function(rowIdx, tableLoop, rowLoop){
-                let row = this;
-                let rowElement = row.nodes().to$();
+        Util.request('DELETE', 'signature', signatureIds, {
+                systemId: metaData.systemId
+            }, {
+                tableApi: tableApi,
+                processRequestPromise: processRequestPromise
+            },
+            context => {
+                context.tableApi.endProcess(context.processRequestPromise);
+            }).then(
+            payload => {
+                let tableApi = payload.context.tableApi;
 
-                rowElement.pulseBackgroundColor('deleted');
+                // promises for all delete rows
+                let promisesToggleRow = [];
+                // get deleted rows -> match with response data
+                let rows = tableApi.rows((idx, rowData, node) => payload.data.includes(rowData.id));
+                // toggle hide animation for rows one by one...
+                rows.every(function (rowIdx, tableLoop, rowLoop) {
+                    let row = this;
+                    let rowElement = row.nodes().to$();
 
-                promisesToggleRow.push(toggleTableRow(rowElement));
-            });
+                    rowElement.pulseBackgroundColor('deleted');
 
-            // ... all hide animations done ...
-            Promise.all(promisesToggleRow).then(payloads => {
-                // ... get deleted (hide animation done) and delete them
-                this.tableApi.rows(payloads.map(payload => payload.row)).remove().draw();
+                    promisesToggleRow.push(toggleTableRow(rowElement));
+                });
 
-                // update signature bar
-                updateScannedSignaturesBar(this.tableApi, {showNotice: false});
+                // ... all hide animations done ...
+                Promise.all(promisesToggleRow).then(payloads => {
+                    // ... get deleted (hide animation done) and delete them
+                    tableApi.rows(payloads.map(payload => payload.row)).remove().draw();
 
-                // update connection conflicts
-                checkConnectionConflicts();
+                    // update signature bar
+                    updateScannedSignaturesBar(tableApi, {showNotice: false});
 
-                let notificationOptions = {
-                    type: 'success'
-                };
-                if(payloads.length === 1){
-                    notificationOptions.title = 'Signature deleted';
-                }else{
-                    notificationOptions.title = payloads.length + ' Signatures deleted ';
-                }
-                Util.showNotify(notificationOptions);
-            });
-        }).fail(function(jqXHR, status, error){
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
+                    // update connection conflicts
+                    checkConnectionConflicts();
+
+                    let notificationOptions = {
+                        type: 'success'
+                    };
+                    if (payloads.length === 1) {
+                        notificationOptions.title = 'Signature deleted';
+                    } else {
+                        notificationOptions.title = payloads.length + ' Signatures deleted ';
+                    }
+                    Util.showNotify(notificationOptions);
+                });
+            },
+            Util.handleAjaxErrorResponse
+        );
     };
 
     /**
@@ -1134,16 +1101,69 @@ define([
     /**
      * helper function - set 'shown' observer for xEditable connection cell
      * -> enable Select2 for xEditable form
+     * @param tableApi
      * @param cell
      */
-    let editableConnectionOnShown = cell => {
+    let editableConnectionOnShown = (tableApi, cell) => {
         $(cell).on('shown', function(e, editable){
             let inputField = editable.input.$input;
 
+            if(!$(tableApi.table().node()).hasClass(config.sigTablePrimaryClass)){
+                // we need the primary table API to get selected connections
+                let metaData = getTableMetaData(tableApi);
+                tableApi = getDataTableInstance(metaData.mapId, metaData.systemId, 'primary');
+            }
+
             // Select2 init would work without passing select options as "data", Select2 would grap data from DOM
             // -> We want to pass "meta" data for each option into Select2 for formatting
+            let selectOptions = Util.convertXEditableOptionsToSelect2(editable);
+
+            // for better UX, systems that are already linked to a wh signatures should be "disabled"
+            // -> and grouped into a new <optgroup>
+            let linkedConnectionIds = tableApi.column('connection:name').data().toArray();
+            linkedConnectionIds = linkedConnectionIds.filter(id => id > 0);
+
+            if(linkedConnectionIds.length){
+                let groupedSelectOptions = [];
+                let newSelectOptionGroupDisabled = [];
+                for(let selectOptionGroup of selectOptions){
+                    if(Array.isArray(selectOptionGroup.children)){
+                        let newSelectOptionGroup = [];
+                        for(let option of selectOptionGroup.children){
+                            if(!option.selected && linkedConnectionIds.includes(option.id)){
+                                // connection already linked -> move to "disabled" group
+                                option.disabled = true;
+                                newSelectOptionGroupDisabled.push(option);
+                            }else{
+                                // connection is available for link
+                                newSelectOptionGroup.push(option);
+                            }
+                        }
+
+                        if(newSelectOptionGroup.length){
+                            groupedSelectOptions.push({
+                                text: selectOptionGroup.text,
+                                children: newSelectOptionGroup
+                            });
+                        }
+                    }else{
+                        // option has no children -> is prepend (id = 0) option
+                        groupedSelectOptions.push(selectOptionGroup);
+                    }
+                }
+
+                if(newSelectOptionGroupDisabled.length){
+                    groupedSelectOptions.push({
+                        text: 'linked',
+                        children: newSelectOptionGroupDisabled
+                    });
+                }
+
+                selectOptions = groupedSelectOptions;
+            }
+
             let options = {
-                data: Util.convertXEditableOptionsToSelect2(editable)
+                data: selectOptions
             };
 
             inputField.addClass('pf-select2').initSignatureConnectionSelect(options);
@@ -1304,7 +1324,7 @@ define([
                                 updateTooltip(cell, newValue);
 
                                 if(response){
-                                    let newRowData = response.signatures[0];
+                                    let newRowData = response[0];
                                     updateSignatureCell(tableApi, rowIndex, 'status:name', newRowData.updated);
                                     updateSignatureCell(tableApi, rowIndex, 'updated:name', newRowData.updated.updated);
                                 }
@@ -1369,7 +1389,7 @@ define([
                                 $(this).pulseBackgroundColor('changed');
 
                                 if(response){
-                                    let newRowData = response.signatures[0];
+                                    let newRowData = response[0];
                                     updateSignatureCell(tableApi, rowIndex, 'status:name', newRowData.updated);
                                     updateSignatureCell(tableApi, rowIndex, 'updated:name', newRowData.updated.updated);
                                 }
@@ -1466,7 +1486,7 @@ define([
                                 $(this).pulseBackgroundColor('changed');
 
                                 if(response){
-                                    let newRowData = response.signatures[0];
+                                    let newRowData = response[0];
                                     updateSignatureCell(tableApi, rowIndex, 'status:name', newRowData.updated);
                                     updateSignatureCell(tableApi, rowIndex, 'updated:name', newRowData.updated.updated);
                                 }
@@ -1510,7 +1530,7 @@ define([
                                 $(this).pulseBackgroundColor('changed');
 
                                 if(response){
-                                    let newRowData = response.signatures[0];
+                                    let newRowData = response[0];
                                     updateSignatureCell(tableApi, rowIndex, 'status:name', newRowData.updated);
                                     updateSignatureCell(tableApi, rowIndex, 'updated:name', newRowData.updated.updated);
                                 }
@@ -1535,7 +1555,7 @@ define([
                         editableOnSave(tableApi, cell, [], ['action:name']);
                         editableOnHidden(tableApi, cell);
                         editableConnectionOnInit(cell);
-                        editableConnectionOnShown(cell);
+                        editableConnectionOnShown(tableApi, cell);
                         editableConnectionOnSave(cell);
 
                         $(cell).editable($.extend({
@@ -1583,7 +1603,7 @@ define([
                                 $(this).pulseBackgroundColor('changed');
 
                                 if(response){
-                                    let newRowData = response.signatures[0];
+                                    let newRowData = response[0];
                                     updateSignatureCell(tableApi, rowIndex, 'status:name', newRowData.updated);
                                     updateSignatureCell(tableApi, rowIndex, 'updated:name', newRowData.updated.updated);
                                 }
@@ -1695,13 +1715,23 @@ define([
                                 // otherwise, changes would not be submitted in this field (not necessary)
                                 formFields.editable('hide');
 
+                                let processLockPromise = null;
+                                let processRequestPromise = null;
+
                                 // submit all xEditable fields
                                 formFields.editable('submit', {
-                                    url: Init.path.saveSignatureData,
+                                    url: Init.path.api + '/signature',
                                     ajaxOptions: {
+                                        processData: false, // we need to "process" data in beforeSend()
+                                        type: 'PUT',
                                         dataType: 'json', //assuming json response
+                                        contentType: 'application/json',
                                         beforeSend: function(xhr, settings){
-                                            lockTable(primaryTableApi);
+                                            settings.data = JSON.stringify(settings.data);
+
+                                            processLockPromise = primaryTableApi.newProcess('lock');
+                                            processRequestPromise = primaryTableApi.newProcess('request');
+
                                         },
                                         context: {
                                             primaryTableApi: primaryTableApi,
@@ -1709,18 +1739,15 @@ define([
                                         }
                                     },
                                     data: {
-                                        systemId: metaData.systemId, // additional data to submit
-                                        pk: 0 // new data no primary key
+                                        systemId: metaData.systemId
                                     },
                                     error: editableDefaults.error, // user default xEditable error function
-                                    success: function(data, editableConfig){
+                                    success: function(response, editableConfig){
                                         let context = editableConfig.ajaxOptions.context;
                                         let primaryTableApi = context.primaryTableApi;
                                         let secondaryTableApi = context.secondaryTableApi;
 
-                                        unlockTable(primaryTableApi);
-
-                                        let signatureData = data.signatures[0];
+                                        let signatureData = response[0];
                                         let row = addSignatureRow(primaryTableApi, signatureData);
                                         if(row){
                                             primaryTableApi.draw();
@@ -1739,6 +1766,9 @@ define([
                                             // update signature bar
                                             updateScannedSignaturesBar(primaryTableApi, {showNotice: true});
                                         }
+
+                                        primaryTableApi.endProcess(processLockPromise);
+                                        primaryTableApi.endProcess(processRequestPromise);
                                     }
                                 });
                             });
@@ -1906,8 +1936,6 @@ define([
      * @param tableApi
      */
     let initGroupFilterButton = tableApi => {
-        let characterId = Util.getCurrentCharacterId();
-
         let promiseStore = MapUtil.getLocaleData('character', Util.getCurrentCharacterId());
         promiseStore.then(data => {
             let filterButton = tableApi.button('tableTools', 'filterGroup:name').node();
@@ -1938,7 +1966,7 @@ define([
                 inputclass: config.editableUnknownInputClass,
                 display: function(value, sourceData){
                     // update filter button label
-                    let html = '<i class="fa fa-filter"></i>group';
+                    let html = '<i class="fas fa-filter"></i>filter';
                     let allSelected = value.length >= sourceData.length;
                     if( !allSelected ){
                         html += '&nbsp;(' + value.length + ')';
@@ -1966,6 +1994,175 @@ define([
     };
 
     /**
+     * init table undo button
+     * @param tableApi
+     */
+    let initUndoButton = tableApi => {
+        let undoButton = tableApi.button('tableTools', 'undo:name').node();
+        let metaData = getTableMetaData(tableApi);
+
+        let getIconByAction = action => {
+          switch(action){
+              case 'add':       return 'fa-plus txt-color-green';
+              case 'delete':    return 'fa-times txt-color-redDarker';
+              case 'edit':      return 'fa-pen txt-color-orangeDark';
+              case 'undo':      return 'fa-undo txt-color-grayLight';
+              case 'sync':      return 'fa-exchange-alt txt-color-orangeDark';
+          }
+        };
+
+        undoButton.on('shown', function(e, editable){
+            // check if history options loaded -> else forward to error function
+            if(!editable.input.$input.length){
+                editable.options.error.call(editable, ['No record found']);
+            }else{
+                // disable first option
+                editable.input.$input.first().prop('disabled', true);
+                // preselect second option
+                //editable.input.$input.eq(1).prop('checked', true);
+                //editable.setValue('ad78172b72d0327b237c4a7dc1daa5d7');
+
+
+                // "fake" radio button behaviour
+                editable.input.$input.attr('name', 'test').attr('type', 'radio');
+
+                // preselect second option
+                editable.input.$input.eq(1).prop('checked', true);
+
+                let labels = editable.container.$form.find('label');
+                labels.addClass('radio');
+
+                for(let span of labels.find('span')){
+                    span.style.display = 'inline-block';
+                    span.style.width = '100%';
+                    let parts = span.innerText.trim().split('%%');
+                    parts[0] = '<span style="display: inline-block; width: calc(65% - 38px); text-overflow: ellipsis; overflow: hidden">' + parts[0] + '</span>';
+                    parts[1] = '<span style="display: inline-block; width: 15px; text-align: right"><i class="fas fa-fw txt-color ' + getIconByAction(parts[1]) + '"></i></span>';
+                    parts[2] = '<span style="display: inline-block; width: 23px; text-align: right" title="signature count"><kbd>' + parts[2] + '</kbd></span>';
+                    parts[3] = '<span style="display: inline-block; width: 35%; text-align: right; font-size: 90%" class="txt-color txt-color-grayLight">' + parts[3] + '</span>';
+                    span.innerHTML = parts.join('');
+                }
+
+                labels.initTooltips();
+            }
+        });
+
+        let processLockPromise = null;
+
+        undoButton.editable({
+            url: Init.path.api + '/signaturehistory',
+            ajaxOptions: {
+                processData: false,
+                type: 'PUT',
+                dataType: 'json', //assuming json response
+                contentType: 'application/json',
+                beforeSend: function(xhr, settings){
+                    processLockPromise = tableApi.newProcess('lock');
+                },
+            },
+            params: function(params){
+                return JSON.stringify({
+                    systemId: params.pk,
+                    stamp: params.value[0]
+                });
+            },
+            mode: 'popup',
+            container: 'body',
+            type: 'checklist',
+            showbuttons: true,
+            highlight: false,
+            title: 'historical records',
+            name: 'history',
+            pk: metaData.systemId,
+            source: Init.path.api + '/signaturehistory/' + metaData.systemId,
+            sourceOptions: {
+                type: 'GET',
+                data: {
+                    mapId: metaData.mapId
+                }
+            },
+            sourceCache: false, // always get new source options on open
+            display: function(value){
+                $(this).html('<i class="fas fa-undo"></i>undo');
+            },
+            success: function(response, newValue){
+                // update signature table
+                tableApi.endProcess(processLockPromise);
+
+                updateSignatureTable(tableApi, response, true);
+            },
+            error: function(errors){
+                let errorAll = [];
+                if(errors && errors.responseText){ //ajax error, errors = xhr object
+                    if(errors.responseJSON && errors.responseJSON.error){
+                        for(let error of errors.responseJSON.error){
+                            errorAll.push(error.message);
+                        }
+                    }else{
+                        //fallback -> other ajax error
+                        errorAll.push(errors.responseText);
+                    }
+                }else if(errors.length){
+                    // manual called error
+                    errorAll = errors;
+
+                    let form = this.container.$form.addClass('has-error');
+                    form.find('.editable-buttons').hide();
+                    form.find('.editable-input').hide();
+                    form.find('.editable-error-block').html(errorAll.join('<br>')).show();
+                }
+
+                return errorAll.join(' | ');
+            },
+            validate: function(value){
+                if(!Array.isArray(value) || value.length !== 1){
+                    return {newValue: value, msg: 'No record selected', field: this};
+                }
+            }
+        });
+    };
+
+    /**
+     * init table selectAll button
+     * @param tableApi
+     */
+    let initSelectAllButton = tableApi => {
+        let selectButton = tableApi.button('tableTools', 'selectAll:name').node();
+
+        selectButton.on('click', function(){
+            let allRows = tableApi.rows();
+            let selectedRows = getSelectedRows(tableApi);
+            let allRowElements = allRows.nodes().to$();
+
+            if(allRows.data().length === selectedRows.data().length){
+                allRowElements.removeClass('selected');
+            }else{
+                allRowElements.addClass('selected');
+            }
+
+            // check delete button
+            checkDeleteSignaturesButton(tableApi);
+        });
+    };
+
+    /**
+     * init table delete button
+     * @param tableApi
+     */
+    let initDeleteButton = tableApi => {
+        let deleteButton = tableApi.button('tableTools', 'delete:name').node();
+
+        deleteButton.on('click', function(){
+            let selectedRows = getSelectedRows(tableApi);
+            bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result){
+                if(result){
+                    deleteSignatures(tableApi, selectedRows);
+                }
+            });
+        });
+    };
+
+    /**
      * draw empty signature table
      * @param moduleElement
      * @param mapId
@@ -1981,7 +2178,7 @@ define([
 
         let dataTableOptions = {
             tabIndex: -1,
-            dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
+            dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"fS>>' +
                 '<"row"<"col-xs-12"tr>>' +
                 '<"row"<"col-xs-5"i><"col-xs-7"p>>',
             buttons: {
@@ -1993,36 +2190,19 @@ define([
                         text: '' // set by js (xEditable)
                     },
                     {
+                        name: 'undo',
+                        className: config.moduleHeadlineIconClass,
+                        text: '' // set by js (xEditable)
+                    },
+                    {
                         name: 'selectAll',
                         className: config.moduleHeadlineIconClass,
-                        text: '<i class="fa fa-check-double"></i>select all',
-                        action: function(e, tableApi, node, conf){
-                            let allRows = tableApi.rows();
-                            let selectedRows = getSelectedRows(tableApi);
-                            let allRowElements = allRows.nodes().to$();
-
-                            if(allRows.data().length === selectedRows.data().length){
-                                allRowElements.removeClass('selected');
-                            }else{
-                                allRowElements.addClass('selected');
-                            }
-
-                            // check delete button
-                            checkDeleteSignaturesButton(tableApi);
-                        }
+                        text: '<i class="fas fa-check-double"></i>select all'
                     },
                     {
                         name: 'delete',
                         className: [config.moduleHeadlineIconClass, config.sigTableClearButtonClass].join(' '),
-                        text: '<i class="fa fa-trash"></i>delete&nbsp;(<span>0</span>)',
-                        action: function(e, tableApi, node, conf){
-                            let selectedRows = getSelectedRows(tableApi);
-                            bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result){
-                                if(result){
-                                    deleteSignatures(tableApi, selectedRows);
-                                }
-                            });
-                        }
+                        text: '<i class="fas fa-trash"></i>delete&nbsp;(<span>0</span>)'
                     }
                 ]
             },
@@ -2030,6 +2210,9 @@ define([
                 let tableApi = this.api();
 
                 initGroupFilterButton(tableApi);
+                initUndoButton(tableApi);
+                initSelectAllButton(tableApi);
+                initDeleteButton(tableApi);
 
                 $(this).on('keyup', 'td', {tableApi: tableApi}, function(e){
                     keyNavigation(tableApi, e);
@@ -2048,7 +2231,7 @@ define([
         new $.fn.dataTable.Responsive(tableApi);
 
         // lock table until module is fully rendered
-        lockTable(tableApi);
+        moduleElement.data('lockPromise', tableApi.newProcess('lock'));
     };
 
     /**
@@ -2266,10 +2449,13 @@ define([
      * @param deleteOutdatedSignatures
      */
     let updateSignatureTable = (tableApi, signaturesDataOrig, deleteOutdatedSignatures = false) => {
-        if(isLockedTable(tableApi)) return;
+        if(tableApi.hasProcesses('lock')){
+            console.info('Signature table locked. Skip table update');
+            return;
+        }
 
         // disable tableApi until update finished;
-        lockTable(tableApi);
+        let processLockPromise = tableApi.newProcess('lock');
 
         // clone signature array because of further manipulation
         let signaturesData = $.extend([], signaturesDataOrig);
@@ -2322,11 +2508,16 @@ define([
             }
         };
 
+        let getPromiseForRow = (action, rowId) => {
+            return new Promise((resolve, reject) => {
+                resolve({action: action, rowId: rowId});
+            });
+        };
+
         // update signatures ------------------------------------------------------------------------------------------
         allRows.every(function(rowIdx, tableLoop, rowLoop){
             let row = this;
             let rowData = row.data();
-            let rowElement = row.nodes().to$();
 
             for(let i = 0; i < signaturesData.length; i++){
                 if(signaturesData[i].id === rowData.id){
@@ -2341,9 +2532,7 @@ define([
                         row.cells(row.id(true), ['id:name', 'group:name', 'type:name', 'description:name', 'connection:name', 'updated:name'])
                             .every(rowUpdate);
 
-                        promisesChanged.push(new Promise((resolve, reject) => {
-                            resolve({action: 'changed', rowId: rowId});
-                        }));
+                        promisesChanged.push(getPromiseForRow('changed', rowId));
                     }
 
                     rowIdsExist.push(rowId);
@@ -2384,9 +2573,7 @@ define([
             let rowElement = row.nodes().to$();
             rowElement.pulseBackgroundColor('added');
 
-            promisesAdded.push(new Promise((resolve, reject) => {
-                resolve({action: 'added', rowId: rowId});
-            }));
+            promisesAdded.push(getPromiseForRow('added', rowId));
         }
 
         // done -------------------------------------------------------------------------------------------------------
@@ -2428,8 +2615,18 @@ define([
             }
 
             // unlock table
-            unlockTable(tableApi);
+            tableApi.endProcess(processLockPromise);
         });
+    };
+
+    /**
+     * update signature "history" popover
+     * @param tableApi
+     * @param historyData
+     */
+    let updateSignatureHistory = (tableApi, historyData) => {
+        let tableElement = tableApi.table().node();
+        $(tableElement).data('history', historyData);
     };
 
     /**
@@ -2440,11 +2637,15 @@ define([
      */
     let updateModule = (moduleElement, systemData) => {
 
-        if(systemData.signatures){
+        if(
+            systemData.signatures &&
+            systemData.sigHistory
+        ){
             let mapId = moduleElement.data('mapId');
             let systemId = moduleElement.data('systemId');
             let tableApi = getDataTableInstance(mapId, systemId, 'primary');
             updateSignatureTable(tableApi, systemData.signatures, true);
+            updateSignatureHistory(tableApi, systemData.sigHistory);
         }
 
         moduleElement.hideLoadingAnimation();
@@ -2458,7 +2659,7 @@ define([
      */
     let initModule = (moduleElement, mapId, systemData) => {
         let tableApi = getDataTableInstance(mapId, systemData.id, 'primary');
-        unlockTable(tableApi);
+        tableApi.endProcess(moduleElement.data('lockPromise'));
     };
 
     /**
@@ -2553,7 +2754,7 @@ define([
         let mapId = moduleElement.data('mapId');
         let systemId = moduleElement.data('systemId');
         let tableApi = getDataTableInstance(mapId, systemId, 'primary');
-        lockTable(tableApi);
+        tableApi.newProcess('lock');
     };
 
     /**

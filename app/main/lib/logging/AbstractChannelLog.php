@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 04.08.2017
  * Time: 22:13
  */
@@ -16,7 +16,11 @@ abstract class AbstractChannelLog extends AbstractLog {
      */
     protected $channelData          = [];
 
-
+    /**
+     * AbstractChannelLog constructor.
+     * @param string $action
+     * @param array $channelData
+     */
     public function __construct(string $action, array $channelData){
         parent::__construct($action);
         $this->setChannelData($channelData);

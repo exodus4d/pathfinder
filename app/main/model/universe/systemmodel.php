@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodu
+ * User: Exodus 4D
  * Date: 14.05.2018
  * Time: 19:29
  */
@@ -10,12 +10,21 @@ namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class SystemModel extends BasicUniverseModel {
+class SystemModel extends AbstractUniverseModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system';
 
+    /**
+     *
+     */
     const ERROR_INVALID_WORMHOLE = 'Invalid wormhole name "%s" for system: "%s"';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,
@@ -41,6 +50,18 @@ class SystemModel extends BasicUniverseModel {
             'constraint' => [
                 [
                     'table' => 'star',
+                    'on-delete' => 'CASCADE'
+                ]
+            ],
+            'validate' => 'notDry'
+        ],
+        'factionId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\Universe\FactionModel',
+            'constraint' => [
+                [
+                    'table' => 'faction',
                     'on-delete' => 'CASCADE'
                 ]
             ],
@@ -114,6 +135,10 @@ class SystemModel extends BasicUniverseModel {
 
         if($this->starId){
             $systemData->star       = $this->starId->getData();
+        }
+
+        if($this->factionId){
+            $systemData->faction    = $this->factionId->getData();
         }
 
         if( !empty($planetsData = $this->getPlanetsData()) ){

@@ -52,7 +52,7 @@
 
 
         <div class="pf-dynamic-area">
-            <table class="table table-condensed {{tableClass}}">
+            <table class="table table-condensed pf-table-fixed {{tableClass}}">
                 <thead>
                 <tr>
                     <th>Name</th>
@@ -78,6 +78,12 @@
                     <td class="text-right {{effectInfoClass}}"><i class="fas fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
                 </tr>
                 {{/effectName}}
+                {{#system.faction}}
+                <tr>
+                    <td>Faction</td>
+                    <td class="text-right pf-table-cell-ellipses-auto" colspan="2">{{system.faction.name}}</td>
+                </tr>
+                {{/system.faction}}
                 {{#planetCount}}
                 <tr>
                     <td>Planets</td>
