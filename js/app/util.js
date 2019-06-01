@@ -3057,6 +3057,18 @@ define([
     let isDomElement = obj => !!(obj && obj.nodeType === 1);
 
     /**
+     * converts array of objects into object with properties
+     * @param array
+     * @param keyField
+     * @returns {*}
+     */
+    let arrayToObject = (array, keyField = 'id') =>
+        array.reduce((obj, item) => {
+            obj[item[keyField]] = item;
+            return obj;
+        }, {});
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3262,6 +3274,7 @@ define([
         htmlDecode: htmlDecode,
         isValidHtml: isValidHtml,
         isDomElement: isDomElement,
+        arrayToObject: arrayToObject,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

@@ -5,13 +5,17 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
-], ($, Init, Util) => {
+    'app/util',
+    'app/map/scrollbar',
+    'app/map/overlay/util'
+], ($, Init, Util, Scrollbar, MapOverlayUtil) => {
     'use strict';
 
     let config = {
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
         defaultLocalJumpRadius: 3,                                      // default search radius (in jumps) for "nearby" pilots
+        zoomMax: 1.5,
+        zoomMin: 0.5,
 
         // local storage
         characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
@@ -53,8 +57,8 @@ define([
         mapEndpoint : {
             buttonId: Util.config.menuButtonEndpointId,
             description: 'Endpoint overlay',
-            onEnable: 'showEndpointOverlays',                           // jQuery extension function
-            onDisable: 'hideEndpointOverlays'                           // jQuery extension function
+            onEnable: 'showInfoSignatureOverlays',                      // jQuery extension function
+            onDisable: 'hideInfoSignatureOverlays'                      // jQuery extension function
         },
         mapCompact : {
             buttonId: Util.config.menuButtonCompactId,
@@ -312,7 +316,7 @@ define([
      * @returns {*}
      */
     let filterDefaultTypes = types => {
-        let defaultTypes = ['', 'default', 'state_active', 'state_process'];
+        let defaultTypes = ['', 'default', 'info_signature', 'state_active', 'state_process'];
         return types.diff(defaultTypes);
     };
 
@@ -434,7 +438,7 @@ define([
             // remove connections from map
             let removeConnections = connections => {
                 for(let connection of connections){
-                    connection._jsPlumb.instance.detach(connection, {fireEvent: false});
+                    connection._jsPlumb.instance.deleteConnection(connection, {fireEvent: false});
                 }
             };
 
@@ -575,19 +579,15 @@ define([
      */
     let getEndpointOverlaySignatureLocation = (endpoint, label) => {
         let chars   = label.length ? label.length : 2;
-        let xTop    = chars === 2 ? +0.05 : chars <= 4 ? -0.75 : 3;
-        let xLeft   = chars === 2 ? -1.10 : chars <= 4 ? -2.75 : 3;
-        let xRight  = chars === 2 ? +1.25 : chars <= 4 ? +1.25 : 3;
-        let xBottom = chars === 2 ? +0.05 : chars <= 4 ? -0.75 : 3;
+        let xLeft   = chars === 2 ? -0.5 : chars <= 4 ? -1 : 3;
+        let xRight  = chars === 2 ? +1.5 : chars <= 4 ? +2.20 : 3;
 
-        let yTop    = chars === 2 ? -1.10 : chars <= 4 ? -1.75 : 3;
-
-        switch(endpoint._continuousAnchorEdge){
-            case 'top': return [xTop, yTop];
-            case 'left': return [xLeft, 0];
-            case 'right': return [xRight, 0];
-            case 'bottom': return [xBottom , 1.3];
-            default: return [0.0, 0.0];
+        switch(endpoint.anchor.getCurrentFace()){
+            case 'top':     return [0.5, -0.75];
+            case 'left':    return [xLeft, 0.25];
+            case 'right':   return [xRight, 0.25];
+            case 'bottom':  return [0.5 , 1.75];
+            default:        return [0.5, 0.5];
         }
     };
 
@@ -639,7 +639,6 @@ define([
      */
     let filterMapByScopes = (map, scopes) => {
         if(map){
-            // TODO ^^sometimes map is undefined -> bug
             let mapElement = $(map.getContainer());
             let allSystems = mapElement.getSystems();
             let allConnections = map.getAllConnections();
@@ -684,7 +683,7 @@ define([
                     }
                 }
 
-                mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
+                 MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'show');
             }else{
                 // clear filter
                 for(let system of allSystems){
@@ -694,9 +693,89 @@ define([
                     setConnectionVisible(connection, true);
                 }
 
-                mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
+                MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'hide');
             }
         }
+    };
+
+    /**
+     * in/de-crease zoom level
+     * @param map
+     * @param zoomAction
+     * @returns {boolean}
+     */
+    let changeZoom = (map, zoomAction) => {
+        let zoomChange = false;
+        let zoom = map.getZoom();
+        let zoomStep = 0.1;
+        if('up' === zoomAction){
+            zoom += zoomStep;
+        }else{
+            zoom -= zoomStep;
+        }
+        zoom = Math.round(zoom * 10) / 10;
+        if(zoom >= config.zoomMin && zoom <= config.zoomMax){
+            zoomChange = setZoom(map, zoom);
+        }
+        return zoomChange;
+    };
+
+    /**
+     * set zoom level for a map
+     * @param map
+     * @param zoom
+     * @returns {boolean}
+     */
+    let setZoom = (map, zoom = 1) => {
+        let zoomChange = false;
+        if(zoom !== map.getZoom()){
+            // zoom jsPlumb map http://jsplumb.github.io/jsplumb/zooming.html
+            let transformOrigin = [0, 0];
+            let el = map.getContainer();
+            let p = ['webkit', 'moz', 'ms', 'o'];
+            let s = 'scale(' + zoom + ')';
+            let oString = (transformOrigin[0] * 100) + '% ' + (transformOrigin[1] * 100) + '%';
+
+            for(let i = 0; i < p.length; i++){
+                el.style[p[i] + 'Transform'] = s;
+                el.style[p[i] + 'TransformOrigin'] = oString;
+            }
+            el.style.transform = s;
+            el.style.transformOrigin = oString;
+
+            zoomChange = map.setZoom(zoom);
+
+            // adjust mCustomScrollbar --------------------------------------------------------------------------------
+            let scaledWidth = el.getBoundingClientRect().width;
+            let scaledHeight = el.getBoundingClientRect().height;
+            let mapContainer = $(el);
+            let mapWidth = mapContainer.outerWidth(); // this is fix (should never change)
+            let mapHeight = mapContainer.outerHeight(); // this is fix (should never change)
+            let wrapperWidth = mapContainer.parents('.mCSB_container_wrapper').outerWidth(); // changes on browser resize (map window)
+            let wrapperHeight = mapContainer.parents('.mCSB_container_wrapper').outerHeight(); // changes on drag resize (map window)
+            let scrollableWidth = (zoom === 1 || mapWidth !== scaledWidth && scaledWidth > wrapperWidth);
+            let scrollableHeight = (zoom === 1 || mapHeight !== scaledHeight && scaledHeight > wrapperHeight);
+
+            mapContainer.parents('.mCSB_container').css({
+                'width': scrollableWidth ? scaledWidth + 'px' : (wrapperWidth - 50) + 'px',
+                'height': scrollableHeight ? scaledHeight + 'px' : (wrapperHeight) + 'px',
+            });
+
+
+            let mapWrapperElement = mapContainer.closest('.mCustomScrollbar');
+            if(scrollableWidth && scrollableHeight){
+                mapWrapperElement.mCustomScrollbar('update');
+            }else{
+                mapWrapperElement.mCustomScrollbar('scrollTo', '#pf-map-1', {
+                    scrollInertia: 0,
+                    scrollEasing: 'linear',
+                    timeout: 0,
+                    moveDragger: false
+                });
+            }
+        }
+
+        return zoomChange;
     };
 
     /**
@@ -752,19 +831,95 @@ define([
     };
 
     /**
+     * add/remove connection type to connection that was previous registered by registerConnectionTypes()
+     * -> this method is a wrapper for addType()/removeType()
+     *    with the addition of respecting active Arrow overlay direction
+     * @param action
+     * @param connection
+     * @param type
+     * @param params
+     * @param doNotRepaint
+     */
+    let changeConnectionType = (action, connection, type, params = {}, doNotRepaint = false) => {
+        // check for active Arrow overlay
+        let overlayArrow, overlayArrowParams;
+        if(
+            type !== 'info_signature' &&
+            connection.hasType('info_signature')
+        ){
+            overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
+            if(overlayArrow){
+                overlayArrowParams = {
+                    direction: overlayArrow.direction,
+                    foldback: overlayArrow.foldback,
+                };
+            }
+        }
+
+        // add the new type
+        connection[action](type, params, doNotRepaint);
+
+        // change Arrow overlay data back to initial direction
+        if(
+            overlayArrow &&
+            (
+                overlayArrow.direction !== overlayArrowParams.direction ||
+                overlayArrow.foldback !== overlayArrowParams.foldback
+            )
+        ){
+            overlayArrow.updateFrom(overlayArrowParams);
+            if(!doNotRepaint){
+                connection.repaint();
+            }
+        }
+    };
+
+    /**
+     * add connection type to connection that was previous registered by registerConnectionTypes()
+     * @param connection
+     * @param type
+     * @param params
+     * @param doNotRepaint
+     */
+    let addConnectionType = (connection, type, params = {}, doNotRepaint = false) => {
+        changeConnectionType('addType', connection, type, params, doNotRepaint);
+    };
+
+    /**
+     * remove connection type to connection that was previous registered by registerConnectionTypes()
+     * @param connection
+     * @param type
+     * @param params
+     * @param doNotRepaint
+     */
+    let removeConnectionType = (connection, type, params = {}, doNotRepaint = false) => {
+        changeConnectionType('removeType', connection, type, params, doNotRepaint);
+    };
+
+    let toggleConnectionType = (connection, type, params = {}, doNotRepaint = false) => {
+        changeConnectionType('toggleType', connection, type, params, doNotRepaint);
+    };
+
+    /**
      * mark a connection as "active"
      * @param map
      * @param connections
      */
     let setConnectionsActive = (map, connections) => {
-        // set all inactive
-        for(let connection of getConnectionsByType(map, 'state_active')){
-            connection.removeType('state_active');
-        }
+        map.batch(() => {
+            // set all inactive
+            for(let connection of getConnectionsByType(map, 'state_active')){
+                if(!connections.includes(connection)){
+                    removeConnectionType(connection, 'state_active');
+                }
+            }
 
-        for(let connection of connections){
-            connection.addType('state_active');
-        }
+            for(let connection of connections){
+                if(!connection.hasType('state_active')){
+                    addConnectionType(connection, 'state_active');
+                }
+            }
+        });
     };
 
     /**
@@ -773,8 +928,11 @@ define([
      * @param visible
      */
     let setConnectionVisible = (connection, visible) => {
-        for(let endpoint of connection.endpoints){
-            endpoint.setVisible(visible);
+        if(connection.isVisible() !== visible){
+            connection.setVisible(visible, true);
+            for(let endpoint of connection.endpoints){
+                endpoint.setVisible(visible, true);
+            }
         }
     };
 
@@ -804,15 +962,18 @@ define([
     let toggleConnectionActive = (map, connections) => {
         let selectedConnections = [];
         let deselectedConnections = [];
-        for(let connection of connections){
-            if(connection.hasType('state_active')){
-                connection.removeType('state_active');
-                deselectedConnections.push(connection);
-            }else{
-                connection.addType('state_active');
-                selectedConnections.push(connection);
+        map.batch(() => {
+            for(let connection of connections){
+                if(connection.hasType('state_active')){
+                    removeConnectionType(connection, 'state_active');
+                    deselectedConnections.push(connection);
+                }else{
+                    addConnectionType(connection, 'state_active');
+                    selectedConnections.push(connection);
+                }
             }
-        }
+        });
+
         updateConnectionInfo(map, selectedConnections, deselectedConnections);
     };
 
@@ -1024,38 +1185,35 @@ define([
      * @param {string} status
      */
     let setConnectionWHStatus = (connection, status) => {
-        if(
-            status === 'wh_fresh' &&
-            connection.hasType('wh_fresh') !== true
-        ){
-            connection.removeType('wh_reduced');
-            connection.removeType('wh_critical');
-            connection.addType('wh_fresh');
-        }else if(
-            status === 'wh_reduced' &&
-            connection.hasType('wh_reduced') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_critical');
-            connection.addType('wh_reduced');
-        }else if(
-            status === 'wh_critical' &&
-            connection.hasType('wh_critical') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_reduced');
-            connection.addType('wh_critical');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }
+        connection._jsPlumb.instance.batch(() => {
+            if(
+                status === 'wh_fresh' &&
+                connection.hasType('wh_fresh') !== true
+            ){
+                removeConnectionType(connection, 'wh_reduced');
+                removeConnectionType(connection, 'wh_critical');
+                addConnectionType(connection, 'wh_fresh');
+            }else if(
+                status === 'wh_reduced' &&
+                connection.hasType('wh_reduced') !== true
+            ){
+                removeConnectionType(connection, 'wh_fresh');
+                removeConnectionType(connection, 'wh_critical');
+                addConnectionType(connection, 'wh_reduced');
+            }else if(
+                status === 'wh_critical' &&
+                connection.hasType('wh_critical') !== true
+            ){
+                removeConnectionType(connection, 'wh_fresh');
+                removeConnectionType(connection, 'wh_reduced');
+                addConnectionType(connection, 'wh_critical');
+            }else if(
+                status === 'wh_eol' &&
+                connection.hasType('wh_eol') !== true
+            ){
+                addConnectionType(connection, 'wh_eol');
+            }
+        });
     };
 
     /**
@@ -1170,12 +1328,12 @@ define([
 
         let visualizeMapExecutor = (resolve, reject) => {
             // start map update counter -> prevent map updates during animations
-            mapElement.getMapOverlay('timer').startMapUpdateCounter();
+            MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
 
             let systemElements = mapElement.find('.' + config.systemClass);
-            let endpointElements =  mapElement.find('.jsplumb-endpoint:visible');
-            let connectorElements = mapElement.find('.jsplumb-connector:visible');
-            let overlayElements = mapElement.find('.jsplumb-overlay:visible, .tooltip');
+            let endpointElements =  mapElement.find('.jtk-endpoint:visible');
+            let connectorElements = mapElement.find('.jtk-connector:visible');
+            let overlayElements = mapElement.find('.jtk-overlay:visible, .tooltip');
 
             let hideElements = (elements) => {
                 if(elements.length > 0){
@@ -1341,7 +1499,7 @@ define([
             promiseStore.then(data => {
                 // This code runs once the value has been loaded from  offline storage
                 if(data && data.scrollOffset){
-                    mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
+                    Scrollbar.scrollToPosition(mapWrapper, [data.scrollOffset.y, data.scrollOffset.x]);
                 }
 
                 resolve({
@@ -1404,7 +1562,7 @@ define([
             if(rallyUpdated !== rally){
                 // rally status changed
                 if( !options.hideCounter ){
-                    system.getMapOverlay('timer').startMapUpdateCounter();
+                    MapOverlayUtil.getMapOverlay(system, 'timer').startMapUpdateCounter();
                 }
 
                 let rallyClass = getInfoForSystem('rally', 'class');
@@ -1812,11 +1970,13 @@ define([
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,
+        toggleConnectionType: toggleConnectionType,
         toggleConnectionActive: toggleConnectionActive,
         setSystemActive: setSystemActive,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         showFindRouteDialog: showFindRouteDialog,
+        filterDefaultTypes: filterDefaultTypes,
         getEndpointLabel: getEndpointLabel,
         getConnectionsByType: getConnectionsByType,
         getEndpointsDataByConnection: getEndpointsDataByConnection,
@@ -1837,6 +1997,8 @@ define([
         getTabContentElementByMapElement: getTabContentElementByMapElement,
         hasActiveConnection: hasActiveConnection,
         filterMapByScopes: filterMapByScopes,
+        changeZoom: changeZoom,
+        setZoom: setZoom,
         storeLocaleCharacterData: storeLocaleCharacterData,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,

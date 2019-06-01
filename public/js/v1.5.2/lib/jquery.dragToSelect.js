@@ -77,13 +77,14 @@ $.fn.dragToSelect = function (conf) {
     // deselected items
     var deselectedItems = $();
 
+    /*
 	do {
 		if (/auto|scroll|hidden/.test(parent.css('overflow'))) {
 			break;
 		}
 		parent = parent.parent();
 	} while (parent[0].parentNode);
-
+*/
 	// Does user want to disable dragToSelect
 	if (conf == 'disable') {
 		parent.addClass(config.disabledClass);
@@ -133,8 +134,8 @@ $.fn.dragToSelect = function (conf) {
 			return;
 		}
 
-		selectBoxOrigin.left	= e.pageX - parentDim.left + parent[0].scrollLeft - 5;
-		selectBoxOrigin.top		= e.pageY - parentDim.top + parent[0].scrollTop - 5;
+		selectBoxOrigin.left	= e.pageX - parentDim.left + parent[0].scrollLeft;
+		selectBoxOrigin.top		= e.pageY - parentDim.top + parent[0].scrollTop;
 
 		var css = {
 			left:		selectBoxOrigin.left + 'px', 
@@ -342,7 +343,7 @@ $.fn.dragToSelect = function (conf) {
 	}
 
 	var mouseupCallback = function(){
-		if (config.selectables){
+		if(config.selectables){
 			selectElementsInRange();
 		}
 		hideSelectBox();
@@ -364,10 +365,10 @@ $.fn.dragToSelect = function (conf) {
 	}).mouseup(mouseupCallback);
 
 	parent.mousedown(function(e){
-		if (
+		if(
 			e.which === 1 && // left mouse down
 			e.target === realParent[0] // prevent while dragging a system :)
-		) {
+		){
 			// Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
 			if ((e.pageX + 20) > $(document.body).width()) {
 				return;
@@ -385,7 +386,6 @@ $.fn.dragToSelect = function (conf) {
 		lastMousePosition.y = e.pageY;
 		e.preventDefault();
 	}).mouseup(mouseupCallback);
-
 
 	// Be nice
 	return this;

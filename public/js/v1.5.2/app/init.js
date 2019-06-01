@@ -343,51 +343,53 @@ define(['jquery'], ($) => {
                 }
             },
             wh_eol: {
-                cssClass: 'pf-map-connection-wh-eol',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-eol'
             },
             wh_fresh: {
-                cssClass: 'pf-map-connection-wh-fresh',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-fresh'
             },
             wh_reduced: {
-                cssClass: 'pf-map-connection-wh-reduced',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-reduced'
             },
             wh_critical: {
-                cssClass: 'pf-map-connection-wh-critical',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-critical'
             },
             frigate: {
                 cssClass: 'pf-map-connection-frig',
                 paintStyle: {
-                    dashstyle: '0.99'
+                    dashstyle: '0.5 1'
                 },
-                overlays:[
+                overlays: [
                     ['Label',
                         {
                             label: 'frig',
                             cssClass: ['pf-map-component-overlay', 'frig'].join(' '),
-                            location: 0.6
+                            location: 0.7
                         }]
                 ]
             },
             preserve_mass: {
                 cssClass: 'pf-map-connection-preserve-mass',
-                overlays:[
+                overlays: [
                     ['Label',
                         {
                             label: '<i class="fas fa-fw fa-exclamation-triangle"></i>&nbsp;save mass',
                             cssClass: ['pf-map-component-overlay', 'mass'].join(' '),
-                            location: 0.6
+                            location: 0.3
+                        }]
+                ]
+            },
+            info_signature: {
+                overlays: [
+                    ['Arrow',
+                        {
+                            id: 'pf-map-connection-arrow-overlay',
+                            cssClass: 'pf-map-connection-arrow-overlay',
+                            width: 12,
+                            length: 15,
+                            foldback: 0.8,
+                            direction: 1,
+                            location: 0.5
                         }]
                 ]
             },
@@ -396,12 +398,12 @@ define(['jquery'], ($) => {
             },
             state_process: {
                 cssClass: 'pf-map-connection-process',
-                overlays:[
+                overlays: [
                     ['Label',
                         {
                             label: '<i class="fas fa-fw fa-sync fa-spin"></i>',
                             cssClass: ['pf-map-connection-state-overlay'].join(' '),
-                            location: 0.6
+                            location: 0.5
                         }]
                 ]
             }

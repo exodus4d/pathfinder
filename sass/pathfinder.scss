@@ -43,7 +43,8 @@
 @import "library/blue-imp-gallery/_bootstrap-image-gallery";        // Blue Imp Gallery Bootstrap
 @import "library/bootstrap-toggle/_bootstrap-toggle";               // Bootstrap Toggle v2.2.0
 @import "library/bootstrap-checkbox/_awesome-bootstrap-checkbox";   // Bootstrap Customized Checkboxes v0.3.7 - https://github.com/flatlogic/awesome-bootstrap-checkbox
-@import "library/summernote/summernote";                            // Summernote WYSIWYG editor v0.8.10
+@import "library/summernote/_summernote";                           // Summernote WYSIWYG editor v0.8.10
+//@import "library/jsplumb/_jsplumbtoolkit-defaults";                 // JsPlumb SVG map v2.9.3
 
 // Main THEME (Imports by order - do not change order)
 @import "main";

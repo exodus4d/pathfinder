@@ -6,6 +6,11 @@ $mapWrapperMinHeight:   250px;
 $mapWrapperMaxHeight:   1000px;              // no vertical scrollbar: $mapHeight + 35px;
 $mapWrapperMaxWidth:    $mapWidth + 35px;
 
+$mapOverlayTop:         8px;
+$mapOverlayRight:       25px;
+$mapOverlayBottom:      25px;
+$mapOverlayLeft:        5px;
+
 $mapBubbleWidth:        30px;
 
 // start bounce mixin =================================================================================================
@@ -28,6 +33,10 @@ $mapBubbleWidth:        30px;
 #pf-map-tab-element{
   max-width: $mapWrapperMaxWidth;
   margin: 0 auto;
+}
+
+.pf-map-move{
+  cursor: move !important;
 }
 
 .pf-map-tab-content{
@@ -78,18 +87,61 @@ $mapBubbleWidth:        30px;
   position: absolute;
   display: none; // triggered by js
   z-index: 10000;
-  right: 25px;
   background: rgba($black, 0.25);
   @include border-radius(5px);
 
   &.pf-map-overlay-timer{
-    bottom: 23px;
+    right: $mapOverlayRight;
+    bottom: $mapOverlayBottom;
     width: 36px;
-    height: 36px;
+    height: 38px;
+  }
+
+  &.pf-map-overlay-zoom{
+    bottom: $mapOverlayBottom;
+    left: $mapOverlayLeft;
+    width: 26px;
+    height: 52px;
+    padding: 2px 4px;
+    display: block;
+
+    .pf-zoom-overlay-up,
+    .pf-zoom-overlay-down{
+      display: block;
+      text-align: center;
+      font-size: 16px;
+      cursor: pointer;
+      @include transition(color .18s ease-in-out);
+      will-change: color;
+
+      &:hover{
+        color: $orange-dark;
+      }
+
+      &.disabled{
+        cursor: not-allowed;
+        color: $gray-darker;
+      }
+    }
+
+    .pf-zoom-overlay-value{
+      display: block;
+      margin-top: 2px;
+      text-align: center;
+      font-size: 11px;
+      line-height: 13px;
+      @include transition(color .18s ease-in-out);
+      will-change: color;
+    }
+
+    .active{
+      color: $orange-dark;
+    }
   }
 
   &.pf-map-overlay-info{
-    top: 8px;
+    top: $mapOverlayTop;
+    right: $mapOverlayRight;
     height: 36px;
     min-height: 36px;
     min-width: 36px;
@@ -105,7 +157,7 @@ $mapBubbleWidth:        30px;
       color: $gray-light;
       transform: scale(0);
       transform-origin: 50% 50% 0px;
-      @include transition( color .18s ease-in-out );
+      @include transition(color .18s ease-in-out );
       cursor: help;
       will-change: all;
 
@@ -127,6 +179,7 @@ $mapBubbleWidth:        30px;
 
   &.pf-map-overlay-local{
     top: 54px;
+    right: $mapOverlayRight;
     min-height: 80px;
     width: 32px;
     display: block;
@@ -235,35 +288,18 @@ $mapBubbleWidth:        30px;
   height: $mapHeight;
   position: relative;
   font-family: $font-family-bold;
+  will-change: transform;
 
   // jsPlumb classes ==================================================================================================
-  .jsplumb-overlay{
-    opacity: 1;
-    pointer-events: none; // click through overlays
-    will-change: opacity;
-    @include transition( opacity 0.18s ease-out);
-  }
-
-  // system that is currently dragged
-  .jsPlumb_dragged{
+  .jtk-drag{
     @extend .pf-system-selected;
   }
 
-  // hover effects ====================================================================================================
-  .jsplumb-hover{
-
-    // hover effect for connections
-    &.jsplumb-overlay{
-      opacity: 0 !important; // hide opacity on hover
-    }
-
-    &:not(.jsplumb-overlay){
-      @include bounce-up-down; // label should not bounce
-    }
+  .jtk-hover:not(.jtk-overlay){
+    @include bounce-up-down;    // label should not bounce
   }
 
-  // hover effect for systems
-  .jsplumb-target-hover, .jsplumb-source-hover{
+  .jtk-source-hover, .jtk-target-hover{
     @include bounce-up-down;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
   }
@@ -277,7 +313,7 @@ $mapBubbleWidth:        30px;
     background-color: $gray-dark;
     font-family: $font-family-bold;
     z-index: 100;
-    will-change: top, left, opacity;
+    will-change: top, left, opacity, transform;
 
     //opacity: 0; // trigger by js
     border: {
@@ -294,11 +330,7 @@ $mapBubbleWidth:        30px;
     &:hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      @include transform( translate3d(0, -1px, 0) !important);
-
-      &:not(.jsPlumb_dragged){
-        z-index: 1040 !important; // should overlap connection endpoint overlays,not for dragged elements -> prevent "show/hide flickering" of overlays
-      }
+      @include transform(translate3d(0, -1px, 0) !important);
     }
 
     .pf-system-head{
@@ -412,6 +444,7 @@ $mapBubbleWidth:        30px;
           text-overflow: ellipsis;
           display: none; // hover effect
         }
+
         // user status ================================================================================================
         .pf-user-status{
           font-size: 6px;
@@ -491,24 +524,21 @@ $mapBubbleWidth:        30px;
   }
 
   // Endpoints ========================================================================================================
-  .pf-map-endpoint-source, .pf-map-endpoint-target{
+  .jtk-endpoint{
     z-index: 90;
 
     svg {
-      overflow: visible; // this fixes a "half-pixel" bug on SVG circle with border
       circle{
         @include transition(stroke 0.18s ease-out, fill 0.18s ease-out);
       }
 
       *{
         stroke: $gray-light;
-        stroke-width: 2; // border width
-        fill: $gray;
         cursor: pointer;
       }
     }
 
-    // hover (with cursor) effect for  Endpoints
+    // hover (with cursor) on endpoints (before drag)
     &:hover{
       circle{
         stroke: $orange !important;
@@ -516,9 +546,8 @@ $mapBubbleWidth:        30px;
     }
 
     // hover class (e.g. connection is hovered -> endpoints get this class)
-    &.jsplumb-hover{
-      // increase z-index -> prevent overlapping multiple endpoints
-      z-index: 95;
+    &.jtk-hover{
+      z-index: 95;  // increase z-index -> prevent overlapping multiple endpoints
 
       &.pf-map-endpoint-bubble{
         &:after{
@@ -529,36 +558,13 @@ $mapBubbleWidth:        30px;
       }
     }
 
-    // while dragging
-    &.jsplumb-dragging{
-      circle {
-        stroke: $orange;
-      }
-    }
-  }
-
-  .jsplumb-endpoint-drop-allowed{
-    circle {
-      stroke: $green !important;
-      fill: $green !important;
-    }
-  }
-
-  .jsplumb-endpoint-drop-forbidden{
-    circle {
-      stroke: $red-darker !important;
-      fill: $red-darker !important;
-    }
-  }
-
-  .jsplumb-endpoint{
     &:after{
       content: url("#{$base-url}/bubble.svg");
       position: absolute;
       display: block;
       pointer-events: none;
-      top: ($mapBubbleWidth / -2) + 5;
-      left: ($mapBubbleWidth / -2) + 5;
+      top: ($mapBubbleWidth / -2) + 7;
+      left: ($mapBubbleWidth / -2) + 7;
       width: $mapBubbleWidth;
       height: $mapBubbleWidth;
       z-index: -1;
@@ -583,12 +589,24 @@ $mapBubbleWidth:        30px;
     }
   }
 
-  // Connections ======================================================================================================
+  .jtk-endpoint-drop-allowed{
+    circle {
+      stroke: $green !important;
+      fill: $green !important;
+    }
+  }
 
-  svg.jsplumb-connector{
+  .jtk-endpoint-drop-forbidden{
+    circle {
+      stroke: $red-darker !important;
+      fill: $red-darker !important;
+    }
+  }
+
+  // Connections ======================================================================================================
+  .jtk-connector{
+    z-index: 40;        // min z-index for connections
     cursor: pointer;
-    opacity: 1; // for animation
-    stroke-linecap: round; // line endings
     @include transition(stroke 0.18s ease-out, opacity 0.18s ease-out);
     will-change: all;
 
@@ -596,37 +614,22 @@ $mapBubbleWidth:        30px;
       @include transition(stroke 0.18s ease-out);
     }
 
-    path:nth-child(2){
-      stroke: $gray; // inner line
-    }
+    &.jtk-hover{
+      z-index: 80;      // max z-index for connections
+      filter: drop-shadow(-3px 3px 4px rgba(0,0,0, 0.3));
 
-    path:first-child{
-      stroke: $gray-light; // outer line
-    }
-
-    &.jsplumb-hover{
-      z-index: 80;
-      filter: drop-shadow( -3px 3px 4px rgba(0,0,0, 0.3));
-
-      &:not(.pf-map-connection-jumpbridge):not(.pf-map-connection-abyssal) path:first-child{
-        stroke: $gray-lightest; // hover style (outer SVG)
-      }
-
-      &.pf-map-connection-jumpbridge, &.pf-map-connection-abyssal{
-        path:nth-child(2){
-          stroke: $gray-lightest; // hover style (inner SVG)
-        }
+      path:first-child{
+        stroke: $gray-lightest;
       }
     }
 
-    &.jsplumb-dragging{
-      @include transition( opacity 0.18s ease-out) ;
+    &.jtk-dragging{
+      z-index: 80;      // max z-index for connections
       opacity: 0.4;
-      z-index: 80;
     }
   }
 
-  svg.pf-map-connection-abyssal {
+  .pf-map-connection-abyssal {
     z-index: 40;
 
     path:first-child{
@@ -637,7 +640,7 @@ $mapBubbleWidth:        30px;
       stroke: darken($pink-darker, 8%);
     }
 
-    &:hover{
+    &.jtk-hover{
       path:first-child{
         stroke: rgba(255,255,255,0);  // invisible border color
       }
@@ -648,7 +651,7 @@ $mapBubbleWidth:        30px;
     }
   }
 
-  svg.pf-map-connection-jumpbridge {
+  .pf-map-connection-jumpbridge {
     z-index: 50;
 
     path:first-child{
@@ -659,7 +662,7 @@ $mapBubbleWidth:        30px;
       stroke: $teal-lighter;
     }
 
-    &:hover{
+    &.jtk-hover{
       path:first-child{
         stroke: rgba(255,255,255,0);  // invisible border color
       }
@@ -670,7 +673,7 @@ $mapBubbleWidth:        30px;
     }
   }
 
-  svg.pf-map-connection-stargate {
+  .pf-map-connection-stargate {
     z-index: 60;
 
     path:first-child{
@@ -680,55 +683,48 @@ $mapBubbleWidth:        30px;
     path:nth-child(2){
       stroke: $indigo-darkest;
     }
-
-    &:hover{
-      path:first-child{
-        stroke: $gray-lightest;
-      }
-    }
   }
 
-  svg{
-    &.pf-map-connection-wh-fresh,
-    &.pf-map-connection-wh-reduced,
-    &.pf-map-connection-wh-critical,
-    &.pf-map-connection-wh-eol{
-      z-index: 70;
-    }
+  .pf-map-connection-wh-fresh,
+  .pf-map-connection-wh-reduced,
+  .pf-map-connection-wh-critical,
+  .pf-map-connection-wh-eol{
+    z-index: 70;
   }
 
-  svg.pf-map-connection-wh-eol {
+  .pf-map-connection-wh-eol {
 
     path:first-child{
       stroke: $pink-dark;
     }
-
-    &:hover{
-      path:first-child{
-        stroke: $gray-lightest;
-      }
-    }
   }
 
-  svg.pf-map-connection-wh-reduced {
+  .pf-map-connection-wh-reduced {
 
     path:nth-child(2){
       stroke: $orange;
     }
   }
 
-  svg.pf-map-connection-wh-critical {
+  .pf-map-connection-wh-critical {
 
     path:nth-child(2){
       stroke: $red-darker;
     }
   }
 
-  svg.pf-map-connection-active{
-    filter: drop-shadow( 0px 0px 3px $yellow-lighter);
+  .pf-map-connection-frig{
+
+    path:nth-child(2){
+      stroke-linecap: square !important;
+    }
   }
 
-  svg.pf-map-connection-process{
+  .pf-map-connection-active{
+    filter: drop-shadow( 0px 0px 3px $yellow-lighter) !important; // overwrite "hover" shadow
+  }
+
+  .pf-map-connection-process{
     opacity: 0.4 !important;
 
     path{
@@ -737,6 +733,17 @@ $mapBubbleWidth:        30px;
   }
 
   // Overlays =========================================================================================================
+  .jtk-overlay{
+    opacity: 1;
+    pointer-events: none; // click through overlays
+    will-change: opacity;
+    @include transition(opacity 0.18s ease-out);
+
+    &.jtk-hover:not(.debug){
+      opacity: 0 !important;
+    }
+  }
+
   %map-overlay{
     font-size: 10px;
     z-index: 1020;
@@ -746,6 +753,7 @@ $mapBubbleWidth:        30px;
 
   .pf-map-component-overlay{
     @extend %map-overlay;
+    line-height: 14px;
     padding: 1px 4px;
     @include border-radius(6px);
     @include box-shadow(0 6px 12px rgba(0,0,0,.4));
@@ -760,10 +768,20 @@ $mapBubbleWidth:        30px;
     }
 
     &.icon{
-      line-height: 10px;
+      font-size: 12px;
+      line-height: 12px;
       padding: 0;
-      @include border-radius(5px);
+      width: 12px;
+      height: 12px;
+      overflow: hidden;
+      text-align: center;
+      @include border-radius(50%);
       @include box-shadow(0 3px 6px rgba(0,0,0,.3));
+    }
+
+    &.debug{
+      background-color: $purple-dark;
+      opacity: 0.8;
     }
   }
 
@@ -772,10 +790,7 @@ $mapBubbleWidth:        30px;
 
     @extend %map-overlay;
     background-color: transparent;
-    //margin-top: -14px;
     font-size: 12px;
-    margin-left: -7px;
-    margin-top: -7px;
     width: 15px;
     height: 15px;
     opacity: 0.4 !important;
@@ -798,18 +813,22 @@ $mapBubbleWidth:        30px;
   }
 
   // Arrow overlays ===================================================================================================
-  .pf-map-connection-arrow-overlay{
-    stroke: $gray-dark;
-    fill: $green;
+  .pf-map-connection-arrow-overlay-success{
+    .pf-map-connection-arrow-overlay{
+      stroke: $gray-dark;
+      fill: $green;
+    }
   }
 
-  .pf-map-connection-diamond-overlay{
-    stroke: $gray-dark;
-    fill: $red;
+  .pf-map-connection-arrow-overlay-danger{
+    .pf-map-connection-arrow-overlay{
+      stroke: $gray-dark;
+      fill: $red;
 
-    animation-name: pfPulseDanger;
-    animation-duration: 4s;
-    animation-iteration-count: infinite;
+      animation-name: pfPulseDanger;
+      animation-duration: 4s;
+      animation-iteration-count: infinite;
+    }
   }
 }
 

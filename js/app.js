@@ -33,7 +33,7 @@ requirejs.config({
         velocity: 'lib/velocity.min',                                   // v1.5.1   animation engine - http://julian.com/research/velocity
         velocityUI: 'lib/velocity.ui.min',                              // v5.2.0   plugin for velocity - http://julian.com/research/velocity/#uiPack
         slidebars: 'lib/slidebars',                                     // v2.0.2   Slidebars - side menu plugin https://www.adchsm.com/slidebars/
-        jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6   jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
+        jsPlumb: 'lib/jsplumb',                                         // v2.9.3   jsPlumb main map draw plugin http://jsplumb.github.io/jsplumb/home.html
         farahey: 'lib/farahey-0.5',                                     // v0.5     jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
         customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5   Custom scroll bars - http://manos.malihu.gr
         mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13  Mousewheel - https://github.com/jquery/jquery-mousewheel

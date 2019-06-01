@@ -89,6 +89,12 @@ class ConnectionModel extends AbstractMapTrackingModel {
     ];
 
     /**
+     * allowed connection types
+     * @var array
+     */
+    protected static $connectionTypeWhitelist = ['wh_fresh', 'wh_reduced', 'wh_critical', 'frigate', 'preserve_mass'];
+
+    /**
      * get connection data
      * @param bool $addSignatureData
      * @param bool $addLogData
@@ -130,13 +136,15 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @return int|number
      */
     public function set_type($type){
-        $newTypes = (array)$type;
+        // remove unwanted types -> they should not be send from client
+        // -> reset keys! otherwise JSON format results in object and not in array
+        $type = array_values(array_intersect((array)$type, self::$connectionTypeWhitelist));
 
         // set EOL timestamp
-        if( !in_array('wh_eol', $newTypes) ){
+        if( !in_array('wh_eol', $type) ){
             $this->eolUpdated = null;
         }elseif(
-            in_array('wh_eol', $newTypes) &&
+            in_array('wh_eol', $type) &&
             !in_array('wh_eol', (array)$this->type) // $this->type == null for new connection! (e.g. map import)
         ){
             // connection EOL status change

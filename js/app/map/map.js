@@ -6,17 +6,19 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/key',
     'bootbox',
     'app/map/util',
     'app/map/contextmenu',
-    'app/map/overlay',
+    'app/map/overlay/overlay',
+    'app/map/overlay/util',
     'app/map/system',
     'app/map/layout',
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
     'app/map/local'
-], ($, Init, Util, bootbox, MapUtil, MapContextMenu, MapOverlay, System, Layout, MagnetizerWrapper) => {
+], ($, Init, Util, Key, bootbox, MapUtil, MapContextMenu, MapOverlay, MapOverlayUtil, System, Layout, MagnetizerWrapper, Scrollbar) => {
 
     'use strict';
 
@@ -91,8 +93,7 @@ define([
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
             maxConnections: 10,                     // due to isTarget is true, this is the max count of !out!-going connections
-            // isSource:true,
-            anchor: 'Continuous'
+            // isSource:true
         },
         target: {
             filter:  filterSystemHeadEvent,
@@ -104,9 +105,7 @@ define([
                 hoverClass: config.systemActiveClass,
                 activeClass: 'dragActive'
             },
-            // isTarget:true,
-            // uniqueEndpoint: false,
-            anchor: 'Continuous'
+            // uniqueEndpoint: false
         },
         endpointTypes: Init.endpointTypes,
         connectionTypes: Init.connectionTypes
@@ -130,7 +129,7 @@ define([
                 // -> we need BOTH endpoints of a connection -> index 0
                 for(let endpoint of connectionInfo[0].endpoints){
                     // check if there is a Label overlay
-                    let overlay = endpoint.getOverlay(MapOverlay.endpointOverlayId);
+                    let overlay = endpoint.getOverlay(MapOverlayUtil.config.endpointOverlayId);
                     if(overlay instanceof jsPlumb.Overlays.Label){
                         let label =  overlay.getParameter('label');
                         overlay.setLocation(MapUtil.getEndpointOverlaySignatureLocation(endpoint, label));
@@ -588,7 +587,7 @@ define([
             case 'change_status_empty':
             case 'change_status_unscanned':
                 // change system status
-                system.getMapOverlay('timer').startMapUpdateCounter();
+                MapOverlayUtil.getMapOverlay(system, 'timer').startMapUpdateCounter();
 
                 let statusString = action.split('_');
 
@@ -730,16 +729,15 @@ define([
             case 'frigate':         // set as frigate hole
             case 'preserve_mass':   // set "preserve mass
             case 'wh_eol':          // set "end of life"
-                mapElement.getMapOverlay('timer').startMapUpdateCounter();
-                connection.toggleType(action);
+                MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
+                MapUtil.toggleConnectionType(connection, action);
                 MapUtil.markAsChanged(connection);
                 break;
             case 'status_fresh':
             case 'status_reduced':
             case 'status_critical':
                 let newStatus = action.split('_')[1];
-                mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
+                MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
                 MapUtil.setConnectionWHStatus(connection, 'wh_' + newStatus);
                 MapUtil.markAsChanged(connection);
                 break;
@@ -751,7 +749,7 @@ define([
 
                 bootbox.confirm('Change scope from ' + scopeName + ' to ' + newScopeName + '?', function(result){
                     if(result){
-                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
+                        MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
 
                         setConnectionScope(connection, newScope);
 
@@ -775,7 +773,7 @@ define([
 
         switch(action){
             case 'bubble':
-                mapElement.getMapOverlay('timer').startMapUpdateCounter();
+                MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
                 endpoint.toggleType(action);
 
                 for(let connection of endpoint.connections){
@@ -860,7 +858,7 @@ define([
                 source: sourceSystem[0],
                 target: targetSystem[0],
                 scope: connectionData.scope || map.Defaults.Scope,
-                type:  (connectionData.type || MapUtil.getDefaultConnectionTypeByScope(map.Defaults.Scope)).join(' ')
+                //type:  (connectionData.type || MapUtil.getDefaultConnectionTypeByScope(map.Defaults.Scope)).join(' ')
                 /* experimental set "static" connection parameters in initial load
                 parameters: {
                     connectionId:   connectionId,
@@ -878,6 +876,7 @@ define([
 
             // check if connection is valid (e.g. source/target exist
             if(connection instanceof jsPlumb.Connection){
+                connection.addType((connectionData.type || MapUtil.getDefaultConnectionTypeByScope(map.Defaults.Scope)).join(' '));
 
                 // set connection parameters
                 // they should persist even through connection type change (e.g. wh -> stargate,..)
@@ -1145,7 +1144,7 @@ define([
                 mapWrapper.setMapShortcuts();
 
                 // show static overlay actions
-                let mapOverlay = mapContainer.getMapOverlay('info');
+                let mapOverlay = MapOverlayUtil.getMapOverlay(mapContainer, 'info');
                 mapOverlay.updateOverlayIcon('systemRegion', 'show');
                 mapOverlay.updateOverlayIcon('connection', 'show');
                 mapOverlay.updateOverlayIcon('connectionEol', 'show');
@@ -1316,7 +1315,7 @@ define([
                                         deleteConnection.source &&
                                         deleteConnection.target
                                     ){
-                                        mapConfig.map.detach(deleteConnection, {fireEvent: false});
+                                        mapConfig.map.deleteConnection(deleteConnection, {fireEvent: false});
                                     }
                                 }
                             }
@@ -1626,12 +1625,12 @@ define([
                         Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
                     }else{
                         // some save errors
-                        payload.context.map.detach(payload.context.connection, {fireEvent: false});
+                        payload.context.map.deleteConnection(payload.context.connection, {fireEvent: false});
                     }
                 },
                 payload => {
                     // remove this connection from map
-                    payload.context.map.detach(payload.context.connection, {fireEvent: false});
+                    payload.context.map.deleteConnection(payload.context.connection, {fireEvent: false});
                     Util.handleAjaxErrorResponse(payload);
                 }
             );
@@ -1830,7 +1829,7 @@ define([
             start: function(params){
                 let dragSystem = $(params.el);
 
-                mapOverlayTimer = dragSystem.getMapOverlay('timer');
+                mapOverlayTimer = MapOverlayUtil.getMapOverlay(dragSystem, 'timer');
 
                 // start map update timer
                 mapOverlayTimer.startMapUpdateCounter();
@@ -2047,7 +2046,7 @@ define([
         revalidate(map, system);
 
         if(!hideCounter){
-            $(system).getMapOverlay('timer').startMapUpdateCounter();
+            MapOverlayUtil.getMapOverlay(system, 'timer').startMapUpdateCounter();
         }
     };
 
@@ -2063,18 +2062,33 @@ define([
             jsPlumb.Defaults.LogEnabled = true;
 
             let newJsPlumbInstance =  jsPlumb.getInstance({
-                Anchor: 'Continuous',                                               // anchors on each site
-                Container: null,                                                    // will be set as soon as container is connected to DOM
+                Anchor: ['Continuous', {faces: ['top', 'right', 'bottom', 'left']}],    // single anchor (used during drag action)
+                Anchors: [
+                    ['Continuous', {faces: ['top', 'right', 'bottom', 'left']}],
+                    ['Continuous', {faces: ['top', 'right', 'bottom', 'left']}],
+                ],
+                Container: null,                                                        // will be set as soon as container is connected to DOM
                 PaintStyle: {
-                    lineWidth: 4,                                                   // width of a Connector's line. An integer.
-                    strokeStyle: 'red',                                             // color for a Connector
-                    outlineColor: 'red',                                            // color of the outline for an Endpoint or Connector. see fillStyle examples.
-                    outlineWidth: 2                                                 // width of the outline for an Endpoint or Connector. An integer.
+                    strokeWidth: 4,                                                     // connection width (inner)
+                    stroke: '#3c3f41',                                                  // connection color (inner)
+                    outlineWidth: 2,                                                    // connection width (outer)
+                    outlineStroke: '#63676a',                                           // connection color (outer)
+                    dashstyle: '0',                                                     // connection dashstyle (default) -> is used after connectionType got removed that has dashstyle specified
+                    'stroke-linecap': 'round'                                           // connection shape
                 },
-                Connector: [ 'Bezier', { curviness: 40 } ],                         // default connector style (this is not used!) all connections have their own style (by scope)
-                Endpoint: [ 'Dot', { radius: 5 } ],
-                ReattachConnections: false,                                         // re-attach connection if dragged with mouse to "nowhere"
-                Scope: Init.defaultMapScope,                                        // default map scope for connections
+                Endpoint: ['Dot', {radius: 5}],                                         // single endpoint (used during drag action)
+                Endpoints: [
+                    ['Dot', {radius: 5, cssClass: config.endpointSourceClass}],
+                    ['Dot', {radius: 5, cssClass: config.endpointTargetClass}]
+                ],
+                EndpointStyle: {fill: '#3c3f41', stroke: '#63676a', strokeWidth: 2},    // single endpoint style (used during drag action)
+                EndpointStyles: [
+                    {fill: '#3c3f41', stroke: '#63676a', strokeWidth: 2},
+                    {fill: '#3c3f41', stroke: '#63676a', strokeWidth: 2}
+                ],
+                Connector: ['Bezier', {curviness: 40}],                                 // default connector style (this is not used!) all connections have their own style (by scope)
+                ReattachConnections: false,                                             // re-attach connection if dragged with mouse to "nowhere"
+                Scope: Init.defaultMapScope,                                            // default map scope for connections
                 LogEnabled: true
             });
 
@@ -2181,6 +2195,13 @@ define([
 
             });
 
+            // Notification an existing Connection is being dragged.
+            // Note that when this event fires for a brand new Connection, the target of the Connection is a transient element
+            // that jsPlumb is using for dragging, and will be removed from the DOM when the Connection is subsequently either established or aborted.
+            newJsPlumbInstance.bind('connectionDrag', function(info, e){
+
+            });
+
             // Notification a Connection was detached.
             // In the event that the Connection was new and had never been established between two Endpoints, it has a pending flag set on it.
             newJsPlumbInstance.bind('connectionDetached', function(info, e){
@@ -2198,6 +2219,11 @@ define([
                     MapContextMenu.openMenu(payload, e, context);
                 });
 
+            });
+
+            // Notification the current zoom was changed
+            newJsPlumbInstance.bind('zoom', function(zoom){
+                MapOverlay.updateZoomOverlay(this);
             });
 
             // ========================================================================================================
@@ -2275,6 +2301,8 @@ define([
     let setMapObserver = map => {
         // get map container
         let mapContainer = $(map.getContainer());
+
+        MapOverlay.initMapDebugOverlays(map);
 
         // context menu for mapContainer
         mapContainer.on('contextmenu', function(e){
@@ -2472,14 +2500,14 @@ define([
         // toggle "fullSize" Endpoint overlays for system (signature information) -------------------------------------
         mapContainer.hoverIntent({
             over: function(e){
-                for(let overlayInfo of map.selectEndpoints({element: this}).getOverlay(MapOverlay.endpointOverlayId)){
+                for(let overlayInfo of map.selectEndpoints({element: this}).getOverlay(MapOverlayUtil.config.endpointOverlayId)){
                     if(overlayInfo[0] instanceof jsPlumb.Overlays.Label){
                         overlayInfo[0].fire('toggleSize', true);
                     }
                 }
             },
             out: function(e){
-                for(let overlayInfo of map.selectEndpoints({element: this}).getOverlay(MapOverlay.endpointOverlayId)){
+                for(let overlayInfo of map.selectEndpoints({element: this}).getOverlay(MapOverlayUtil.config.endpointOverlayId)){
                     if(overlayInfo[0] instanceof jsPlumb.Overlays.Label){
                         overlayInfo[0].fire('toggleSize', false);
                     }
@@ -2526,7 +2554,7 @@ define([
                     }
 
                     // show map overlay info icon
-                    this.mapElement.getMapOverlay('info').updateOverlayIcon(this.mapOption.option, 'hide');
+                    MapOverlayUtil.getMapOverlay(this.mapElement, 'info').updateOverlayIcon(this.mapOption.option, 'hide');
 
                     // delete map option
                     MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option );
@@ -2545,7 +2573,7 @@ define([
                     }
 
                     // hide map overlay info icon
-                    this.mapElement.getMapOverlay('info').updateOverlayIcon(this.mapOption.option, 'show');
+                    MapOverlayUtil.getMapOverlay(this.mapElement, 'info').updateOverlayIcon(this.mapOption.option, 'show');
 
                     // store map option
                     MapUtil.storeLocalData('map', this.mapElement.data('id'), this.mapOption.option, 1 );
@@ -2591,7 +2619,7 @@ define([
 
                 if(select){
                     let mapWrapper = mapElement.closest('.' + config.mapWrapperClass);
-                    mapWrapper.scrollToSystem(MapUtil.getSystemPosition(system));
+                    Scrollbar.scrollToSystem(mapWrapper, MapUtil.getSystemPosition(system));
                     // select system
                     MapUtil.showSystemInfo(map, system);
                 }
@@ -2622,7 +2650,7 @@ define([
         // update "local" overlay for this map
         mapContainer.on('pf:updateLocal', function(e, userData){
             let mapElement = $(this);
-            let mapOverlay = mapElement.getMapOverlay('local');
+            let mapOverlay = MapOverlayUtil.getMapOverlay(mapElement, 'local');
 
             if(userData && userData.config && userData.config.id){
                 let currentMapData = Util.getCurrentMapData(userData.config.id);
@@ -2826,7 +2854,7 @@ define([
     let getMapDataForSync = (mapContainer, filter = [], minimal = false) => {
         let mapData = false;
         // check if there is an active map counter that prevents collecting map data (locked map)
-        if(!mapContainer.getMapOverlayInterval()){
+        if(!MapOverlayUtil.getMapOverlayInterval(mapContainer)){
             mapData = mapContainer.getMapDataFromClient(filter, minimal);
         }
         return mapData;
@@ -3044,6 +3072,96 @@ define([
 
         mapWrapperElement.initCustomScrollbar({
             callbacks: {
+                onInit: function(){
+                    // init 'space' key + 'mouse' down for map scroll -------------------------------------------------
+                    let scrollStart = [0, 0];
+                    let mouseStart = [0, 0];
+                    let mouseOffset = [0, 0];
+
+                    let animationFrameId = 0;
+
+                    let toggleDragScroll = active => {
+                        mapElement.toggleClass('disabled', active).toggleClass(' pf-map-move', active);
+                    };
+
+                    let stopDragScroll = () => {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = 0;
+                        scrollStart = [0, 0];
+                        mouseStart = [0, 0];
+                        mouseOffset = [0, 0];
+                    };
+
+                    let dragScroll = () => {
+                        if(Key.isActive(' ')){
+                            let scrollOffset = [
+                                Math.max(0, scrollStart[0] - mouseOffset[0]),
+                                Math.max(0, scrollStart[1] - mouseOffset[1])
+                            ];
+
+                            if(
+                                scrollOffset[0] !== Math.abs(this.mcs.left) ||
+                                scrollOffset[1] !== Math.abs(this.mcs.top)
+                            ){
+                                Scrollbar.scrollToPosition(this, [scrollOffset[1], scrollOffset[0]], {
+                                    scrollInertia: 0,
+                                    scrollEasing: 'linear',
+                                    timeout: 5
+                                });
+                            }
+
+                            // recursive re-call on next render
+                            animationFrameId = requestAnimationFrame(dragScroll);
+                        }
+                    };
+
+                    let keyDownHandler = function(e){
+                        if(e.keyCode === 32){
+                            e.preventDefault();
+                            toggleDragScroll(true);
+                        }
+                    };
+                    let keyUpHandler = function(e){
+                        if(e.keyCode === 32){
+                            e.preventDefault();
+                            toggleDragScroll(false);
+                        }
+                    };
+                    let mouseMoveHandler = function(e){
+                        if(animationFrameId){
+                            mouseOffset[0] = e.clientX - mouseStart[0];
+                            mouseOffset[1] = e.clientY - mouseStart[1];
+                        }
+
+                        // space activated on mouse move
+                        toggleDragScroll(Key.isActive(' '));
+                    };
+
+                    let mouseDownHandler = function(e){
+                        if(!animationFrameId && e.which === 1 && Key.isActive(' ')){
+                            scrollStart[0] = Math.abs(this.mcs.left);
+                            scrollStart[1] = Math.abs(this.mcs.top);
+                            mouseStart[0] = e.clientX;
+                            mouseStart[1] = e.clientY;
+
+                            toggleDragScroll(true);
+
+                            animationFrameId = requestAnimationFrame(dragScroll);
+                        }
+                    };
+
+                    let mouseUpHandler = function(e){
+                        if(e.which === 1){
+                            stopDragScroll();
+                        }
+                    };
+
+                    this.addEventListener('keydown', keyDownHandler, { capture: false });
+                    this.addEventListener('keyup', keyUpHandler, { capture: false });
+                    this.addEventListener('mousemove', mouseMoveHandler, { capture: false });
+                    this.addEventListener('mousedown', mouseDownHandler, { capture: false });
+                    this.addEventListener('mouseup', mouseUpHandler, { capture: false });
+                },
                 onScroll: function(){
                     // scroll complete
                     // update scroll position for drag-frame-selection
@@ -3070,7 +3188,6 @@ define([
         // add map overlays after scrollbar is initialized
         // because of its absolute position
         mapWrapperElement.initMapOverlays();
-
         mapWrapperElement.initLocalOverlay(mapId);
     };
 

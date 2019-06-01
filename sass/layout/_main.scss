@@ -692,11 +692,29 @@ table{
       right: 8px;
     }
   }
+  &.loading{
+    pointer-events: none;
+    color: $navbar-default-link-color;
+
+    &:after{
+      content: '\f021';
+      font-family: 'Font Awesome 5 Free';
+      font-weight: bold;
+      position: absolute;
+      right: 8px;
+      animation: fa-spin 2s infinite linear;
+    }
+  }
 }
 
 // custom scrollbars ==============================================================================
 .mCSB_container, .mCSB_dragger{
   will-change: top, left;
+}
+
+.mCSB_container{
+  overflow-x: visible !important; // for map zoom
+  overflow-y: visible !important; // for map zoom
 }
 
 // log types ======================================================================================

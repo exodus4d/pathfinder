@@ -322,7 +322,7 @@ define([
                 }),
                 getMenuHeadline('Configuration'),
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: ['list-group-item', 'loading'].join(' '),
                     html: '&nbsp;&nbsp;Settings'
                 }).prepend(
                     $('<i>',{
@@ -332,7 +332,7 @@ define([
                     $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
                 }),
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: ['list-group-item', 'loading'].join(' '),
                     id: Util.config.menuButtonGridId,
                     html:'&nbsp;&nbsp;Grid snapping'
                 }).prepend(
@@ -346,7 +346,7 @@ define([
                     });
                 }),
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: ['list-group-item', 'loading'].join(' '),
                     id: Util.config.menuButtonMagnetizerId,
                     html: '&nbsp;&nbsp;Magnetizing'
                 }).prepend(
@@ -360,7 +360,7 @@ define([
                     });
                 }),
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: ['list-group-item', 'loading'].join(' '),
                     id: Util.config.menuButtonEndpointId,
                     html: '&nbsp;&nbsp;Signatures'
                 }).prepend(
@@ -374,17 +374,12 @@ define([
                     });
                 }),
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: ['list-group-item', 'loading'].join(' '),
                     id: Util.config.menuButtonCompactId,
                     html: '&nbsp;&nbsp;Compact'
                 }).prepend(
                     $('<i>',{
                         class: 'fas fa-compress fa-fw'
-                    })
-                ).append(
-                    $('<span>',{
-                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
-                        text: 'beta'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
@@ -743,6 +738,10 @@ define([
         documentElement.on('pf:updateMenuOptions', function(e, data){
             let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
             $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);
+
+            // "loading" menu options require an active map
+            // -> active map now available -> remove loading class
+            $('.' + config.pageMenuRightClass + ' .loading').removeClass('loading');
         });
 
         // update header links with current map data
@@ -1311,5 +1310,4 @@ define([
         initTabChangeObserver: initTabChangeObserver,
         renderMapContextMenus: renderMapContextMenus
     };
-
 });
