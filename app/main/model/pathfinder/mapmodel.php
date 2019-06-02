@@ -977,7 +977,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return logging\LogInterface
      * @throws ConfigException
      */
-    public function newLog($action = '') : Logging\LogInterface{
+    public function newLog(string $action = '') : Logging\LogInterface{
         $logChannelData = $this->getLogChannelData();
         $logObjectData = $this->getLogObjectData();
         $log = (new logging\MapLog($action, $logChannelData))->setTempData($logObjectData);

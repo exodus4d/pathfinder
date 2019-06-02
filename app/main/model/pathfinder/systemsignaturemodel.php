@@ -173,7 +173,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      * @return logging\LogInterface
      * @throws \Exception\ConfigException
      */
-    public function newLog($action = ''): Logging\LogInterface{
+    public function newLog(string $action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
     }
 

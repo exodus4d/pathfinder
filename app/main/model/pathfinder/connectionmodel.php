@@ -92,7 +92,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * allowed connection types
      * @var array
      */
-    protected static $connectionTypeWhitelist = ['wh_fresh', 'wh_reduced', 'wh_critical', 'frigate', 'preserve_mass'];
+    protected static $connectionTypeWhitelist = ['stargate', 'abyssal', 'wh_fresh', 'wh_reduced', 'wh_critical', 'frigate', 'preserve_mass'];
 
     /**
      * get connection data
@@ -315,7 +315,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @return logging\LogInterface
      * @throws \Exception\ConfigException
      */
-    public function newLog($action = '') : Logging\LogInterface {
+    public function newLog(string $action = '') : Logging\LogInterface {
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
     }
 
