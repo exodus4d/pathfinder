@@ -923,17 +923,6 @@ class Map extends Controller\AccessController {
             ( $log = $character->getLog() )
         ){
             // character is currently in a system
-
-            $sameSystem = false;
-            $sourceExists = true;
-            $targetExists = true;
-
-            // system coordinates
-            $systemOffsetX = 130;
-            $systemOffsetY = 0;
-            $systemPosX = 0;
-            $systemPosY = 30;
-
             $sessionCharacter = $this->getSessionCharacterData();
             $sourceSystemId = (int)$sessionCharacter['PREV_SYSTEM_ID'];
             $targetSystemId = (int)$log->systemId;
@@ -942,40 +931,46 @@ class Map extends Controller\AccessController {
                 $sourceSystem = null;
                 $targetSystem = null;
 
-                // check if source and target systems are equal
-                // -> NO target system available
-                if($sourceSystemId === $targetSystemId){
-                    // check if previous (solo) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [AbstractModel::getFilter('active', true)]);
-                    $sameSystem = true;
-                }else{
-                    // check if previous (source) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [AbstractModel::getFilter('active', true)]);
+                $sourceExists = false;
+                $targetExists = false;
 
-                    // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId($targetSystemId, [AbstractModel::getFilter('active', true)]);
-                }
+                $sameSystem = false;
+
+                // system coordinates for system tha might be added next
+                $systemOffsetX = 130;
+                $systemOffsetY = 0;
+                $systemPosX = 0;
+                $systemPosY = 30;
+
+                // check if previous (solo) system is already on the map ----------------------------------------------
+                $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [AbstractModel::getFilter('active', true)]);
 
                 // if systems don´t already exists on map -> get "blank" system
                 // -> required for system type check (e.g. wormhole, k-space)
-                if(
-                    !$sourceSystem &&
-                    $sourceSystemId
-                ){
-                    $sourceExists = false;
-                    $sourceSystem = $map->getNewSystem($sourceSystemId);
-                }else{
+                if($sourceSystem){
+                    $sourceExists = true;
+
                     // system exists -> add target to the "right"
                     $systemPosX = $sourceSystem->posX + $systemOffsetX;
                     $systemPosY = $sourceSystem->posY + $systemOffsetY;
+                }else{
+                    $sourceSystem = $map->getNewSystem($sourceSystemId);
                 }
 
-                if(
-                    !$sameSystem &&
-                    !$targetSystem
-                ){
-                    $targetExists = false;
-                    $targetSystem = $map->getNewSystem($targetSystemId);
+                // check if source and target systems are equal -------------------------------------------------------
+                if($sourceSystemId === $targetSystemId){
+                    $sameSystem = true;
+                    $targetExists = $sourceExists;
+                    $targetSystem = $sourceSystem;
+                }elseif($targetSystemId){
+                    // check if target system is already on this map
+                    $targetSystem = $map->getSystemByCCPId($targetSystemId, [AbstractModel::getFilter('active', true)]);
+
+                    if($targetSystem){
+                        $targetExists = true;
+                    }else{
+                        $targetSystem = $map->getNewSystem($targetSystemId);
+                    }
                 }
 
                 // make sure we have system objects to work with
@@ -1077,6 +1072,7 @@ class Map extends Controller\AccessController {
                     }
 
                     if(
+                        !$sameSystem &&
                         $sourceExists &&
                         $targetExists &&
                         $sourceSystem &&
