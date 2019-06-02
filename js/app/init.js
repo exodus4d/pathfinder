@@ -411,27 +411,27 @@ define(['jquery'], ($) => {
         // signature groups
         signatureGroups: {
             1: {
-                name: '(combat site|kampfgebiet|site de combat|Боевой район)', //*
+                name: '(combat site|kampfgebiet|site de combat|Боевой район|战斗地点)',
                 label: 'Combat'
             },
             2: {
-                name: '(relic site|reliktgebiet|site de reliques|Археологический район)', //*
+                name: '(relic site|reliktgebiet|site de reliques|Археологический район|遗迹地点)',
                 label: 'Relic'
             },
             3: {
-                name: '(data site|datengebiet|site de données|Информационный район)',
+                name: '(data site|datengebiet|site de données|Информационный район|数据地点)',
                 label: 'Data'
             },
             4: {
-                name: '(gas site|gasgebiet|site de collecte de gaz|Газовый район)',
+                name: '(gas site|gasgebiet|site de collecte de gaz|Газовый район|气云地点)',
                 label: 'Gas'
             },
             5: {
-                name: '(wormhole|wurmloch|trou de ver|Червоточина)',
+                name: '(wormhole|wurmloch|trou de ver|Червоточина|虫洞)',
                 label: 'Wormhole'
             },
             6: {
-                name: '(ore site|mineraliengebiet|site de minerai|Астероидный район)',
+                name: '(ore site|mineraliengebiet|site de minerai|Астероидный район|矿石地点)',
                 label: 'Ore'
             },
             7: {

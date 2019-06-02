@@ -68,7 +68,7 @@ define([
         'Kosmische Anomalie',                                                   // de: "Cosmic Anomaly"
         'Kosmische Signatur',                                                   // de: "Cosmic Signature"
         'Космическая аномалия',                                                 // ru: "Cosmic Anomaly"
-        'Скрытый сигнал',                                                       // rm: "Cosmic Signature"
+        'Скрытый сигнал',                                                       // ru: "Cosmic Signature"
         'Anomalie cosmique',                                                    // fr: "Cosmic Anomaly"
         'Signature cosmique',                                                   // fr: "Cosmic Signature"
         '宇宙の特異点',                                                               // ja: "Cosmic Anomaly"
