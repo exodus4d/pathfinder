@@ -3176,7 +3176,7 @@ define([
                 },
                 onScrollStart: function(){
                     // hide all open xEditable fields
-                    $(this).find('.editable').editable('hide');
+                    $(this).find('.editable.editable-open').editable('hide');
 
                     // hide all system head tooltips
                     $(this).find('.' + config.systemHeadClass + ' .fa').tooltip('hide');

@@ -43,6 +43,11 @@ define([
             keyNames:   ['CONTROL', 'V'],
             alias:      'paste'
         },
+        renameSystem: {
+            group:      'map',
+            label:      'Rename system',
+            keyNames:   ['ALT', 'N']
+        },
         newSignature: {
             group:      'signatures',
             label:      'New Signature',

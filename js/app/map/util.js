@@ -779,6 +779,14 @@ define([
     };
 
     /**
+     * toggles editable input form for system rename (set alias)
+     * @param system
+     */
+    let toggleSystemAliasEditable = system => {
+        system.find('.editable').editable('toggle');
+    };
+
+    /**
      * mark system as "selected" e.g. for dragging
      * @param map
      * @param system
@@ -1999,6 +2007,7 @@ define([
         filterMapByScopes: filterMapByScopes,
         changeZoom: changeZoom,
         setZoom: setZoom,
+        toggleSystemAliasEditable: toggleSystemAliasEditable,
         storeLocaleCharacterData: storeLocaleCharacterData,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,

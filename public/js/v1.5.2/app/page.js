@@ -119,11 +119,21 @@ define([
         return this.each((i, body) => {
             body = $(body);
 
-            body.watchKey('tabReload', (body) => {
+            body.watchKey('tabReload', body => {
                 location.reload();
             });
 
-            body.watchKey('newSignature', (body) => {
+            body.watchKey('renameSystem', body => {
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    let activeSystem = activeMap.find('.' + MapUtil.config.systemActiveClass + ':first');
+                    if(activeSystem.length){
+                        MapUtil.toggleSystemAliasEditable(activeSystem);
+                    }
+                }
+            });
+
+            body.watchKey('newSignature', body => {
                 let activeMap = Util.getMapModule().getActiveMap();
                 if(activeMap){
                     let mapContentElement = MapUtil.getTabContentElementByMapElement(activeMap);
@@ -132,7 +142,7 @@ define([
                 }
             });
 
-            body.watchKey('clipboardPaste', (e) => {
+            body.watchKey('clipboardPaste', e => {
                 // just send event to the current active map
                 let activeMap = Util.getMapModule().getActiveMap();
                 if(activeMap){

@@ -85,10 +85,11 @@ define([
      * -> subtract some offset for tooltips/connections
      * @param scrollWrapper
      * @param position
+     * @param options
      */
-    let scrollToSystem = (scrollWrapper, position) => {
+    let scrollToSystem = (scrollWrapper, position, options) => {
         position = getOffsetPosition(position, {x: -15, y: -35});
-        scrollToPosition(scrollWrapper, position);
+        scrollToPosition(scrollWrapper, position, options);
     };
 
     /**
