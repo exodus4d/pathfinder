@@ -18,6 +18,12 @@ use Clue\React\NDJson;
 abstract class AbstractSocket implements SocketInterface {
 
     /**
+     * max length for JSON data string
+     * -> throw OverflowException on exceed
+     */
+    const JSON_DECODE_MAX_LENGTH = 65536 * 4;
+
+    /**
      * @var EventLoop\LoopInterface|null
      */
     private $loop;
@@ -195,7 +201,7 @@ abstract class AbstractSocket implements SocketInterface {
             // new empty stream for processing JSON
             $stream = new Stream\ThroughStream();
 
-            $streamDecoded = new NDJson\Decoder($stream, true);
+            $streamDecoded = new NDJson\Decoder($stream, true, 512, 0, self::JSON_DECODE_MAX_LENGTH);
 
             // promise get resolved on first emit('data')
             $promise = Promise\Stream\first($streamDecoded);
