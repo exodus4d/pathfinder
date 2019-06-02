@@ -699,9 +699,8 @@ define([
                 $(tabContentElement).trigger('pf:removeSystemModules');
             }
 
-            // remove endpoints and their connections
-            // do not fire a "connectionDetached" event
-            map.detachAllConnections(system, {fireEvent: false});
+            // remove connections do not fire a "connectionDetached" event
+            map.deleteConnectionsForElement(system, {fireEvent: false});
 
             // destroy tooltip/popover
             system.toggleSystemTooltip('destroy', {});
