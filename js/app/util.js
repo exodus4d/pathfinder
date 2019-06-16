@@ -971,6 +971,16 @@ define([
         };
 
         /**
+         * compares two arrays if all elements in a are also in b
+         * element order is ignored
+         * @param a
+         * @returns {boolean}
+         */
+        Array.prototype.equalValues = function(a){
+            return this.diff(a).concat(a.diff(this)).length === 0;
+        };
+
+        /**
          * sort array of objects by property name
          * @param p
          * @returns {Array.<T>}

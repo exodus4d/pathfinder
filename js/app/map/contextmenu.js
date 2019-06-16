@@ -93,20 +93,25 @@ define([
         let moduleData = {
             id: config.connectionContextMenuId,
             items: [
-                {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
+                {icon: 'fa-hourglass-end', action: 'wh_eol', text: 'toggle EOL'},
                 {icon: 'fa-exclamation-triangle', action: 'preserve_mass', text: 'preserve mass'},
-                {icon: 'fa-crosshairs', action: 'change_scope', text: 'change scope', subitems: [
-                        {subIcon: 'fa-minus-circle', subIconClass: '', subAction: 'scope_wh', subText: 'wormhole'},
-                        {subIcon: 'fa-minus-circle', subIconClass: 'txt-color  txt-color-indigoDarkest', subAction: 'scope_stargate', subText: 'stargate'},
-                        {subIcon: 'fa-minus-circle', subIconClass: 'txt-color  txt-color-tealLighter', subAction: 'scope_jumpbridge', subText: 'jumpbridge'}
+                {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'mass status', subitems: [
+                        {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-gray', subAction: 'status_fresh', subText: 'stage 1 (fresh)'},
+                        {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-orange', subAction: 'status_reduced', subText: 'stage 2 (reduced)'},
+                        {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-redDarker', subAction: 'status_critical', subText: 'stage 3 (critical)'}
 
                     ]},
-                {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'change status', subitems: [
-                        {subIcon: 'fa-clock', subAction: 'wh_eol', subText: 'toggle EOL'},
-                        {subDivider: true},
-                        {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 1 (fresh)'},
-                        {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 2 (reduced)'},
-                        {subIcon: 'fa-circle', subAction: 'status_critical', subText: 'stage 3 (critical)'}
+                {icon: 'fa-reply fa-rotate-180', action: 'wh_jump_mass_change', text: 'ship size', subitems: [
+                        {subIcon: 'fa-char', subChar: 'S', subAction: 'wh_jump_mass_s', subText: 'smallest ships'},
+                        {subIcon: 'fa-char', subChar: 'M', subAction: 'wh_jump_mass_m', subText: 'medium ships'},
+                        {subIcon: 'fa-char', subChar: 'L', subAction: 'wh_jump_mass_l', subText: 'larger ships'},
+                        {subIcon: 'fa-char', subChar: 'XL', subAction: 'wh_jump_mass_xl', subText: 'capital ships'}
+
+                    ]},
+                {icon: 'fa-crosshairs', action: 'change_scope', text: 'change scope', subitems: [
+                        {subIcon: 'fa-minus-circle', subIconClass: '', subAction: 'scope_wh', subText: 'wormhole'},
+                        {subIcon: 'fa-minus-circle', subIconClass: 'txt-color txt-color-indigoDarkest', subAction: 'scope_stargate', subText: 'stargate'},
+                        {subIcon: 'fa-minus-circle', subIconClass: 'txt-color txt-color-tealLighter', subAction: 'scope_jumpbridge', subText: 'jumpbridge'}
 
                     ]},
                 {divider: true, action: 'separator'} ,

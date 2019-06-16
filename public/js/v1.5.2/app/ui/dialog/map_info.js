@@ -382,9 +382,7 @@ define([
                             let statics = [];
                             for(let wormholeName of cellData){
                                 let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                                let security = wormholeData.security;
-                                let secClass = Util.getSecurityClassForSystem(security);
-                                statics.push('<span class="' + secClass + '">' + security + '</span>');
+                                statics.push('<span class="' + wormholeData.class + '">' + wormholeData.security + '</span>');
                             }
                             return statics.join('&nbsp;&nbsp;');
                         }
@@ -596,7 +594,7 @@ define([
                         display: (cellData, type, rowData, meta) => {
                             let connectionClasses = MapUtil.getConnectionFakeClassesByTypes(cellData);
                             connectionClasses = connectionClasses.join(' ');
-                            return  '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
+                            return  '<div class="' + connectionClasses + '"></div>';
                         }
                     }
                 },{

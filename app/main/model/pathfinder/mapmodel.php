@@ -658,7 +658,7 @@ class MapModel extends AbstractMapTrackingModel {
             /**
              * @var $connection ConnectionModel
              */
-            $connectionData[] = $connection->getData();
+            $connectionData[] = $connection->getData(true);
         }
 
         return $connectionData;

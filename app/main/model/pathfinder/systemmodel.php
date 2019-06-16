@@ -812,7 +812,9 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * CharacterModel $character
+     * Updates the signature history cache
+     * -> each (bulk) change to signatures of this system must result in a new signature history cache entry
+     * -> This method also clears the cache of this system, so that new signature data gets returned for in getData()
      * @param CharacterModel $character
      * @param string $action
      * @throws \Exception
@@ -833,6 +835,11 @@ class SystemModel extends AbstractMapTrackingModel {
             array_splice($signaturesHistoryData, self::MAX_HISTORY_SIGNATURES);
 
             $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_SIGNATURES, self::TTL_HISTORY_SIGNATURES);
+
+            // clear system cache here
+            // -> Signature model updates should NOT update the system cache on change
+            //    because a "bulk" change to signatures would clear the system cache multiple times
+            $this->clearCacheData();
         }
     }
 

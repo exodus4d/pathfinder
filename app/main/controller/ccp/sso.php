@@ -401,8 +401,7 @@ class Sso extends Api\User{
             if( !empty($authCodeRequestData['expiresIn']) ){
                 // expire time for accessToken
                 try{
-                    $timezone = $this->getF3()->get('getTimeZone')();
-                    $accessTokenExpires = new \DateTime('now', $timezone);
+                    $accessTokenExpires = $this->getF3()->get('getDateTime')();
                     $accessTokenExpires->add(new \DateInterval('PT' . (int)$authCodeRequestData['expiresIn'] . 'S'));
 
                     $accessData->esiAccessTokenExpires = $accessTokenExpires->format('Y-m-d H:i:s');

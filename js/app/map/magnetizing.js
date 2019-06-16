@@ -1,135 +1,173 @@
 /**
  * Map "magnetizing" feature
- * jsPlumb extension used: http://morrisonpitt.com/farahey/
+ * jsPlumb extension used: https://github.com/ThomasChan/farahey
  */
 
 define([
     'jquery',
     'app/map/util',
     'farahey'
-], function($, MapUtil){
+], ($, MapUtil) => {
 
     'use strict';
 
     /**
-     * Cached current "Magnetizer" object
-     * @type {Magnetizer}
+     * active magnetizer instances (cache object)
+     * @type {{}}
      */
-    let m8 = null;
+    let magnetizerInstances = {};
 
     /**
-     * init a jsPlumb (map) Element for "magnetised" function.
-     * this is optional and prevents systems from being overlapped
+     * magnetizer instance exists for mapId
+     * @param mapId
+     * @returns {boolean}
      */
-    $.fn.initMagnetizer = function(){
-        let mapContainer = this;
-        let systems = mapContainer.getSystems();
+    let hasInstance = mapId => magnetizerInstances.hasOwnProperty(mapId);
 
-        /**
-         * helper function
-         * get current system offset
-         * @param system
-         * @returns {{left, top}}
-         * @private
-         */
-        let _offset = function(system){
+    /**
+     * get magnetizer instance by mapId
+     * @param mapId
+     * @returns {null}
+     */
+    let getInstance = mapId => hasInstance(mapId) ? magnetizerInstances[mapId] : null;
 
-            let _ = function(p){
-                let v = system.style[p];
-                return parseInt(v.substring(0, v.length - 2));
-            };
-
-            return {
-                left:_('left'),
-                top:_('top')
-            };
-        };
-
-        /**
-         * helper function
-         * set new system offset
-         * @param system
-         * @param o
-         * @private
-         */
-        let _setOffset = function(system, o){
-            let markAsUpdated = false;
-
-            // new position must be within parent container
-            // no negative offset!
-            if(
-                o.left >= 0 &&
-                o.left <= 2300
-            ){
-                markAsUpdated = true;
-                system.style.left = o.left + 'px';
-            }
-
-            if(
-                o.top >= 0 &&
-                o.top <= 498
-            ){
-                markAsUpdated = true;
-                system.style.top = o.top + 'px';
-            }
-
-            if(markAsUpdated === true){
-                MapUtil.markAsChanged($(system));
-            }
-        };
-
-        /**
-         * helper function
-         * exclude current dragged element(s) from position update
-         * @param id
-         * @returns {boolean}
-         * @private
-         */
-        let _dragFilter = function(id){
-            return !$('#' + id).is('.jsPlumb_dragged, .pf-system-locked');
-        };
-
-        let gridConstrain = function(gridX, gridY){
-            return function(id, current, delta){
-                if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
-                    // active grid
-                    return {
-                        left:(gridX * Math.floor( (current[0] + delta.left) / gridX )) - current[0],
-                        top:(gridY * Math.floor( (current[1] + delta.top) / gridY )) - current[1]
-                    };
-                }else{
-                    // no grid
-                    return delta;
-                }
-            };
-        };
-
-        // main init for "magnetize" feature ------------------------------------------------------
-        m8 = new Magnetizer({
-            container: mapContainer,
-            getContainerPosition: function(c){
-                return c.offset();
-            },
-            getPosition:_offset,
-            getSize: function(system){
-                return [ $(system).outerWidth(), $(system).outerHeight() ];
-            },
-            getId : function(system){
-                return $(system).attr('id');
-            },
-            setPosition:_setOffset,
-            elements: systems,
-            filter: _dragFilter,
-            padding: [6, 6],
-            constrain: gridConstrain(MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension)
-        });
+    /**
+     * set new magnetizer instance for mapId
+     * @param mapId
+     * @param magnetizer
+     */
+    let setInstance = (mapId, magnetizer) => {
+        if(mapId && magnetizer){
+            magnetizerInstances[mapId] = magnetizer;
+        }
     };
 
-    $.fn.destroyMagnetizer = function(){
-        let mapContainer = this;
+    /**
+     * init new magnetizer instance for a map
+     * @param mapContainer
+     */
+    let initMagnetizer = mapContainer => {
+        let mapId = mapContainer.data('id');
 
-        // remove cached "magnetizer" instance
-        m8 = null;
+        if(!hasInstance(mapId)){
+            // magnetizer not exist -> new instance
+            let systems = mapContainer.getSystems();
+
+            /**
+             * function that takes an element from your list and returns its position as a JS object
+             * @param system
+             * @returns {{top: number, left: number}}
+             * @private
+             */
+            let _offset = system => {
+                let _ = p => {
+                    let v = system.style[p];
+                    return parseInt(v.substring(0, v.length - 2));
+                };
+                return {left: _('left'), top: _('top')};
+            };
+
+            /**
+             * function that takes an element id and position, and applies that position to the related element
+             * @param system
+             * @param o
+             * @private
+             */
+            let _setOffset = (system, o) => {
+                o.left = Math.round(o.left);
+                o.top = Math.round(o.top);
+                let left = o.left + 'px';
+                let top = o.top + 'px';
+                let markAsUpdated = false;
+
+                // new position must be within parent container
+                // no negative offset!
+                if(
+                    o.left >= 0 && o.left <= 2300 &&
+                    system.style.left !== left
+                ){
+                    system.style.left = left;
+                    markAsUpdated = true;
+                }
+
+                if(
+                    o.top >= 0 && o.top <= 1400 &&
+                    system.style.top !== top
+                ){
+                    system.style.top = top;
+                    markAsUpdated = true;
+                }
+
+                if(markAsUpdated){
+                    MapUtil.markAsChanged($(system));
+                }
+            };
+
+            /**
+             * filter some element8s) from being moved
+             * @param systemId
+             * @returns {boolean}
+             * @private
+             */
+            let _dragFilter = systemId => {
+                let filterClasses = ['jtk-drag', 'pf-system-locked'];
+                return ![...document.getElementById(systemId).classList].some(className => filterClasses.indexOf(className) >= 0);
+            };
+
+            /**
+             * grid snap constraint
+             * @param gridX
+             * @param gridY
+             * @returns {Function}
+             */
+            let gridConstrain = (gridX, gridY) => {
+                return (id, current, delta) => {
+                    if(mapContainer.hasClass(MapUtil.config.mapGridClass)){
+                        // active grid
+                        return {
+                            left: (gridX * Math.floor( (Math.round(current[0]) + delta.left) / gridX )) - current[0],
+                            top:  (gridY * Math.floor( (Math.round(current[1]) + delta.top) / gridY )) - current[1]
+                        };
+                    }else{
+                        // no grid
+                        delta.left = Math.round(delta.left);
+                        delta.top = Math.round(delta.top);
+                        return delta;
+                    }
+                };
+            };
+
+            // create new magnetizer instance -------------------------------------------------------------------------
+            setInstance(mapId, window.Farahey.getInstance({
+                container: mapContainer,
+                getContainerPosition: mapContainer => mapContainer.offset(),
+                getPosition:_offset,
+                getSize: system => {
+                    let clientRect = system.getBoundingClientRect();
+                    return [Math.floor(clientRect.width), Math.floor(clientRect.height)];
+                },
+                getId : system => system.id,
+                setPosition:_setOffset,
+                elements: systems.toArray(),
+                filter: _dragFilter,
+                padding: [3, 3],
+                constrain: gridConstrain(MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension),
+                executeNow: false,                               // no initial rearrange after initialization
+                excludeFocus: true
+            }));
+        }
+    };
+
+    /**
+     * destroy Magnetizer instance
+     */
+    let destroyMagnetizer = mapContainer => {
+        let mapId = mapContainer.data('id');
+        let magnetizer = getInstance(mapId);
+        if(magnetizer){
+            magnetizer.reset();
+            delete magnetizerInstances[mapId];
+        }
     };
 
     /**
@@ -137,44 +175,50 @@ define([
      * @param map
      * @param e
      */
-    let executeAtEvent = function(map, e){
-        if(m8 !== null && e ){
-            m8.executeAtEvent(e);
+    let executeAtEvent = (map, e) => {
+        let mapContainer = $(map.getContainer());
+        let mapId = mapContainer.data('id');
+        let magnetizer = getInstance(mapId);
+
+        if(magnetizer && e){
+            magnetizer.executeAtEvent(e, {
+                iterations: 2,
+                excludeFocus: true
+            });
             map.repaintEverything();
         }
     };
 
     /**
-     * rearrange all systems of a map
-     * needs "magnetization" to be active
-     * @param map
+     * add system to magnetizer instance
+     * @param mapId
+     * @param system
+     * @param doNotTestForDuplicates
      */
-    let executeAtCenter = function(map){
-        if(m8 !== null){
-            m8.executeAtCenter();
-            map.repaintEverything();
+    let addElement = (mapId, system, doNotTestForDuplicates) => {
+        let magnetizer = getInstance(mapId);
+        if(magnetizer){
+            magnetizer.addElement(system, doNotTestForDuplicates);
         }
     };
 
     /**
-     * set/update elements for "magnetization"
-     * -> (e.g. new systems was added)
-     * @param map
+     * remove system element from magnetizer instance
+     * @param mapId
+     * @param system
      */
-    let setElements = function(map){
-        if(m8 !== null){
-            let mapContainer = $(map.getContainer());
-            let systems = mapContainer.getSystems();
-            m8.setElements(systems);
-
-            // re-arrange systems
-            executeAtCenter(map);
+    let removeElement = (mapId, system) => {
+        let magnetizer = getInstance(mapId);
+        if(magnetizer){
+            magnetizer.removeElement(system);
         }
     };
 
     return {
-        executeAtCenter: executeAtCenter,
+        initMagnetizer: initMagnetizer,
+        destroyMagnetizer: destroyMagnetizer,
         executeAtEvent: executeAtEvent,
-        setElements: setElements
+        addElement: addElement,
+        removeElement: removeElement
     };
 });

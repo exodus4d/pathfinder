@@ -145,7 +145,6 @@ define(['jquery'], ($) => {
                 unicode: '&#xf619;'
             }
         ],
-
         classes: {
             // log types
             logTypes: {
@@ -354,17 +353,61 @@ define(['jquery'], ($) => {
             wh_critical: {
                 cssClass: 'pf-map-connection-wh-critical'
             },
-            frigate: {
-                cssClass: 'pf-map-connection-frig',
+            wh_jump_mass_s: {
+                cssClass: 'pf-map-connection-wh-size-s',
                 paintStyle: {
-                    dashstyle: '0.5 1'
+                    dashstyle: '0.5 1',
+                    strokeWidth: 3
                 },
                 overlays: [
                     ['Label',
                         {
-                            label: 'frig',
-                            cssClass: ['pf-map-component-overlay', 'frig'].join(' '),
-                            location: 0.7
+                            label: '<i class="fas fa-char pf-jump-mass-s" data-char-content="S"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
+                        }]
+                ]
+            },
+            wh_jump_mass_m: {
+                cssClass: 'pf-map-connection-wh-size-m',
+                paintStyle: {
+                    dashstyle: '3 1'
+                },
+                overlays: [
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-char pf-jump-mass-m" data-char-content="M"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
+                        }]
+                ]
+            },
+            wh_jump_mass_l: {
+                cssClass: 'pf-map-connection-wh-size-l',
+                overlays: [
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-char pf-jump-mass-l" data-char-content="L"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
+                        }]
+                ]
+            },
+            wh_jump_mass_xl: {
+                cssClass: 'pf-map-connection-wh-size-xl',
+                paintStyle: {
+                    strokeWidth: 6
+                },
+                overlays: [
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-char pf-jump-mass-xl" data-char-content="XL"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
                         }]
                 ]
             },
@@ -375,7 +418,7 @@ define(['jquery'], ($) => {
                         {
                             label: '<i class="fas fa-fw fa-exclamation-triangle"></i>&nbsp;save mass',
                             cssClass: ['pf-map-component-overlay', 'mass'].join(' '),
-                            location: 0.3
+                            location: 0.35
                         }]
                 ]
             },
@@ -387,8 +430,8 @@ define(['jquery'], ($) => {
                             cssClass: 'pf-map-connection-arrow-overlay',
                             width: 12,
                             length: 15,
-                            foldback: 0.8,
                             direction: 1,
+                            foldback: 0.8,
                             location: 0.5
                         }]
                 ]
@@ -406,6 +449,32 @@ define(['jquery'], ($) => {
                             location: 0.5
                         }]
                 ]
+            }
+        },
+        wormholeSizes: {
+            wh_jump_mass_xl: {
+                jumpMassMin: 1000000000,
+                type: 'wh_jump_mass_xl',
+                class: 'pf-jump-mass-xl',
+                label: 'XL'
+            },
+            wh_jump_mass_l: {
+                jumpMassMin: 300000000,
+                type: 'wh_jump_mass_l',
+                class: 'pf-jump-mass-l',
+                label: 'L'
+            },
+            wh_jump_mass_m: {
+                jumpMassMin: 20000000,
+                type: 'wh_jump_mass_m',
+                class: 'pf-jump-mass-m',
+                label: 'M'
+            },
+            wh_jump_mass_s: {
+                jumpMassMin: 1000,
+                type: 'wh_jump_mass_s',
+                class: 'pf-jump-mass-s',
+                label: 'S'
             }
         },
         // signature groups

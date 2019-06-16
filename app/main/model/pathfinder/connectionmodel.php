@@ -92,7 +92,23 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * allowed connection types
      * @var array
      */
-    protected static $connectionTypeWhitelist = ['stargate', 'abyssal', 'wh_fresh', 'wh_reduced', 'wh_critical', 'frigate', 'preserve_mass'];
+    protected static $connectionTypeWhitelist = [
+        // base type for scopes
+        'stargate',
+        'abyssal',
+        // wh mass reduction types
+        'wh_fresh',
+        'wh_reduced',
+        'wh_critical',
+        // wh jump mass types
+        'wh_jump_mass_s',
+        'wh_jump_mass_m',
+        'wh_jump_mass_l',
+        'wh_jump_mass_xl',
+        // other types
+        'wh_eol',
+        'preserve_mass'
+    ];
 
     /**
      * get connection data

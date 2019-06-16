@@ -121,6 +121,25 @@ define([
          */
         let initData = () => {
 
+            /**
+             * add wormhole size data for each wormhole
+             * @param wormholes
+             * @returns {*}
+             */
+            let addWormholeSizeData = wormholes => {
+                for(let [wormholeName, wormholeData] of Object.entries(wormholes)){
+                    wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
+
+                    for(let [sizeName, sizeData] of Object.entries(Init.wormholeSizes)){
+                        if(wormholeData.massIndividual >= sizeData.jumpMassMin){
+                            wormholeData.size = sizeData;
+                            break;
+                        }
+                    }
+                }
+                return wormholes;
+            };
+
             let initDataExecutor = (resolve, reject) => {
                 $.getJSON(Init.path.initData).done(response => {
                     if( response.error.length > 0 ){
@@ -139,7 +158,7 @@ define([
                     Init.connectionScopes   = response.connectionScopes;
                     Init.systemStatus       = response.systemStatus;
                     Init.systemType         = response.systemType;
-                    Init.wormholes          = response.wormholes;
+                    Init.wormholes          = addWormholeSizeData(response.wormholes);
                     Init.characterStatus    = response.characterStatus;
                     Init.routes             = response.routes;
                     Init.url                = response.url;

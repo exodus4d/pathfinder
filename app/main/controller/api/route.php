@@ -155,7 +155,7 @@ class Route extends Controller\AccessController {
                 }
 
                 if( $filterData['wormholesFrigate'] !== true ){
-                    $excludeTypes[] = 'frigate';
+                    $excludeTypes[] = 'wh_jump_mass_s';
                 }
 
                 if( $filterData['wormholesEOL'] === false ){

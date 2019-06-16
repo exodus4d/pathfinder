@@ -4,11 +4,12 @@
         <tr>
             <th class=""></th>
             <th class="text-center">Leads to</th>
-            <th class="text-center pf-table-cell-10" title="is static"><i class="fas fa-thumbtack"></i></th>
+            <th class="text-center">Size</th>
+            <th class="text-center" title="is static"><i class="fas fa-thumbtack"></i></th>
             <th class="text-right">Mass total</th>
             <th class="text-right">Mass individual</th>
             <th class="text-right">Mass regeneration</th>
-            <th class="text-right">Lifetime</th>
+            <th class="text-right" title="lifetime"><i class="fas fa-hourglass-start"></i></th>
             <th class="text-right">Sig strength</th>
         </tr>
         </thead>
@@ -16,7 +17,8 @@
         {{#wormholes}}
         <tr>
             <td>{{name}}</td>
-            <td class="text-center {{#securityClass}}{{security}}{{/securityClass}}">{{security}}</td>
+            <td class="text-center {{class}}">{{security}}</td>
+            <td class="text-center {{#size}}{{size.class}}{{/size}}" data-order="{{size.jumpMassMin}}">{{#size}}{{size.label}}{{/size}}</td>
             <td class="text-center" data-order="{{static}}">{{#formatStatic}}{{static}}{{/formatStatic}}</td>
             <td class="text-right" data-order="{{massTotal}}">{{#massValue}}{{massTotal}}{{/massValue}}</td>
             <td class="text-right" data-order="{{massIndividual}}">{{#massValue}}{{massIndividual}}{{/massValue}}</td>

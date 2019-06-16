@@ -67,8 +67,12 @@ $.fn.dragToSelect = function (conf) {
 		onRefresh:			function () {return true;}
 	}, c);
 
-	var realParent	= $(this);
-	var parent		= realParent;
+	var realParent			= $(this);
+	var parent				= realParent;
+
+	// container for lasso element
+	// -> the only reason for NOT using the .pf-map is because of the zoom [scale()] feature or .pf-map
+	var lassoContainer 		= realParent.parent();
 
 	var animationFrameId;
 	var mouseIsDown = false;
@@ -124,7 +128,7 @@ $.fn.dragToSelect = function (conf) {
 
 	// Create select box
 	var selectBox = $('<div>')
-						.appendTo(parent)
+						.appendTo(lassoContainer)
 						.attr('class', config.className)
 						.css('position', 'absolute');
 
@@ -155,20 +159,6 @@ $.fn.dragToSelect = function (conf) {
 		if (!selectBox.is('.' + config.activeClass) || parent.is('.' + config.disabledClass)) {
 			return refreshed;
 		}
-
-        // get scroll position
-		/*
-        var leftScroll  = 0;
-        var topScroll = 0;
-
-        if(realParent.attr('data-scroll-left')){
-            leftScroll  = parseInt(realParent.attr('data-scroll-left'));
-        }
-
-        if(realParent.attr('data-scroll-top')){
-            topScroll  = parseInt(realParent.attr('data-scroll-top'));
-        }
-		*/
 
 		var left		= lastMousePosition.x - parentDim.left + parent[0].scrollLeft;
 		var top			= lastMousePosition.y - parentDim.top + parent[0].scrollTop;
@@ -217,30 +207,6 @@ $.fn.dragToSelect = function (conf) {
 		}
 		if (config.onHide(selectBox, deselectedItems) !== false) {
 			selectBox.removeClass(config.activeClass);
-		}
-	};
-
-	// Scrolls parent if needed
-	var scrollPerhaps = function (e) {
-		if (!selectBox.is('.' + config.activeClass) || parent.is('.' + config.disabledClass)) {
-			return;
-		}
-
-		// Scroll down
-		if ((e.pageY + config.scrollTH) > (parentDim.top + parentDim.height)) {
-			parent[0].scrollTop += config.scrollTH;
-		}
-		// Scroll up
-		if ((e.pageY - config.scrollTH) < parentDim.top) {
-			parent[0].scrollTop -= config.scrollTH;
-		}
-		// Scroll right
-		if ((e.pageX + config.scrollTH) > (parentDim.left + parentDim.width)) {
-			parent[0].scrollLeft += config.scrollTH;
-		}
-		// Scroll left
-		if ((e.pageX - config.scrollTH) < parentDim.left) {
-			parent[0].scrollLeft -= config.scrollTH;
 		}
 	};
 

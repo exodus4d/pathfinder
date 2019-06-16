@@ -166,7 +166,7 @@ define([
                     if(type.includes('wh_critical')){
                         styleClass.push('pf-wh-critical');
                     }
-                    if(type.includes('frigate')){
+                    if(type.includes('wh_jump_mass_s')){
                         styleClass.push('pf-wh-frig');
                     }
                 }

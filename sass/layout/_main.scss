@@ -44,6 +44,14 @@ em{
   text-decoration: line-through;
 }
 
+.fa-char{
+  &:before{
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    content: attr(data-char-content);
+  }
+}
+
 .no-scroll{
   overflow: hidden;
 }
@@ -651,7 +659,6 @@ table{
   //background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
   background-color:  $body-background-color;
   background-repeat: no-repeat;
-  will-change: transform;
 }
 
 .pf-menu{
@@ -1202,6 +1209,23 @@ table{
   color: $planet-color-temperate;
 }
 
+// connection size by jump mass ===================================================================
+.pf-jump-mass-xl{
+  //color: $indigo;
+}
+
+.pf-jump-mass-l{
+  //color: $blue;
+}
+
+.pf-jump-mass-m{
+  //color: $yellow-dark;
+}
+
+.pf-jump-mass-s{
+  //color: $orange;
+}
+
 // "fake connection" classes for the map manual
 .pf-fake-connection{
   box-sizing: content-box;
@@ -1210,7 +1234,7 @@ table{
   height: 4px;
   border-top: 2px solid $gray-light;
   border-bottom: 2px solid $gray-light;
-  background-color: #3c3f41;
+  background-color: $gray;
   position: relative;
   font-size: 10px;
   font-family: $font-family-sans-serif;
@@ -1256,35 +1280,66 @@ table{
     background-color: $red-darker;
   }
 
-  &.pf-map-connection-frig{
-    border-style: dashed;
-    border-left: none;
-    border-right: none;
+  &.pf-map-connection-wh-size-s,
+  &.pf-map-connection-wh-size-m,
+  &.pf-map-connection-wh-size-l,
+  &.pf-map-connection-wh-size-xl,
+  &.pf-map-connection-preserve-mass{
+    &:after{
+      content: '?';
+      background-color: $gray;
+      color: $gray-lighter;
+      padding: 1px 2px;
+      position: absolute;
+      left: calc(50% - 7px);
+      top: -5px;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      line-height: 12px;
+      min-width: 14px;
+      text-align: center;
+      @include border-radius(3px);
+      @include box-shadow(0 3px 6px rgba(0,0,0,.3));
+    }
+  }
+
+  &.pf-map-connection-wh-size-s{
+    border-style: dotted;
 
     &:after{
-      content: 'frig';
-      background-color: $orange;
-      color: $gray-darkest;
-      padding: 0px 3px;
-      position: absolute;
-      left: 25px;
-      top: -6px;
-      font-family: $font-family-bold;
-      @include border-radius(3px);
+      content: 'S';
+    }
+  }
+
+  &.pf-map-connection-wh-size-m{
+    border-style: dashed;
+
+    &:after{
+      content: 'M';
+    }
+  }
+
+  &.pf-map-connection-wh-size-l{
+
+    &:after{
+      content: 'L';
+    }
+  }
+
+  &.pf-map-connection-wh-size-xl{
+
+    &:after{
+      content: 'XL';
     }
   }
 
   &.pf-map-connection-preserve-mass{
+
     &:after{
       content: 'save mass';
       background-color: $red-darker;
       color: $gray-lightest;
-      padding: 0px 3px;
-      position: absolute;
-      left: 8px;
-      top: -6px;
-      font-family: $font-family-bold;
-      @include border-radius(3px);
+      left: calc(50% - 28px);
     }
   }
 }
@@ -1313,8 +1368,8 @@ table{
   }
 
   &.pf-wh-frig{
-    border-top-style: dashed;
-    border-bottom-style: dashed;
+    border-top-style: dotted;
+    border-bottom-style: dotted;
   }
 }
 

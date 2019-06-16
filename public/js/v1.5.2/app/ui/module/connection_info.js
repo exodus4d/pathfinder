@@ -306,22 +306,22 @@ define([
                         let connection = $().getConnectionById(data.mapId, data.connectionId);
                         let signatureTypeNames = MapUtil.getConnectionDataFromSignatures(connection, connectionData);
 
-                        let sourceLabel =  signatureTypeNames.source.labels;
-                        let targetLabel =  signatureTypeNames.target.labels;
-                        sourceLabelElement.html(MapUtil.formatEndpointOverlaySignatureLabel(sourceLabel.join(', ')));
-                        targetLabelElement.html(MapUtil.formatEndpointOverlaySignatureLabel(targetLabel.join(', ')));
+                        let sourceLabels =  signatureTypeNames.source.labels;
+                        let targetLabels =  signatureTypeNames.target.labels;
+                        sourceLabelElement.html(MapUtil.formatEndpointOverlaySignatureLabel(sourceLabels));
+                        targetLabelElement.html(MapUtil.formatEndpointOverlaySignatureLabel(targetLabels));
 
                         // remove K162
-                        sourceLabel = sourceLabel.diff(['K162']);
-                        targetLabel = targetLabel.diff(['K162']);
+                        sourceLabels = sourceLabels.diff(['K162']);
+                        targetLabels = targetLabels.diff(['K162']);
 
                         // get static wormhole data by endpoint Labels
                         let wormholeName = '';
                         let wormholeData = null;
-                        if(sourceLabel.length === 1 && targetLabel.length === 0){
-                            wormholeName = sourceLabel[0];
-                        }else if(sourceLabel.length === 0 && targetLabel.length === 1){
-                            wormholeName = targetLabel[0];
+                        if(sourceLabels.length === 1 && targetLabels.length === 0){
+                            wormholeName = sourceLabels[0];
+                        }else if(sourceLabels.length === 0 && targetLabels.length === 1){
+                            wormholeName = targetLabels[0];
                         }
 
                         if(
@@ -329,7 +329,6 @@ define([
                             Init.wormholes.hasOwnProperty(wormholeName)
                         ){
                             wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                            wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
 
                             // init wormhole tooltip ----------------------------------------------
                             let massTotalTooltipCell = tableElement.find('.' + config.connectionInfoTableCellMassTotalTooltipClass);

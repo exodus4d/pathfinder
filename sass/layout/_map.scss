@@ -283,6 +283,20 @@ $mapBubbleWidth:        30px;
   }
 }
 
+// class gets applied to body tag if system/connection gets dragged
+// to prevent cursor "flicker" we need to change the cursor for "neighbored" elements
+.jtk-drag-select{
+  .pf-map{
+    cursor: grab !important;
+    .pf-system{
+      cursor: grab !important;
+      .pf-system-head{
+        cursor: grab !important;
+      }
+    }
+  }
+}
+
 .pf-map{
   width: $mapWidth;
   height: $mapHeight;
@@ -607,6 +621,7 @@ $mapBubbleWidth:        30px;
   .jtk-connector{
     z-index: 40;        // min z-index for connections
     cursor: pointer;
+    overflow: unset;    // fixes a strange 1px flicker issue when connection is hovered and "jumps" up+down
     @include transition(stroke 0.18s ease-out, opacity 0.18s ease-out);
     will-change: all;
 
@@ -713,10 +728,11 @@ $mapBubbleWidth:        30px;
     }
   }
 
-  .pf-map-connection-frig{
+  .pf-map-connection-wh-size-s,
+  .pf-map-connection-wh-size-m {
 
     path:nth-child(2){
-      stroke-linecap: square !important;
+      stroke-linecap: square !important; // smoother look for "inner" path
     }
   }
 
@@ -745,7 +761,7 @@ $mapBubbleWidth:        30px;
   }
 
   %map-overlay{
-    font-size: 10px;
+    font-size: 11px;
     z-index: 1020;
     background-color: $gray;
     color: $gray-lighter;
@@ -756,15 +772,15 @@ $mapBubbleWidth:        30px;
     line-height: 14px;
     padding: 1px 4px;
     @include border-radius(6px);
-    @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+    @include box-shadow(0 3px 6px rgba(0,0,0,.3));
 
     &.small{
       -webkit-font-smoothing: antialiased;
-      font-family: Arial, sans-serif;         // fix for element width on custom font family
-      padding: 2px;
+      font-family: Arial, sans-serif;
+      padding: 1px 2px;
       line-height: 12px;
+      min-width: 14px;
       @include border-radius(3px);
-      @include box-shadow(0 3px 6px rgba(0,0,0,.3));
     }
 
     &.icon{
@@ -776,7 +792,6 @@ $mapBubbleWidth:        30px;
       overflow: hidden;
       text-align: center;
       @include border-radius(50%);
-      @include box-shadow(0 3px 6px rgba(0,0,0,.3));
     }
 
     &.debug{
@@ -853,6 +868,10 @@ $mapBubbleWidth:        30px;
   i{
     width: 20px;
     pointer-events: none;
+
+    &.fa-char:before{
+      font-weight: bolder;
+    }
   }
 
   // nested (sub) menu

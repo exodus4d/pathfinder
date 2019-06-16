@@ -177,7 +177,7 @@
                 <tr>
                     <td class="col-sm-2 text-center">k-space</td>
                     <td></td>
-                    <td class="col-sm-3 text-right">security</td>
+                    <td></td>
                 </tr>
                 </thead>
                 <tbody>
@@ -210,7 +210,7 @@
                 <tr>
                     <td class="col-sm-2 text-center">w-space</td>
                     <td></td>
-                    <td class="col-sm-3 text-right">security</td>
+                    <td></td>
                 </tr>
                 </thead>
                 <tbody>
@@ -237,7 +237,7 @@
                 <tr>
                     <td class="col-sm-2 text-center">w-space</td>
                     <td></td>
-                    <td class="col-sm-3 text-right">security</td>
+                    <td></td>
                 </tr>
                 </thead>
                 <tbody>
@@ -393,42 +393,50 @@
                 The <em>"Scope"</em> of a connection can be changed by using the context menu of a connection <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-contextmenu">more</a>)</small>.
             </p>
             <ul class="list-unstyled" style=" margin-left: 10px;">
-                <li><div class="pf-fake-connection"></div>&nbsp;&nbsp;Wormhole<small> (Wormhole has not yet had its stability significantly disrupted)</small></li>
-                <li><div class="pf-fake-connection pf-map-connection-stargate"></div>&nbsp;&nbsp;Stargate<small> (Stargates are static <em>"K-space"</em> connections)</small></li>
-                <li><div class="pf-fake-connection pf-map-connection-jumpbridge"></div>&nbsp;&nbsp;Jumpbridge<small> (Jumpbridges are player build <em>"K-space"</em> connections)</small></li>
-                <li><div class="pf-fake-connection pf-map-connection-abyssal"></div>&nbsp;&nbsp;Abyssal<small> (abyssal zone entrance <em>"a-space"</em> connections)</small></li>
+                <li><div class="pf-fake-connection"></div>&nbsp;&nbsp;Wormhole - <em>"k-space"</em> connections</li>
+                <li><div class="pf-fake-connection pf-map-connection-stargate"></div>&nbsp;&nbsp;Stargate - static <em>"k-space"</em> connections</li>
+                <li><div class="pf-fake-connection pf-map-connection-jumpbridge"></div>&nbsp;&nbsp;Jumpbridge - player build <em>"k-space"</em> connections</li>
+                <li><div class="pf-fake-connection pf-map-connection-abyssal"></div>&nbsp;&nbsp;Abyssal - PVE zone entrance <em>"a-space"</em> connections</li>
             </ul>
         </div>
         <div class="col-xs-12 col-md-6">
-            <h4 id="pf-manual-scrollspy-anchor-connection-status">Connection status</h4>
+            <h4 id="pf-manual-scrollspy-anchor-connection-status">Connection mass status</h4>
             <p>
-                Wormholes will gain various statuses during its <em>"Lifetime"</em>.<br>
-                In addition to this, connections can get custom statuses.<br>
+                Wormholes go through various mass stages over lifetime.<br>
+                To reflect the mass status on map, wormholes can be flagged.<br>
                 The status can be changed by using the context menu <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-contextmenu">more</a>)</small>.
             </p>
             <ul class="list-unstyled" style=" margin-left: 10px;">
-                <li><div class="pf-fake-connection pf-map-connection-wh-eol"></div> end of life<small> (Wormhole is the end of its natural lifetime)</small></li>
-                <li><div class="pf-fake-connection pf-map-connection-wh-reduced"></div> reduced<small> (Wormhole had its stability reduced, but not to a critical degree) &lt;50% mass left</small></li>
-                <li><div class="pf-fake-connection pf-map-connection-wh-critical"></div> critical<small> (Wormhole is on the verge of collapse) &lt;10% mass left</small></li>
-                <li><div class="pf-fake-connection pf-map-connection-frig"></div> Frigate hole<small> (Only the smallest ships pass through)</small></li>
+                <li><div class="pf-fake-connection"></div>&nbsp;&nbsp;fresh - <em>"… has not yet had its stability significantly disrupted"</em> (>50%)</li>
+                <li><div class="pf-fake-connection pf-map-connection-wh-reduced"></div>&nbsp;&nbsp;reduced - <em>"… had its stability reduced, but not to a critical degree"</em> (50% - 10%)</li>
+                <li><div class="pf-fake-connection pf-map-connection-wh-critical"></div>&nbsp;&nbsp;critical - <em>"… is on the verge of collapse"</em> (&lt;10%)</li>
             </ul>
         </div>
     </div>
     <div class="row">
         <div class="col-xs-12 col-md-6">
-            <h4 id="pf-manual-scrollspy-anchor-connection-label"><i class="fas fa-tag fa-fw"></i> Connection label</h4>
+            <h4 id="pf-manual-scrollspy-anchor-connection-size">Connection ship size</h4>
             <p>
-                In addition to its <em>"Lifetime Status" </em><small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a>)</small>, connections can be labeled with custom labels
-                to supply further information.<br>
-                Labels can be set by using the context menu <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-contextmenu">more</a>)</small>.
+                Wormhole connections have a "max jump mass". Ships whose total mass exceed this mass, can not go through the hole.<br>
+                The size of a wormhole can be set by using the context menu <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-contextmenu">more</a>)</small>.
             </p>
-            <ul class="list-unstyled" style=" margin-left: 10px;">
-                <li><span class="label label-warning" style="color: #1d1d1d">frig</span> Frigate hole<small> (Only the smallest ships pass through)</small></li>
-                <li style="margin-top: 3px;"><span class="label label-danger"><i class="fas fa-exclamation-triangle"></i> save mass</span> save mass<small> (Wormhole mass has to be saved)</small></li>
+            <ul class="fa-ul">
+                <li><i class="fa-li fas fa-char pf-jump-mass-s" data-char-content="S"></i> Small - <em>"Only the smallest ships can pass through this wormhole"</em> (Frigates, Destroyers,…)</li>
+                <li><i class="fa-li fas fa-char pf-jump-mass-m" data-char-content="M"></i> Medium - <em>"Up to medium size ships can pass through this wormhole"</em> (Nestors, BCs,…)</li>
+                <li><i class="fa-li fas fa-char pf-jump-mass-l" data-char-content="L"></i> Large - <em>"Larger ships can pass through this wormhole"</em> (BSs, Orcas,…)</li>
+                <li><i class="fa-li fas fa-char pf-jump-mass-xl" data-char-content="XL"></i> Capital - <em>"Very large ships can pass through this wormhole"</em> (FAXes, Dreads, Freighters,…)</li>
             </ul>
         </div>
         <div class="col-xs-12 col-md-6">
-
+            <h4 id="pf-manual-scrollspy-anchor-connection-label">Connection lifetime</h4>
+            <p>
+                The lifetime information of a wormhole indicates roughly what kind of time is remaining on the wormhole before it dies of natural causes.<br>
+                Wormholes set to "EOL" (End Of Lifetime) can automatically be removed from the map 4h later on (check map settings).<br>
+                EOL status can be set by using the context menu <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-contextmenu">more</a>)</small>.
+            </p>
+            <ul class="list-unstyled" style=" margin-left: 10px;">
+                <li><div class="pf-fake-connection pf-map-connection-wh-eol"></div>&nbsp;&nbsp;EOL - <em>"Wormhole is reaching the end of its natural lifetime"</em> (less than 4 hours)</li>
+            </ul>
         </div>
     </div>
     <h4 id="pf-manual-scrollspy-anchor-connection-contextmenu">Context menu (connection)</h4>
@@ -436,32 +444,24 @@
         <kbd>right click</kbd> a connection on the map to open the context menu.
     </p>
     <ul class="list-unstyled well" style=" margin-left: 10px;">
-        <li><i class="fas fa-plane fa-fw"></i> Toggles this connection as <em>"Frigate Hole"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-frig">more</a></small></li>
-        <li><i class="fas fa-exclamation-triangle fa-fw"></i> Toggles this connection as <em>"Preserve Mass"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-mass">more</a></small></li>
-        <li><i class="fas fa-crosshairs fa-fw"></i> Changes the scope of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
-        <li><i class="fas fa-reply fa-rotate-180 fa-fw"></i> Changes the status of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a></small></li>
-        <li><i class="fas fa-trash fa-fw"></i> Delete this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-delete">more</a></small></li>
+        <li><i class="fas fa-hourglass-end fa-fw"></i> Toggle "EOL" (End Of Lifetime). Less than 4 hours until collapse <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-frig">more</a></small></li>
+        <li><i class="fas fa-exclamation-triangle fa-fw"></i> Toggle "Preserve Mass" for connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-mass">more</a></small></li>
+        <li><i class="fas fa-reply fa-rotate-180 fa-fw"></i> Set "mass status". Total mass passed through ['fresh', 'reduced', 'critical'] <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a></small></li>
+        <li><i class="fas fa-reply fa-rotate-180 fa-fw"></i> Set "ship size" for connection (mass per jump) ['S', 'M', 'L', 'XL'] <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-size">more</a></small></li>
+        <li><i class="fas fa-crosshairs fa-fw"></i> Changes connection scope ['wormhole', 'stargate', 'jumpbridge'] <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
+        <li><i class="fas fa-unlink fa-fw"></i> Delete/detach this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-delete">more</a></small></li>
     </ul>
     <div class="row">
         <div class="col-xs-12 col-md-6">
-            <h4 id="pf-manual-scrollspy-anchor-connection-frig"><i class="fas fa-plane fa-fw"></i> Frigate hole</h4>
-            <p>
-                Wormholes can be labeled <small>(<i class="fas fa-tag fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-label">more</a>)</small> as <em>"Frigate hole"</em>.
-                Only frigate-sized Spaceships can pass through a <em>"Frigate hole"</em> <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a>)</small>.
-            </p>
-        </div>
-        <div class="col-xs-12 col-md-6">
             <h4 id="pf-manual-scrollspy-anchor-connection-mass"><i class="fas fa-exclamation-triangle fa-fw"></i> Preserve mass</h4>
             <p>
-                Wormholes can be labeled <small>(<i class="fas fa-tag fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-label">more</a>)</small> as <em>"Preserve mass"</em>.
+                Wormholes can be labeled with a&nbsp;&nbsp;<span class="label label-danger"><i class="fas fa-exclamation-triangle"></i> save mass</span> flag.<br>
                 Let your mates know about critical connections that should be mass-saved
-                (e.g. <span class="pf-system-sec-highSec">H</span> security exits) <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-security">more</a>)</small>.
+                (e.g. <span class="pf-system-sec-highSec">H</span> security exits).
             </p>
         </div>
-    </div>
-    <div class="row">
         <div class="col-xs-12 col-md-6">
-            <h4 id="pf-manual-scrollspy-anchor-connection-delete"><i class="fas fa-trash fa-fw"></i> Delete connection</h4>
+            <h4 id="pf-manual-scrollspy-anchor-connection-delete"><i class="fas fa-unlink fa-fw"></i> Delete/detach connection</h4>
             <p>
                 Connections can be detached by several ways.
             </p>
@@ -471,9 +471,6 @@
                 <li>Delete System: <small>Delete a system by using the context menu of a connection (<a href="#" data-target="#pf-manual-scrollspy-anchor-system-contextmenu">more</a>)</small></li>
                 <li>Delete Systems: <small>Delete multiple systems by using the context menu of a map (<a href="#" data-target="#pf-manual-scrollspy-anchor-map-contextmenu">more</a>)</small></li>
             </ul>
-        </div>
-        <div class="col-xs-12 col-md-6">
-
         </div>
     </div>
     <h4 id="pf-manual-endpoint">Endpoints</h4>
@@ -514,9 +511,9 @@
                 Anytime a new signature is added to the <em>"Signature table"</em> the <em>"Progress bar"</em> will be updated automatically. The bar color indicates the progress.
             </p>
             <ul class="fa-ul">
-                <li><i class="fa-li fas fa-circle txt-color txt-color-danger"></i></span> not scanned <small>(System scanned to &lt;30%)</small></li>
-                <li><i class="fa-li fas fa-circle txt-color txt-color-warning"></i></span> bad scanned <small>(System scanned to &lt;100%)</small></li>
-                <li><i class="fa-li fas fa-circle txt-color txt-color-success"></i></span> full scanned <small>(System scanned to 100%)</small></li>
+                <li><i class="fa-li fas fa-circle txt-color txt-color-danger"></i> not scanned <small>(System scanned to &lt;30%)</small></li>
+                <li><i class="fa-li fas fa-circle txt-color txt-color-warning"></i> bad scanned <small>(System scanned to &lt;100%)</small></li>
+                <li><i class="fa-li fas fa-circle txt-color txt-color-success"></i> full scanned <small>(System scanned to 100%)</small></li>
             </ul>
         </div>
         <div class="col-xs-12 col-md-6">
@@ -594,24 +591,50 @@
     </p>
     <div class="row">
         <div class="col-xs-12 col-md-6">
-            <h4><i class="fas fa-align-left  fa-fw"></i> Trade hub range</h4><p>
+            <h4><i class="fas fa-align-left  fa-fw"></i> Routes</h4><p>
             <p>
-                The <em>"Trade hub range"</em> table is available for any <em>"K-space"</em> system. Each row represents the jump distance to a main <em>"Trade-Hub"</em>.
+                The <em>"Route"</em> search module is available for any active system <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-active">more</a>)</small>.
                 Each system jump is represented by a <i class="fas fa-square fa-fw"></i> with the color of its <em>"Security status"</em> <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-security">more</a>)</small>.
             </p>
-            <ul class="fa-ul">
-                <li><i class="fa-li fas fa-square pf-system-security-1-0"></i></span> <samp>1-0</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-9"></i></span> <samp>0.9</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-8"></i></span> <samp>0.8</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-7"></i></span> <samp>0.7</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-6"></i></span> <samp>0.6</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-5"></i></span> <samp>0.5</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-4"></i></span> <samp>0.4</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-3"></i></span> <samp>0.3</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-2"></i></span> <samp>0.2</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-1"></i></span> <samp>0.1</samp></li>
-                <li><i class="fa-li fas fa-square pf-system-security-0-0"></i></span> <samp>0.0 - -1.0</samp></li>
-            </ul>
+            <table class="table table-condensed" style="font-size: 12px; width: 90%">
+                <thead>
+                <tr>
+                    <td colspan="6">&nbsp;&nbsp;&nbsp;<i class="fas fa-fw fa-char pf-system-sec-highSec" data-char-content="H"></i></td>
+                    <td colspan="4">&nbsp;&nbsp;&nbsp;<i class="fas fa-fw fa-char pf-system-sec-lowSec" data-char-content="L"></i></td>
+                    <td colspan="2">&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-fw fa-char pf-system-sec-nullSec" data-char-content="0.0"></i></td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-1-0"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-9"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-8"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-7"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-6"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-5"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-4"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-3"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-2"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-1"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-0"></i></td>
+                    <td class="col-xs-1 text-center"><i class="fas fa-square pf-system-security-0-0"></i></td>
+                </tr>
+                <tr>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-1-0">1-0</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-9">0.9</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-8">0.8</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-7">0.7</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-6">0.6</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-5">0.5</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-4">0.4</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-3">0.3</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-2">0.2</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-1">0.1</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-0">0.0</samp></td>
+                    <td class="col-xs-1 text-center"><samp class="pf-system-security-0-0">-1.0</samp></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
         <div class="col-xs-12 col-md-6">
             <h4><i class="fas fa-chart-bar fa-fw"></i> Recent activity</h4><p>
@@ -653,7 +676,7 @@
         Events that trigger desktop notification.
     </p>
     <ul>
-        <li>New Rally point</span> <small>(<i class="fas fa-volume-up fa-fw"></i> <a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a>)</small></li>
+        <li>New Rally point <small>(<i class="fas fa-volume-up fa-fw"></i> <a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a>)</small></li>
     </ul>
 
     <hr class="pf-manual-scroll-break">

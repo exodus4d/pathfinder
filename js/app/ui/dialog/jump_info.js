@@ -26,13 +26,6 @@ define([
             let data = {
                 config: config,
                 wormholes: Object.keys(Init.wormholes).map(function(k){ return Init.wormholes[k]; }), // convert Json to array
-                securityClass: function(){
-                    return function(value, render){
-                        return this.Util.getSecurityClassForSystem( render(value) );
-                    }.bind(this);
-                }.bind({
-                    Util: Util
-                }),
                 massValue: function(){
                     return function(value, render){
                         let mass = render(value);

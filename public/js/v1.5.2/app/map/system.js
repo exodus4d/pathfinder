@@ -9,8 +9,9 @@ define([
     'app/util',
     'bootbox',
     'app/map/util',
-    'app/map/layout'
-], ($, Init, Util, bootbox, MapUtil, Layout) => {
+    'app/map/layout',
+    'app/map/magnetizing'
+], ($, Init, Util, bootbox, MapUtil, Layout, Magnetizer) => {
     'use strict';
 
     let config = {
@@ -701,6 +702,9 @@ define([
 
             // remove connections do not fire a "connectionDetached" event
             map.deleteConnectionsForElement(system, {fireEvent: false});
+
+            // unregister from "magnetizer"
+            Magnetizer.removeElement(system.data('mapid'), system[0]);
 
             // destroy tooltip/popover
             system.toggleSystemTooltip('destroy', {});

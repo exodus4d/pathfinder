@@ -57,7 +57,7 @@ define([
 
                 for(let [areaId, areaData] of Object.entries(effectData)){
                     let systemType = 'C' + areaId;
-                    let securityClass = Util.getSecurityClassForSystem( systemType );
+                    let securityClass = Util.getSecurityClassForSystem(systemType);
 
                     if(areaId === '1'){
                         rows.push( $('<tr>') );

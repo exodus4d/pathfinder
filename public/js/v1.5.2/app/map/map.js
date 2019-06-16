@@ -18,7 +18,7 @@ define([
     'app/map/scrollbar',
     'dragToSelect',
     'app/map/local'
-], ($, Init, Util, Key, bootbox, MapUtil, MapContextMenu, MapOverlay, MapOverlayUtil, System, Layout, MagnetizerWrapper, Scrollbar) => {
+], ($, Init, Util, Key, bootbox, MapUtil, MapContextMenu, MapOverlay, MapOverlayUtil, System, Layout, Magnetizer, Scrollbar) => {
 
     'use strict';
 
@@ -61,6 +61,33 @@ define([
     // mapIds that receive updates while they are "locked" (active timer)
     // -> those maps queue their updates until "pf:unlocked" event
     let mapUpdateQueue = [];
+
+
+    // map menu options
+    let mapOptions = {
+        mapMagnetizer: {
+            buttonId: Util.config.menuButtonMagnetizerId,
+            description: 'Magnetizer',
+            onEnable: Magnetizer.initMagnetizer,
+            onDisable: Magnetizer.destroyMagnetizer
+        },
+        mapSnapToGrid : {
+            buttonId: Util.config.menuButtonGridId,
+            description: 'Grid snapping',
+            class: 'mapGridClass'
+        },
+        mapSignatureOverlays : {
+            buttonId: Util.config.menuButtonEndpointId,
+            description: 'Endpoint overlay',
+            onEnable: MapOverlay.showInfoSignatureOverlays,
+            onDisable: MapOverlay.hideInfoSignatureOverlays,
+        },
+        mapCompact : {
+            buttonId: Util.config.menuButtonCompactId,
+            description: 'Compact system layout',
+            class: 'mapCompactClass'
+        }
+    };
 
     /**
      * checks mouse events on system head elements
@@ -131,8 +158,8 @@ define([
                     // check if there is a Label overlay
                     let overlay = endpoint.getOverlay(MapOverlayUtil.config.endpointOverlayId);
                     if(overlay instanceof jsPlumb.Overlays.Label){
-                        let label =  overlay.getParameter('label');
-                        overlay.setLocation(MapUtil.getEndpointOverlaySignatureLocation(endpoint, label));
+                        let labels =  overlay.getParameter('signatureLabels');
+                        overlay.setLocation(MapUtil.getEndpointOverlaySignatureLocation(endpoint, labels));
                     }
                 }
             }
@@ -675,7 +702,7 @@ define([
                         }
                     }
 
-                    // save filterScopes in IndexDB
+                    // store filterScopes in IndexDB
                     MapUtil.storeLocalData('map', mapId, 'filterScopes', filterScopes);
                     MapUtil.filterMapByScopes(map, filterScopes);
 
@@ -726,7 +753,6 @@ define([
                     }
                 });
                 break;
-            case 'frigate':         // set as frigate hole
             case 'preserve_mass':   // set "preserve mass
             case 'wh_eol':          // set "end of life"
                 MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
@@ -739,6 +765,14 @@ define([
                 let newStatus = action.split('_')[1];
                 MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
                 MapUtil.setConnectionWHStatus(connection, 'wh_' + newStatus);
+                MapUtil.markAsChanged(connection);
+                break;
+            case 'wh_jump_mass_s':
+            case 'wh_jump_mass_m':
+            case 'wh_jump_mass_l':
+            case 'wh_jump_mass_xl':
+                MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
+                MapUtil.setConnectionJumpMassType(connection, action);
                 MapUtil.markAsChanged(connection);
                 break;
             case 'scope_wh':
@@ -969,13 +1003,13 @@ define([
             if(checkAvailability(['fresh', 'reduced', 'critical'], type)){
                 MapUtil.setConnectionWHStatus(connection, type);
             }else if(connection.hasType(type) !== true){
-                // additional types e.g. eol, frig, preserve mass
+                // additional types e.g. eol, preserve mass
                 connection.addType(type);
             }
         }
 
         for(let type of removeType){
-            if(checkAvailability(['wh_eol', 'frigate', 'preserve_mass', 'state_process'], type)){
+            if(checkAvailability(['wh_eol', 'preserve_mass', 'state_process'], type)){
                 connection.removeType(type);
             }
         }
@@ -1178,7 +1212,6 @@ define([
             let mapContainer = mapConfig.map ? $(mapConfig.map.getContainer()) : null;
             if(mapContainer){
                 let mapId = mapConfig.config.id;
-                let newSystems = 0;
 
                 // add additional information for this map
                 if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
@@ -1219,9 +1252,8 @@ define([
                             }
                         }
 
-                        if( addNewSystem === true){
+                        if(addNewSystem === true){
                             drawSystem(mapConfig.map, systemData);
-                            newSystems++;
                         }
                     }
 
@@ -1324,11 +1356,6 @@ define([
 
                     // update local connection cache
                     updateConnectionsCache(mapConfig.map);
-
-                    // update map "magnetization" when new systems where added
-                    if(newSystems > 0){
-                        MagnetizerWrapper.setElements(mapConfig.map);
-                    }
                 }else{
                     // map is currently logged -> queue update for this map until unlock
                     if( mapUpdateQueue.indexOf(mapId) === -1 ){
@@ -1345,10 +1372,13 @@ define([
             });
         };
 
-        return new Promise(updateMapExecutor).then(payload => {
-
+        /**
+         * apply current active scope filter
+         * @param payload
+         * @returns {Promise<any>}
+         */
+        let filterMapByScopes = payload => {
             let filterMapByScopesExecutor = (resolve, reject) => {
-                // apply current active scope filter ==================================================================
                 let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
                 promiseStore.then(dataStore => {
                     let scopes = [];
@@ -1362,7 +1392,31 @@ define([
             };
 
             return new Promise(filterMapByScopesExecutor);
-        });
+        };
+
+        /**
+         * show signature overlays
+         * @param payload
+         * @returns {Promise<any>}
+         */
+        let showInfoSignatureOverlays = payload => {
+            let showInfoSignatureOverlaysExecutor = (resolve, reject) => {
+                let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
+                promiseStore.then(dataStore => {
+                    if(dataStore && dataStore.mapSignatureOverlays){
+                        MapOverlay.showInfoSignatureOverlays($(payload.data.mapConfig.map.getContainer()));
+                    }
+
+                    resolve(payload);
+                });
+            };
+
+            return new Promise(showInfoSignatureOverlaysExecutor);
+        };
+
+        return new Promise(updateMapExecutor)
+            .then(showInfoSignatureOverlays)
+            .then(filterMapByScopes);
     };
 
     /**
@@ -1503,6 +1557,9 @@ define([
 
             // set system observer
             setSystemObserver(map, newSystem);
+
+            // register system to "magnetizer"
+            Magnetizer.addElement(systemData.mapId, newSystem[0]);
 
             // connect new system (if connection data is given)
             if(connectedSystem){
@@ -1736,22 +1793,26 @@ define([
 
             // hidden menu actions
             if(scope === 'abyssal'){
-                options.hidden.push('frigate');
+                options.hidden.push('wh_eol');
                 options.hidden.push('preserve_mass');
                 options.hidden.push('change_status');
+                options.hidden.push('wh_jump_mass_change');
 
                 options.hidden.push('change_scope');
                 options.hidden.push('separator');
             }else if(scope === 'stargate'){
-                options.hidden.push('frigate');
+                options.hidden.push('wh_eol');
                 options.hidden.push('preserve_mass');
                 options.hidden.push('change_status');
+                options.hidden.push('wh_jump_mass_change');
 
                 options.hidden.push('scope_stargate');
             }else if(scope === 'jumpbridge'){
-                options.hidden.push('frigate');
+                options.hidden.push('wh_eol');
                 options.hidden.push('preserve_mass');
                 options.hidden.push('change_status');
+                options.hidden.push('wh_jump_mass_change');
+
                 options.hidden.push('scope_jumpbridge');
             }else if(scope === 'wh'){
                 options.hidden.push('scope_wh');
@@ -1761,12 +1822,13 @@ define([
             if(connection.hasType('wh_eol') === true){
                 options.active.push('wh_eol');
             }
-
-            if(connection.hasType('frigate') === true){
-                options.active.push('frigate');
-            }
             if(connection.hasType('preserve_mass') === true){
                 options.active.push('preserve_mass');
+            }
+            for(let sizeName of Object.keys(Init.wormholeSizes)){
+                if(connection.hasType(sizeName)){
+                    options.active.push(sizeName);
+                }
             }
             if(connection.hasType('wh_reduced') === true){
                 options.active.push('status_reduced');
@@ -1775,6 +1837,11 @@ define([
             }else{
                 // not reduced is default
                 options.active.push('status_fresh');
+            }
+
+            // disabled menu actions
+            if(connection.getParameter('sizeLocked')){
+                options.disabled.push('wh_jump_mass_change');
             }
 
             resolve(options);
@@ -1864,7 +1931,7 @@ define([
 
                 // update system positions for "all" systems that are effected by drag&drop
                 // this requires "magnet" feature to be active! (optional)
-                MagnetizerWrapper.executeAtEvent(map, p.e);
+                Magnetizer.executeAtEvent(map, p.e);
             },
             stop: function(params){
                 let dragSystem = $(params.el);
@@ -1967,11 +2034,7 @@ define([
      * @param sourceSystem
      */
     let saveSystemCallback = (map, newSystemData, sourceSystem) => {
-        // draw new system to map
         drawSystem(map, newSystemData, sourceSystem);
-
-        // re/arrange systems (prevent overlapping)
-        MagnetizerWrapper.setElements(map);
     };
 
     /**
@@ -2224,6 +2287,13 @@ define([
             // Notification the current zoom was changed
             newJsPlumbInstance.bind('zoom', function(zoom){
                 MapOverlay.updateZoomOverlay(this);
+
+                // store new zoom level in IndexDB
+                if(zoom === 1){
+                    MapUtil.deleteLocalData('map', mapId, 'mapZoom');
+                }else{
+                    MapUtil.storeLocalData('map', mapId, 'mapZoom', zoom);
+                }
             });
 
             // ========================================================================================================
@@ -2523,7 +2593,7 @@ define([
             let mapElement = $(this);
 
             // get map menu config options
-            let data = MapUtil.mapOptions[mapOption.option];
+            let data = mapOptions[mapOption.option];
 
             let promiseStore = MapUtil.getLocaleData('map', mapElement.data('id'));
             promiseStore.then(function(dataStore){
@@ -2538,50 +2608,50 @@ define([
                     dataExists = true;
                 }
 
-                if(dataExists === mapOption.toggle){
+                if(dataExists === this.mapOption.toggle){
 
                     // toggle button class
                     button.removeClass('active');
 
                     // toggle map class (e.g. for grid)
                     if(this.data.class){
-                        this.mapElement.removeClass( MapUtil.config[this.data.class] );
+                        this.mapElement.removeClass(MapUtil.config[this.data.class]);
                     }
 
                     // call optional jQuery extension on mapElement
-                    if(this.data.onDisable){
-                        $.fn[ this.data.onDisable ].apply(this.mapElement);
+                    if(this.data.onDisable && !this.mapOption.skipOnDisable){
+                        this.data.onDisable(this.mapElement);
                     }
 
                     // show map overlay info icon
                     MapOverlayUtil.getMapOverlay(this.mapElement, 'info').updateOverlayIcon(this.mapOption.option, 'hide');
 
                     // delete map option
-                    MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option );
+                    MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option);
                 }else{
                     // toggle button class
                     button.addClass('active');
 
                     // toggle map class (e.g. for grid)
                     if(this.data.class){
-                        this.mapElement.addClass( MapUtil.config[this.data.class] );
+                        this.mapElement.addClass(MapUtil.config[this.data.class]);
                     }
 
                     // call optional jQuery extension on mapElement
-                    if(this.data.onEnable){
-                        $.fn[ this.data.onEnable ].apply(this.mapElement);
+                    if(this.data.onEnable && !this.mapOption.skipOnEnable){
+                        this.data.onEnable(this.mapElement);
                     }
 
                     // hide map overlay info icon
                     MapOverlayUtil.getMapOverlay(this.mapElement, 'info').updateOverlayIcon(this.mapOption.option, 'show');
 
                     // store map option
-                    MapUtil.storeLocalData('map', this.mapElement.data('id'), this.mapOption.option, 1 );
+                    MapUtil.storeLocalData('map', this.mapElement.data('id'), this.mapOption.option, 1);
 
                     notificationText = 'enabled';
                 }
 
-                if(mapOption.toggle){
+                if(this.mapOption.toggle){
                     Util.showNotify({title: this.data.description, text: notificationText, type: 'info'});
                 }
             }.bind({
@@ -3009,7 +3079,8 @@ define([
                 let mapElement = $(mapConfig.map.getContainer());
                 MapUtil.setMapDefaultOptions(mapElement, mapConfig.config)
                     .then(payload => MapUtil.visualizeMap(mapElement, 'show'))
-                    .then(payload => MapUtil.scrollToDefaultPosition(mapElement))
+                    .then(payload => MapUtil.zoomToDefaultScale(mapConfig.map))
+                    .then(payload => MapUtil.scrollToDefaultPosition(mapConfig.map))
                     .then(payload => {
                         Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
                     })
@@ -3039,7 +3110,7 @@ define([
          */
         let loadMapExecutor = (resolve, reject) => {
             // init jsPlumb
-            jsPlumb.ready(function(){
+            jsPlumb.ready(() => {
                 // get new map instance or load existing
                 mapConfig.map = getMapInstance(mapConfig.config.id);
 

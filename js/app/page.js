@@ -220,23 +220,23 @@ define([
                 }),
                 $('<a>', {
                     class: 'list-group-item list-group-item-info',
-                    html: '&nbsp;&nbsp;Effect info'
-                }).prepend(
-                    $('<i>',{
-                        class: 'fas fa-crosshairs fa-fw'
-                    })
-                ).on('click', function(){
-                    $(document).triggerMenuEvent('ShowSystemEffectInfo');
-                }),
-                $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    html: '&nbsp;&nbsp;Jump info'
+                    html: '&nbsp;&nbsp;Wormhole data'
                 }).prepend(
                     $('<i>',{
                         class: 'fas fa-space-shuttle fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowJumpInfo');
+                }),
+                $('<a>', {
+                    class: 'list-group-item list-group-item-info',
+                    html: '&nbsp;&nbsp;Wormhole effects'
+                }).prepend(
+                    $('<i>',{
+                        class: 'fas fa-crosshairs fa-fw'
+                    })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowSystemEffectInfo');
                 }),
                 getMenuHeadline('Settings'),
                 $('<a>', {
@@ -379,7 +379,7 @@ define([
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
-                        option: 'mapEndpoint',
+                        option: 'mapSignatureOverlays',
                         toggle: true
                     });
                 }),
