@@ -2547,25 +2547,11 @@ define([
 
         // system "statics" popover -----------------------------------------------------------------------------------
         // -> event delegation to system elements, popup only if needed (hover)
-        mapContainer.hoverIntent({
-            over: function(e){
-                let staticWormholeElement = $(this);
-                let wormholeName = staticWormholeElement.attr('data-name');
-                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
-                if(wormholeData){
-                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, {
-                        trigger: 'manual',
-                        placement: 'right',
-                        smaller: true,
-                        show: true
-                    });
-                }
-            },
-            out: function(e){
-                $(this).destroyPopover();
-            },
-            selector: '.' + config.systemHeadInfoClass + ' span[class^="pf-system-sec-"]'
-        });
+        MapUtil.initWormholeInfoTooltip(
+            mapContainer,
+            '.' + config.systemHeadInfoClass + ' span[class^="pf-system-sec-"]',
+            {placement: 'right', smaller: true}
+        );
 
         // toggle "fullSize" Endpoint overlays for system (signature information) -------------------------------------
         mapContainer.hoverIntent({

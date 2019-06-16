@@ -2390,24 +2390,10 @@ define([
         });
 
         // signature column - "type" popover --------------------------------------------------------------------------
-        moduleElement.find('.' + config.sigTableClass).hoverIntent({
-            over: function(e){
-                let staticWormholeElement = $(this);
-                let wormholeName = staticWormholeElement.attr('data-name');
-                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
-                if(wormholeData){
-                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, {
-                        trigger: 'manual',
-                        placement: 'top',
-                        show: true
-                    });
-                }
-            },
-            out: function(e){
-                $(this).destroyPopover();
-            },
-            selector: '.editable-click:not(.editable-open) span[class^="pf-system-sec-"]'
-        });
+        MapUtil.initWormholeInfoTooltip(
+            moduleElement.find('.' + config.sigTableClass),
+            '.editable-click:not(.editable-open) span[class^="pf-system-sec-"]'
+        );
 
         // signature column - "info" popover --------------------------------------------------------------------------
         moduleElement.find('.' + config.sigTablePrimaryClass).hoverIntent({

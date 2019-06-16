@@ -1875,7 +1875,7 @@ define([
                 let title = tooltipData.name;
 
                 if(tooltipData.size){
-                    title += '&nbsp;<kbd>' + tooltipData.size.label + '</kbd>';
+                    title += '&nbsp;&nbsp;<kbd>' + tooltipData.size.label + '</kbd>';
                 }
 
                 if(tooltipData.security){
@@ -1915,6 +1915,38 @@ define([
                     element.popover('show');
                 }
             });
+        });
+    };
+
+    /**
+     *
+     * @param container any parent element that holds the event
+     * @param selector element that bubbles up hover
+     * @param options tooltip options
+     */
+    let initWormholeInfoTooltip = (container, selector, options = {}) => {
+        let defaultOptions = {
+            trigger: 'manual',
+            placement: 'top',
+            smaller: false,
+            show: true
+        };
+
+        options = Object.assign({}, defaultOptions, options);
+
+        container.hoverIntent({
+            over: function(e){
+                let staticWormholeElement = $(this);
+                let wormholeName = staticWormholeElement.attr('data-name');
+                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
+                if(wormholeData){
+                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, options);
+                }
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: selector
         });
     };
 
@@ -2065,6 +2097,7 @@ define([
         getSystemPosition: getSystemPosition,
         scrollToDefaultPosition: scrollToDefaultPosition,
         zoomToDefaultScale: zoomToDefaultScale,
+        initWormholeInfoTooltip: initWormholeInfoTooltip,
         getSystemId: getSystemId,
         checkRight: checkRight,
         getMapDeeplinkUrl: getMapDeeplinkUrl
