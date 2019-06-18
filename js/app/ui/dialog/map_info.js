@@ -1258,7 +1258,7 @@ define([
             ]
         } );
 
-        logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
+        logDataTable.buttons().container().appendTo($(this).find('.' + config.tableToolsClass));
     };
 
     /**

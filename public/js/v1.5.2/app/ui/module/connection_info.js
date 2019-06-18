@@ -702,6 +702,7 @@ define([
                     buttons: [
                         {
                             name: 'addLog',
+                            tag: 'a',
                             className: config.moduleHeadlineIconClass,
                             text: '<i class="fa fa-plus"></i>',
                             action: function(e, tableApi, node, conf){

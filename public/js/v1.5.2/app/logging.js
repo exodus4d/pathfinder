@@ -108,11 +108,13 @@ define([
                     buttons: [
                         {
                             extend: 'copy',
+                            tag: 'a',
                             className: config.moduleHeadlineIconClass,
                             text: '<i class="fas fa-fw fa-copy"></i> copy'
                         },
                         {
                             extend: 'csv',
+                            tag: 'a',
                             className: config.moduleHeadlineIconClass,
                             text: '<i class="fas fa-fw fa-download"></i> csv'
                         }

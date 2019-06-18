@@ -64,13 +64,13 @@ requirejs.config({
         easePack: 'lib/EasePack.min',
         tweenLite: 'lib/TweenLite.min',
 
-        // datatables                                                   // v1.10.12 DataTables - https://datatables.net
+        // datatables                                                   // v1.10.18 DataTables - https://datatables.net
         'datatables.loader': './app/datatables.loader',
-        'datatables.net': 'lib/datatables/DataTables-1.10.12/js/jquery.dataTables.min',
-        'datatables.net-buttons': 'lib/datatables/Buttons-1.2.1/js/dataTables.buttons.min',
-        'datatables.net-buttons-html': 'lib/datatables/Buttons-1.2.1/js/buttons.html5.min',
-        'datatables.net-responsive': 'lib/datatables/Responsive-2.1.0/js/dataTables.responsive.min',
-        'datatables.net-select': 'lib/datatables/Select-1.2.0/js/dataTables.select.min',
+        'datatables.net': 'lib/datatables/DataTables-1.10.18/js/jquery.dataTables.min',
+        'datatables.net-buttons': 'lib/datatables/Buttons-1.5.6/js/dataTables.buttons.min',
+        'datatables.net-buttons-html': 'lib/datatables/Buttons-1.5.6/js/buttons.html5.min',
+        'datatables.net-responsive': 'lib/datatables/Responsive-2.2.2/js/dataTables.responsive.min',
+        'datatables.net-select': 'lib/datatables/Select-1.3.0/js/dataTables.select.min',
         'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
         // notification plugin

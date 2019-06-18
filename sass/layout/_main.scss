@@ -267,11 +267,11 @@ select:active, select:hover {
   .dt-buttons,
   .dt-stats{
     display: inline-block;
-    line-height: 22px;
-    margin-bottom: 5px;
 
     .dt-button{
-      padding: 0 5px; // overwrite default
+      padding: 0 5px;     // overwrite default
+      line-height: 22px;  // overwrite default
+      margin-bottom: 0;   // overwrite default
 
       &:not(:last-child){
         margin-right: 5px;
@@ -711,7 +711,8 @@ table{
 
 // custom scrollbars ==============================================================================
 .mCSB_container, .mCSB_dragger{
-  will-change: top, left;
+  will-change: top, left, height, width;
+  transition: height .18s linear, width .18s linear; // smoother animation on window resize
 }
 
 .mCSB_container{

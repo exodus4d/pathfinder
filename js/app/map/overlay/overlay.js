@@ -393,8 +393,8 @@ define([
             }
         },
         mapSignatureOverlays: {
-            title: 'refresh signature overlays',
-            trigger: 'refresh',
+            title: 'active signature overlays',
+            trigger: 'active',
             class: 'pf-map-overlay-endpoint',
             iconClass: ['fas', 'fa-fw', 'fa-link']
         },

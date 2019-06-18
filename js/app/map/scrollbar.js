@@ -34,6 +34,7 @@ define([
             },
 
             advanced: {
+                autoUpdateTimeout: 120, // auto-update timeout (default: 60)
                 updateOnContentResize: true,
                 autoExpandHorizontalScroll: false,  // on resize css scale() scroll content should not change
                 //autoExpandHorizontalScroll: 2,

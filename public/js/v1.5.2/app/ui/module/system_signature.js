@@ -2186,21 +2186,25 @@ define([
                 buttons: [
                     {
                         name: 'filterGroup',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '' // set by js (xEditable)
                     },
                     {
                         name: 'undo',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '' // set by js (xEditable)
                     },
                     {
                         name: 'selectAll',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '<i class="fas fa-check-double"></i>select all'
                     },
                     {
                         name: 'delete',
+                        tag: 'a',
                         className: [config.moduleHeadlineIconClass, config.sigTableClearButtonClass].join(' '),
                         text: '<i class="fas fa-trash"></i>delete&nbsp;(<span>0</span>)'
                     }
