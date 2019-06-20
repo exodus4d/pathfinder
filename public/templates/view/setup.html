@@ -5,8 +5,7 @@
 
 {* counter for DB warnings (all databases) *}
 {{ @tplCounter('reset', 'database_warning_all') }}
-
-<section id="pf-setup-server">
+<section>
     <div class="container">
 
         <div class="row"></div>
@@ -22,12 +21,17 @@
 
         {* Errors *}
         <check if="{{ @errorData }}">
-                <div class="alert alert-danger">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
-                    <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
-                    <small> {{ @errorData->message }}</small>
-                </div>
+            <div class="alert alert-danger">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
+                <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
+                <small> {{ @errorData->message }}</small>
+            </div>
         </check>
+    </div>
+</section>
+
+<section id="pf-setup-server">
+    <div class="container">
 
         <h4><i class="fas fa-fw fa-home"></i> Server</h4>
 

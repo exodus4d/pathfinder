@@ -1215,12 +1215,20 @@ define([
     };
 
     /**
+     * get all available connection types for "jump mass size"
+     * @returns {string[]}
+     */
+    let allConnectionJumpMassTypes = () => {
+        return ['wh_jump_mass_s', 'wh_jump_mass_m', 'wh_jump_mass_l', 'wh_jump_mass_xl'];
+    };
+
+    /**
      * set/change connection jump mass of a wormhole
      * @param connection
      * @param mass
      */
     let setConnectionJumpMassType = (connection, mass) => {
-        let allMassTypes = ['wh_jump_mass_s', 'wh_jump_mass_m', 'wh_jump_mass_l', 'wh_jump_mass_xl'];
+        let allMassTypes = allConnectionJumpMassTypes();
         let addMassType = [];
         let removeMassTypes = [];
 
@@ -2075,6 +2083,7 @@ define([
         checkForConnection: checkForConnection,
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
+        allConnectionJumpMassTypes: allConnectionJumpMassTypes,
         setConnectionJumpMassType: setConnectionJumpMassType,
         getScopeInfoForConnection: getScopeInfoForConnection,
         getDataByConnections: getDataByConnections,

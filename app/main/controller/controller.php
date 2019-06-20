@@ -162,6 +162,7 @@ class Controller {
             'style'     => $f3->get('BASE') . '/public/css/' . Config::getPathfinderData('version'),
             'script'    => $f3->get('BASE') . '/public/js/' . Config::getPathfinderData('version'),
             'font'      => $f3->get('BASE') . '/public/fonts',
+            'document'  => $f3->get('BASE') . '/public/templates',
             'image'     => $f3->get('BASE') . '/public/img'
         ]);
 

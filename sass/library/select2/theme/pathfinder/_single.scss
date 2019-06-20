@@ -15,6 +15,10 @@
     color: $gray-lighter;
     line-height: 1.5;
     padding: 0 10px 0 0;
+
+    div[class^='col-']:first-child{
+      padding-left: 0;          // overwrite default padding for "selected" option(s) in custom Bootstrap col layout
+    }
   }
 
   .select2-selection__clear {

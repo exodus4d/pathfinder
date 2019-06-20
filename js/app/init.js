@@ -456,25 +456,29 @@ define(['jquery'], ($) => {
                 jumpMassMin: 1000000000,
                 type: 'wh_jump_mass_xl',
                 class: 'pf-jump-mass-xl',
-                label: 'XL'
+                label: 'XL',
+                text: 'capital ships'
             },
             wh_jump_mass_l: {
                 jumpMassMin: 300000000,
                 type: 'wh_jump_mass_l',
                 class: 'pf-jump-mass-l',
-                label: 'L'
+                label: 'L',
+                text: 'larger ships'
             },
             wh_jump_mass_m: {
                 jumpMassMin: 20000000,
                 type: 'wh_jump_mass_m',
                 class: 'pf-jump-mass-m',
-                label: 'M'
+                label: 'M',
+                text: 'medium ships'
             },
             wh_jump_mass_s: {
                 jumpMassMin: 1000,
                 type: 'wh_jump_mass_s',
                 class: 'pf-jump-mass-s',
-                label: 'S'
+                label: 'S',
+                text: 'smallest ships'
             }
         },
         // signature groups

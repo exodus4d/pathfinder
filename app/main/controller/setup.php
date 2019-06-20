@@ -24,31 +24,31 @@ class Setup extends Controller {
      * @var array
      */
     protected $environmentVars = [
-        'ENVIRONMENT_CONFIG',
-        'BASE',
-        'URL',
-        'DEBUG',
-        'DB_PF_DNS',
-        'DB_PF_NAME',
-        'DB_PF_USER',
-        'DB_PF_PASS',
-        'DB_UNIVERSE_DNS',
-        'DB_UNIVERSE_NAME',
-        'DB_UNIVERSE_USER',
-        'DB_UNIVERSE_PASS',
-        'CCP_SSO_URL',
-        'CCP_SSO_CLIENT_ID',
-        'CCP_SSO_SECRET_KEY',
-        'CCP_SSO_DOWNTIME',
-        'CCP_ESI_URL',
-        'CCP_ESI_DATASOURCE',
-        'SMTP_HOST',
-        'SMTP_PORT',
-        'SMTP_SCHEME',
-        'SMTP_USER',
-        'SMTP_PASS',
-        'SMTP_FROM',
-        'SMTP_ERROR'
+        'ENVIRONMENT_CONFIG' => [],
+        'BASE' => ['missingOk' => true],
+        'URL' => [],
+        'DEBUG' => [],
+        'DB_PF_DNS' => [],
+        'DB_PF_NAME' => [],
+        'DB_PF_USER' => [],
+        'DB_PF_PASS' => [],
+        'DB_UNIVERSE_DNS' => [],
+        'DB_UNIVERSE_NAME' => [],
+        'DB_UNIVERSE_USER' => [],
+        'DB_UNIVERSE_PASS' => [],
+        'CCP_SSO_URL' => [],
+        'CCP_SSO_CLIENT_ID' => [],
+        'CCP_SSO_SECRET_KEY' => [],
+        'CCP_SSO_DOWNTIME' => [],
+        'CCP_ESI_URL' => [],
+        'CCP_ESI_DATASOURCE' => [],
+        'SMTP_HOST' => [],
+        'SMTP_PORT' => [],
+        'SMTP_SCHEME' => [],
+        'SMTP_USER' => [],
+        'SMTP_PASS' => [],
+        'SMTP_FROM' => [],
+        'SMTP_ERROR' => []
     ];
 
     /**
@@ -313,12 +313,12 @@ class Setup extends Controller {
         // obscure some values
         $obscureVars = ['CCP_SSO_CLIENT_ID', 'CCP_SSO_SECRET_KEY', 'SMTP_PASS'];
 
-        foreach($this->environmentVars as $var){
+        foreach($this->environmentVars as $var => $options){
             if( !in_array($var, $excludeVars) ){
                 $value = Config::getEnvironmentData($var);
                 $check = true;
 
-                if(is_null($value)){
+                if(is_null($value) && !array_key_exists('missingOk', $options)){
                     // variable missing
                     $check = false;
                     $value = '[missing]';

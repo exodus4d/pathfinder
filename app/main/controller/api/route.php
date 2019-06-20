@@ -154,12 +154,12 @@ class Route extends Controller\AccessController {
                     $includeTypes[] = 'wh_critical';
                 }
 
-                if( $filterData['wormholesFrigate'] !== true ){
-                    $excludeTypes[] = 'wh_jump_mass_s';
-                }
-
                 if( $filterData['wormholesEOL'] === false ){
                     $includeEOL = false;
+                }
+
+                if(!empty($filterData['excludeTypes'])){
+                    $excludeTypes = $filterData['excludeTypes'];
                 }
             }
 
@@ -733,8 +733,9 @@ class Route extends Controller\AccessController {
                     'wormholes'             => (bool) $routeData['wormholes'],
                     'wormholesReduced'      => (bool) $routeData['wormholesReduced'],
                     'wormholesCritical'     => (bool) $routeData['wormholesCritical'],
-                    'wormholesFrigate'      => (bool) $routeData['wormholesFrigate'],
                     'wormholesEOL'          => (bool) $routeData['wormholesEOL'],
+                    'wormholesSizeMin'      => (string) $routeData['wormholesSizeMin'],
+                    'excludeTypes'          => (array) $routeData['excludeTypes'],
                     'endpointsBubble'       => (bool) $routeData['endpointsBubble'],
                     'flag'                  => $routeData['flag']
                 ];

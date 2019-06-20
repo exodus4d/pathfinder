@@ -54,18 +54,16 @@ define([
         moduleClass: 'pf-module',                                               // class for a module
         moduleSpacerClass: 'pf-module-spacer',                                  // class for "spacer" module (preserves height during hide/show animation)
         moduleClosedClass: 'pf-module-closed'                                   // class for a closed module
-
     };
 
     let mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
 
     /**
      * get all maps for a maps module
-     * @returns {*}
+     * @param mapModule
+     * @returns {jQuery}
      */
-    $.fn.getMaps = function(){
-        return $(this).find('.' + config.mapClass);
-    };
+    let getMaps = mapModule => $(mapModule).find('.' + config.mapClass);
 
     /**
      * get the current active mapElement
@@ -1345,7 +1343,7 @@ define([
      */
     let getMapModuleDataForUpdate = mapModule => {
         // get all active map elements for module
-        let mapElements = mapModule.getMaps();
+        let mapElements = getMaps(mapModule);
 
         let data = [];
         for(let i = 0; i < mapElements.length; i++){

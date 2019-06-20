@@ -9,6 +9,7 @@
 namespace Controller;
 
 use lib\Config;
+use lib\Resource;
 
 
 class MapController extends AccessController {
@@ -18,6 +19,9 @@ class MapController extends AccessController {
      * @throws \Exception
      */
     public function init(\Base $f3) {
+        $resource = Resource::instance();
+        $resource->register('script', 'app/mappage');
+
         $character = $this->getCharacter();
 
         // characterId
