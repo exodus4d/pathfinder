@@ -417,7 +417,7 @@ define([
                             system.setSystemRally(1, {
                                 poke: Boolean(formData.pokeDesktop)
                             });
-                            system.markAsChanged();
+                            MapUtil.markAsChanged($(system));
 
                             // send poke data to server
                             sendPoke(formData, {
