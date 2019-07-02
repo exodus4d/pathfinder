@@ -203,9 +203,9 @@ define([], () => {
      * @param version
      */
     let showVersionInfo = (version) => {
-        console.ok('%c        PATHFINDER',
-            'color: #477372; font-size: 25px; margin-left: 10px; line-height: 100px; text-shadow: 1px 1px 0 #212C30; ' +
-            'background: url(https://i.imgur.com/1Gw8mjL.png) no-repeat;');
+        console.ok('%c     PATHFINDER',
+            'color: #477372; font-size: 25px; margin-left: 10px; line-height: 50px; text-shadow: 1px 1px 0 #212C30; ' +
+            'background: url(https://i.imgur.com/bhSr6LI.png) no-repeat;');
         console.pf('Release: %s', version);
     };
 

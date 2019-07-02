@@ -25,7 +25,6 @@ class Map extends Controller\AccessController {
 
     // cache keys
     const CACHE_KEY_INIT                            = 'CACHED_INIT';
-    const CACHE_KEY_MAP_DATA                        = 'CACHED.MAP_DATA.%s';
     const CACHE_KEY_USER_DATA                       = 'CACHED.USER_DATA.%s';
     const CACHE_KEY_HISTORY                         = 'CACHED_MAP_HISTORY_%s';
 
@@ -652,6 +651,7 @@ class Map extends Controller\AccessController {
     protected function broadcastMapAccess(Pathfinder\MapModel $map){
         $mapAccess =  [
             'id' => $map->_id,
+            'name' => $map->name,
             'characterIds' => array_map(function ($data){
                 return $data->id;
             }, $map->getCharactersData())
@@ -690,17 +690,18 @@ class Map extends Controller\AccessController {
         }
 
         $return->data = [
-            'id' => $activeCharacter->_id,
-            'token' => bin2hex(random_bytes(16)), // token for character access
+            'id'            => $activeCharacter->_id,
+            'token'         => bin2hex(random_bytes(16)), // token for character access
             'characterData' => $characterData,
-            'mapData' => []
+            'mapData'       => []
         ];
 
         if($maps){
             foreach($maps as $map){
                 $return->data['mapData'][] = [
-                    'id' => $map->_id,
-                    'token' => bin2hex(random_bytes(16)) // token for map access
+                    'id'    => $map->_id,
+                    'token' => bin2hex(random_bytes(16)), // token for map access
+                    'name'  => $map->name
                 ];
             }
         }

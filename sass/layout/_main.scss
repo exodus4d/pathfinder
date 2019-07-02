@@ -545,6 +545,16 @@ table{
     table-layout: fixed;
   }
 
+
+  &.collapsing{
+    @include transition( height .01s ease );
+
+  }
+
+  &.collapse.in{
+    display: table;
+  }
+
   tr{
     &.collapsing{
       @include transition( height .01s ease );

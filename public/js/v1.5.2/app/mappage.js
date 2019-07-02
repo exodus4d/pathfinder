@@ -221,7 +221,7 @@ define([
          * @param payload
          * @returns {Promise<any>}
          */
-        let initMapModule = (payload) => {
+        let initMapModule = payload => {
 
             let initMapModuleExecutor = (resolve, reject) => {
                 // init browser tab change observer, Once the timers are available
@@ -248,10 +248,10 @@ define([
          * @param payloadMapAccessData
          * @returns {Promise<any>}
          */
-        let initMapWorker = (payloadMapAccessData) => {
+        let initMapWorker = payloadMapAccessData => {
 
             let initMapWorkerExecutor = (resolve, reject) => {
-                let getPayload = (command) => {
+                let getPayload = command => {
                     return {
                         action: 'initMapWorker',
                         data: {
@@ -270,7 +270,7 @@ define([
 
                         // init SharedWorker for maps
                         MapWorker.init({
-                            characterId:  response.data.id,
+                            characterId: response.data.id,
                             callbacks: {
                                 onInit: (MsgWorkerMessage) => {
                                     Util.setSyncStatus(MsgWorkerMessage.command);
@@ -552,6 +552,9 @@ define([
             // Send map update request on tab close/reload, in order to save map changes that
             // haven´t been saved through default update trigger
             window.addEventListener('beforeunload', function(e){
+                // close connection to "SharedWorker"
+                MapWorker.close();
+
                 // save unsaved map changes ...
                 triggerMapUpdatePing();
 

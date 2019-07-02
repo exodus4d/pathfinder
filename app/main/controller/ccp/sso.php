@@ -251,7 +251,7 @@ class Sso extends Api\User{
                                         $this->setLoginCookie($characterModel);
 
                                         // -> pass current character data to target page
-                                        $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA, $characterModel->_id);
+                                        $this->setTempCharacterData($characterModel->_id);
 
                                         // route to "map"
                                         if($rootAlias == 'admin'){

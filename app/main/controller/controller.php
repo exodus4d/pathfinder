@@ -388,12 +388,12 @@ class Controller {
     public function getSessionCharacterData() : array {
         $data = [];
         if($user = $this->getUser()){
-            $header                 = self::getRequestHeaders();
-            $requestedCharacterId   = (int)$header['Pf-Character'];
+            $header = self::getRequestHeaders();
+            $requestedCharacterId = (int)$header['Pf-Character'];
             if( !$this->getF3()->get('AJAX') ){
                 $requestedCharacterId = (int)$_COOKIE['old_char_id'];
                 if(!$requestedCharacterId){
-                    $tempCharacterData       = (array)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA);
+                    $tempCharacterData = (array)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA);
                     if((int)$tempCharacterData['ID'] > 0){
                         $requestedCharacterId = (int)$tempCharacterData['ID'];
                     }

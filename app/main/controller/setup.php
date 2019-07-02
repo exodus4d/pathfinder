@@ -1557,23 +1557,29 @@ class Setup extends Controller {
             'class' => 'txt-color-danger'
         ];
 
-        $webSocketStatus = [
+        $statusWeb = [
             'type'  => 'danger',
             'label' => 'INIT CONNECTION…',
             'class' => 'txt-color-danger'
         ];
 
-        $statsTcp = [
-            'startup'           => 0,
-            'connections'       => 0,
-            'maxConnections'    => 0
-        ];
+        $statsTcp = false;
+        $statsWeb = false;
+
+        $setStats = function(array $stats) use (&$statsTcp, &$statsWeb) {
+            if(!empty($stats['tcpSocket'])){
+                $statsTcp = $stats['tcpSocket'];
+            }
+            if(!empty($stats['webSocket'])){
+                $statsWeb = $stats['webSocket'];
+            }
+        };
 
         // ping TCP Socket with "healthCheck" task
         $f3->webSocket(['timeout' => $ttl])
             ->write($task, $healthCheckToken)
             ->then(
-                function($payload) use ($task, $healthCheckToken, &$statusTcp, &$statsTcp) {
+                function($payload) use ($task, $healthCheckToken, &$statusTcp, $setStats) {
                     if(
                         $payload['task'] == $task &&
                         $payload['load'] == $healthCheckToken
@@ -1581,24 +1587,26 @@ class Setup extends Controller {
                         $statusTcp['type'] = 'success';
                         $statusTcp['label'] = 'PING OK';
                         $statusTcp['class'] = 'txt-color-success';
-
-                        // statistics (e.g. current connection count)
-                        if(!empty($payload['stats'])){
-                            $statsTcp = $payload['stats'];
-                        }
                     }else{
                         $statusTcp['type'] = 'warning';
                         $statusTcp['label'] = is_string($payload['load']) ? $payload['load'] : 'INVALID RESPONSE';
                         $statusTcp['class'] = 'txt-color-warning';
                     }
+
+                    // statistics (e.g. current connection count)
+                    $setStats((array)$payload['stats']);
                 },
-                function($payload) use (&$statusTcp) {
+                function($payload) use (&$statusTcp, $setStats) {
                     $statusTcp['label'] = $payload['load'];
+
+                    // statistics (e.g. current connection count)
+                    $setStats((array)$payload['stats']);
                 });
 
         $socketInformation = [
             'tcpSocket' => [
-                'label'  => 'Socket (intern) [TCP]',
+                'label'  => 'TCP-Socket (intern)',
+                'icon' => 'fa-exchange-alt',
                 'status' => $statusTcp,
                 'stats'  => $statsTcp,
                 'data' => [
@@ -1620,15 +1628,17 @@ class Setup extends Controller {
                         'check' => !empty( $ttl )
                     ],[
                         'label' => 'uptime',
-                        'value' => Config::formatTimeInterval($statsTcp['startup']),
+                        'value' => Config::formatTimeInterval($statsTcp['startup'] ? : 0),
                         'check' => $statsTcp['startup'] > 0
                     ]
                 ],
                 'token' => $healthCheckToken
             ],
             'webSocket' => [
-                'label' => 'WebSocket (clients) [HTTP]',
-                'status' => $webSocketStatus,
+                'label' => 'Web-Socket',
+                'icon' => 'fa-random',
+                'status' => $statusWeb,
+                'stats'  => $statsWeb,
                 'data' => [
                     [
                         'label' => 'URI',

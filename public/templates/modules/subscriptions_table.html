@@ -1,0 +1,102 @@
+<div id="{{panelId}}" class="panel panel-default pricing-big">
+    <div class="panel-heading text-left">
+        <h3 class="panel-title">
+            <i class="fas fa-sitemap fa-rotate-270"></i>&nbsp;&nbsp;Web-Socket stats
+            <span class="pull-right">
+                <kbd title="current subscribed maps">{{channelCount}} maps</kbd>&nbsp;&nbsp;&nbsp;
+                <kbd title="current subscribed unique characters">{{ subStats.countSub }} chars</kbd>&nbsp;&nbsp;&nbsp;
+                <kbd title="current unique connections">{{ subStats.countCon }} con</kbd>
+            </span>
+        </h3>
+    </div>
+
+    {{#channelCount}}
+    <div class="panel-body no-padding text-left">
+        <table class="table">
+            <thead>
+            <tr>
+                <td class="col-xs-1"></td>
+                <td class="col-xs-1 text-right">id</td>
+                <td class="col-xs-2">map name</td>
+                <td class="col-xs-2"></td>
+                <td class="col-xs-2"></td>
+                <td class="col-xs-2"></td>
+                <td class="col-xs-2"></td>
+            </tr>
+            </thead>
+            <tbody>
+            {{#subStats.channels}}
+            <tr>
+                <td data-target=".subStats_channel_{{ channelId }}_col" data-toggle="collapse" style="cursor: pointer">
+                    <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
+                </td>
+                <td class="text-right"><kbd>{{ channelId }}</kbd></td>
+                <td colspan="3">{{ channelName }}</td>
+                <td class="text-right" title="current subscribed characters"><kbd>{{ countSub }}&nbsp;chars</kbd></td>
+                <td class="text-right" title="current unique map connections"><kbd>{{ countCon }}&nbsp;con</kbd></td>
+            </tr>
+            <tr class="subStats_channel_{{ channelId }}_col collapse">
+                <td class="bg-color bg-color-tealDarkest">
+                    <i class="fas fa-fw fa-level-up-alt fa-rotate-90"></i>
+                </td>
+                <td class="bg-color bg-color-tealDarkest"></td>
+                <td class="bg-color bg-color-tealDarkest"></td>
+                <td class="bg-color bg-color-tealDarkest text-right">id</td>
+                <td class="bg-color bg-color-tealDarkest" colspan="2">character name</td>
+                <td class="bg-color bg-color-tealDarkest"></td>
+            </tr>
+            {{#subscriptions}}
+            <tr class="subStats_channel_{{ channelId }}_col collapse">
+                <td class="text-right bg-color bg-color-tealDarker" data-target=".subStats_channel_{{ channelId }}_{{ characterId }}_col" data-toggle="collapse" style="cursor: pointer">
+                    <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
+                </td>
+                <td class="bg-color bg-color-tealDarker"></td>
+                <td class="bg-color bg-color-tealDarker"></td>
+                <td class="bg-color bg-color-tealDarker text-right"><kbd>{{ characterId }} {{@index}}</kbd></td>
+                <td class="bg-color bg-color-tealDarker" colspan="2">{{ characterName }}</td>
+                <td class="bg-color bg-color-tealDarker text-right"><kbd>{{ countCon }}&nbsp;con</kbd></td>
+            </tr>
+
+            <tr class="subStats_channel_{{ channelId }}_col collapse">
+                <td class="no-padding" colspan="8">
+                    <table class="table subStats_channel_{{ channelId }}_{{ characterId }}_col collapse">
+                        <thead>
+                        <tr>
+                            <td class="col-xs-1 bg-color bg-color-tealDarkest text-right">
+                                <i class="fas fa-level-up-alt fa-rotate-90"></i>
+                            </td>
+                            <td class="col-xs-1 bg-color bg-color-tealDarkest"></td>
+                            <td class="col-xs-2 bg-color bg-color-tealDarkest">last update</td>
+                            <td class="bg-color bg-color-tealDarkest text-right" colspan="3">client</td>
+                            <td class="col-xs-2 bg-color bg-color-tealDarkest text-right">id</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#connections}}
+                        <tr>
+                            <td class="col-xs-1 bg-color bg-color-tealDark"></td>
+                            <td class="col-xs-1 bg-color bg-color-tealDark"></td>
+                            <td class="col-xs-1 bg-color bg-color-tealDark" title="{{ mTimeSendFormat1 }}" data-container="body"><kbd>{{ mTimeSendFormat2 }}</kbd></td>
+                            <td class="bg-color bg-color-tealDark text-right" colspan="3"><kbd>{{ remoteAddress }}</kbd></td>
+                            <td class="col-xs-2 bg-color bg-color-tealDark text-right"><kbd>#{{ resourceId }}</kbd></td>
+                        </tr>
+                        {{/connections}}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+
+            {{/subscriptions}}
+
+            {{/subStats.channels}}
+            </tbody>
+        </table>
+    </div>
+    {{/channelCount}}
+
+    <div class="panel-footer btn-group btn-group-justified">
+        <span id="{{ refreshButtonId }}" class="btn btn-default" title="Reload WebSocket stats" data-container="body">
+            <i class="fas fa-fw fa-sync"></i> Reload stats
+        </span>
+    </div>
+</div>
