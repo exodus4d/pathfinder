@@ -1339,16 +1339,17 @@ define([
      * collect all data (systems/connections) for export/save from each active map in the map module
      * if no change detected -> do not attach map data to return array
      * @param mapModule
+     * @param filter
      * @returns {Array}
      */
-    let getMapModuleDataForUpdate = mapModule => {
+    let getMapModuleDataForUpdate = (mapModule, filter = ['hasId', 'hasChanged']) => {
         // get all active map elements for module
         let mapElements = getMaps(mapModule);
 
         let data = [];
         for(let i = 0; i < mapElements.length; i++){
             // get all changed (system / connection) data from this map
-            let mapData = Map.getMapDataForSync($(mapElements[i]), ['hasId', 'hasChanged']);
+            let mapData = Map.getMapDataForSync($(mapElements[i]), filter);
             if(mapData !== false){
                 if(
                     mapData.data.systems.length > 0 ||

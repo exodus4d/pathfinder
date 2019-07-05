@@ -27,6 +27,7 @@ define(['jquery'], ($) => {
             getAccessData: '/api/map/getAccessData',                        // ajax URL - get map access tokens (WebSocket)
             updateMapData: '/api/map/updateData',                           // ajax URL - main map update trigger
             updateUserData: '/api/map/updateUserData',                      // ajax URL - main map user data trigger
+            updateUnloadData: '/api/map/updateUnloadData',                  // post URL - for my sync onUnload
             // map API
             saveMap: '/api/map/save',                                       // ajax URL - save/update map
             deleteMap: '/api/map/delete',                                   // ajax URL - delete map

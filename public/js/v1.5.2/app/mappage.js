@@ -549,14 +549,42 @@ define([
             // initial start of the  map update function
             triggerMapUpdatePing(true);
 
+            /**
+             * handles "final" map update request before window.unload event
+             * -> navigator.sendBeacon browser support required
+             *    ajax would not work here, because browsers might cancel the request!
+             * @param mapModule
+             */
+            let mapUpdateUnload = mapModule => {
+                // get updated map data
+                let mapData = ModuleMap.getMapModuleDataForUpdate(mapModule);
+
+                if(mapData.length){
+                    let fd = new FormData();
+                    fd.set('mapData', JSON.stringify(mapData));
+                    navigator.sendBeacon(Init.path.updateUnloadData, fd);
+
+                    console.info('Map update request send by: %O', navigator.sendBeacon);
+                }
+            };
+
             // Send map update request on tab close/reload, in order to save map changes that
             // haven´t been saved through default update trigger
             window.addEventListener('beforeunload', function(e){
-                // close connection to "SharedWorker"
+                // close "SharedWorker" connection
                 MapWorker.close();
 
+                // clear periodic update timeouts
+                // -> this function will handle the final map update request
+                clearUpdateTimeouts();
+
                 // save unsaved map changes ...
-                triggerMapUpdatePing();
+                if(navigator.sendBeacon){
+                    mapUpdateUnload(mapModule);
+                }else{
+                    // fallback if sendBeacon() is not supported by browser
+                    triggerMapUpdatePing();
+                }
 
                 // check if character should be switched on reload or current character should be loaded afterwards
                 let characterSwitch = Boolean( $('body').data('characterSwitch') );
@@ -569,7 +597,7 @@ define([
 
                 // IMPORTANT, return false in order to not "abort" ajax request in background!
                 return false;
-            });
+            }, false);
 
         };
 

@@ -64,10 +64,15 @@ class CharacterUpdate extends AbstractCron {
                  * @var $characterLog Pathfinder\CharacterLogModel
                  */
                 if(is_object($characterLog->characterId)){
-                    // force characterLog as "updated" even if no changes were made
-                    $characterLog->characterId->updateLog([
-                        'markUpdated' =>  true
-                    ]);
+                    if($accessToken = $characterLog->characterId->getAccessToken()){
+                        if($this->isOnline($accessToken)){
+                            // force characterLog as "updated" even if no changes were made
+                            $characterLog->touch('updated');
+                            $characterLog->save();
+                        }else{
+                            $characterLog->erase();
+                        }
+                    }
                 }else{
                     // character_log does not have a character assigned -> delete
                     $characterLog->erase();

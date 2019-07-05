@@ -182,10 +182,20 @@ self.addEventListener('connect', event => {   // jshint ignore:line
             case 'sw:closePort':
                 port.close();
 
-                socket.send(JSON.stringify({
-                    task: MsgWorkerMessage.task(),
-                    load: removePort(port)
-                }));
+                // remove port from store
+                // -> charIds managed by closed port
+                let characterIds = removePort(port);
+
+                // check if there are still other ports active that manage removed ports
+                // .. if not -> send "unsubscribe" event to WebSocket server
+                let portsLeft = getPortsByCharacterIds(characterIds);
+
+                if(!portsLeft.length){
+                    socket.send(JSON.stringify({
+                        task: MsgWorkerMessage.task(),
+                        load: characterIds
+                    }));
+                }
                 break;
             case 'ws:close':
                // closeSocket();

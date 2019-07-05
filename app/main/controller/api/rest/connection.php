@@ -56,7 +56,7 @@ class Connection extends AbstractRestController {
                         $connectionData = $connection->getData();
 
                         // broadcast map changes
-                        $this->broadcastMapData($connection->mapId);
+                        $this->broadcastMap($connection->mapId);
                     }
                 }
             }
@@ -95,7 +95,7 @@ class Connection extends AbstractRestController {
 
                 // broadcast map changes
                 if(count($deletedConnectionIds)){
-                    $this->broadcastMapData($map);
+                    $this->broadcastMap($map);
                 }
             }
         }

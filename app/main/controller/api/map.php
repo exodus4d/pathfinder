@@ -660,7 +660,7 @@ class Map extends Controller\AccessController {
         $this->getF3()->webSocket()->write('mapAccess', $mapAccess);
 
         // map has (probably) active connections that should receive map Data
-        $this->broadcastMapData($map);
+        $this->broadcastMap($map);
     }
 
     /**
@@ -689,9 +689,12 @@ class Map extends Controller\AccessController {
             unset($characterData->corporation->rights);
         }
 
+        // access token
+        $token = bin2hex(random_bytes(16));
+
         $return->data = [
             'id'            => $activeCharacter->_id,
-            'token'         => bin2hex(random_bytes(16)), // token for character access
+            'token'         => $token, // character access
             'characterData' => $characterData,
             'mapData'       => []
         ];
@@ -700,7 +703,7 @@ class Map extends Controller\AccessController {
             foreach($maps as $map){
                 $return->data['mapData'][] = [
                     'id'    => $map->_id,
-                    'token' => bin2hex(random_bytes(16)), // token for map access
+                    'token' => $token, // map access
                     'name'  => $map->name
                 ];
             }
@@ -722,41 +725,33 @@ class Map extends Controller\AccessController {
     }
 
     /**
-     * update map data
-     * -> function is called continuously (trigger) by any active client
-     * @param \Base $f3
-     * @throws Exception
+     * update maps with $mapsData where $character has access to
+     * @param Pathfinder\CharacterModel $character
+     * @param array $mapsData
+     * @return \stdClass
      */
-    public function updateData(\Base $f3){
-        $postData = (array)$f3->get('POST');
-        $mapData = (array)$postData['mapData'];
-        $userDataRequired = (bool)$postData['getUserData'];
-
+    protected function updateMapsData(Pathfinder\CharacterModel $character, array $mapsData) : \stdClass {
         $return = (object) [];
         $return->error = [];
+        $return->mapData = [];
 
-        $activeCharacter = $this->getCharacter();
+        $mapIdsChanged = [];
+        $maps = $character->getMaps();
 
-        // get current map data
-        $maps = $activeCharacter->getMaps();
-
-        // if there is any system/connection change data submitted -> save new data
-        if( !empty($maps) && !empty($mapData) ){
-
-            // loop all submitted map data that should be saved
+        if(!empty($mapsData) && !empty($maps)){
+            // loop all $mapsData that should be saved
             // -> currently there will only be ONE map data change submitted -> single loop
-            foreach($mapData as $data){
-
+            foreach($mapsData as $data){
                 $systems = [];
                 $connections = [];
 
                 // check whether system data and/or connection data is send
                 // empty arrays are not included in ajax requests
-                if(  isset($data['data']['systems']) ){
+                if(isset($data['data']['systems'])){
                     $systems = (array)$data['data']['systems'];
                 }
 
-                if( isset($data['data']['connections']) ){
+                if(isset($data['data']['connections'])){
                     $connections = (array)$data['data']['connections'];
                 }
 
@@ -769,15 +764,15 @@ class Map extends Controller\AccessController {
 
                     // loop current user maps and check for changes
                     foreach($maps as $map){
-                        $mapChanged = false;
-
                         // update system data -------------------------------------------------------------------------
                         foreach($systems as $i => $systemData){
                             // check if current system belongs to the current map
                             if($system = $map->getSystemById((int)$systemData['id'])){
                                 $system->copyfrom($systemData, ['alias', 'status', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
-                                if($system->save($activeCharacter)){
-                                    $mapChanged = true;
+                                if($system->save($character)){
+                                    if(!in_array($map->_id, $mapIdsChanged)){
+                                        $mapIdsChanged[] = $map->_id;
+                                    }
                                     // one system belongs to ONE  map -> speed up for multiple maps
                                     unset($systemData[$i]);
                                 }else{
@@ -791,8 +786,10 @@ class Map extends Controller\AccessController {
                             // check if the current connection belongs to the current map
                             if($connection = $map->getConnectionById((int)$connectionData['id'])){
                                 $connection->copyfrom($connectionData, ['scope', 'type', 'endpoints']);
-                                if($connection->save($activeCharacter)){
-                                    $mapChanged = true;
+                                if($connection->save($character)){
+                                    if(!in_array($map->_id, $mapIdsChanged)){
+                                        $mapIdsChanged[] = $map->_id;
+                                    }
                                     // one connection belongs to ONE  map -> speed up for multiple maps
                                     unset($connectionData[$i]);
                                 }else{
@@ -800,17 +797,39 @@ class Map extends Controller\AccessController {
                                 }
                             }
                         }
-
-                        if($mapChanged){
-                            $this->broadcastMapData($map);
-                        }
                     }
                 }
             }
         }
 
-        // format map Data for return
-        $return->mapData = $this->getFormattedMapsData($maps);
+        foreach($maps as $map){
+            // format map Data for return/broadcast
+            if($mapData = $this->getFormattedMapData($map)){
+                if(in_array($map->_id, $mapIdsChanged)){
+                    $this->broadcastMapData($mapData);
+                }
+
+                $return->mapData[] = $mapData;
+            }
+        }
+
+        return $return;
+    }
+
+    /**
+     * update map data
+     * -> function is called continuously (trigger) by any active client
+     * @param \Base $f3
+     * @throws Exception
+     */
+    public function updateData(\Base $f3){
+        $postData = (array)$f3->get('POST');
+        $mapsData = (array)$postData['mapData'];
+        $userDataRequired = (bool)$postData['getUserData'];
+
+        $activeCharacter = $this->getCharacter();
+
+        $return = $this->updateMapsData($activeCharacter, $mapsData);
 
         // if userData is requested -> add it as well
         // -> Only first trigger call should request this data!
@@ -822,18 +841,22 @@ class Map extends Controller\AccessController {
     }
 
     /**
-     * get formatted map data
-     * @param Pathfinder\MapModel[] $mapModels
-     * @return array
+     * onUnload map sync
+     * @see https://developer.mozilla.org/docs/Web/API/Navigator/sendBeacon
+     * @param \Base $f3
      * @throws Exception
      */
-    protected function getFormattedMapsData(array $mapModels) : array {
-        $mapData = [];
-        foreach($mapModels as $mapModel){
-            $mapData[] = $this->getFormattedMapData($mapModel);
-        }
+    public function updateUnloadData(\Base $f3){
+        $postData = (array)$f3->get('POST');
 
-        return $mapData;
+        if(!empty($mapsData = (string)$postData['mapData'])){
+            $mapsData = (array)json_decode($mapsData, true);
+            if(($jsonError = json_last_error()) === JSON_ERROR_NONE){
+                $activeCharacter = $this->getCharacter();
+
+                $this->updateMapsData($activeCharacter, $mapsData);
+            }
+        }
     }
 
     /**
@@ -1137,7 +1160,7 @@ class Map extends Controller\AccessController {
         }
 
         if($mapDataChanged){
-            $this->broadcastMapData($map);
+            $this->broadcastMap($map);
         }
 
         return $map;

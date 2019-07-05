@@ -121,9 +121,12 @@ define([
      * -> this removes the port from its port collection and closes it
      */
     let close = () => {
-        let MsgWorkerClose = new MsgWorker('sw:closePort');
-        MsgWorkerClose.task('unsubscribe');
-        sendMessage(MsgWorkerClose);
+        // check if MsgWorker is available (SharedWorker was initialized)
+        if(MsgWorker){
+            let MsgWorkerClose = new MsgWorker('sw:closePort');
+            MsgWorkerClose.task('unsubscribe');
+            sendMessage(MsgWorkerClose);
+        }
     };
 
     /**
