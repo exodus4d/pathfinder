@@ -810,8 +810,8 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
-                            let rowData = e.data.tableApi.row(this).data();
+                        $(cell).on('click', { tableApi: this.api(), rowIndex: rowIndex }, function(e){
+                            let rowData = e.data.tableApi.row(e.data.rowIndex).data();
                             Util.openIngameWindow(rowData.id);
                         });
                     }
@@ -850,7 +850,7 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
+                        $(cell).on('click', { tableApi: this.api() }, function(e){
                             let cellData = e.data.tableApi.cell(this).data();
                             Util.openIngameWindow(cellData.id);
                         });
@@ -1132,8 +1132,8 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
-                            let rowData = e.data.tableApi.row(this).data();
+                        $(cell).on('click', { tableApi: this.api(), rowIndex: rowIndex }, function(e){
+                            let rowData = e.data.tableApi.row(e.data.rowIndex).data();
                             Util.openIngameWindow(rowData.context.data.character.id);
                         });
                     }

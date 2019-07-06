@@ -17,37 +17,37 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * system position x max
      */
-    const MAX_POS_X                     = 2440;
+    const MAX_POS_X                         = 2440;
 
     /**
      * system position y max
      */
-    const MAX_POS_Y                     = 1480;
+    const MAX_POS_Y                         = 1480;
 
     /**
      * max count of history signature data in cache
      */
-    const MAX_HISTORY_SIGNATURES        = 10;
+    const MAX_HISTORY_SIGNATURES_DATA       = 10;
 
     /**
      * TTL for history signature data
      */
-    const TTL_HISTORY_SIGNATURES        = 7200;
+    const TTL_HISTORY_SIGNATURES            = 7200;
 
     /**
      * cache key prefix for getData(); result WITH log data
      */
-    const DATA_CACHE_KEY_SIGNATURES     = 'SIGNATURES';
+    const DATA_CACHE_KEY_HISTORY_SIGNATURES = 'HISTORY_SIGNATURES';
 
     /**
      * @var string
      */
-    protected $table                    = 'system';
+    protected $table                        = 'system';
 
     /**
      * @var array
      */
-    protected $staticSystemDataCache    = [];
+    protected $staticSystemDataCache        = [];
 
     /**
      * @var array
@@ -794,8 +794,8 @@ class SystemModel extends AbstractMapTrackingModel {
      * @param string $stamp
      * @return array|null
      */
-    public function getSignatureHistoryData(string $stamp) : ?array {
-        $signatureHistoryData = array_filter($this->getSignaturesHistoryData(), function($historyEntry) use ($stamp){
+    public function getSignatureHistoryEntry(string $stamp) : ?array {
+        $signatureHistoryData = array_filter($this->getSignaturesHistory(), function($historyEntry) use ($stamp){
             return md5($historyEntry['stamp']) == $stamp;
         });
         return empty($signatureHistoryData) ? null : reset($signatureHistoryData);
@@ -804,8 +804,8 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * @return array
      */
-    public function getSignaturesHistoryData() : array {
-        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_SIGNATURES))){
+    public function getSignaturesHistory() : array {
+        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_HISTORY_SIGNATURES))){
             $signaturesHistoryData = [];
         }
         return $signaturesHistoryData;
@@ -819,9 +819,9 @@ class SystemModel extends AbstractMapTrackingModel {
      * @param string $action
      * @throws \Exception
      */
-    public function updateSignaturesHistory(CharacterModel $character, string $action = 'edit'){
+    public function updateSignaturesHistory(CharacterModel $character, string $action = 'edit') : void {
         if(!$this->dry()){
-            $signaturesHistoryData = $this->getSignaturesHistoryData();
+            $signaturesHistoryData = $this->getSignaturesHistory();
             $historyEntry = [
                 'stamp'         => microtime(true),
                 'character'     => $character->getBasicData(),
@@ -832,9 +832,9 @@ class SystemModel extends AbstractMapTrackingModel {
             array_unshift($signaturesHistoryData, $historyEntry);
 
             // limit max history data
-            array_splice($signaturesHistoryData, self::MAX_HISTORY_SIGNATURES);
+            array_splice($signaturesHistoryData, self::MAX_HISTORY_SIGNATURES_DATA);
 
-            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_SIGNATURES, self::TTL_HISTORY_SIGNATURES);
+            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_HISTORY_SIGNATURES, self::TTL_HISTORY_SIGNATURES);
 
             // clear system cache here
             // -> Signature model updates should NOT update the system cache on change

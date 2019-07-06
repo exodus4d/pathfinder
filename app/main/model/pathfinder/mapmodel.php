@@ -1303,32 +1303,30 @@ class MapModel extends AbstractMapTrackingModel {
      * @param SystemModel $targetSystem
      * @return ConnectionModel|null
      */
-    public function searchConnection(SystemModel $sourceSystem, SystemModel $targetSystem){
+    public function searchConnection(SystemModel $sourceSystem, SystemModel $targetSystem) : ?ConnectionModel {
+        $connection = null;
+
         // check if both systems belong to this map
         if(
-            $sourceSystem->get('mapId', true) === $this->id &&
-            $targetSystem->get('mapId', true) === $this->id
+            $sourceSystem->get('mapId', true) === $this->_id &&
+            $targetSystem->get('mapId', true) === $this->_id
         ){
-            $this->filter('connections', [
-                'active = :active AND
-            (
-                (
-                    source = :sourceId AND
-                    target = :targetId
-                ) OR (
-                    source = :targetId AND
-                    target = :sourceId
-                )
-            )',
-                ':active' => 1,
-                ':sourceId' => $sourceSystem->id,
-                ':targetId' => $targetSystem->id,
-            ], ['limit'=> 1]);
+            $filter = $this->mergeFilter([
+                $this->mergeFilter([self::getFilter('source', $sourceSystem->id, 'A'), self::getFilter('target', $targetSystem->id, 'A')]),
+                $this->mergeFilter([self::getFilter('source', $targetSystem->id, 'B'), self::getFilter('target', $sourceSystem->id, 'B')])
+            ], 'or');
 
-            return ($this->connections) ? reset($this->connections) : null;
-        }else{
-            return null;
+            $connection = $this->relFindOne('connections', $filter);
         }
+
+        return $connection;
+    }
+
+    /**
+     * @see parent
+     */
+    public function filterRel() : void {
+        $this->filter('connections', self::getFilter('active', true));
     }
 
     /**

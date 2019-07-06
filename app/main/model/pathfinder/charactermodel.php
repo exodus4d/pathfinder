@@ -19,17 +19,32 @@ class CharacterModel extends AbstractPathfinderModel {
     /**
      * @var string
      */
-    protected $table = 'character';
+    protected $table                    = 'character';
 
     /**
      * cache key prefix for getData(); result WITH log data
      */
-    const DATA_CACHE_KEY_LOG                        = 'LOG';
+    const DATA_CACHE_KEY_LOG            = 'LOG';
 
     /**
      * log message for character access
      */
-    const LOG_ACCESS                                = 'charId: [%20s], status: %s, charName: %s';
+    const LOG_ACCESS                    = 'charId: [%20s], status: %s, charName: %s';
+
+    /**
+     * max count of historic character logs
+     */
+    const MAX_HISTORY_LOGS_DATA         = 3;
+
+    /**
+     * TTL for historic character logs
+     */
+    const TTL_HISTORY_LOGS              = 60 * 60 * 22;
+
+    /**
+     * cache key prefix historic character logs
+     */
+    const DATA_CACHE_KEY_HISTORY_LOGS   = 'HISTORY_LOG';
 
     /**
      * character authorization status
@@ -854,7 +869,7 @@ class CharacterModel extends AbstractPathfinderModel {
                         }
 
                         // get current log data and modify on change
-                        $logData = json_decode(json_encode( $characterLog->getData()), true);
+                        $logData = $characterLog->getDataAsArray();
 
                         // check system and station data for changes ----------------------------------------------
 
@@ -984,7 +999,7 @@ class CharacterModel extends AbstractPathfinderModel {
                             }
 
                             $characterLog->setData($logData);
-                            $characterLog->characterId = $this->id;
+                            $characterLog->characterId = $this->_id;
                             $characterLog->save();
 
                             $this->characterLog = $characterLog;
@@ -1011,6 +1026,51 @@ class CharacterModel extends AbstractPathfinderModel {
         }
 
         return $this;
+    }
+
+    /**
+     * filter'character log' history data by $callback
+     * @param \Closure $callback
+     * @return array
+     */
+    protected function filterLogsHistory(\Closure $callback) : array {
+        return array_filter($this->getLogsHistory() , $callback);
+    }
+
+    /**
+     * @return array
+     */
+    public function getLogsHistory() : array {
+        if(!is_array($logHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_HISTORY_LOGS))){
+            $logHistoryData = [];
+        }
+        return $logHistoryData;
+    }
+
+    /**
+     * add new 'character log' history entry
+     * @param CharacterLogModel $characterLog
+     * @param string $action
+     */
+    public function updateLogsHistory(CharacterLogModel $characterLog, string $action = 'update'){
+        if(
+            !$this->dry() &&
+            $this->_id === $characterLog->get('characterId', true)
+        ){
+            $logHistoryData = $this->getLogsHistory();
+            $historyEntry = [
+                'stamp'     => strtotime($characterLog->updated),
+                'action'    => $action,
+                'log'       => $characterLog->getDataAsArray()
+            ];
+
+            array_unshift($logHistoryData, $historyEntry);
+
+            // limit max history data
+            array_splice($logHistoryData, self::MAX_HISTORY_LOGS_DATA);
+
+            $this->updateCacheData($logHistoryData, self::DATA_CACHE_KEY_HISTORY_LOGS, self::TTL_HISTORY_LOGS);
+        }
     }
 
     /**
@@ -1072,15 +1132,33 @@ class CharacterModel extends AbstractPathfinderModel {
 
     /**
      * get the character log entry for this character
-     * @return bool|CharacterLogModel
+     * @return CharacterLogModel|null
      */
-    public function getLog(){
-        $characterLog = false;
-        if(
-            $this->hasLog() &&
-            !$this->characterLog->dry()
-        ){
-            $characterLog = $this->characterLog;
+    public function getLog() : ?CharacterLogModel {
+        return ($this->hasLog() && !$this->characterLog->dry()) ? $this->characterLog : null;
+    }
+
+    /**
+     * get the first matched (most recent) log entry before $systemId.
+     * -> The returned log entry *might* be previous system for this character
+     * @param int $systemId
+     * @return CharacterLogModel|null
+     */
+    public function getLogPrevSystem(int $systemId) : ?CharacterLogModel {
+        $logHistoryData = $this->filterLogsHistory(function(array $historyEntry) use ($systemId) : bool {
+            return (
+                !empty($historySystemId = (int)$historyEntry['log']['system']['id']) &&
+                $historySystemId !== $systemId
+            );
+        });
+
+        $characterLog = null;
+        if(!empty($historyEntry = reset($logHistoryData))){
+            /**
+             * @var $characterLog CharacterLogModel
+             */
+            $characterLog = $this->rel('characterLog');
+            $characterLog->setData($historyEntry['log']);
         }
 
         return $characterLog;

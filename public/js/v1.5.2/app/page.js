@@ -1008,21 +1008,6 @@ define([
     };
 
     /**
-     * delete active character log for the current user
-     */
-    let deleteLog = function(){
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.deleteLog,
-            data: {},
-            dataType: 'json'
-        }).done(function(data){
-
-        });
-    };
-
-    /**
      * update the "active user" badge in header
      * @param userCountInside
      * @param userCountOutside

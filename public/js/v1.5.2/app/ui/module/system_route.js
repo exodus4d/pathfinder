@@ -843,7 +843,7 @@ define([
                 // check for wormhole
                 let icon = 'fas fa-square';
                 if( /^J\d+$/.test(systemName) ){
-                    icon = 'far fa-dot-circle';
+                    icon = 'fas fa-dot-circle';
                 }
 
                 let system = '<i class="' + icon + ' ' + systemSecClass + '" ';

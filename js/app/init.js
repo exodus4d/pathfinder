@@ -16,7 +16,6 @@ define(['jquery'], ($) => {
             getCookieCharacterData: '/api/user/getCookieCharacter',         // ajax URL - get character data from cookie
             logIn: '/api/user/logIn',                                       // ajax URL - login
             logout: '/api/user/logout',                                     // ajax URL - logout
-            deleteLog: '/api/user/deleteLog',                               // ajax URL - delete character log
             openIngameWindow: '/api/user/openIngameWindow',                 // ajax URL - open inGame Window
             saveUserConfig: '/api/user/saveAccount',                        // ajax URL - saves/update user account
             deleteAccount: '/api/user/deleteAccount',                       // ajax URL - delete Account data
@@ -105,6 +104,14 @@ define(['jquery'], ($) => {
                 label: 'anchor',
                 unicode: '&#xf13d;'
             },{
+                class: 'fa-satellite',
+                label: 'satellite',
+                unicode: '&#xf7bf;'
+            },{
+                class: 'fa-skull-crossbones',
+                label: 'skull crossbones',
+                unicode: '&#xf714;'
+            },{
                 class: 'fa-fire',
                 label: 'fire',
                 unicode: '&#xf06d;'
@@ -120,6 +127,10 @@ define(['jquery'], ($) => {
                 class: 'fa-star',
                 label: 'star',
                 unicode: '&#xf005;'
+            },{
+                class: 'fa-hat-wizard',
+                label: 'hat wizard',
+                unicode: '&#xf6e8;'
             },{
                 class: 'fa-plane',
                 label: 'plane',

@@ -330,6 +330,13 @@ abstract class AbstractModel extends Cortex {
                         $valid = true;
                     }
                     break;
+                case Schema::DT_VARCHAR128:
+                case Schema::DT_VARCHAR256:
+                case Schema::DT_VARCHAR512:
+                    if(!empty($val)){
+                        $valid = true;
+                    }
+                    break;
                 default:
             }
         }
@@ -542,7 +549,7 @@ abstract class AbstractModel extends Cortex {
             /**
              * @var $relModel self|bool
              */
-            $relModel = $this->rel($key)->findone($this->mergeFilter([$this->mergeWithRelFilter($key, $filter), $relFilter]));
+            $relModel = $this->rel($key)->findone($this->mergeFilter([$relFilter, $this->mergeWithRelFilter($key, $filter)]));
         }
 
         return $relModel ? : null;
@@ -862,13 +869,17 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
-     * get filter for Cortex
+     * get new filter array representation
+     * -> $suffix can be used fore unique placeholder,
+     *    in case the same $key is used with different $values in the same query
      * @param string $key
      * @param $value
+     * @param string $suffix //
      * @return array
      */
-    public static function getFilter(string $key, $value) : array {
-        return [$key . ' = :' . $key, ':' . $key => $value];
+    public static function getFilter(string $key, $value, string $suffix = '') : array {
+        $placeholder = implode('_', array_filter([$key, $suffix]));
+        return [$key . ' = :' . $placeholder, ':' . $placeholder => $value];
     }
 
     /**

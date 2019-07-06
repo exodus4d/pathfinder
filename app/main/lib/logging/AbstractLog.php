@@ -116,7 +116,7 @@ abstract class AbstractLog implements LogInterface {
 
         // add custom log processor callback -> add "extra" (meta) data
         $f3 = $this->f3;
-        $processorExtraData = function($record) use(&$f3){
+        $processorExtraData = function($record) use (&$f3){
             $record['extra'] = [
                 'path' => $f3->get('PATH'),
                 'ip' => $f3->get('IP')

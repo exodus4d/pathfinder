@@ -886,7 +886,7 @@ class Map extends Controller\AccessController {
             if( !is_null($map = $activeCharacter->getMap($mapId)) ){
                 // check character log (current system) and manipulate map (e.g. add new system)
                 if($mapTracking){
-                    $map = $this->updateMapData($activeCharacter, $map);
+                    $map = $this->updateMapByCharacter($map, $activeCharacter);
                 }
 
                 // mapUserData ----------------------------------------------------------------------------------------
@@ -911,7 +911,7 @@ class Map extends Controller\AccessController {
                     // data for currently selected system
                     $return->system = $system->getData();
                     $return->system->signatures = $system->getSignaturesData();
-                    $return->system->sigHistory = $system ->getSignaturesHistoryData();
+                    $return->system->sigHistory = $system->getSignaturesHistory();
                     $return->system->structures = $system->getStructuresData();
 
                 }
@@ -928,28 +928,28 @@ class Map extends Controller\AccessController {
         echo json_encode($return);
     }
 
-
     /**
-     * add new map connection based on current $character location
-     * @param Pathfinder\CharacterModel $character
+     * update map connections/systems based on $character´s location logs
      * @param Pathfinder\MapModel $map
+     * @param Pathfinder\CharacterModel $character
      * @return Pathfinder\MapModel
      * @throws Exception
      */
-    protected function updateMapData(Pathfinder\CharacterModel $character, Pathfinder\MapModel $map){
-
+    protected function updateMapByCharacter(Pathfinder\MapModel $map, Pathfinder\CharacterModel $character) : Pathfinder\MapModel {
         // map changed. update cache (system/connection) changed
         $mapDataChanged = false;
 
         if(
             ( $mapScope = $map->getScope() ) &&
             ( $mapScope->name != 'none' ) && // tracking is disabled for map
-            ( $log = $character->getLog() )
+            ( $targetLog = $character->getLog() )
         ){
             // character is currently in a system
-            $sessionCharacter = $this->getSessionCharacterData();
-            $sourceSystemId = (int)$sessionCharacter['PREV_SYSTEM_ID'];
-            $targetSystemId = (int)$log->systemId;
+            $targetSystemId = (int)$targetLog->systemId;
+
+            // get 'character log' from source system. If not log found -> assume $sourceLog == $targetLog
+            $sourceLog = $character->getLogPrevSystem($targetSystemId) ? : $targetLog;
+            $sourceSystemId = (int)$sourceLog->systemId;
 
             if($sourceSystemId){
                 $sourceSystem = null;
@@ -1111,17 +1111,17 @@ class Map extends Controller\AccessController {
                         ){
                             // .. do not add connection if character got "podded" -------------------------------------
                             if(
-                                $log->shipTypeId == 670 &&
+                                $targetLog->shipTypeId == 670 &&
                                 $character->cloneLocationId
                             ){
                                 // .. current character location must be clone location
                                 if(
                                     (
                                         'station' == $character->cloneLocationType &&
-                                        $character->cloneLocationId == $log->stationId
+                                        $character->cloneLocationId == $targetLog->stationId
                                     ) || (
                                         'structure' == $character->cloneLocationType &&
-                                        $character->cloneLocationId == $log->structureId
+                                        $character->cloneLocationId == $targetLog->structureId
                                     )
                                 ){
                                     // .. now we need to check jump distance between systems
@@ -1152,7 +1152,7 @@ class Map extends Controller\AccessController {
                             $connection &&
                             $connection->isWormhole()
                         ){
-                            $connection->logMass($log);
+                            $connection->logMass($targetLog);
                         }
                     }
                 }

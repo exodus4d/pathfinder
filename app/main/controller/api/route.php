@@ -300,7 +300,7 @@ class Route extends Controller\AccessController {
     private function filterJumpData($filterData = [], $keepSystems = []){
         if($filterData['flag'] == 'secure'){
             // remove all systems (TrueSec < 0.5) from search arrays
-            $this->jumpArray = array_filter($this->jumpArray, function($systemId) use($keepSystems) {
+            $this->jumpArray = array_filter($this->jumpArray, function($systemId) use ($keepSystems) {
                 $systemNameData = $this->nameArray[$systemId];
                 $systemSec = $systemNameData[3];
 

@@ -339,11 +339,10 @@ class UserModel extends AbstractPathfinderModel {
      * hint: a user can have multiple active characters
      * @return CharacterModel[]
      */
-    public function getActiveCharacters(){
+    public function getActiveCharacters() : array {
         $activeCharacters = [];
-        $userCharacters = $this->getUserCharacters();
 
-        foreach($userCharacters as $userCharacter){
+        foreach($this->getUserCharacters() as $userCharacter){
             /**
              * @var $userCharacter UserCharacterModel
              */
