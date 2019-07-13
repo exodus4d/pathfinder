@@ -1,7 +1,11 @@
 <footer id="{{id}}" class="navbar navbar-default" role="navigation">
     <div class="pf-footer-left">
-        <p class="navbar-text  txt-color txt-color-gray"><i class="far fa-copyright"></i>
-            {{ currentYear }} <a class="{{footerLicenceLinkClass}}" href="javascript:void(0)">Licence</a>
+        <p class="navbar-text  txt-color txt-color-gray">
+            <i class="far fa-clock"></i>&nbsp;&nbsp;<span class="{{ footerClockClass }}"></span>
+            &nbsp;|&nbsp;
+            <i class="far fa-copyright"></i>&nbsp;&nbsp;{{ currentYear }}&nbsp;
+            <a class="{{footerLicenceLinkClass}}" href="javascript:void(0)">Licence</a>
+
         </p>
     </div>
 

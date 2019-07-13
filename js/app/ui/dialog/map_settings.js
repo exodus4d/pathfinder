@@ -422,7 +422,7 @@ define([
                                             }
 
                                             $(mapInfoDialog).modal('hide');
-                                            $(document).trigger('pf:closeMenu', [{}]);
+                                            Util.triggerMenuAction(document, 'Close');
                                         }
                                     }).fail(function(jqXHR, status, error){
                                         let reason = status + ' ' + error;

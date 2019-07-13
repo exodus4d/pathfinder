@@ -10,7 +10,7 @@ define([
     'app/render',
     'bootbox',
     'peityInlineChart'
-], function($, Init, Util, Render, bootbox){
+], ($, Init, Util, Render, bootbox) => {
     'use strict';
 
     let config = {

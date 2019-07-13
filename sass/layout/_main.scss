@@ -1,5 +1,9 @@
 $endpointBubbleWidth: 18px;
 
+:fullscreen{
+  overflow-y: scroll; // overwrites browser default
+}
+
 body{
   // prevent marking text
   -webkit-touch-callout: none;
@@ -58,6 +62,10 @@ em{
 
 .no-padding{
   padding: 0 !important;
+}
+
+.no-margin{
+  margin: 0;
 }
 
 // scroll bar (webkit only) =======================================================================
@@ -1587,16 +1595,16 @@ code {
 
   }
 
-  .pf-head-user-character, .pf-head-user-ship{
+  .pf-head-user-character{
     opacity: 0; // triggered by js
     visibility: hidden;
   }
 
-  .pf-head-active-user{
+  .pf-head-active-users{
     cursor: pointer;
   }
 
-  .pf-head-active-user, #pf-head-current-location{
+  .pf-head-active-users{
     display: none; // triggered by js
 
     .badge{
@@ -1604,16 +1612,23 @@ code {
     }
   }
 
-  .pf-head-user-character-image, .pf-head-user-ship-image{
+  .pf-head-image{
     display: inline-block;
     margin-top: -6px;
     margin-bottom: -6px;
     width: 27px;
     border: 1px solid $gray;
-    margin-right: 3px;
     image-rendering: -webkit-optimize-contrast;
     @include transition( border-color 0.15s ease-out );
     will-change: border-color;
+
+    &.--left{
+      margin-right: 3px;
+    }
+
+    &.--right{
+      margin-left: 8px;
+    }
   }
 
   .pf-head-program-status{
@@ -1623,10 +1638,6 @@ code {
   .pf-head-map-tracking{
     margin-bottom: 4px;
     margin-top: 4px;
-  }
-
-  .navbar-text{
-    min-width: 60px; // fixes a load-delay issue for "toggle" map-tracking
   }
 
   // tooltips header
@@ -1703,15 +1714,6 @@ code {
     padding-left: 0;    // overwrite default
     padding-right: 0;   // verwrite default
   }
-}
-
-// left menu ======================================================================================
-.pf-menu-clock{
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 6px 8px;
-  text-align: center;
 }
 
 // global info panel ==============================================================================

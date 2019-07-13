@@ -57,7 +57,7 @@ class UserModel extends AbstractPathfinderModel {
      * @return \stdClass
      * @throws Exception
      */
-    public function getData(){
+    public function getData() : \stdClass {
 
         // get public user data for this user
         $userData = $this->getSimpleData();
@@ -77,7 +77,7 @@ class UserModel extends AbstractPathfinderModel {
 
         // get active character with log data
         $activeCharacter = $this->getActiveCharacter();
-        $userData->character = $activeCharacter->getData(true);
+        $userData->character = $activeCharacter->getData(true, true);
 
         return $userData;
     }
@@ -87,7 +87,7 @@ class UserModel extends AbstractPathfinderModel {
      * - check out getData() for all user data
      * @return \stdClass
      */
-    public function getSimpleData(){
+    public function getSimpleData() : \stdClass{
         $userData = (object) [];
         $userData->id = $this->id;
         $userData->name = $this->name;
@@ -143,7 +143,7 @@ class UserModel extends AbstractPathfinderModel {
      * checks whether user has a valid email address and pathfinder has a valid SMTP config
      * @return bool
      */
-    protected function isMailSendEnabled() : bool{
+    protected function isMailSendEnabled() : bool {
         return Config::isValidSMTPConfig($this->getSMTPConfig());
     }
 
@@ -151,7 +151,7 @@ class UserModel extends AbstractPathfinderModel {
      * get SMTP config for this user
      * @return \stdClass
      */
-    protected function getSMTPConfig() : \stdClass{
+    protected function getSMTPConfig() : \stdClass {
         $config = Config::getSMTPConfig();
         $config->to = $this->email;
         return $config;
@@ -164,7 +164,7 @@ class UserModel extends AbstractPathfinderModel {
      * @return bool
      * @throws Exception\ValidationException
      */
-    protected function validate_name(string $key, string $val): bool {
+    protected function validate_name(string $key, string $val) : bool {
         $valid = true;
         if(
             mb_strlen($val) < 3 ||
@@ -183,7 +183,7 @@ class UserModel extends AbstractPathfinderModel {
      * @return bool
      * @throws Exception\ValidationException
      */
-    protected function validate_email(string $key, string $val): bool {
+    protected function validate_email(string $key, string $val) : bool {
         $valid = true;
         if ( !empty($val) && \Audit::instance()->email($val) == false ){
             $valid = false;
@@ -196,14 +196,14 @@ class UserModel extends AbstractPathfinderModel {
      * check whether this character has already a user assigned to it
      * @return bool
      */
-    public function hasUserCharacters(){
+    public function hasUserCharacters() : bool {
         $this->filter('userCharacters', ['active = ?', 1]);
         return is_object($this->userCharacters);
     }
 
     /**
      * get current character data from session
-     * -> if §characterID == 0 -> get first character data (random)
+     * -> if $characterId == 0 -> get first character data (random)
      * @param int $characterId
      * @param bool $objectCheck
      * @return array
@@ -254,7 +254,7 @@ class UserModel extends AbstractPathfinderModel {
      * @param int $characterId
      * @return array
      */
-    public function findSessionCharacterData(int $characterId): array {
+    public function findSessionCharacterData(int $characterId) : array {
         $data = [];
         if($characterId){
             $sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);
@@ -292,7 +292,7 @@ class UserModel extends AbstractPathfinderModel {
      * @return null|CharacterModel
      * @throws Exception
      */
-    public function getActiveCharacter(){
+    public function getActiveCharacter() : ?CharacterModel {
         $activeCharacter = null;
         $controller = new Controller\Controller();
         $currentActiveCharacter = $controller->getCharacter();
@@ -316,7 +316,7 @@ class UserModel extends AbstractPathfinderModel {
      * get all characters for this user
      * @return CharacterModel[]
      */
-    public function getCharacters(){
+    public function getCharacters() : array {
         $characters = [];
         $userCharacters = $this->getUserCharacters();
 

@@ -18,8 +18,6 @@ define([
         moduleHeadClass: 'pf-module-head',                                                      // class for module header
         moduleHandlerClass: 'pf-module-handler-drag',                                           // class for "drag" handler
 
-        headUserShipClass: 'pf-head-user-ship',                                                 // class for "user settings" link
-
         // connection info module
         moduleTypeClass: 'pf-connection-info-module',                                           // class for this module
 
@@ -100,15 +98,13 @@ define([
      * @returns {jQuery}
      */
     let getConnectionElement = (mapId, connectionId) => {
-        let connectionElement = $('<div>', {
+        return $('<div>', {
             id: getConnectionElementId(connectionId),
             class: ['col-xs-12', 'col-sm-4', 'col-lg-3' , config.connectionInfoPanelClass].join(' ')
         }).data({
             mapId: mapId,
             connectionId: connectionId
         });
-
-        return connectionElement;
     };
 
     /**
@@ -116,13 +112,11 @@ define([
      * @param mapId
      * @returns {void|jQuery|*}
      */
-    let getInfoPanelControl = (mapId) => {
-        let connectionElement = getConnectionElement(mapId, 0).append($('<div>', {
+    let getInfoPanelControl = mapId => {
+        return getConnectionElement(mapId, 0).append($('<div>', {
             class: [Util.config.dynamicAreaClass, config.controlAreaClass].join(' '),
             html: '<i class="fas fa-fw fa-plus"></i>&nbsp;add connection&nbsp;&nbsp;<kbd>ctrl</kbd>&nbsp;+&nbsp;<kbd>click</kbd>'
         }));
-
-        return connectionElement;
     };
 
     /**
@@ -168,7 +162,7 @@ define([
                                 class: 'pf-link',
                                 html: connectionData.sourceAlias + '&nbsp;&nbsp;'
                             }).on('click', function(){
-                                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: connectionData.source});
+                                Util.triggerMenuAction(Util.getMapModule().getActiveMap(), 'SelectSystem', {systemId: connectionData.source});
                             }),
                             $('<span>', {
                                 class: [config.connectionInfoTableLabelSourceClass].join(' ')
@@ -183,7 +177,7 @@ define([
                                 class: 'pf-link',
                                 html: '&nbsp;&nbsp;' + connectionData.targetAlias
                             }).on('click', function(){
-                                Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: connectionData.target});
+                                Util.triggerMenuAction(Util.getMapModule().getActiveMap(), 'SelectSystem', {systemId: connectionData.target});
                             })
                         )
                     )
@@ -415,7 +409,7 @@ define([
                 // get current ship data ----------------------------------------------------------
                 massShipCell.parent().toggle(showShip);
                 if(showShip){
-                    shipData = $('.' + config.headUserShipClass).data('shipData');
+                    shipData = Util.getObjVal(Util.getCurrentCharacterLog(), 'ship');
                     if(shipData){
                         if(shipData.mass){
                             massShip = parseInt(shipData.mass);
@@ -506,18 +500,14 @@ define([
      * @param connectionId
      * @returns {string}
      */
-    let getConnectionElementId = (connectionId) => {
-        return config.connectionInfoPanelId + connectionId;
-    };
+    let getConnectionElementId = connectionId => config.connectionInfoPanelId + connectionId;
 
     /**
      * get all visible connection panel elements
      * @param moduleElement
      * @returns {*|T|{}}
      */
-    let getConnectionElements = (moduleElement) => {
-        return moduleElement.find('.' + config.connectionInfoPanelClass).not('#' + getConnectionElementId(0));
-    };
+    let getConnectionElements = moduleElement => moduleElement.find('.' + config.connectionInfoPanelClass).not('#' + getConnectionElementId(0));
 
     /**
      * enrich connectionData with "logs" data (if available) and other "missing" data

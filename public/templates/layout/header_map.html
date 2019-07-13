@@ -13,15 +13,12 @@
             </a>
             <p class="navbar-text {{popoverTriggerClass}} {{userCharacterClass}}" title="switch character" data-easein="flipYIn">
                 <a href="javascript:void(0);">
-                    <img class="{{userCharacterImageClass}}" src=""/>
-                    <span>{{! will be filled with current user name }}</span>
+                    <img class="pf-head-image --left {{userCharacterImageClass}}" src=""/>
+                    <span class="hidden-xs">{{! will be filled with current user name }}</span>
                 </a>
             </p>
-            <p style="display: none;" class="navbar-text hidden-xs {{userShipClass}}">
-                <img class="{{userShipImageClass}}" src=""/>
-                <span>{{! will be filled with current user ship name }}</span>
-            </p>
-            <p class="navbar-text pf-head-active-user">
+
+            <p class="navbar-text {{usersActiveClass}}">
                 <i class="fas fa-fighter-jet fa-fw"></i>
                 <span class="badge txt-color" data-type="inside" data-on="txt-color-greenLight" data-off="txt-color-red" title="pilots on map"></span>
                 <span class="badge txt-color" data-type="outside" data-on="txt-color-grayLighter" data-off="txt-color-grayLighter" title="pilots beyond map"></span>
@@ -30,17 +27,15 @@
         </div>
 
         <div class="navbar-header pull-right">
-            <p id="pf-head-current-location" class="navbar-text hidden-xs" title="current location">
-                <a href="javascript:void(0);">
-                    <i class="fas fa-map-marker-alt fa-fw"></i><span></span>
-                </a>
-            </p>
+            <div class="navbar-text no-margin">
+                <ul id="{{ userLocationId }}" class="pf-head-breadcrumb">{{! will be filled with current user location history }}</ul>
+            </div>
+
             <p class="navbar-text txt-color txt-color-red pf-head-program-status" title="connection status">
                 <i class="fas fa-fw fa-bolt"></i>
                 <span>offline</span>
             </p>
-            <p class="navbar-text pf-head-map-tracking" title="map connection tracking">
-                <i class="fas fa-fw fa-location-arrow"></i>
+            <p class="navbar-text pf-head-map-tracking text-right" title="map connection tracking">
                 <input id="{{mapTrackingId}}" type="checkbox" data-toggle="toggle" value="1" >
             </p>
             <a class="navbar-brand pf-head-map" href="">

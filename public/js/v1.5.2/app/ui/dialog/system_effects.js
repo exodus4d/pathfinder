@@ -6,10 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'bootbox',
     'app/map/util'
-], ($, Init, Util, Render, bootbox, MapUtil) => {
+], ($, Init, Util, bootbox, MapUtil) => {
     'use strict';
 
     let config = {

@@ -272,7 +272,7 @@ class CharacterLogModel extends AbstractPathfinderModel {
      */
     protected function deleteLogsHistory(){
         if(is_object($this->characterId)){
-            $this->characterId->clearCacheDataWithPrefix(CharacterModel::DATA_CACHE_KEY_HISTORY_LOGS);
+            $this->characterId->clearCacheDataWithPrefix(CharacterModel::DATA_CACHE_KEY_LOG_HISTORY);
         }
     }
 

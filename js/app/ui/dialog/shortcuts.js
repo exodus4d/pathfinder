@@ -6,10 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'bootbox',
     'app/key',
-], function($, Init, Util, Render, bootbox, Key){
+], function($, Init, Util, bootbox, Key){
 
     'use strict';
 

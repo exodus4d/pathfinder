@@ -5,13 +5,13 @@ define([
     'app/map/map',
     'app/map/util',
     'sortable',
-    'app/ui/module/system_info',
-    'app/ui/module/system_graph',
-    'app/ui/module/system_signature',
-    'app/ui/module/system_route',
-    'app/ui/module/system_intel',
-    'app/ui/module/system_killboard',
-    'app/ui/module/connection_info',
+    'module/system_info',
+    'module/system_graph',
+    'module/system_signature',
+    'module/system_route',
+    'module/system_intel',
+    'module/system_killboard',
+    'module/connection_info',
     'app/counter'
 ], (
     $,
@@ -746,7 +746,7 @@ define([
                     MapUtil.storeLocaleCharacterData('defaultMapId', mapId);
                 }else{
                     // add new Tab selected
-                    $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+                    Util.triggerMenuAction(document, 'ShowMapSettings', {tab: 'new'});
                     e.preventDefault();
                 }
             });
@@ -1215,7 +1215,7 @@ define([
                 clearMapModule(mapModule)
                     .then(payload => {
                         // no map data available -> show "new map" dialog
-                        $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+                        Util.triggerMenuAction(document, 'ShowMapSettings', {tab: 'new'});
                     })
                     .then(payload => resolve());
             }else{

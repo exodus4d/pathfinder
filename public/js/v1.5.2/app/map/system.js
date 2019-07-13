@@ -179,16 +179,22 @@ define([
             statusData: statusData
         };
 
-        // set current position as "default" system to add ------------------------------------------------------------
-        let currentCharacterLog = Util.getCurrentCharacterLog();
+        // check for pre-selected system ------------------------------------------------------------------------------
+        let systemData;
+        if(options.systemData){
+            systemData = options.systemData;
+        }else{
+            // ... check for current active system (characterLog) -----------------------------------------------------
+            let currentCharacterLog = Util.getCurrentCharacterLog();
+            if(currentCharacterLog !== false){
+                // set system from 'characterLog' data as pre-selected system
+                systemData = Util.getObjVal(currentCharacterLog, 'system');
+            }
+        }
 
-        if(
-            currentCharacterLog !== false &&
-            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
-        ){
-            // current system is NOT already on this map
-            // set current position as "default" system to add
-            data.currentSystem = currentCharacterLog.system;
+        // check if pre-selected system is NOT already on this map
+        if(mapSystemIds.indexOf(Util.getObjVal(systemData, 'id')) === -1){
+            data.currentSystem = systemData;
         }
 
         requirejs(['text!templates/dialog/system.html', 'mustache'], (template, Mustache) => {
@@ -235,7 +241,7 @@ define([
 
                                 // get new position
                                 newPosition = calculateNewSystemPosition(sourceSystem);
-                            }else{
+                            }else if(options.position){
                                 // check mouse cursor position (add system to map)
                                 newPosition = {
                                     x: options.position.x,
@@ -638,7 +644,7 @@ define([
      * @param system
      * @returns {string}
      */
-    let getSystemTooltipPlacement = (system) => {
+    let getSystemTooltipPlacement = system => {
         let offsetParent = system.parent().offset();
         let offsetSystem = system.offset();
 
@@ -652,7 +658,7 @@ define([
      * @param systems
      * @param callback function
      */
-    let deleteSystems = (map, systems = [], callback = (systems) => {}) => {
+    let deleteSystems = (map, systems = [], callback = systems => {}) => {
         let mapContainer = $( map.getContainer() );
         let systemIds = systems.map(system => $(system).data('id'));
 
@@ -726,7 +732,6 @@ define([
     let calculateNewSystemPosition = sourceSystem => {
         let mapContainer = sourceSystem.parent();
         let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
-
         let x = 0;
         let y = 0;
 
@@ -756,12 +761,7 @@ define([
             y = currentY + config.newSystemOffset.y;
         }
 
-        let newPosition = {
-            x: x,
-            y: y
-        };
-
-        return newPosition;
+        return {x: x, y: y};
     };
 
     /**
@@ -770,7 +770,7 @@ define([
      * @param data
      * @returns {*}
      */
-    let getHeadInfoElement = (data) => {
+    let getHeadInfoElement = data => {
         let headInfo = null;
         let headInfoLeft = [];
         let headInfoRight = [];

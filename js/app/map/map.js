@@ -169,13 +169,13 @@ define([
     /**
      * updates a system with current information
      * @param map
+     * @param system
      * @param data
      * @param currentUserIsHere boolean - if the current user is in this system
      * @param options
      */
-    $.fn.updateSystemUserData = function(map, data, currentUserIsHere, options){
-        let system = $(this);
-        let systemId = system.attr('id');
+    let updateSystemUserData = (map, system, data, currentUserIsHere = false, options = {}) => {
+        let systemIdAttr = system.attr('id');
         let compactView = Util.getObjVal(options, 'compactView');
 
         // find countElement -> minimizedUI
@@ -187,16 +187,21 @@ define([
         // find expand arrow
         let systemHeadExpand = system.find('.' + config.systemHeadExpandClass);
 
-        let oldCacheKey = system.data('userCache');
-        let oldUserCount = system.data('userCount');
-        oldUserCount = (oldUserCount !== undefined ? oldUserCount : 0);
+        let oldCacheKey = system.data('userCacheKey');
+        let oldUserCount = system.data('userCount') || 0;
+        let userWasHere = Boolean(system.data('currentUser'));
         let userCounter = 0;
 
-        system.data('currentUser', false);
+        system.data('currentUser', currentUserIsHere);
 
-        // if current user is in THIS system trigger event
-        if(currentUserIsHere){
-            system.data('currentUser', true);
+        // auto select system if current user is in THIS system
+        if(
+            currentUserIsHere &&
+            !userWasHere &&
+            Boolean(Util.getObjVal(Init, 'character.autoLocationSelect')) &&
+            Boolean(Util.getObjVal(Util.getCurrentUserData(), 'character.selectLocation'))
+        ){
+            Util.triggerMenuAction(map.getContainer(), 'SelectSystem', {systemId: system.data('id'), forceSelect: false});
         }
 
         // add user information
@@ -204,24 +209,28 @@ define([
             data &&
             data.user
         ){
+            userCounter = data.user.length;
+
+            // loop all active pilots and build cache-key
             let cacheArray = [];
+            for(let tempUserData of data.user){
+                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
+            }
+
+            // make sure cacheArray values are sorted for key comparison
+            let collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+            cacheArray.sort(collator.compare);
 
             // we need to add "view mode" option to key
             // -> if view mode change detected -> key no longer valid
-            cacheArray.push(compactView ? 'compact' : 'default');
+            cacheArray.unshift(compactView ? 'compact' : 'default');
 
-            // loop all active pilots and build cache-key
-            for(let i = 0; i < data.user.length; i++){
-                userCounter++;
-                let tempUserData = data.user[i];
-                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
-            }
-            let cacheKey = cacheArray.join('_');
+            let cacheKey = cacheArray.join('_').hashCode();
 
             // check for if cacheKey has changed
             if(cacheKey !== oldCacheKey){
                 // set new CacheKey
-                system.data('userCache', cacheKey);
+                system.data('userCacheKey', cacheKey);
                 system.data('userCount', userCounter);
 
                 // remove all content
@@ -235,7 +244,7 @@ define([
                     systemHeadExpand.hide();
                     system.toggleBody(false, map, {});
 
-                    map.revalidate(systemId);
+                    map.revalidate(systemIdAttr);
                 }else{
                     systemCount.empty();
 
@@ -277,7 +286,7 @@ define([
                     }
 
                     let tooltipOptions = {
-                        systemId: systemId,
+                        systemId: systemIdAttr,
                         highlight: highlight,
                         userCount: userCounter
                     };
@@ -290,14 +299,14 @@ define([
                         complete: function(system){
                             // show active user tooltip
                             system.toggleSystemTooltip('show', tooltipOptions);
-                            map.revalidate( systemId );
+                            map.revalidate(systemIdAttr);
                         }
                     });
                 }
             }
         }else{
             // no user data found for this system
-            system.data('userCache', false);
+            system.data('userCacheKey', false);
             system.data('userCount', 0);
             systemBody.empty();
 
@@ -311,7 +320,7 @@ define([
                 systemHeadExpand.hide();
                 system.toggleBody(false, map, {});
 
-                map.revalidate(systemId);
+                map.revalidate(systemIdAttr);
             }
         }
     };
@@ -716,11 +725,11 @@ define([
                 break;
             case 'map_edit':
                 // open map edit dialog tab
-                $(document).triggerMenuEvent('ShowMapSettings', {tab: 'edit'});
+                Util.triggerMenuAction(document, 'ShowMapSettings', {tab: 'edit'});
                 break;
             case 'map_info':
                 // open map info dialog tab
-                $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
+                Util.triggerMenuAction(document, 'ShowMapInfo', {tab: 'information'});
                 break;
         }
     };
@@ -2427,7 +2436,7 @@ define([
                 }
             },
             onShow: function(){
-                $(document).trigger('pf:closeMenu', [{}]);
+                Util.triggerMenuAction(document, 'Close');
             },
             onRefresh: function(){
             }
@@ -2574,90 +2583,89 @@ define([
 
         // catch events ===============================================================================================
 
-        // toggle global map option (e.g. "grid snap", "magnetization")
-        mapContainer.on('pf:menuMapOption', function(e, mapOption){
-            let mapElement = $(this);
-
+        /**
+         * update/toggle global map option (e.g. "grid snap", "magnetization")
+         * @param mapContainer
+         * @param data
+         */
+        let updateMapOption = (mapContainer, data) => {
             // get map menu config options
-            let data = mapOptions[mapOption.option];
+            let mapOption = mapOptions[data.option];
 
-            let promiseStore = MapUtil.getLocaleData('map', mapElement.data('id'));
+            let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id'));
             promiseStore.then(function(dataStore){
                 let notificationText = 'disabled';
-                let button = $('#' + this.data.buttonId);
+                let button = $('#' + this.mapOption.buttonId);
                 let dataExists = false;
 
                 if(
                     dataStore &&
-                    dataStore[this.mapOption.option]
+                    dataStore[this.data.option]
                 ){
                     dataExists = true;
                 }
 
-                if(dataExists === this.mapOption.toggle){
+                if(dataExists === this.data.toggle){
 
                     // toggle button class
                     button.removeClass('active');
 
                     // toggle map class (e.g. for grid)
-                    if(this.data.class){
-                        this.mapElement.removeClass(MapUtil.config[this.data.class]);
+                    if(this.mapOption.class){
+                        this.mapContainer.removeClass(MapUtil.config[this.mapOption.class]);
                     }
 
-                    // call optional jQuery extension on mapElement
-                    if(this.data.onDisable && !this.mapOption.skipOnDisable){
-                        this.data.onDisable(this.mapElement);
+                    // call optional jQuery extension on mapContainer
+                    if(this.mapOption.onDisable && !this.data.skipOnDisable){
+                        this.mapOption.onDisable(this.mapContainer);
                     }
 
                     // show map overlay info icon
-                    MapOverlayUtil.getMapOverlay(this.mapElement, 'info').updateOverlayIcon(this.mapOption.option, 'hide');
+                    MapOverlayUtil.getMapOverlay(this.mapContainer, 'info').updateOverlayIcon(this.data.option, 'hide');
 
                     // delete map option
-                    MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option);
+                    MapUtil.deleteLocalData('map', this.mapContainer.data('id'), this.data.option);
                 }else{
                     // toggle button class
                     button.addClass('active');
 
                     // toggle map class (e.g. for grid)
-                    if(this.data.class){
-                        this.mapElement.addClass(MapUtil.config[this.data.class]);
+                    if(this.mapOption.class){
+                        this.mapContainer.addClass(MapUtil.config[this.mapOption.class]);
                     }
 
-                    // call optional jQuery extension on mapElement
-                    if(this.data.onEnable && !this.mapOption.skipOnEnable){
-                        this.data.onEnable(this.mapElement);
+                    // call optional jQuery extension on mapContainer
+                    if(this.mapOption.onEnable && !this.data.skipOnEnable){
+                        this.mapOption.onEnable(this.mapContainer);
                     }
 
                     // hide map overlay info icon
-                    MapOverlayUtil.getMapOverlay(this.mapElement, 'info').updateOverlayIcon(this.mapOption.option, 'show');
+                    MapOverlayUtil.getMapOverlay(this.mapContainer, 'info').updateOverlayIcon(this.data.option, 'show');
 
                     // store map option
-                    MapUtil.storeLocalData('map', this.mapElement.data('id'), this.mapOption.option, 1);
+                    MapUtil.storeLocalData('map', this.mapContainer.data('id'), this.data.option, 1);
 
                     notificationText = 'enabled';
                 }
 
-                if(this.mapOption.toggle){
-                    Util.showNotify({title: this.data.description, text: notificationText, type: 'info'});
+                if(this.data.toggle){
+                    Util.showNotify({title: this.mapOption.description, text: notificationText, type: 'info'});
                 }
             }.bind({
-                mapOption: mapOption,
                 data: data,
-                mapElement: mapElement
+                mapOption: mapOption,
+                mapContainer: mapContainer
             }));
-        });
+        };
 
-        // delete system event
-        // triggered from "map info" dialog scope
-        mapContainer.on('pf:deleteSystems', function(e, data){
-            System.deleteSystems(map, data.systems, data.callback);
-        });
-
-        // triggered from "header" link (if user is active in one of the systems)
-        mapContainer.on('pf:menuSelectSystem', function(e, data){
-            let mapElement = $(this);
-            let systemId = MapUtil.getSystemId(mapElement.data('id'), data.systemId);
-            let system = mapElement.find('#' + systemId);
+        /**
+         * select system event
+         * @param mapContainer
+         * @param data
+         */
+        let selectSystem = (mapContainer, data) => {
+            let systemId = MapUtil.getSystemId(mapContainer.data('id'), data.systemId);
+            let system = mapContainer.find('#' + systemId);
 
             if(system.length === 1){
                 // system found on map ...
@@ -2674,12 +2682,45 @@ define([
                 }
 
                 if(select){
-                    let mapWrapper = mapElement.closest('.' + config.mapWrapperClass);
+                    let mapWrapper = mapContainer.closest('.' + config.mapWrapperClass);
                     Scrollbar.scrollToSystem(mapWrapper, MapUtil.getSystemPosition(system));
                     // select system
                     MapUtil.showSystemInfo(map, system);
                 }
             }
+        };
+
+        mapContainer.on('pf:menuAction', (e, action, data) => {
+            // menuAction events can also be triggered on child nodes
+            // -> if event is not handled there it bubbles up
+            //    make sure event can be handled by this element
+            if(e.target === e.currentTarget){
+                e.stopPropagation();
+
+                switch(action){
+                    case 'MapOption':
+                        // toggle global map option (e.g. "grid snap", "magnetization")
+                        updateMapOption(mapContainer, data);
+                        break;
+                    case 'SelectSystem':
+                        // select system on map (e.g. from modal links)
+                        selectSystem(mapContainer, data);
+                        break;
+                    case 'AddSystem':
+                        System.showNewSystemDialog(map, data, saveSystemCallback);
+                        break;
+                    default:
+                        console.warn('Unknown menuAction %o event name', action);
+                }
+            }else{
+                console.warn('Unhandled menuAction %o event name. Handled menu events should not bobble up', action);
+            }
+        });
+
+        // delete system event
+        // triggered from "map info" dialog scope
+        mapContainer.on('pf:deleteSystems', function(e, data){
+            System.deleteSystems(map, data.systems, data.callback);
         });
 
         // triggered when map lock timer (interval) was cleared
@@ -2807,36 +2848,21 @@ define([
                 let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
 
                 // get current character log data
-                let characterLogExists = false;
-                let currentCharacterLog = Util.getCurrentCharacterLog();
+                let characterLogSystemId = Util.getObjVal(Util.getCurrentCharacterLog(), 'system.id') || 0;
 
                 // data for header update
                 let headerUpdateData = {
                     mapId: userData.config.id,
                     userCountInside: 0,                 // active user on a map
                     userCountOutside: 0,                // active user NOT on map
-                    userCountInactive: 0,               // inactive users (no location)
-                    currentLocation: {
-                        id: 0,                          // systemId for current active user
-                        name: false                     // systemName for current active user
-                    }
+                    userCountInactive: 0
                 };
-
-                if(
-                    currentCharacterLog &&
-                    currentCharacterLog.system
-                ){
-                    characterLogExists = true;
-                    headerUpdateData.currentLocation.name = currentCharacterLog.system.name;
-                }
 
                 // check if current user was found on the map
                 let currentUserOnMap = false;
 
                 // get all systems
-                let systems = mapElement.find('.' + config.systemClass);
-
-                for(let system of systems){
+                for(let system of mapElement.find('.' + config.systemClass)){
                     system = $(system);
                     let systemId = system.data('systemId');
                     let tempUserData = null;
@@ -2864,20 +2890,15 @@ define([
 
                     // the current user can only be in a single system ------------------------------------------------
                     if(
-                        characterLogExists &&
-                        currentCharacterLog.system.id === systemId
+                        !currentUserOnMap &&
+                        characterLogSystemId &&
+                        characterLogSystemId === systemId
                     ){
-                        if( !currentUserOnMap ){
-                            currentUserIsHere = true;
-                            currentUserOnMap = true;
-
-                            // set current location data for header update
-                            headerUpdateData.currentLocation.id =  system.data('id');
-                            headerUpdateData.currentLocation.name = currentCharacterLog.system.name;
-                        }
+                        currentUserIsHere = true;
+                        currentUserOnMap = true;
                     }
 
-                    system.updateSystemUserData(map, tempUserData, currentUserIsHere, {compactView: compactView});
+                    updateSystemUserData(map, system, tempUserData, currentUserIsHere, {compactView: compactView});
                 }
 
                 // users who are not in any map system ----------------------------------------------------------------

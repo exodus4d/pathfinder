@@ -2,7 +2,7 @@
  *  Init
  */
 
-define(['jquery'], ($) => {
+define([], () => {
 
     'use strict';
 

@@ -38,7 +38,7 @@ define(() => {
              * @returns {*}
              * @private
              */
-            this._getElementDimension = (element) => {
+            this._getElementDimension = element => {
                 let dim = null;
 
                 let left = 0;

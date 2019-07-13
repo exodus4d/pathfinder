@@ -187,25 +187,28 @@ define([
     };
 
     /**
-     * get system data by mapId and systemid
-     * @param mapId
-     * @param systemId
-     * @returns {boolean}
+     * get system data from mapData
+     * @see getSystemData
+     * @param mapData
+     * @param value
+     * @param key
+     * @returns {any}
      */
-    let getSystemData = (mapId, systemId) => {
-        let systemData = false;
-        let mapData = Util.getCurrentMapData(mapId);
+    let getSystemDataFromMapData = (mapData, value, key = 'id') => {
+        return mapData ? mapData.data.systems.find(system => system[key] === value) || false : false;
+    };
 
-        if(mapData){
-            for(let j = 0; j < mapData.data.systems.length; j++){
-                let systemDataTemp = mapData.data.systems[j];
-                if(systemDataTemp.id === systemId){
-                    systemData = systemDataTemp;
-                    break;
-                }
-            }
-        }
-        return systemData;
+    /**
+     * get system data by mapId system data selector
+     * -> e.g. value = 2 and key = 'id'
+     * -> e.g. value = 30002187 and key = 'systemId' => looks for 'Amarr' CCP systemId
+     * @param mapId
+     * @param value
+     * @param key
+     * @returns {any}
+     */
+    let getSystemData = (mapId, value, key = 'id') => {
+        return getSystemDataFromMapData(Util.getCurrentMapData(mapId), value, key);
     };
 
     /**
@@ -495,7 +498,7 @@ define([
             connectionData &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('app/ui/module/system_signature');
+            let SystemSignatures = require('module/system_signature');
 
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
@@ -1469,25 +1472,25 @@ define([
             });
 
             // init compact system layout ---------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapCompact',
                 toggle: false
             });
 
             // init magnetizer --------------------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapMagnetizer',
                 toggle: false
             });
 
             // init grid snap ---------------------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapSnapToGrid',
                 toggle: false
             });
 
             // init endpoint overlay --------------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapSignatureOverlays',
                 toggle: false,
                 skipOnEnable: true,     // skip callback -> Otherwise it would run 2 times on map create
@@ -1946,7 +1949,7 @@ define([
             over: function(e){
                 let staticWormholeElement = $(this);
                 let wormholeName = staticWormholeElement.attr('data-name');
-                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
+                let wormholeData = Util.getObjVal(Init, 'wormholes.' + wormholeName);
                 if(wormholeData){
                     staticWormholeElement.addWormholeInfoTooltip(wormholeData, options);
                 }
@@ -2059,6 +2062,7 @@ define([
         getMapIcons: getMapIcons,
         getInfoForMap: getInfoForMap,
         getInfoForSystem: getInfoForSystem,
+        getSystemDataFromMapData: getSystemDataFromMapData,
         getSystemData: getSystemData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,

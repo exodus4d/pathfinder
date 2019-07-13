@@ -6,14 +6,13 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'app/logging',
     'app/page',
     'app/map/worker',
     'app/module_map',
     'app/key',
     'app/ui/form_element'
-], ($, Init, Util, Render, Logging, Page, MapWorker, ModuleMap) => {
+], ($, Init, Util, Logging, Page, MapWorker, ModuleMap) => {
 
     'use strict';
 
@@ -39,7 +38,7 @@ define([
         Util.initDefaultEditableConfig();
 
         // load page
-        Page.loadPageStructure().setGlobalShortcuts();
+        Page.loadPageStructure();
 
         // show app information in browser console
         Util.showVersionInfo();
@@ -417,7 +416,7 @@ define([
                             data.error.length > 0
                         ){
                             // any error in the main trigger functions result in a user log-off
-                            $(document).trigger('pf:menuLogout');
+                            Util.triggerMenuAction(document, 'Logout');
                         }else{
                             $(document).setProgramStatus('online');
 
@@ -493,13 +492,13 @@ define([
                         data.error.length > 0
                     ){
                         // any error in the main trigger functions result in a user log-off
-                        $(document).trigger('pf:menuLogout');
+                        Util.triggerMenuAction(document, 'Logout');
                     }else{
                         $(document).setProgramStatus('online');
 
                         if(data.userData !== undefined){
                             // store current user data global (cache)
-                            let userData = Util.setCurrentUserData(data.userData);
+                            Util.setCurrentUserData(data.userData);
 
                             // update system info panels
                             if(data.system){

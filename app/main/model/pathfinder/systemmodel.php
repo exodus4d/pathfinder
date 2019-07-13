@@ -27,17 +27,17 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * max count of history signature data in cache
      */
-    const MAX_HISTORY_SIGNATURES_DATA       = 10;
+    const MAX_SIGNATURES_HISTORY_DATA       = 10;
 
     /**
      * TTL for history signature data
      */
-    const TTL_HISTORY_SIGNATURES            = 7200;
+    const TTL_SIGNATURES_HISTORY            = 7200;
 
     /**
      * cache key prefix for getData(); result WITH log data
      */
-    const DATA_CACHE_KEY_HISTORY_SIGNATURES = 'HISTORY_SIGNATURES';
+    const DATA_CACHE_KEY_SIGNATURES_HISTORY = 'HISTORY_SIGNATURES';
 
     /**
      * @var string
@@ -805,7 +805,7 @@ class SystemModel extends AbstractMapTrackingModel {
      * @return array
      */
     public function getSignaturesHistory() : array {
-        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_HISTORY_SIGNATURES))){
+        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_SIGNATURES_HISTORY))){
             $signaturesHistoryData = [];
         }
         return $signaturesHistoryData;
@@ -832,9 +832,9 @@ class SystemModel extends AbstractMapTrackingModel {
             array_unshift($signaturesHistoryData, $historyEntry);
 
             // limit max history data
-            array_splice($signaturesHistoryData, self::MAX_HISTORY_SIGNATURES_DATA);
+            array_splice($signaturesHistoryData, self::MAX_SIGNATURES_HISTORY_DATA);
 
-            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_HISTORY_SIGNATURES, self::TTL_HISTORY_SIGNATURES);
+            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_SIGNATURES_HISTORY, self::TTL_SIGNATURES_HISTORY);
 
             // clear system cache here
             // -> Signature model updates should NOT update the system cache on change

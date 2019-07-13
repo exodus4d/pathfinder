@@ -9,14 +9,16 @@ var jsBaseUrl = document.body.getAttribute('data-js-path');
 
 // requireJs configuration
 requirejs.config({
-    baseUrl: 'js',                                                      // path for baseUrl - dynamically set !below! ("build_js" | "js")
+    baseUrl: 'js',                                                      // src root path - dynamically set !below! ("build_js" | "js")
 
     paths: {
-        layout: 'layout',
-        conf: 'app/conf',                                               // path for "config" files dir
-        dialog: 'app/ui/dialog',                                        // path for "dialog" files dir
-        templates: '../../templates',                                   // template dir
-        img: '../../img',                                               // images dir
+        conf: 'app/conf',                                               // path     config files
+        dialog: 'app/ui/dialog',                                        // path     dialog files
+        layout: 'app/ui/layout',                                        // path     layout files
+        module: 'app/ui/module',                                        // path     module files
+
+        templates: '../../templates',                                   // path     template base dir
+        img: '../../img',                                               // path     image base dir
 
         // main views
         login: './app/login',                                           // initial start "login page" view
@@ -45,7 +47,6 @@ requirejs.config({
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1   Inline Chart - http://benpickles.github.io/peity/
         dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1     Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
         hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.9.0   Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
-        fullScreen: 'lib/jquery.fullscreen.min',                        // v0.6.0   Full screen mode - https://github.com/private-face/jquery.fullscreen
         select2: 'lib/select2.min',                                     // v4.0.3   Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1   SVG line animation plugin - http://lazylinepainter.info
@@ -150,9 +151,6 @@ requirejs.config({
             deps: ['jquery']
         },
         hoverIntent: {
-            deps: ['jquery']
-        },
-        fullScreen: {
             deps: ['jquery']
         },
         select2: {

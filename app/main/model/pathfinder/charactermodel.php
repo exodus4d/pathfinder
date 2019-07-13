@@ -34,17 +34,17 @@ class CharacterModel extends AbstractPathfinderModel {
     /**
      * max count of historic character logs
      */
-    const MAX_HISTORY_LOGS_DATA         = 3;
+    const MAX_LOG_HISTORY_DATA          = 5;
 
     /**
      * TTL for historic character logs
      */
-    const TTL_HISTORY_LOGS              = 60 * 60 * 22;
+    const TTL_LOG_HISTORY               = 60 * 60 * 22;
 
     /**
      * cache key prefix historic character logs
      */
-    const DATA_CACHE_KEY_HISTORY_LOGS   = 'HISTORY_LOG';
+    const DATA_CACHE_KEY_LOG_HISTORY    = 'LOG_HISTORY';
 
     /**
      * character authorization status
@@ -201,56 +201,60 @@ class CharacterModel extends AbstractPathfinderModel {
 
     /**
      * get character data
-     * @param bool|false $addCharacterLogData
-     * @return null|object|\stdClass
+     * @param bool $addLogData
+     * @param bool $addLogHistoryData
+     * @return mixed|object|null
      * @throws \Exception
      */
-    public function getData($addCharacterLogData = false){
-        $cacheKeyModifier = '';
-
-        // check if there is cached data
-        // -> IMPORTANT: $addCharacterLogData is optional! -> therefore we need 2 cache keys!
-        if($addCharacterLogData){
-            $cacheKeyModifier = self::DATA_CACHE_KEY_LOG;
-        }
-        $characterData = $this->getCacheData($cacheKeyModifier);
-
-        if(is_null($characterData)){
+    public function getData($addLogData = false, $addLogHistoryData = false){
+        // check for cached data
+        if(is_null($characterData = $this->getCacheData())){
             // no cached character data found
 
-            $characterData                  = (object) [];
-            $characterData->id              = $this->_id;
-            $characterData->name            = $this->name;
-            $characterData->role            = $this->roleId->getData();
-            $characterData->shared          = $this->shared;
-            $characterData->logLocation     = $this->logLocation;
-            $characterData->selectLocation  = $this->selectLocation;
-
-            if($addCharacterLogData){
-                if($logModel = $this->getLog()){
-                    $characterData->log     = $logModel->getData();
-                }
-            }
+            $characterData                      = (object) [];
+            $characterData->id                  = $this->_id;
+            $characterData->name                = $this->name;
+            $characterData->role                = $this->roleId->getData();
+            $characterData->shared              = $this->shared;
+            $characterData->logLocation         = $this->logLocation;
+            $characterData->selectLocation      = $this->selectLocation;
 
             // check for corporation
             if($corporation = $this->getCorporation()){
-                $characterData->corporation = $corporation->getData();
+                $characterData->corporation     = $corporation->getData();
             }
 
             // check for alliance
             if($alliance = $this->getAlliance()){
-                $characterData->alliance = $alliance->getData();
+                $characterData->alliance        = $alliance->getData();
             }
 
             // max caching time for a system
-            // the cached date has to be cleared manually on any change
-            // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($characterData, $cacheKeyModifier);
+            // cached date has to be cleared manually on any change
+            // this applies to system, connection,... changes (+ all other dependencies)
+            $this->updateCacheData($characterData);
+        }
+
+        if($addLogData){
+            if(is_null($logData = $this->getCacheData(self::DATA_CACHE_KEY_LOG))){
+                if($logModel = $this->getLog()){
+                    $logData = $logModel->getData();
+                    $this->updateCacheData($logData, self::DATA_CACHE_KEY_LOG);
+                }
+            }
+
+            if($logData){
+                $characterData->log             = $logData;
+            }
+        }
+
+        if($addLogHistoryData && $characterData->log){
+            $characterData->logHistory          = $this->getLogsHistory();
         }
 
         // temp "authStatus" should not be cached
         if($this->authStatus){
-            $characterData->authStatus      = $this->authStatus;
+            $characterData->authStatus          = $this->authStatus;
         }
 
         return $characterData;
@@ -1041,7 +1045,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return array
      */
     public function getLogsHistory() : array {
-        if(!is_array($logHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_HISTORY_LOGS))){
+        if(!is_array($logHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_LOG_HISTORY))){
             $logHistoryData = [];
         }
         return $logHistoryData;
@@ -1067,9 +1071,9 @@ class CharacterModel extends AbstractPathfinderModel {
             array_unshift($logHistoryData, $historyEntry);
 
             // limit max history data
-            array_splice($logHistoryData, self::MAX_HISTORY_LOGS_DATA);
+            array_splice($logHistoryData, self::MAX_LOG_HISTORY_DATA);
 
-            $this->updateCacheData($logHistoryData, self::DATA_CACHE_KEY_HISTORY_LOGS, self::TTL_HISTORY_LOGS);
+            $this->updateCacheData($logHistoryData, self::DATA_CACHE_KEY_LOG_HISTORY, self::TTL_LOG_HISTORY);
         }
     }
 
