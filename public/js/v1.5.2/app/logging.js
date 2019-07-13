@@ -48,7 +48,7 @@ define([
                     }
                 };
 
-                let syncStatusElement = $( Mustache.render(templateSyncStatus, data ) );
+                let syncStatusElement = $(Mustache.render(templateSyncStatus, data ));
 
                 logDialog.find('.' + config.taskDialogStatusAreaClass).html( syncStatusElement );
 
