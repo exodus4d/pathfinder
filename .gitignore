@@ -51,6 +51,7 @@ Temporary Items
 .usage
 *.gz
 composer-dev.lock
+package-lock.json
 /conf/
 /node_modules/
 /public/js/vX.X.X/
