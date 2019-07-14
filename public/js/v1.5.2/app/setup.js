@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/map/worker'
-], function($, Init, Util, MapWorker){
+    'app/map/worker',
+    'mustache',
+], function($, Init, Util, MapWorker, Mustache){
     'use strict';
 
     let config = {
