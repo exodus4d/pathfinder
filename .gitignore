@@ -50,7 +50,7 @@ Temporary Items
 .sass-cache
 .usage
 *.gz
-*.lock
+composer-dev.lock
 /conf/
 /node_modules/
 /public/js/vX.X.X/
