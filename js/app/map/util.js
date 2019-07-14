@@ -556,16 +556,25 @@ define([
      * @returns {number[]}
      */
     let getEndpointOverlaySignatureLocation = (endpoint, labels) => {
-        let count   = labels.length;
-        let xLeft   = count ? count === 1 ? -1.00 : 3 : -0.5;
-        let xRight  = count ? count === 1 ? +2.20 : 3 : +1.5;
+        let defaultLocation = [0.5, 0.5];
 
-        switch(endpoint.anchor.getCurrentFace()){
-            case 'top':     return [0.5, -0.75];
-            case 'left':    return [xLeft, 0.25];
-            case 'right':   return [xRight, 0.25];
-            case 'bottom':  return [0.5 , 1.75];
-            default:        return [0.5, 0.5];
+        if(endpoint.anchor.getCurrentFace){
+            // ContinuousAnchor 
+            let count   = labels.length;
+            let xLeft   = count ? count === 1 ? -1.00 : 3 : -0.5;
+            let xRight  = count ? count === 1 ? +2.20 : 3 : +1.5;
+
+            switch(endpoint.anchor.getCurrentFace()){
+                case 'top':     return [0.5, -0.75];
+                case 'left':    return [xLeft, 0.25];
+                case 'right':   return [xRight, 0.25];
+                case 'bottom':  return [0.5 , 1.75];
+                default:        return defaultLocation;
+            }
+        }else{
+            // e.g. floating endpoint (dragging)
+            // -> ContinuousAnchor
+            return defaultLocation;
         }
     };
 
@@ -879,7 +888,9 @@ define([
     };
 
     let addConnectionTypes = (connection, types = [], params = [], doNotRepaint = false) => {
-        changeConnectionTypes('addType', connection, types, params, doNotRepaint);
+        if(connection){
+            changeConnectionTypes('addType', connection, types.diff(connection.getType()), params, doNotRepaint);
+        }
     };
 
     /**
@@ -894,7 +905,9 @@ define([
     };
 
     let removeConnectionTypes = (connection, types = [], params = [], doNotRepaint = false) => {
-        changeConnectionTypes('removeType', connection, types, params, doNotRepaint);
+        if(connection){
+            changeConnectionTypes('removeType', connection, types.intersect(connection.getType()), params, doNotRepaint);
+        }
     };
 
     let toggleConnectionType = (connection, type, params, doNotRepaint = false) => {
@@ -1158,21 +1171,17 @@ define([
      * @param {string} scope
      * @returns {string}
      */
-    let getDefaultConnectionTypeByScope = (scope) => {
+    let getDefaultConnectionTypeByScope = scope => {
         let type = '';
         switch(scope){
             case 'wh':
-                type = 'wh_fresh';
-                break;
+                type = 'wh_fresh'; break;
             case 'jumpbridge':
-                type = 'jumpbridge';
-                break;
+                type = 'jumpbridge'; break;
             case'stargate':
-                type = 'stargate';
-                break;
+                type = 'stargate'; break;
             case'abyssal':
-                type = 'abyssal';
-                break;
+                type = 'abyssal'; break;
             default:
                 console.error('Connection scope "' + scope + '" unknown!');
         }
@@ -1181,40 +1190,11 @@ define([
     };
 
     /**
-     * set/change connection status of a wormhole
-     * @param {Object} connection - jsPlumb object
-     * @param {string} status
+     * get all available connection types for "mass status"
+     * @returns {string[]}
      */
-    let setConnectionWHStatus = (connection, status) => {
-        connection._jsPlumb.instance.batch(() => {
-            if(
-                status === 'wh_fresh' &&
-                connection.hasType('wh_fresh') !== true
-            ){
-                removeConnectionType(connection, 'wh_reduced');
-                removeConnectionType(connection, 'wh_critical');
-                addConnectionType(connection, 'wh_fresh');
-            }else if(
-                status === 'wh_reduced' &&
-                connection.hasType('wh_reduced') !== true
-            ){
-                removeConnectionType(connection, 'wh_fresh');
-                removeConnectionType(connection, 'wh_critical');
-                addConnectionType(connection, 'wh_reduced');
-            }else if(
-                status === 'wh_critical' &&
-                connection.hasType('wh_critical') !== true
-            ){
-                removeConnectionType(connection, 'wh_fresh');
-                removeConnectionType(connection, 'wh_reduced');
-                addConnectionType(connection, 'wh_critical');
-            }else if(
-                status === 'wh_eol' &&
-                connection.hasType('wh_eol') !== true
-            ){
-                addConnectionType(connection, 'wh_eol');
-            }
-        });
+    let allConnectionMassStatusTypes = () => {
+        return ['wh_fresh', 'wh_reduced', 'wh_critical'];
     };
 
     /**
@@ -1226,27 +1206,39 @@ define([
     };
 
     /**
-     * set/change connection jump mass of a wormhole
+     * set/change/remove connection mass status of connection
+     * -> statusType == undefined will remove (all) existing mass status types
      * @param connection
-     * @param mass
+     * @param statusType
      */
-    let setConnectionJumpMassType = (connection, mass) => {
-        let allMassTypes = allConnectionJumpMassTypes();
-        let addMassType = [];
-        let removeMassTypes = [];
+    let setConnectionMassStatusType = (connection, statusType) => {
+        setUniqueConnectionType(connection, statusType, allConnectionMassStatusTypes());
+
+    };
+
+    /**
+     * set/change/remove connection jump mass of a connection
+     * -> massType == undefined will remove (all) existing jump mass types
+     * @param connection
+     * @param massType
+     */
+    let setConnectionJumpMassType = (connection, massType) => {
+        setUniqueConnectionType(connection, massType, allConnectionJumpMassTypes());
+    };
+
+    /**
+     * set/change/remove connection type
+     * -> type == undefined will remove (all) existing provided types
+     * @param connection
+     * @param type
+     * @param types
+     */
+    let setUniqueConnectionType = (connection, type, types) => {
+        type = types.includes(type) ? [type] : [];
 
         connection._jsPlumb.instance.batch(() => {
-            if(allMassTypes.includes(mass)){
-                if(connection.hasType(mass)){
-                    removeMassTypes = allMassTypes;
-                }else{
-                    addMassType = [mass];
-                    removeMassTypes = allMassTypes.filter(e => e !== mass);
-                }
-
-                removeConnectionTypes(connection, removeMassTypes);
-                addConnectionTypes(connection, addMassType);
-            }
+            removeConnectionTypes(connection, types.diff(type));
+            addConnectionTypes(connection, type);
         });
     };
 
@@ -2069,6 +2061,8 @@ define([
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,
+        addConnectionTypes: addConnectionTypes,
+        removeConnectionTypes: removeConnectionTypes,
         toggleConnectionType: toggleConnectionType,
         toggleConnectionActive: toggleConnectionActive,
         setSystemActive: setSystemActive,
@@ -2086,8 +2080,9 @@ define([
         getConnectionFakeClassesByTypes: getConnectionFakeClassesByTypes,
         checkForConnection: checkForConnection,
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
-        setConnectionWHStatus: setConnectionWHStatus,
+        allConnectionMassStatusTypes: allConnectionMassStatusTypes,
         allConnectionJumpMassTypes: allConnectionJumpMassTypes,
+        setConnectionMassStatusType: setConnectionMassStatusType,
         setConnectionJumpMassType: setConnectionJumpMassType,
         getScopeInfoForConnection: getScopeInfoForConnection,
         getDataByConnections: getDataByConnections,

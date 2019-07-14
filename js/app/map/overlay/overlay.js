@@ -200,10 +200,10 @@ define([
                         sizeLockedBySignature = true;
 
                         let wormholeData = Object.assign({}, Init.wormholes[primLabel]);
-                        if(
-                            wormholeData.size && wormholeData.size.type &&
-                            !connection.hasType(wormholeData.size.type)
-                        ){
+                        // get 'connection mass type' from wormholeData
+                        let massType = Util.getObjVal(wormholeData, 'size.type');
+
+                        if(massType && !connection.hasType(massType)){
                             MapOverlayUtil.getMapOverlay(connection.canvas, 'timer').startMapUpdateCounter();
                             MapUtil.setConnectionJumpMassType(connection, wormholeData.size.type);
                             MapUtil.markAsChanged(connection);

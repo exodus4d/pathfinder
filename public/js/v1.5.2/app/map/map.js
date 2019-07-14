@@ -773,7 +773,7 @@ define([
             case 'status_critical':
                 let newStatus = action.split('_')[1];
                 MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
-                MapUtil.setConnectionWHStatus(connection, 'wh_' + newStatus);
+                MapUtil.setConnectionMassStatusType(connection, 'wh_' + newStatus);
                 MapUtil.markAsChanged(connection);
                 break;
             case 'wh_jump_mass_s':
@@ -973,15 +973,25 @@ define([
      * @returns {*}
      */
     let updateConnection = (connection, newConnectionData) => {
-        let connectionData = MapUtil.getDataByConnection(connection);
+        // check connection is currently dragged -> skip update
+        if(connection.suspendedElement){
+            console.info(
+                'connection update skipped for %O. SuspendedElement: %o',
+                connection,
+                connection.suspendedElement
+            );
+            return connection;
+        }
+
+        let currentConnectionData = MapUtil.getDataByConnection(connection);
         let map = connection._jsPlumb.instance;
         let mapContainer = $(map.getContainer());
         let mapId = mapContainer.data('id');
 
-        // type "process" is not included in connectionData
-        // -> if "process" type exists, add it types for removal
+        // type "process" is not included in currentConnectionData ----------------------------------------------------
+        // -> if "process" type exists, remove it
         if(connection.hasType('state_process')){
-            connectionData.type.push('state_process');
+            MapUtil.removeConnectionTypes(connection, ['state_process']);
         }
 
         // check id, IDs should never change but must be set after initial save ---------------------------------------
@@ -990,40 +1000,57 @@ define([
         }
 
         // update scope -----------------------------------------------------------------------------------------------
-        if(connectionData.scope !== newConnectionData.scope){
+        if(currentConnectionData.scope !== newConnectionData.scope){
             setConnectionScope(connection, newConnectionData.scope);
+            // connection type has changed as well -> get new connectionData for further process
+            currentConnectionData = MapUtil.getDataByConnection(connection);
         }
-
-        let addType = newConnectionData.type.diff(connectionData.type);
-        let removeType = connectionData.type.diff(newConnectionData.type);
 
         // update source/target (after drag&drop) ---------------------------------------------------------------------
-        if(connectionData.source !== newConnectionData.source){
+        if(currentConnectionData.source !== newConnectionData.source){
             map.setSource(connection, MapUtil.getSystemId(mapId, newConnectionData.source));
         }
-        if(connectionData.target !== newConnectionData.target){
+        if(currentConnectionData.target !== newConnectionData.target){
             map.setTarget(connection, MapUtil.getSystemId(mapId, newConnectionData.target));
         }
 
-        // update connection types ------------------------------------------------------------------------------------
-        let checkAvailability = (arr, val) => arr.some(arrVal => arrVal === val);
+        // update connection types ====================================================================================
 
-        for(let type of addType){
-            if(checkAvailability(['fresh', 'reduced', 'critical'], type)){
-                MapUtil.setConnectionWHStatus(connection, type);
-            }else if(connection.hasType(type) !== true){
-                // additional types e.g. eol, preserve mass
-                connection.addType(type);
-            }
+        // update connection 'size' type ------------------------------------------------------------------------------
+        let allMassTypes        = MapUtil.allConnectionJumpMassTypes();
+        let newMassTypes        = allMassTypes.intersect(newConnectionData.type);
+        let currentMassTypes    = allMassTypes.intersect(currentConnectionData.type);
+
+        if(!newMassTypes.equalValues(currentMassTypes)){
+            // connection 'size' type changed/removed
+            // -> only ONE 'size' type is allowed -> take the first one
+            MapUtil.setConnectionJumpMassType(connection, newMassTypes.length ? newMassTypes[0] : undefined);
+            // connection type has changed as well -> get new connectionData for further process
+            currentConnectionData = MapUtil.getDataByConnection(connection);
         }
 
-        for(let type of removeType){
-            if(checkAvailability(['wh_eol', 'preserve_mass', 'state_process'], type)){
-                connection.removeType(type);
-            }
+        // update connection 'status' type ----------------------------------------------------------------------------
+        let allStatusTypes      = MapUtil.allConnectionMassStatusTypes();
+        let newStatusTypes      = allStatusTypes.intersect(newConnectionData.type);
+        let currentStatusTypes  = allStatusTypes.intersect(currentConnectionData.type);
+
+        if(!newStatusTypes.equalValues(currentStatusTypes)){
+            // connection 'status' type changed/removed
+            // -> only ONE 'status' type is allowed -> take the first one
+            MapUtil.setConnectionMassStatusType(connection, newStatusTypes.length ? newStatusTypes[0] : undefined);
+            // connection type has changed as well -> get new connectionData for further process
+            currentConnectionData = MapUtil.getDataByConnection(connection);
         }
 
-        // update endpoints -------------------------------------------------------------------------------------------
+        // check for unhandled connection type changes ----------------------------------------------------------------
+        let allToggleTypes = ['wh_eol', 'preserve_mass'];
+        let newTypes = allToggleTypes.intersect(newConnectionData.type.diff(currentConnectionData.type));
+        let oldTypes = allToggleTypes.intersect(currentConnectionData.type.diff(newConnectionData.type));
+
+        MapUtil.addConnectionTypes(connection, newTypes);
+        MapUtil.removeConnectionTypes(connection, oldTypes);
+
+        // update endpoints ===========================================================================================
         // important: In case source or target changed (drag&drop) (see above lines..)
         // -> NEW endpoints are created (default Endpoint properties from makeSource()/makeTarget() call are used
         // -> connectionData.endpoints might no longer be valid -> get fresh endpointData
@@ -1046,7 +1073,7 @@ define([
             }
         }
 
-        // set update date (important for update check)
+        // set update date (important for update check) ===============================================================
         // important: set parameters ONE-by-ONE!
         // -> (setParameters() will overwrite all previous params)
         connection.setParameter('created', newConnectionData.created);
@@ -1387,7 +1414,7 @@ define([
          * @returns {Promise<any>}
          */
         let filterMapByScopes = payload => {
-            let filterMapByScopesExecutor = (resolve, reject) => {
+            let filterMapByScopesExecutor = resolve => {
                 let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
                 promiseStore.then(dataStore => {
                     let scopes = [];
@@ -1409,7 +1436,7 @@ define([
          * @returns {Promise<any>}
          */
         let showInfoSignatureOverlays = payload => {
-            let showInfoSignatureOverlaysExecutor = (resolve, reject) => {
+            let showInfoSignatureOverlaysExecutor = resolve => {
                 let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
                 promiseStore.then(dataStore => {
                     if(dataStore && dataStore.mapSignatureOverlays){
@@ -2213,7 +2240,7 @@ define([
 
                 // set "default" connection status only for NEW connections
                 if(!connection.suspendedElement){
-                    MapUtil.setConnectionWHStatus(connection, MapUtil.getDefaultConnectionTypeByScope(connection.scope));
+                    MapUtil.addConnectionTypes(connection, [MapUtil.getDefaultConnectionTypeByScope(connection.scope)]);
                 }
 
                 // prevent multiple connections between same systems

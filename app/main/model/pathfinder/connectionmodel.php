@@ -154,7 +154,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
     public function set_type($type){
         // remove unwanted types -> they should not be send from client
         // -> reset keys! otherwise JSON format results in object and not in array
-        $type = array_values(array_intersect((array)$type, self::$connectionTypeWhitelist));
+        $type = array_values(array_intersect(array_unique((array)$type), self::$connectionTypeWhitelist));
 
         // set EOL timestamp
         if( !in_array('wh_eol', $type) ){

@@ -963,11 +963,25 @@ define([
      * init utility prototype functions
      */
     let initPrototypes = () => {
-        // Array diff
-        // [1,2,3,4,5,6].diff( [3,4,5] );
-        // => [1, 2, 6]
+
+        /**
+         * Array diff
+         * [1,2,3,4,5].diff([4,5,6]) => [1,2,3]
+         * @param a
+         * @returns {*[]}
+         */
         Array.prototype.diff = function(a){
-            return this.filter(function(i){return a.indexOf(i) < 0;});
+            return this.filter(i => !a.includes(i));
+        };
+
+        /**
+         * Array intersect
+         * [1,2,3,4,5].intersect([4,5,6]) => [4,5]
+         * @param a
+         * @returns {*[]}
+         */
+        Array.prototype.intersect = function(a){
+            return this.filter(i => a.includes(i));
         };
 
         /**
