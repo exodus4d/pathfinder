@@ -2355,8 +2355,7 @@ define([
 
         // "lazy update" toggle ---------------------------------------------------------------------------------------
         moduleElement.find('.' + config.moduleHeadlineIconLazyClass).on('click', function(e){
-            let button = $(this);
-            button.toggleClass('active');
+            $(this).toggleClass('active');
         });
 
         // set multi row select ---------------------------------------------------------------------------------------
@@ -2387,9 +2386,14 @@ define([
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
         moduleElement.on('pf:updateSystemSignatureModuleByClipboard', {tableApi: primaryTableApi}, function(e, clipboard){
+            let lazyUpdateToggle = moduleElement.find('.' + config.moduleHeadlineIconLazyClass);
             let signatureOptions = {
-                deleteOld: moduleElement.find('.' + config.moduleHeadlineIconLazyClass).hasClass('active') ? 1 : 0
+                deleteOld: lazyUpdateToggle.hasClass('active') ? 1 : 0
             };
+
+            // "disable" lazy update icon -> prevents accidental removal for next paste #724
+            lazyUpdateToggle.toggleClass('active', false);
+
             updateSignatureTableByClipboard(e.data.tableApi, systemData, clipboard, signatureOptions);
         });
 
