@@ -9,6 +9,7 @@
 namespace Model;
 
 use DB\Cortex;
+use DB\CortexCollection;
 use DB\SQL\Schema;
 use lib\logging;
 use Controller;
@@ -556,6 +557,33 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
+     * get all models from a relation that match $filter
+     * @param string $key
+     * @param array $filter
+     * @return CortexCollection|null
+     */
+    protected function relFind(string $key, array $filter) : ?CortexCollection {
+        $relModel = null;
+        $relFilter = [];
+        if($this->exists($key, true)){
+            $fieldConf = $this->getFieldConfiguration();
+            if(array_key_exists($key, $fieldConf)){
+                if(array_key_exists($type = 'has-many', $fieldConf[$key])){
+                    $fromConf = $fieldConf[$key][$type];
+                    $relFilter = self::getFilter($fromConf[1], $this->getRaw($fromConf['relField']));
+                }
+            }
+
+            /**
+             * @var $relModel CortexCollection|bool
+             */
+            $relModel = $this->rel($key)->find($this->mergeFilter([$relFilter, $this->mergeWithRelFilter($key, $filter)]));
+        }
+
+        return $relModel ? : null;
+    }
+
+    /**
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
@@ -873,13 +901,14 @@ abstract class AbstractModel extends Cortex {
      * -> $suffix can be used fore unique placeholder,
      *    in case the same $key is used with different $values in the same query
      * @param string $key
-     * @param $value
-     * @param string $suffix //
+     * @param mixed $value
+     * @param string $operator
+     * @param string $suffix
      * @return array
      */
-    public static function getFilter(string $key, $value, string $suffix = '') : array {
-        $placeholder = implode('_', array_filter([$key, $suffix]));
-        return [$key . ' = :' . $placeholder, ':' . $placeholder => $value];
+    public static function getFilter(string $key, $value, string $operator = '=', string $suffix = '') : array {
+        $placeholder = ':' . implode('_', array_filter([$key, $suffix]));
+        return [$key . ' ' . $operator . ' ' . $placeholder, $placeholder => $value];
     }
 
     /**

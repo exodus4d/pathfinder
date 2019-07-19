@@ -754,9 +754,7 @@ define([
         switch(action){
             case 'delete_connection':
                 // delete a single connection
-
-                // confirm dialog
-                bootbox.confirm('Is this connection really gone?', function(result){
+                bootbox.confirm('Is this connection really gone?', result => {
                     if(result){
                         MapUtil.deleteConnections([connection]);
                     }
@@ -790,11 +788,11 @@ define([
                 let newScope = action.split('_')[1];
                 let newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
 
-                bootbox.confirm('Change scope from ' + scopeName + ' to ' + newScopeName + '?', function(result){
+                bootbox.confirm('Change scope from ' + scopeName + ' to ' + newScopeName + '?', result => {
                     if(result){
-                        MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
-
                         setConnectionScope(connection, newScope);
+
+                        MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
 
                         Util.showNotify({title: 'Connection scope changed', text: 'New scope: ' + newScopeName, type: 'success'});
 
@@ -865,15 +863,25 @@ define([
             // connector has changed
             connection.setConnector(newConnector);
 
-            // remove all connection types
-            connection.clearTypes();
+            let map = connection._jsPlumb.instance;
+            let oldScope = connection.scope;
+            let oldTypes = MapUtil.filterDefaultTypes(connection.getType());
+            let newTypes = [MapUtil.getDefaultConnectionTypeByScope(scope)];
+            let removeTypes = oldTypes.intersect(MapUtil.filterDefaultTypes(Object.keys(map._connectionTypes)).diff(newTypes));
 
-            // set new new connection type
-            // if scope changed -> connection type == scope
-            connection.setType(MapUtil.getDefaultConnectionTypeByScope(scope));
+            // remove all connection types that except some persistent types e.g. "state_process"
+            MapUtil.removeConnectionTypes(connection, removeTypes);
+
+            // set new new connection type for newScope
+            MapUtil.addConnectionTypes(connection, newTypes);
 
             // change scope
             connection.scope = scope;
+
+            console.info(
+                'connection "scope" changed for %O. Scope %o → %o, Types %o → %o',
+                connection, oldScope, scope, oldTypes, newTypes
+            );
         }
     };
 
@@ -1495,23 +1503,14 @@ define([
     };
 
     /**
-     * get a connection object from "cache" (this requires the "connectionCache" cache to be actual!
+     * get a connection object from "cache"
+     * -> this requires the "connectionCache" cache is up2date!
      * @param mapId
      * @param connectionId
-     * @returns {*}
+     * @returns {*|null}
      */
     $.fn.getConnectionById = function(mapId, connectionId){
-
-        let connection = null;
-
-        if(
-            connectionCache[mapId] &&
-            connectionCache[mapId][connectionId]
-        ){
-            connection = connectionCache[mapId][connectionId];
-        }
-
-        return connection;
+        return Util.getObjVal(connectionCache, [mapId, connectionId].join('.')) || null;
     };
 
     /**
@@ -2246,7 +2245,7 @@ define([
                 // prevent multiple connections between same systems
                 let connections = MapUtil.checkForConnection(newJsPlumbInstance, sourceId, targetId);
                 if(connections.length > 1){
-                    bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result){
+                    bootbox.confirm('Connection already exists. Do you really want to add an additional one?', result => {
                         if(!result && connection._jsPlumb){
                             // connection._jsPlumb might be "undefined" in case connection was removed in the meantime
                             connection._jsPlumb.instance.detach(connection);

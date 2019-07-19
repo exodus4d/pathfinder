@@ -1191,7 +1191,7 @@ class Map extends Controller\AccessController {
                 // get specific connections by id
                 $connectionIds = null;
                 if(is_array($postData['connectionIds'])){
-                    $connectionIds = $postData['connectionIds'];
+                    $connectionIds = array_map('intval', $postData['connectionIds']);
                 }
 
                 $connections = $map->getConnections($connectionIds, 'wh');

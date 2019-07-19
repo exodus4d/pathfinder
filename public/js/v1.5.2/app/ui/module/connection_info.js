@@ -1098,7 +1098,7 @@ define([
                 selectElementType.initUniverseTypeSelect({
                     categoryIds: [6],
                     maxSelectionLength: 1,
-                    selected: [Util.getObjVal(logData, 'ship.id')]
+                    selected: [Util.getObjVal(logData, 'ship.typeId')]
                 }).on('select2:select select2:unselecting', function(e){
                     // get ship mass from selected ship type and update mass input field
                     let shipMass = e.params.data ? e.params.data.mass / 1000 : '';

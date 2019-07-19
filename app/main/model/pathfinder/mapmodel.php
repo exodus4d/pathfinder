@@ -8,6 +8,7 @@
 
 namespace Model\Pathfinder;
 
+use DB\CortexCollection;
 use DB\SQL\Schema;
 use data\file\FileHandler;
 use Exception\ConfigException;
@@ -614,36 +615,27 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get all connections in this map
+     * get connections in this map
+     * -> $connectionIds can be used for filter
      * @param null $connectionIds
      * @param string $scope
-     * @return ConnectionModel[]
+     * @return CortexCollection|array
      */
     public function getConnections($connectionIds = null, $scope = ''){
-        $connections = [];
-
-        $query = [
-            'active = :active AND source > 0 AND target > 0',
-            ':active' => 1
+        $filters = [
+            self::getFilter('source', 0, '>'),
+            self::getFilter('target', 0, '>')
         ];
 
         if(!empty($scope)){
-            $query[0] .= ' AND scope = :scope';
-            $query[':scope'] = $scope;
+            $filters[] = self::getFilter('scope', $scope);
         }
 
         if(!empty($connectionIds)){
-            $query[0] .= ' AND id IN (?)';
-            $query[] =  $connectionIds;
+            $filters[] = self::getFilter('id', $connectionIds, 'IN');
         }
 
-        $this->filter('connections', $query);
-
-        if($this->connections){
-            $connections = $this->connections;
-        }
-
-        return $connections;
+        return $this->relFind('connections', $this->mergeFilter($filters)) ? : [];
     }
 
     /**
@@ -1312,8 +1304,8 @@ class MapModel extends AbstractMapTrackingModel {
             $targetSystem->get('mapId', true) === $this->_id
         ){
             $filter = $this->mergeFilter([
-                $this->mergeFilter([self::getFilter('source', $sourceSystem->id, 'A'), self::getFilter('target', $targetSystem->id, 'A')]),
-                $this->mergeFilter([self::getFilter('source', $targetSystem->id, 'B'), self::getFilter('target', $sourceSystem->id, 'B')])
+                $this->mergeFilter([self::getFilter('source', $sourceSystem->id, 'A'), self::getFilter('target', $targetSystem->id, '=', 'A')]),
+                $this->mergeFilter([self::getFilter('source', $targetSystem->id, 'B'), self::getFilter('target', $sourceSystem->id, '=', 'B')])
             ], 'or');
 
             $connection = $this->relFindOne('connections', $filter);
@@ -1445,7 +1437,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get all maps
      * @param array $mapIds
      * @param array $options
-     * @return \DB\CortexCollection
+     * @return CortexCollection
      */
     public static function getAll($mapIds = [], $options = []){
         $query = [

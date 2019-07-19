@@ -94,8 +94,9 @@ class ConnectionModel extends AbstractMapTrackingModel {
      */
     protected static $connectionTypeWhitelist = [
         // base type for scopes
-        'stargate',
         'abyssal',
+        'jumpbridge',
+        'stargate',
         // wh mass reduction types
         'wh_fresh',
         'wh_reduced',
