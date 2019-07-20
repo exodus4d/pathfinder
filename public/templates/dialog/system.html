@@ -69,19 +69,30 @@
 
         <div id="{{sectionInfoId}}" class="collapse">
             <div class="row">
-                <div class="col-xs-12 col-sm-9">
+                <div class="col-xs-12 col-sm-6">
                     <div class="form-group">
-                        <label class="col-xs-4 col-sm-2 control-label">Alias</label>
-                        <div class="col-xs-8 col-sm-10">
+                        <label class="col-xs-4 col-sm-3 control-label">Alias</label>
+                        <div class="col-xs-8 col-sm-9">
                             <div class="controls">
-                                <div id="{{aliasId}}" class="form-control-static"></div>
+                                <div id="{{aliasId}}" class="form-control-static pf-dynamic-area"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xs-12 col-sm-3">
-                    <div id="{{createdId}}" class="well well-sm text-center" title="first create"></div>
+                    <div class="form-group">
+                        <label class="col-xs-4 col-sm-8 control-label">Signatures</label>
+                        <div class="col-xs-8 col-sm-4">
+                            <div class="controls">
+                                <div id="{{signaturesId}}" class="form-control-static pf-dynamic-area text-right txt-color"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xs-12 col-sm-3">
+                    <div id="{{createdId}}" class="well well-sm well-text-number text-center" title="first create"></div>
                 </div>
             </div>
 
@@ -92,14 +103,14 @@
                         <label class="col-xs-12 col-sm-2 control-label">Description</label>
                         <div class="col-xs-12 col-sm-10">
                             <div class="controls">
-                                <div id="{{descriptionId}}" class="form-control-static"></div>
+                                <div id="{{descriptionId}}" class="form-control-static pf-dynamic-area"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xs-12 col-sm-3">
-                    <div id="{{updatedId}}" class="well well-sm text-center" title="last update/delete"></div>
+                    <div id="{{updatedId}}" class="well well-sm well-text-number text-center" title="last update/delete"></div>
                 </div>
             </div>
         </div>

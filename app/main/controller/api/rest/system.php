@@ -193,7 +193,7 @@ class System extends AbstractRestController {
     }
 
     /**
-     * checks whether a system should be "deleted" or set "inactive" (keep some data)
+     * checks whether a system should be "deleted" or set "inactive" (keep persistent data)
      * @param Pathfinder\MapModel $map
      * @param Pathfinder\SystemModel $system
      * @return bool
@@ -201,7 +201,7 @@ class System extends AbstractRestController {
     private function checkDeleteMode(Pathfinder\MapModel $map, Pathfinder\SystemModel $system) : bool {
         $delete = true;
 
-        if( !empty($system->description) ){
+        if(!empty($system->description)){
             // never delete systems with custom description set!
             $delete = false;
         }elseif(
@@ -211,6 +211,13 @@ class System extends AbstractRestController {
         ){
             // map setting "persistentAliases" is active (default) AND
             // alias is set and != name
+            $delete = false;
+        }elseif(
+            $map->persistentSignatures &&
+            !empty($system->getSignatures())
+        ){
+            // map setting "persistentSignatures" is active (default) AND
+            // signatures exist
             $delete = false;
         }
 

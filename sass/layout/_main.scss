@@ -113,6 +113,19 @@ em{
   background: $gray-lighter; /* Gecko Browsers */
   color: $gray-darkest;
 }
+
+// .well variants =================================================================================
+.well{
+  &.well-text-number{
+    // .well with improved contrast
+    font-family: Oxygen, Arial, sans-serif;
+    font-weight: bold;
+    letter-spacing: .02em;
+    line-height: 16px;
+    text-rendering: geometricPrecision;
+  }
+}
+
 // help elements ==================================================================================
 .pf-help-light{
   @extend .txt-color;
@@ -582,6 +595,10 @@ table{
 
     &.pf-table-cell-20{
       width: 20px;
+    }
+
+    &.pf-table-cell-100{
+      max-width: 100px;
     }
 
     &.pf-table-cell-ellipses-auto{

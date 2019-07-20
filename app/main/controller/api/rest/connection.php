@@ -86,10 +86,10 @@ class Connection extends AbstractRestController {
             if($map->hasAccess($activeCharacter)){
                 foreach($connectionIds as $connectionId){
                     if($connection = $map->getConnectionById($connectionId)){
-                        $connection->delete( $activeCharacter );
-
+                        if($connection->delete($activeCharacter)){
+                            $deletedConnectionIds[] = $connectionId;
+                        }
                         $connection->reset();
-                        $deletedConnectionIds[] = $connectionId;
                     }
                 }
 

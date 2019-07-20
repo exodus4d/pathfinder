@@ -193,11 +193,16 @@
   .list-unstyled.well{
     display: inline-block;
   }
-
-
 }
 
-// ad system dialog ===========================================================
+// add system dialog ==========================================================
+#pf-system-dialog{
+  .form-control-static.pf-dynamic-area{
+    padding: 7px;
+    min-height: 32px;
+  }
+}
+
 .pf-system-dialog-select{
   width: 300px !important;
 }

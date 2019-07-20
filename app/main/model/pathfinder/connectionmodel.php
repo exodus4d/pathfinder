@@ -339,28 +339,24 @@ class ConnectionModel extends AbstractMapTrackingModel {
     /**
      * @return MapModel
      */
-    public function getMap() : MapModel{
+    public function getMap() : MapModel {
         return $this->get('mapId');
     }
 
     /**
      * delete a connection
      * @param CharacterModel $characterModel
+     * @return bool
      */
-    public function delete(CharacterModel $characterModel){
-        if( !$this->dry() ){
-            // check if character has access
-            if($this->hasAccess($characterModel)){
-                $this->erase();
-            }
-        }
+    public function delete(CharacterModel $characterModel) : bool {
+        return ($this->valid() && $this->hasAccess($characterModel)) ? $this->erase() : false;
     }
 
     /**
      * get object relevant data for model log
      * @return array
      */
-    public function getLogObjectData() : array{
+    public function getLogObjectData() : array {
         return [
             'objId' => $this->_id,
             'objName' => $this->scope

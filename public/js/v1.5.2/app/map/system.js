@@ -40,6 +40,7 @@ define([
         dialogSystemSectionInfoId: 'pf-system-dialog-section-info',                     // id for "info" section element
         dialogSystemSectionInfoStatusId: 'pf-system-dialog-section-info-status',        // id for "status" message in "info" element
         dialogSystemAliasId: 'pf-system-dialog-alias',                                  // id for "alias" static element
+        dialogSystemSignaturesId: 'pf-system-dialog-signatures',                        // id for "signatures" count static element
         dialogSystemDescriptionId: 'pf-system-dialog-description',                      // id for "description" static element
         dialogSystemCreatedId: 'pf-system-dialog-created',                              // id for "created" static element
         dialogSystemUpdatedId: 'pf-system-dialog-updated',                              // id for "updated" static element
@@ -85,6 +86,7 @@ define([
 
             let statusId = false;   // -> no value change
             let alias = labelEmpty;
+            let signaturesCount = 0;
             let description = labelEmpty;
             let createdTime = labelUnknown;
             let updatedTime = labelUnknown;
@@ -96,6 +98,7 @@ define([
                 info = labelExist;
                 statusId = parseInt(Util.getObjVal(systemData, 'status.id')) || statusId;
                 alias = systemData.alias.length ? Util.htmlEncode(systemData.alias) : alias;
+                signaturesCount = (Util.getObjVal(systemData, 'signatures') || []).length;
                 description = systemData.description.length ? systemData.description : description;
 
                 let dateCreated = new Date(systemData.created.created * 1000);
@@ -117,6 +120,7 @@ define([
                 dialogElement.find('#' + config.dialogSystemStatusSelectId).val(statusId).trigger('change');
             }
             dialogElement.find('#' + config.dialogSystemAliasId).html(alias);
+            dialogElement.find('#' + config.dialogSystemSignaturesId).toggleClass('txt-color-green', signaturesCount > 0).html(signaturesCount);
             dialogElement.find('#' + config.dialogSystemDescriptionId).html(description);
             dialogElement.find('#' + config.dialogSystemCreatedId).html('<i class="fas fa-fw fa-plus"></i>&nbsp' + createdTime);
             dialogElement.find('#' + config.dialogSystemUpdatedId).html('<i class="fas fa-fw fa-pen"></i>&nbsp' + updatedTime);
@@ -173,6 +177,7 @@ define([
             sectionInfoId: config.dialogSystemSectionInfoId,
             sectionInfoStatusId: config.dialogSystemSectionInfoStatusId,
             aliasId: config.dialogSystemAliasId,
+            signaturesId: config.dialogSystemSignaturesId,
             descriptionId: config.dialogSystemDescriptionId,
             createdId: config.dialogSystemCreatedId,
             updatedId: config.dialogSystemUpdatedId,

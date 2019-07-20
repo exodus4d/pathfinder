@@ -231,7 +231,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      * @return bool
      */
     public function delete() : bool {
-        return !$this->dry() ? $this->erase() : false;
+        return $this->valid() ? $this->erase() : false;
     }
 
     /**

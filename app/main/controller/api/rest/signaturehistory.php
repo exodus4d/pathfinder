@@ -108,8 +108,9 @@ class SignatureHistory extends AbstractRestController {
                     $signatures = $system->getSignatures();
                     foreach($signatures as $signature){
                         if(!in_array($signature->_id, $updatedSignatureIds)){
-                            $signature->delete();
-                            $updateSignaturesHistory = true;
+                            if($signature->delete()){
+                                $updateSignaturesHistory = true;
+                            }
                         }
                     }
 
