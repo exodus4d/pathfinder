@@ -41,7 +41,7 @@ requirejs.config({
         mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13  Mousewheel - https://github.com/jquery/jquery-mousewheel
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1   X-editable - in placed editing
         morris: 'lib/morris.min',                                       // v0.5.1   Morris.js - graphs and charts
-        raphael: 'lib/raphael-min',                                     // v2.1.2   Raphaël - required for morris (dependency)
+        raphael: 'lib/raphael.min',                                     // v2.2.8   Raphaël - required for morris - https://dmitrybaranovskiy.github.io/raphael
         bootbox: 'lib/bootbox.min',                                     // v4.4.0   Bootbox.js - custom dialogs - http://bootboxjs.com
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1   Inline Chart - http://benpickles.github.io/peity/

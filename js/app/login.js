@@ -798,7 +798,7 @@ define([
         });
 
         // hide splash loading animation
-        $('.' + config.splashOverlayClass).hideSplashOverlay();
+        $('.' + config.splashOverlayClass + '[data-status="ok"]').hideSplashOverlay();
 
         // init server status information
         initServerStatus();

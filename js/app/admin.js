@@ -69,7 +69,7 @@ define([
         Util.initDefaultBootboxConfig();
 
         // hide splash loading animation
-        $('.' + config.splashOverlayClass).hideSplashOverlay();
+        $('.' + config.splashOverlayClass + '[data-status="ok"]').hideSplashOverlay();
 
         setPageObserver();
 

@@ -14,7 +14,7 @@ define([
         mapMove: {
             group:      'map',
             label:      'Move map section',
-            keyNames:   ['drag', 'move']
+            keyNames:   ['space', 'drag']
         },
         // signature ----------------------------------------------------------------------------------------
         signatureSelect: {
