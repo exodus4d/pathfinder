@@ -870,7 +870,8 @@ class Controller {
      */
     static function getRequestHeaders() : array {
         $headers = [];
-
+        $headerPrefix = 'http_';
+        $prefixLength = mb_strlen($headerPrefix);
         $serverData = self::getServerData();
 
         if(
@@ -885,8 +886,9 @@ class Controller {
             // Therefore we can´t use this for all servers
             // https://github.com/exodus4d/pathfinder/issues/58
             foreach($_SERVER as $name => $value){
-                if(substr($name, 0, 5) == 'HTTP_'){
-                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                $name = mb_strtolower($name);
+                if(mb_substr($name, 0, $prefixLength) == $headerPrefix){
+                    $headers[mb_convert_case(str_replace('_', '-', mb_substr($name, $prefixLength)), MB_CASE_TITLE)] = $value;
                 }
             }
         }

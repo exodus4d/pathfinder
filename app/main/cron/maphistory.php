@@ -14,7 +14,10 @@ use data\filesystem\Search;
 
 class MapHistory extends AbstractCron {
 
-    const LOG_TEXT              = '%s [%4s] log files, [%4s] not writable, [%4s] read error, [%4s] write error, [%4s] rename error, [%4s] delete error, exec (%.3Fs)';
+    /**
+     * log msg for truncateFiles() cronjob
+     */
+    const LOG_TEXT              = '%s [%4s] log files, [%s] truncated, [%4s] not writable, [%4s] read error, [%4s] write error, [%4s] rename error, [%4s] delete error, exec (%.3Fs)';
 
     /**
      * default log file size limit before truncate, bytes (1MB)
@@ -65,6 +68,7 @@ class MapHistory extends AbstractCron {
         $writeErrors = 0;
         $renameErrors = 0;
         $deleteErrors = 0;
+        $truncatedFileNames = [];
 
         if($f3->exists('PATHFINDER.HISTORY.LOG', $dir)){
             $fileHandler = FileHandler::instance();
@@ -98,7 +102,8 @@ class MapHistory extends AbstractCron {
                                 // move temp file from PHP temp dir into Pathfinders history log dir...
                                 // ... overwrite old log file with new file
                                 if(rename($temp, $file->getRealPath())){
-                                    // map history logs should be writable non cronjob user too
+                                    $truncatedFileNames[] = $file->getFilename();
+                                    // map history logs should be writable for non cronjob user too
                                     @chmod($file->getRealPath(), 0666);
                                 }else{
                                     $renameErrors++;
@@ -120,6 +125,6 @@ class MapHistory extends AbstractCron {
 
         // Log ------------------------
         $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write(sprintf(self::LOG_TEXT, __FUNCTION__, $largeFiles, $notWritableFiles, $readErrors, $writeErrors, $renameErrors, $deleteErrors, $execTime));
+        $log->write(sprintf(self::LOG_TEXT, __FUNCTION__, $largeFiles, implode(', ', $truncatedFileNames), $notWritableFiles, $readErrors, $writeErrors, $renameErrors, $deleteErrors, $execTime));
     }
 }

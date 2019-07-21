@@ -218,9 +218,12 @@ class UserModel extends AbstractPathfinderModel {
             // user matches session data
             if($characterId > 0){
                 $data = $this->findSessionCharacterData($characterId);
-            }elseif( !empty($sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS)) ){
+            }elseif(
+                is_array($sessionCharacters = $this->getF3()->get(User::SESSION_KEY_CHARACTERS)) && // check for null
+                !empty($sessionCharacters)
+            ){
                 // no character was requested ($requestedCharacterId = 0) AND session characters were found
-                // -> get first matched character (e.g. user open browser tab)
+                // -> get first matched character (e.g. user open /login browser tab)
                 $data = $sessionCharacters[0];
             }
         }
@@ -235,7 +238,7 @@ class UserModel extends AbstractPathfinderModel {
              * @var $character CharacterModel
              */
             $character = AbstractPathfinderModel::getNew('CharacterModel');
-            $character->getById( (int)$data['ID']);
+            $character->getById((int)$data['ID']);
 
             if(
                 $character->dry() ||
