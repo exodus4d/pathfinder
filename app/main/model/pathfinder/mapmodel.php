@@ -1310,8 +1310,8 @@ class MapModel extends AbstractMapTrackingModel {
             $targetSystem->get('mapId', true) === $this->_id
         ){
             $filter = $this->mergeFilter([
-                $this->mergeFilter([self::getFilter('source', $sourceSystem->id, 'A'), self::getFilter('target', $targetSystem->id, '=', 'A')]),
-                $this->mergeFilter([self::getFilter('source', $targetSystem->id, 'B'), self::getFilter('target', $sourceSystem->id, '=', 'B')])
+                $this->mergeFilter([self::getFilter('source', $sourceSystem->id, '=', 'A'), self::getFilter('target', $targetSystem->id, '=', 'A')]),
+                $this->mergeFilter([self::getFilter('source', $targetSystem->id, '=', 'B'), self::getFilter('target', $sourceSystem->id, '=', 'B')])
             ], 'or');
 
             $connection = $this->relFindOne('connections', $filter);
