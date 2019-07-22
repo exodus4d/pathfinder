@@ -1,0 +1,102 @@
+$breadcrumb-arrow-size: 15px;
+
+.pf-head-breadcrumb {
+  display: inline-block;
+  margin: 0;
+
+  li {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+
+    &:before {
+      content: "";
+      position: absolute;
+      right: -9px;
+      top: -1px;
+      z-index: 20;
+      border-left: 10px solid #272728;
+      border-top: $breadcrumb-arrow-size solid transparent;
+      border-bottom: $breadcrumb-arrow-size solid transparent;
+      transition: 0.3s ease;
+    }
+
+    &:after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      top: -1px;
+      z-index: 10;
+      border-left: 10px solid $gray-light;
+      border-top: $breadcrumb-arrow-size solid transparent;
+      border-bottom: $breadcrumb-arrow-size solid transparent;
+    }
+
+    &:hover {
+      .pf-head-breadcrumb-item{
+        color: $teal-lighter;
+
+        & > img{
+          border-color: $teal-lighter !important;
+        }
+      }
+
+      &:not(:last-of-type){
+        .pf-head-breadcrumb-item{
+          max-width: 135px; // longest system name ~130px "Tash-Murkon Prime"
+        }
+      }
+    }
+
+    &:first-of-type {
+      .pf-head-breadcrumb-item{
+        padding-left: 10px;
+      }
+    }
+
+    &:last-of-type {
+      .pf-head-breadcrumb-item{
+        padding-right: 10px;
+      }
+
+      &:before {
+        display: none;
+      }
+
+      &:after {
+        display: none;
+      }
+    }
+
+    &:not(:last-of-type){
+      .pf-head-breadcrumb-item{
+        max-width: 60px;        // initial with before "extend"
+      }
+    }
+
+    &.--empty{
+      pointer-events: none;
+    }
+  }
+
+  .pf-head-breadcrumb-item {
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 0 5px 0 15px;
+    line-height: 30px;
+    width: auto;
+    @include transition(color 0.15s ease-out, max-width 0.15s ease-in-out);
+    will-change: color, max-width;
+
+    [class^="pf-system-sec-"]{
+      margin-right: 5px;
+    }
+
+    &>.fas{
+      margin-right: 5px !important;
+    }
+  }
+}

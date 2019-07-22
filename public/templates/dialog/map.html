@@ -44,12 +44,12 @@
                     <form role="form" class="form-horizontal">
 
                         <div class="row">
-                            <div class="col-sm-6">
+                            <div class="col-xs-12 col-sm-6">
                                 <h4 class="pf-dynamic-area">Map options</h4>
 
-                                <div class="col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-12 col-md-6">
                                     <div class="form-group">
-                                        <div class="col-xs-12 col-sm-12 col-xs-6 checkbox">
+                                        <div class="col-xs-12 col-sm-12 checkbox">
                                             <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
                                             <label for="{{deleteExpiredConnectionsId}}">Auto delete outdated wormholes
                                                 <i class="fas fa-fw fa-question-circle pf-help-light" title="outdated WHs (~2 days)"></i>
@@ -58,9 +58,9 @@
                                     </div>
                                 </div>
 
-                                <div class="col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-12 col-md-6">
                                     <div class="form-group">
-                                        <div class="col-xs-12 col-sm-12 col-xs-6 checkbox" >
+                                        <div class="col-xs-12 col-sm-12 checkbox" >
                                             <input id="{{deleteEolConnectionsId}}" name="deleteEolConnections" value="1" type="checkbox" {{#deleteEolConnections}}checked{{/deleteEolConnections}}>
                                             <label for="{{deleteEolConnectionsId}}">Auto delete expired wormholes
                                                 <i class="fas fa-fw fa-question-circle pf-help-light" title="expired EOL WHs (~4h 15min)"></i>
@@ -69,12 +69,23 @@
                                     </div>
                                 </div>
 
-                                <div class="col-xs-12 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-12 col-md-6">
                                     <div class="form-group">
-                                        <div class="col-sm-12 col-xs-6 checkbox">
+                                        <div class="col-xs-12 col-sm-12 checkbox">
                                             <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
                                             <label for="{{persistentAliasesId}}">Persistent system aliases
-                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Keep custom aliases after delete"></i>
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Preserve custom aliases on system delete"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <div class="col-xs-12 col-sm-12 checkbox">
+                                            <input id="{{persistentSignaturesId}}" name="persistentSignatures" value="1" type="checkbox" {{#persistentSignatures}}checked{{/persistentSignatures}}>
+                                            <label for="{{persistentSignaturesId}}">Persistent system signatures
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Preserve signature data on system delete (~3 days)"></i>
                                             </label>
                                         </div>
                                     </div>
@@ -83,10 +94,10 @@
 
 
 
-                            <div class="col-sm-6">
+                            <div class="col-xs-12 col-sm-6">
                                 <h4 class="pf-dynamic-area">Map logging</h4>
 
-                                <div class="col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-12 col-md-6">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 col-xs-6 checkbox">
                                             <input id="{{logHistoryId}}" name="logHistory" value="1" type="checkbox" {{#logHistory}}checked{{/logHistory}}>
@@ -97,7 +108,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-12 col-md-6">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 col-xs-6 checkbox">
                                             <input id="{{logActivityId}}" name="logActivity" value="1" type="checkbox" {{#logActivity}}checked{{/logActivity}}>

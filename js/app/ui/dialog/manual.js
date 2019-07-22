@@ -6,9 +6,8 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'bootbox',
-], ($, Init, Util, Render, bootbox) => {
+], ($, Init, Util, bootbox) => {
 
     'use strict';
 
@@ -62,23 +61,17 @@ define([
             let disableOnScrollEvent = false;
 
             // scroll breakpoints
-            let scrolLBreakpointElements = null;
+            let scrollBreakpointElements = $('.pf-manual-scroll-break');
             // scroll navigation links
-            let scrollNavLiElements = null;
-
-            mapManualDialog.on('shown.bs.modal', function(e){
-                // modal on open
-                scrolLBreakpointElements = $('.pf-manual-scroll-break');
-                scrollNavLiElements = $('.' + config.dialogNavigationListItemClass);
-            });
+            let scrollNavLiElements = $('.' + config.dialogNavigationListItemClass);
 
             let scrollspyElement = $('#' + config.mapManualScrollspyId);
 
             let whileScrolling = function(){
 
                 if(disableOnScrollEvent === false){
-                    for(let i = 0; i < scrolLBreakpointElements.length; i++){
-                        let offset = $(scrolLBreakpointElements[i]).offset().top;
+                    for(let i = 0; i < scrollBreakpointElements.length; i++){
+                        let offset = $(scrollBreakpointElements[i]).offset().top;
 
                         if( (offset - modalOffsetTop) > 0){
 

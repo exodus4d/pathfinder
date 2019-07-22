@@ -68,7 +68,7 @@ define([
         'Kosmische Anomalie',                                                   // de: "Cosmic Anomaly"
         'Kosmische Signatur',                                                   // de: "Cosmic Signature"
         'Космическая аномалия',                                                 // ru: "Cosmic Anomaly"
-        'Скрытый сигнал',                                                       // rm: "Cosmic Signature"
+        'Скрытый сигнал',                                                       // ru: "Cosmic Signature"
         'Anomalie cosmique',                                                    // fr: "Cosmic Anomaly"
         'Signature cosmique',                                                   // fr: "Cosmic Signature"
         '宇宙の特異点',                                                               // ja: "Cosmic Anomaly"
@@ -2186,21 +2186,25 @@ define([
                 buttons: [
                     {
                         name: 'filterGroup',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '' // set by js (xEditable)
                     },
                     {
                         name: 'undo',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '' // set by js (xEditable)
                     },
                     {
                         name: 'selectAll',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '<i class="fas fa-check-double"></i>select all'
                     },
                     {
                         name: 'delete',
+                        tag: 'a',
                         className: [config.moduleHeadlineIconClass, config.sigTableClearButtonClass].join(' '),
                         text: '<i class="fas fa-trash"></i>delete&nbsp;(<span>0</span>)'
                     }
@@ -2351,8 +2355,7 @@ define([
 
         // "lazy update" toggle ---------------------------------------------------------------------------------------
         moduleElement.find('.' + config.moduleHeadlineIconLazyClass).on('click', function(e){
-            let button = $(this);
-            button.toggleClass('active');
+            $(this).toggleClass('active');
         });
 
         // set multi row select ---------------------------------------------------------------------------------------
@@ -2383,31 +2386,22 @@ define([
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
         moduleElement.on('pf:updateSystemSignatureModuleByClipboard', {tableApi: primaryTableApi}, function(e, clipboard){
+            let lazyUpdateToggle = moduleElement.find('.' + config.moduleHeadlineIconLazyClass);
             let signatureOptions = {
-                deleteOld: moduleElement.find('.' + config.moduleHeadlineIconLazyClass).hasClass('active') ? 1 : 0
+                deleteOld: lazyUpdateToggle.hasClass('active') ? 1 : 0
             };
+
+            // "disable" lazy update icon -> prevents accidental removal for next paste #724
+            lazyUpdateToggle.toggleClass('active', false);
+
             updateSignatureTableByClipboard(e.data.tableApi, systemData, clipboard, signatureOptions);
         });
 
         // signature column - "type" popover --------------------------------------------------------------------------
-        moduleElement.find('.' + config.sigTableClass).hoverIntent({
-            over: function(e){
-                let staticWormholeElement = $(this);
-                let wormholeName = staticWormholeElement.attr('data-name');
-                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
-                if(wormholeData){
-                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, {
-                        trigger: 'manual',
-                        placement: 'top',
-                        show: true
-                    });
-                }
-            },
-            out: function(e){
-                $(this).destroyPopover();
-            },
-            selector: '.editable-click:not(.editable-open) span[class^="pf-system-sec-"]'
-        });
+        MapUtil.initWormholeInfoTooltip(
+            moduleElement.find('.' + config.sigTableClass),
+            '.editable-click:not(.editable-open) span[class^="pf-system-sec-"]'
+        );
 
         // signature column - "info" popover --------------------------------------------------------------------------
         moduleElement.find('.' + config.sigTablePrimaryClass).hoverIntent({

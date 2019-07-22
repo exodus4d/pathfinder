@@ -185,7 +185,7 @@ class CorporationModel extends AbstractPathfinderModel {
      * @param array $options
      * @return array
      */
-    public function getMaps($mapIds = [], $options = []){
+    public function getMaps($mapIds = [], $options = []) : array {
         $maps = [];
         $this->filterRel();
 

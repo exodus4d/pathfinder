@@ -10,9 +10,9 @@ define([
     'blueImpGallery',
     'bootbox',
     'lazyload',
-    'app/ui/header',
-    'app/ui/logo',
-    'app/ui/demo_map',
+    'layout/header_login',
+    'layout/logo',
+    'layout/demo_map',
     'dialog/account_settings',
     'dialog/notification',
     'dialog/manual',
@@ -798,7 +798,7 @@ define([
         });
 
         // hide splash loading animation
-        $('.' + config.splashOverlayClass).hideSplashOverlay();
+        $('.' + config.splashOverlayClass + '[data-status="ok"]').hideSplashOverlay();
 
         // init server status information
         initServerStatus();

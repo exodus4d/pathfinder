@@ -301,7 +301,7 @@ class Config extends \Prefab {
             'PASS'      => self::getEnvironmentData('DB_' . $alias . '_PASS')
         ];
 
-        $pdoReg = '/^(?<SCHEME>[[:alpha:]]+):((host=(?<HOST>[a-zA-Z0-9\.]*))|(unix_socket=(?<SOCKET>[a-zA-Z0-9\/]*\.sock)))((;dbname=(?<NAME>\w*))|(;port=(?<PORT>\d*))){0,2}/';
+        $pdoReg = '/^(?<SCHEME>[[:alpha:]]+):((host=(?<HOST>[a-zA-Z0-9-_\.]*))|(unix_socket=(?<SOCKET>[a-zA-Z0-9\/]*\.sock)))((;dbname=(?<NAME>\w*))|(;port=(?<PORT>\d*))){0,2}/';
         if(preg_match($pdoReg, self::getEnvironmentData('DB_' . $alias . '_DNS'), $matches)){
             // remove unnamed matches
             $matches = array_intersect_key($matches, $config);

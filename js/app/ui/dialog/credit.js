@@ -6,10 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'bootbox',
-    'app/ui/logo'
-], function($, Init, Util, Render, bootbox){
+    'layout/logo'
+], ($, Init, Util, bootbox) => {
     'use strict';
 
     let config = {
@@ -23,7 +22,7 @@ define([
      */
     $.fn.showCreditsDialog = function(callback, enableHover){
 
-        requirejs(['text!templates/dialog/credit.html', 'mustache'], function(template, Mustache){
+        requirejs(['text!templates/dialog/credit.html', 'mustache'], (template, Mustache) => {
 
             let data = {
                 logoContainerId: config.creditsDialogLogoContainerId,

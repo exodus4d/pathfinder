@@ -1,7 +1,7 @@
 {{#isWebSocket}}
     <dl class="dl-horizontal pull-left">
         <dt title="Map sync method">Connected</dt>
-        <dd>WebSocket</dd>
+        <dd><i class="fas fa-random"></i> WebSocket <span class="txt-color txt-color-grayLight">(persistent)</span></dd>
         <dt>Status</dt>
         <dd class="txt-color {{syncStatus.webSocket.class}}">{{syncStatus.webSocket.status}}</dd>
         <dt>Active</dt>
@@ -10,7 +10,7 @@
 
     <dl class="dl-horizontal pull-left">
         <dt></dt>
-        <dd>SharedWorker</dd>
+        <dd><i class="fas fa-project-diagram"></i> SharedWorker</dd>
         <dt></dt>
         <dd class="txt-color {{syncStatus.sharedWorker.class}}">{{syncStatus.sharedWorker.status}}</dd>
         <dt></dt>
@@ -21,7 +21,7 @@
 {{#isAjax}}
     <dl class="dl-horizontal pull-left">
         <dt title="Map sync method">Type</dt>
-        <dd>Ajax <span class="txt-color txt-color-grayLight">(long polling)</span></dd>
+        <dd><i class="fas fa-retweet"></i> Ajax <span class="txt-color txt-color-grayLight">(long polling)</span></dd>
         <dt>Status</dt>
         <dd class="txt-color {{syncStatus.ajax.class}}">{{syncStatus.ajax.status}}</dd>
         <dt>Last sync</dt>

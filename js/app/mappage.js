@@ -6,14 +6,13 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'app/logging',
     'app/page',
     'app/map/worker',
     'app/module_map',
     'app/key',
     'app/ui/form_element'
-], ($, Init, Util, Render, Logging, Page, MapWorker, ModuleMap) => {
+], ($, Init, Util, Logging, Page, MapWorker, ModuleMap) => {
 
     'use strict';
 
@@ -39,7 +38,7 @@ define([
         Util.initDefaultEditableConfig();
 
         // load page
-        $('body').loadPageStructure().setGlobalShortcuts();
+        Page.loadPageStructure();
 
         // show app information in browser console
         Util.showVersionInfo();
@@ -121,6 +120,25 @@ define([
          */
         let initData = () => {
 
+            /**
+             * add wormhole size data for each wormhole
+             * @param wormholes
+             * @returns {*}
+             */
+            let addWormholeSizeData = wormholes => {
+                for(let [wormholeName, wormholeData] of Object.entries(wormholes)){
+                    wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
+
+                    for(let [sizeName, sizeData] of Object.entries(Init.wormholeSizes)){
+                        if(wormholeData.massIndividual >= sizeData.jumpMassMin){
+                            wormholeData.size = sizeData;
+                            break;
+                        }
+                    }
+                }
+                return wormholes;
+            };
+
             let initDataExecutor = (resolve, reject) => {
                 $.getJSON(Init.path.initData).done(response => {
                     if( response.error.length > 0 ){
@@ -139,7 +157,7 @@ define([
                     Init.connectionScopes   = response.connectionScopes;
                     Init.systemStatus       = response.systemStatus;
                     Init.systemType         = response.systemType;
-                    Init.wormholes          = response.wormholes;
+                    Init.wormholes          = addWormholeSizeData(response.wormholes);
                     Init.characterStatus    = response.characterStatus;
                     Init.routes             = response.routes;
                     Init.url                = response.url;
@@ -202,7 +220,7 @@ define([
          * @param payload
          * @returns {Promise<any>}
          */
-        let initMapModule = (payload) => {
+        let initMapModule = payload => {
 
             let initMapModuleExecutor = (resolve, reject) => {
                 // init browser tab change observer, Once the timers are available
@@ -229,10 +247,10 @@ define([
          * @param payloadMapAccessData
          * @returns {Promise<any>}
          */
-        let initMapWorker = (payloadMapAccessData) => {
+        let initMapWorker = payloadMapAccessData => {
 
             let initMapWorkerExecutor = (resolve, reject) => {
-                let getPayload = (command) => {
+                let getPayload = command => {
                     return {
                         action: 'initMapWorker',
                         data: {
@@ -251,7 +269,7 @@ define([
 
                         // init SharedWorker for maps
                         MapWorker.init({
-                            characterId:  response.data.id,
+                            characterId: response.data.id,
                             callbacks: {
                                 onInit: (MsgWorkerMessage) => {
                                     Util.setSyncStatus(MsgWorkerMessage.command);
@@ -398,7 +416,7 @@ define([
                             data.error.length > 0
                         ){
                             // any error in the main trigger functions result in a user log-off
-                            $(document).trigger('pf:menuLogout');
+                            Util.triggerMenuAction(document, 'Logout');
                         }else{
                             $(document).setProgramStatus('online');
 
@@ -474,13 +492,13 @@ define([
                         data.error.length > 0
                     ){
                         // any error in the main trigger functions result in a user log-off
-                        $(document).trigger('pf:menuLogout');
+                        Util.triggerMenuAction(document, 'Logout');
                     }else{
                         $(document).setProgramStatus('online');
 
                         if(data.userData !== undefined){
                             // store current user data global (cache)
-                            let userData = Util.setCurrentUserData(data.userData);
+                            Util.setCurrentUserData(data.userData);
 
                             // update system info panels
                             if(data.system){
@@ -530,11 +548,42 @@ define([
             // initial start of the  map update function
             triggerMapUpdatePing(true);
 
+            /**
+             * handles "final" map update request before window.unload event
+             * -> navigator.sendBeacon browser support required
+             *    ajax would not work here, because browsers might cancel the request!
+             * @param mapModule
+             */
+            let mapUpdateUnload = mapModule => {
+                // get updated map data
+                let mapData = ModuleMap.getMapModuleDataForUpdate(mapModule);
+
+                if(mapData.length){
+                    let fd = new FormData();
+                    fd.set('mapData', JSON.stringify(mapData));
+                    navigator.sendBeacon(Init.path.updateUnloadData, fd);
+
+                    console.info('Map update request send by: %O', navigator.sendBeacon);
+                }
+            };
+
             // Send map update request on tab close/reload, in order to save map changes that
             // haven´t been saved through default update trigger
             window.addEventListener('beforeunload', function(e){
+                // close "SharedWorker" connection
+                MapWorker.close();
+
+                // clear periodic update timeouts
+                // -> this function will handle the final map update request
+                clearUpdateTimeouts();
+
                 // save unsaved map changes ...
-                triggerMapUpdatePing();
+                if(navigator.sendBeacon){
+                    mapUpdateUnload(mapModule);
+                }else{
+                    // fallback if sendBeacon() is not supported by browser
+                    triggerMapUpdatePing();
+                }
 
                 // check if character should be switched on reload or current character should be loaded afterwards
                 let characterSwitch = Boolean( $('body').data('characterSwitch') );
@@ -547,7 +596,7 @@ define([
 
                 // IMPORTANT, return false in order to not "abort" ajax request in background!
                 return false;
-            });
+            }, false);
 
         };
 

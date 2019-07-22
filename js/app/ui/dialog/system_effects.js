@@ -6,10 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'bootbox',
     'app/map/util'
-], ($, Init, Util, Render, bootbox, MapUtil) => {
+], ($, Init, Util, bootbox, MapUtil) => {
     'use strict';
 
     let config = {
@@ -57,7 +56,7 @@ define([
 
                 for(let [areaId, areaData] of Object.entries(effectData)){
                     let systemType = 'C' + areaId;
-                    let securityClass = Util.getSecurityClassForSystem( systemType );
+                    let securityClass = Util.getSecurityClassForSystem(systemType);
 
                     if(areaId === '1'){
                         rows.push( $('<tr>') );

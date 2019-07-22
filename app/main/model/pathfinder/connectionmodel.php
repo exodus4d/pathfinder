@@ -89,6 +89,29 @@ class ConnectionModel extends AbstractMapTrackingModel {
     ];
 
     /**
+     * allowed connection types
+     * @var array
+     */
+    protected static $connectionTypeWhitelist = [
+        // base type for scopes
+        'abyssal',
+        'jumpbridge',
+        'stargate',
+        // wh mass reduction types
+        'wh_fresh',
+        'wh_reduced',
+        'wh_critical',
+        // wh jump mass types
+        'wh_jump_mass_s',
+        'wh_jump_mass_m',
+        'wh_jump_mass_l',
+        'wh_jump_mass_xl',
+        // other types
+        'wh_eol',
+        'preserve_mass'
+    ];
+
+    /**
      * get connection data
      * @param bool $addSignatureData
      * @param bool $addLogData
@@ -130,13 +153,15 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @return int|number
      */
     public function set_type($type){
-        $newTypes = (array)$type;
+        // remove unwanted types -> they should not be send from client
+        // -> reset keys! otherwise JSON format results in object and not in array
+        $type = array_values(array_intersect(array_unique((array)$type), self::$connectionTypeWhitelist));
 
         // set EOL timestamp
-        if( !in_array('wh_eol', $newTypes) ){
+        if( !in_array('wh_eol', $type) ){
             $this->eolUpdated = null;
         }elseif(
-            in_array('wh_eol', $newTypes) &&
+            in_array('wh_eol', $type) &&
             !in_array('wh_eol', (array)$this->type) // $this->type == null for new connection! (e.g. map import)
         ){
             // connection EOL status change
@@ -307,35 +332,31 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @return logging\LogInterface
      * @throws \Exception\ConfigException
      */
-    public function newLog($action = '') : Logging\LogInterface {
+    public function newLog(string $action = '') : Logging\LogInterface {
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
     }
 
     /**
      * @return MapModel
      */
-    public function getMap() : MapModel{
+    public function getMap() : MapModel {
         return $this->get('mapId');
     }
 
     /**
      * delete a connection
      * @param CharacterModel $characterModel
+     * @return bool
      */
-    public function delete(CharacterModel $characterModel){
-        if( !$this->dry() ){
-            // check if character has access
-            if($this->hasAccess($characterModel)){
-                $this->erase();
-            }
-        }
+    public function delete(CharacterModel $characterModel) : bool {
+        return ($this->valid() && $this->hasAccess($characterModel)) ? $this->erase() : false;
     }
 
     /**
      * get object relevant data for model log
      * @return array
      */
-    public function getLogObjectData() : array{
+    public function getLogObjectData() : array {
         return [
             'objId' => $this->_id,
             'objName' => $this->scope

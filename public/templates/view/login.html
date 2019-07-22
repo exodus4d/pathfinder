@@ -5,7 +5,7 @@
 </check>
 
 {* splash page *}
-<include href="templates/ui/splash.html"/>
+<include href="templates/layout/splash.html"/>
 
 <nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
     <div class="container">
@@ -737,8 +737,8 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate disabled" href="javascript:void(0);" data-description="Database settings" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/wip.jpg" width="160" height="160" alt="WIP">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/admin_2.jpg" data-description="Map settings" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/admin_2.jpg" width="160" height="160" alt="Map settings">
                     </a>
                 </div>
 
@@ -998,10 +998,10 @@
                     Server requirements:
                 </p>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i> A webserver with a <em><a target="_blank" href="//en.wikipedia.org/wiki/LAMP_(software_bundle)" rel="noopener">LEMP</a></em> environment</li>
-                    <li><i></i> PHP 7.0+</li>
+                    <li><i></i> Webserver with a <em><a target="_blank" href="//en.wikipedia.org/wiki/LAMP_(software_bundle)" rel="noopener">LEMP</a></em> environment</li>
+                    <li><i></i> PHP {{ @REQUIREMENTS.PHP.VERSION }}+</li>
                     <li><i></i> PHP framework <a target="_blank" href="http://fatfreeframework.com/system-requirements" rel="noopener">requirements</a></li>
-                    <li><i></i> MySQL 5.7+ </li>
+                    <li><i></i> MySQL {{ @REQUIREMENTS.MYSQL.VERSION }}+</li>
                     <li><i></i> Some kind of server side caching. <em><a target="_blank" href="//redis.io/" rel="noopener">Redis</a></em> is preferred, file cache will also work</li>
                 </ul>
             </div>

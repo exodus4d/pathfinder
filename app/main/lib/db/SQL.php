@@ -76,4 +76,17 @@ class SQL extends \DB\SQL {
             );
         }
     }
+
+    /**
+     * @see https://fatfreeframework.com/3.6/sql#exec
+     * @param array|string $cmds
+     * @param null $args
+     * @param int $ttl
+     * @param bool $log (we use false as default parameter)
+     * @param bool $stamp
+     * @return array|FALSE|int
+     */
+    function exec($cmds, $args = null, $ttl = 0, $log = false, $stamp = false) {
+        return parent::exec($cmds, $args, $ttl, $log, $stamp);
+    }
 }

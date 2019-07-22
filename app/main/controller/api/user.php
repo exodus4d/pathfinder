@@ -190,19 +190,9 @@ class User extends Controller\Controller{
     }
 
     /**
-     * delete the character log entry for the current active (main) character
-     * @param \Base $f3
-     * @throws Exception
-     */
-    public function deleteLog(\Base $f3){
-        if($activeCharacter = $this->getCharacter()){
-            $activeCharacter->logout(false, true, false);
-        }
-    }
-
-    /**
      * log the current user out + clear character system log data
      * @param \Base $f3
+     * @throws Exception
      */
     public function logout(\Base $f3){
         $this->logoutCharacter($f3, false, true, true, true);

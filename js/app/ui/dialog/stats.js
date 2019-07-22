@@ -10,7 +10,7 @@ define([
     'app/render',
     'bootbox',
     'peityInlineChart'
-], function($, Init, Util, Render, bootbox){
+], ($, Init, Util, Render, bootbox) => {
     'use strict';
 
     let config = {
@@ -83,12 +83,14 @@ define([
                 buttons: [
                     {
                         extend: 'copy',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '<i class="fas fa-fw fa-copy"></i> copy',
                         exportOptions: { orthogonal: 'filter' }
                     },
                     {
                         extend: 'csv',
+                        tag: 'a',
                         className: config.moduleHeadlineIconClass,
                         text: '<i class="fas fa-fw fa-download"></i> csv',
                         exportOptions: { orthogonal: 'filter' }

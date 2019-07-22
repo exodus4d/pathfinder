@@ -36,7 +36,7 @@ class System extends AbstractRestController {
             ){
                 $systemData = $system->getData();
                 $systemData->signatures = $system->getSignaturesData();
-                $systemData->sigHistory = $system->getSignaturesHistoryData();
+                $systemData->sigHistory = $system->getSignaturesHistory();
                 $systemData->structures = $system->getStructuresData();
             }
         }
@@ -144,7 +144,7 @@ class System extends AbstractRestController {
                 }
                 // broadcast map changes
                 if(count($deletedSystemIds)){
-                    $this->broadcastMapData($map);
+                    $this->broadcastMap($map);
                 }
             }
         }
@@ -187,13 +187,13 @@ class System extends AbstractRestController {
         $newSystem->clearCacheData();
 
         // broadcast map changes
-        $this->broadcastMapData($newSystem->mapId);
+        $this->broadcastMap($newSystem->mapId);
 
         return $newSystem;
     }
 
     /**
-     * checks whether a system should be "deleted" or set "inactive" (keep some data)
+     * checks whether a system should be "deleted" or set "inactive" (keep persistent data)
      * @param Pathfinder\MapModel $map
      * @param Pathfinder\SystemModel $system
      * @return bool
@@ -201,7 +201,7 @@ class System extends AbstractRestController {
     private function checkDeleteMode(Pathfinder\MapModel $map, Pathfinder\SystemModel $system) : bool {
         $delete = true;
 
-        if( !empty($system->description) ){
+        if(!empty($system->description)){
             // never delete systems with custom description set!
             $delete = false;
         }elseif(
@@ -211,6 +211,13 @@ class System extends AbstractRestController {
         ){
             // map setting "persistentAliases" is active (default) AND
             // alias is set and != name
+            $delete = false;
+        }elseif(
+            $map->persistentSignatures &&
+            !empty($system->getSignatures())
+        ){
+            // map setting "persistentSignatures" is active (default) AND
+            // signatures exist
             $delete = false;
         }
 

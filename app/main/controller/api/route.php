@@ -154,12 +154,12 @@ class Route extends Controller\AccessController {
                     $includeTypes[] = 'wh_critical';
                 }
 
-                if( $filterData['wormholesFrigate'] !== true ){
-                    $excludeTypes[] = 'frigate';
-                }
-
                 if( $filterData['wormholesEOL'] === false ){
                     $includeEOL = false;
+                }
+
+                if(!empty($filterData['excludeTypes'])){
+                    $excludeTypes = $filterData['excludeTypes'];
                 }
             }
 
@@ -300,7 +300,7 @@ class Route extends Controller\AccessController {
     private function filterJumpData($filterData = [], $keepSystems = []){
         if($filterData['flag'] == 'secure'){
             // remove all systems (TrueSec < 0.5) from search arrays
-            $this->jumpArray = array_filter($this->jumpArray, function($systemId) use($keepSystems) {
+            $this->jumpArray = array_filter($this->jumpArray, function($systemId) use ($keepSystems) {
                 $systemNameData = $this->nameArray[$systemId];
                 $systemSec = $systemNameData[3];
 
@@ -733,8 +733,9 @@ class Route extends Controller\AccessController {
                     'wormholes'             => (bool) $routeData['wormholes'],
                     'wormholesReduced'      => (bool) $routeData['wormholesReduced'],
                     'wormholesCritical'     => (bool) $routeData['wormholesCritical'],
-                    'wormholesFrigate'      => (bool) $routeData['wormholesFrigate'],
                     'wormholesEOL'          => (bool) $routeData['wormholesEOL'],
+                    'wormholesSizeMin'      => (string) $routeData['wormholesSizeMin'],
+                    'excludeTypes'          => (array) $routeData['excludeTypes'],
                     'endpointsBubble'       => (bool) $routeData['endpointsBubble'],
                     'flag'                  => $routeData['flag']
                 ];

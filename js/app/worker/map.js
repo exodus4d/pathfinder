@@ -12,14 +12,14 @@ let ports = [];
 let characterPorts = [];
 
 // init "WebSocket" connection ========================================================================================
-let initSocket = (uri) => {
+let initSocket = uri => {
     let MsgWorkerOpen = new MsgWorker('ws:open');
 
     if(socket === null){
         socket = new WebSocket(uri);
 
         // "WebSocket" open -----------------------------------------------------------------------
-        socket.onopen = (e) => {
+        socket.onopen = e => {
             MsgWorkerOpen.meta({
                 readyState: socket.readyState
             });
@@ -28,7 +28,7 @@ let initSocket = (uri) => {
         };
 
         // "WebSocket message ---------------------------------------------------------------------
-        socket.onmessage = (e) => {
+        socket.onmessage = e => {
             let response = JSON.parse(e.data);
 
             let MsgWorkerSend = new MsgWorker('ws:send');
@@ -43,7 +43,7 @@ let initSocket = (uri) => {
         };
 
         // "WebSocket" close ----------------------------------------------------------------------
-        socket.onclose = (closeEvent) => {
+        socket.onclose = closeEvent => {
             let MsgWorkerClosed = new MsgWorker('ws:closed');
             MsgWorkerClosed.meta({
                 readyState: socket.readyState,
@@ -57,7 +57,7 @@ let initSocket = (uri) => {
         };
 
         // "WebSocket" error ----------------------------------------------------------------------
-        socket.onerror = (e) => {
+        socket.onerror = e => {
             let MsgWorkerError = new MsgWorker('ws:error');
             MsgWorkerError.meta({
                 readyState: socket.readyState
@@ -75,11 +75,11 @@ let initSocket = (uri) => {
 };
 
 // send message to port(s) ============================================================================================
-let sendToCurrentPort = (load) => {
+let sendToCurrentPort = load => {
     ports[ports.length - 1].postMessage(load);
 };
 
-let broadcastPorts = (load) => {
+let broadcastPorts = load => {
     // default: sent to all ports
     let sentToPorts = ports;
 
@@ -114,7 +114,7 @@ let addPort = (port, characterId) => {
     }
 };
 
-let getPortsByCharacterIds = (characterIds) => {
+let getPortsByCharacterIds = characterIds => {
     let ports = [];
 
     for(let i = 0; i < characterPorts.length; i++){
@@ -128,8 +128,37 @@ let getPortsByCharacterIds = (characterIds) => {
     return ports;
 };
 
+/**
+ *
+ * @param port
+ * @returns {int[]}
+ */
+let removePort = port => {
+    let characterIds = [];
+
+    // reverse loop required because of array index reset after splice()
+    let i = characterPorts.length;
+    while(i--){
+        if(characterPorts[i].port === port){
+            // collectt all character Ids mapped to the removed port
+            characterIds.push(characterPorts[i].characterId);
+            characterPorts.splice(i, 1);
+        }
+    }
+
+    let j = ports.length;
+    while(j--){
+        if(ports[j] === port){
+            ports.splice(j, 1);
+        }
+    }
+
+    // return unique characterIds
+    return [...new Set(characterIds)];
+};
+
 // "SharedWorker" connection ==========================================================================================
-self.addEventListener('connect', (event) => {   // jshint ignore:line
+self.addEventListener('connect', event => {   // jshint ignore:line
     let port = event.ports[0];
     addPort(port);
 
@@ -145,12 +174,28 @@ self.addEventListener('connect', (event) => {   // jshint ignore:line
                 initSocket(data.uri);
                 break;
             case 'ws:send':
-                let MsgSocket = {
+                socket.send(JSON.stringify({
                     task: MsgWorkerMessage.task(),
                     load: MsgWorkerMessage.data()
-                };
+                }));
+                break;
+            case 'sw:closePort':
+                port.close();
 
-                socket.send(JSON.stringify(MsgSocket));
+                // remove port from store
+                // -> charIds managed by closed port
+                let characterIds = removePort(port);
+
+                // check if there are still other ports active that manage removed ports
+                // .. if not -> send "unsubscribe" event to WebSocket server
+                let portsLeft = getPortsByCharacterIds(characterIds);
+
+                if(!portsLeft.length){
+                    socket.send(JSON.stringify({
+                        task: MsgWorkerMessage.task(),
+                        load: characterIds
+                    }));
+                }
                 break;
             case 'ws:close':
                // closeSocket();

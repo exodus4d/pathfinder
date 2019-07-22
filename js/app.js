@@ -9,14 +9,16 @@ var jsBaseUrl = document.body.getAttribute('data-js-path');
 
 // requireJs configuration
 requirejs.config({
-    baseUrl: 'js',                                                      // path for baseUrl - dynamically set !below! ("build_js" | "js")
+    baseUrl: 'js',                                                      // src root path - dynamically set !below! ("build_js" | "js")
 
     paths: {
-        layout: 'layout',
-        conf: 'app/conf',                                               // path for "config" files dir
-        dialog: 'app/ui/dialog',                                        // path for "dialog" files dir
-        templates: '../../templates',                                   // template dir
-        img: '../../img',                                               // images dir
+        conf: 'app/conf',                                               // path     config files
+        dialog: 'app/ui/dialog',                                        // path     dialog files
+        layout: 'app/ui/layout',                                        // path     layout files
+        module: 'app/ui/module',                                        // path     module files
+
+        templates: '../../templates',                                   // path     template base dir
+        img: '../../img',                                               // path     image base dir
 
         // main views
         login: './app/login',                                           // initial start "login page" view
@@ -28,24 +30,23 @@ requirejs.config({
         jquery: 'lib/jquery-3.3.1.min',                                 // v3.3.1   jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0   Bootstrap js code - http://getbootstrap.com/javascript
         text: 'lib/requirejs/text',                                     // v2.0.12  A RequireJS/AMD loader plugin for loading text resources.
-        mustache: 'lib/mustache.min',                                   // v1.0.0   Javascript template engine - http://mustache.github.io
-        localForage: 'lib/localforage.min',                             // v1.4.2   localStorage library - https://mozilla.github.io/localForage
+        mustache: 'lib/mustache.min',                                   // v3.0.1   Javascript template engine - http://mustache.github.io
+        localForage: 'lib/localforage.min',                             // v1.7.3   localStorage library - https://localforage.github.io/localForage/
         velocity: 'lib/velocity.min',                                   // v1.5.1   animation engine - http://julian.com/research/velocity
         velocityUI: 'lib/velocity.ui.min',                              // v5.2.0   plugin for velocity - http://julian.com/research/velocity/#uiPack
-        slidebars: 'lib/slidebars',                                     // v0.10    Slidebars - side menu plugin http://plugins.adchsm.me/slidebars
-        jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6   jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
-        farahey: 'lib/farahey-0.5',                                     // v0.5     jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
+        slidebars: 'lib/slidebars',                                     // v2.0.2   Slidebars - side menu plugin https://www.adchsm.com/slidebars/
+        jsPlumb: 'lib/jsplumb',                                         // v2.9.3   jsPlumb main map draw plugin http://jsplumb.github.io/jsplumb/home.html
+        farahey: 'lib/farahey',                                         // v1.1.2   jsPlumb "magnetizing" plugin extension - https://github.com/ThomasChan/farahey
         customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5   Custom scroll bars - http://manos.malihu.gr
         mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13  Mousewheel - https://github.com/jquery/jquery-mousewheel
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1   X-editable - in placed editing
         morris: 'lib/morris.min',                                       // v0.5.1   Morris.js - graphs and charts
-        raphael: 'lib/raphael-min',                                     // v2.1.2   Raphaël - required for morris (dependency)
+        raphael: 'lib/raphael.min',                                     // v2.2.8   Raphaël - required for morris - https://dmitrybaranovskiy.github.io/raphael
         bootbox: 'lib/bootbox.min',                                     // v4.4.0   Bootbox.js - custom dialogs - http://bootboxjs.com
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1   Inline Chart - http://benpickles.github.io/peity/
         dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1     Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
         hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.9.0   Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
-        fullScreen: 'lib/jquery.fullscreen.min',                        // v0.6.0   Full screen mode - https://github.com/private-face/jquery.fullscreen
         select2: 'lib/select2.min',                                     // v4.0.3   Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1   SVG line animation plugin - http://lazylinepainter.info
@@ -64,13 +65,13 @@ requirejs.config({
         easePack: 'lib/EasePack.min',
         tweenLite: 'lib/TweenLite.min',
 
-        // datatables                                                   // v1.10.12 DataTables - https://datatables.net
+        // datatables                                                   // v1.10.18 DataTables - https://datatables.net
         'datatables.loader': './app/datatables.loader',
-        'datatables.net': 'lib/datatables/DataTables-1.10.12/js/jquery.dataTables.min',
-        'datatables.net-buttons': 'lib/datatables/Buttons-1.2.1/js/dataTables.buttons.min',
-        'datatables.net-buttons-html': 'lib/datatables/Buttons-1.2.1/js/buttons.html5.min',
-        'datatables.net-responsive': 'lib/datatables/Responsive-2.1.0/js/dataTables.responsive.min',
-        'datatables.net-select': 'lib/datatables/Select-1.2.0/js/dataTables.select.min',
+        'datatables.net': 'lib/datatables/DataTables-1.10.18/js/jquery.dataTables.min',
+        'datatables.net-buttons': 'lib/datatables/Buttons-1.5.6/js/dataTables.buttons.min',
+        'datatables.net-buttons-html': 'lib/datatables/Buttons-1.5.6/js/buttons.html5.min',
+        'datatables.net-responsive': 'lib/datatables/Responsive-2.2.2/js/dataTables.responsive.min',
+        'datatables.net-select': 'lib/datatables/Select-1.3.0/js/dataTables.select.min',
         'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
         // notification plugin
@@ -150,9 +151,6 @@ requirejs.config({
             deps: ['jquery']
         },
         hoverIntent: {
-            deps: ['jquery']
-        },
-        fullScreen: {
             deps: ['jquery']
         },
         select2: {

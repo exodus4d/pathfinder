@@ -25,7 +25,7 @@
 }
 
 .pf-splash{
-  position: absolute;
+  position: fixed;
   z-index: 2000;
   background-color: $gray-darkest;
   color: $gray-light;
@@ -711,9 +711,7 @@
 
 // setup page -----------------------------------------------------------------
 .pf-body[data-script='setup']{
-  body{
-    user-select: text;
-  }
+  user-select: text;
 
   .navbar-brand:hover{
     color: #777; // overwrite default
@@ -736,6 +734,10 @@
         margin-bottom: 0; // overwrite default
       }
     }
+  }
+
+  .panel-heading{
+    padding-right: 8px; // overwrite default
   }
 }
 

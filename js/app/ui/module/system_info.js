@@ -143,7 +143,6 @@ define([
         ){
             for(let wormholeName of systemData.statics){
                 let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
                 staticsData.push(wormholeData);
             }
         }

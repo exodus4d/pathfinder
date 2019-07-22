@@ -50,10 +50,10 @@ Temporary Items
 .sass-cache
 .usage
 *.gz
-*.lock
+composer-dev.lock
+package-lock.json
 /conf/
 /node_modules/
 /public/js/vX.X.X/
 /vendor/
 /history/
-/package-lock.json

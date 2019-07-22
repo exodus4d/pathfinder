@@ -34,6 +34,21 @@
     top:0px;
   }
 };
+// svg path draw ==================================================================================
+.pf-animation-path-draw {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: pfPathDraw 3s linear alternate infinite;
+}
+
+@include keyframes(pfPathDraw){
+  from {
+    stroke-dashoffset: 500;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 
 // bubble =========================================================================================
 @include keyframes(pfBubbleWobble){

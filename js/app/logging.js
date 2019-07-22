@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'bootbox'
-], function($, Init, Util, bootbox){
+], ($, Init, Util, bootbox) => {
 
     'use strict';
 
@@ -28,26 +28,15 @@ define([
     };
 
     /**
-     * get log time string
-     * @returns {string}
-     */
-    let getLogTime = function(){
-        let serverTime = Util.getServerTime();
-        let logTime = serverTime.toLocaleTimeString('en-US', { hour12: false });
-
-        return logTime;
-    };
-
-    /**
      * updated "sync status" dynamic dialog area
      */
-    let updateSyncStatus = function(){
+    let updateSyncStatus = () => {
 
         // check if task manager dialog is open
         let logDialog = $('#' + config.taskDialogId);
         if(logDialog.length){
             // dialog is open
-            requirejs(['text!templates/modules/sync_status.html', 'mustache'], function(templateSyncStatus, Mustache){
+            requirejs(['text!templates/modules/sync_status.html', 'mustache'], (templateSyncStatus, Mustache) => {
                 let data = {
                     timestampCounterClass: config.timestampCounterClass,
                     syncStatus: Init.syncStatus,
@@ -59,7 +48,7 @@ define([
                     }
                 };
 
-                let syncStatusElement = $( Mustache.render(templateSyncStatus, data ) );
+                let syncStatusElement = $(Mustache.render(templateSyncStatus, data ));
 
                 logDialog.find('.' + config.taskDialogStatusAreaClass).html( syncStatusElement );
 
@@ -76,7 +65,7 @@ define([
     /**
      * shows the logging dialog
      */
-    let showDialog = function(){
+    let showDialog = () => {
         // dialog content
 
         requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache){
@@ -108,19 +97,27 @@ define([
                     buttons: [
                         {
                             extend: 'copy',
+                            tag: 'a',
                             className: config.moduleHeadlineIconClass,
-                            text: '<i class="fas fa-fw fa-copy"></i> copy'
+                            text: '<i class="fas fa-fw fa-copy"></i> copy',
+                            exportOptions: {
+                                orthogonal: 'export'
+                            }
                         },
                         {
                             extend: 'csv',
+                            tag: 'a',
                             className: config.moduleHeadlineIconClass,
-                            text: '<i class="fas fa-fw fa-download"></i> csv'
+                            text: '<i class="fas fa-fw fa-download"></i> csv',
+                            exportOptions: {
+                                orthogonal: 'export'
+                            }
                         }
                     ]
                 },
                 paging: true,
                 ordering: true,
-                order: [ 1, 'desc' ],
+                order: [1, 'desc'],
                 hover: false,
                 pageLength: 10,
                 lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'All']],
@@ -134,42 +131,69 @@ define([
                 columnDefs: [
                     {
                         targets: 0,
+                        name: 'status',
                         title: '<i class="fas fa-tag"></i>',
-                        width: '18px',
+                        width: 18,
                         searchable: false,
                         class: ['text-center'].join(' '),
-                        data: 'status'
+                        data: 'status',
+                        render: {
+                            display: (cellData, type, rowData, meta) => {
+                                let statusClass = Util.getLogInfo(cellData, 'class');
+                                return '<i class="fas fa-fw fa-circle txt-color ' + statusClass + '"></i>';
+                            }
+                        }
                     },{
                         targets: 1,
-                        title: '<i class="far fa-fw fa-clock"></i>&nbsp;&nbsp;',
-                        width: '50px',
+                        name: 'time',
+                        title: '<i class="far fa-fw fa-clock"></i>',
+                        width: 50,
                         searchable: true,
                         class: 'text-right',
-                        data: 'time'
+                        data: 'timestamp',
+                        render: {
+                            display: (cellData, type, rowData, meta) => rowData.timestampFormatted
+                        }
                     },{
                         targets: 2,
-                        title: '<i class="fas fa-fw fa-history"></i>&nbsp;&nbsp;',
-                        width: '35px',
+                        name: 'duration',
+                        title: '<i class="fas fa-fw fa-history"></i>',
+                        width: 35,
                         searchable: false,
                         class: 'text-right',
-                        sType: 'html',
-                        data: 'duration'
+                        data: 'duration',
+                        render: {
+                            display: (cellData, type, rowData, meta) => {
+                                let logStatus = getLogStatusByDuration(rowData.key, cellData);
+                                let statusClass = Util.getLogInfo(logStatus, 'class');
+                                return '<span class="txt-color ' + statusClass + '">' + cellData + '<small>ms</small></span>';
+                            }
+                        }
                     },{
                         targets: 3,
+                        name: 'description',
                         title: 'description',
                         searchable: true,
                         data: 'description'
                     },{
                         targets: 4,
+                        name: 'logType',
                         title: 'type',
-                        width: '40px',
+                        width: 40,
                         searchable: true,
                         class: ['text-center'].join(' '),
-                        data: 'type'
+                        data: 'logType',
+                        render: {
+                            display: (cellData, type, rowData, meta) => {
+                                let typeIconClass = getLogTypeIconClass(cellData);
+                                return '<i class="fas ' + typeIconClass + '"></i>';
+                            }
+                        }
                     },{
                         targets: 5,
-                        title: 'Prozess-ID&nbsp;&nbsp;&nbsp;',
-                        width: '80px',
+                        name: 'process',
+                        title: 'Prozess-ID',
+                        width: 80,
                         searchable: false,
                         class: 'text-right',
                         data: 'key'
@@ -197,10 +221,7 @@ define([
 
                 // show Morris graphs ----------------------------------------------------------
 
-                // function for chart label formation
-                let labelYFormat = function(y){
-                    return Math.round(y) + 'ms';
-                };
+                let labelYFormat = val => Math.round(val) + 'ms';
 
                 for(let key in chartData){
                     if(chartData.hasOwnProperty(key)){
@@ -241,8 +262,8 @@ define([
                         });
                         headline.append(averageElement);
 
-                        colElementGraph.append( headline );
-                        colElementGraph.append( graphArea );
+                        colElementGraph.append(headline);
+                        colElementGraph.append(graphArea);
 
                         graphArea.showLoadingAnimation();
 
@@ -321,10 +342,10 @@ define([
      * @param key
      * @param duration (if undefined -> just update graph with current data)
      */
-    let updateLogGraph = function(key, duration){
+    let updateLogGraph = (key, duration) => {
 
         // check if graph data already exist
-        if( !(chartData.hasOwnProperty(key))){
+        if(!(chartData.hasOwnProperty(key))){
             chartData[key] = {};
             chartData[key].data = [];
             chartData[key].graph = null;
@@ -341,7 +362,7 @@ define([
             chartData[key].data = chartData[key].data.slice(0, maxGraphDataCount);
         }
 
-        function getGraphData(data){
+        let getGraphData = data => {
             let tempChartData = {
                 data: [],
                 dataSum: 0,
@@ -352,7 +373,7 @@ define([
                 let value = 0;
                 if(data[x]){
                     value = data[x];
-                    tempChartData.dataSum = Number( (tempChartData.dataSum + value).toFixed(2) );
+                    tempChartData.dataSum = Number((tempChartData.dataSum + value).toFixed(2));
                 }
 
                 tempChartData.data.push({
@@ -362,10 +383,10 @@ define([
             }
 
             // calculate average
-            tempChartData.average = Number( ( tempChartData.dataSum / data.length ).toFixed(2) );
+            tempChartData.average = Number((tempChartData.dataSum / data.length).toFixed(2));
 
             return tempChartData;
-        }
+        };
 
         let tempChartData = getGraphData(chartData[key].data);
 
@@ -374,17 +395,17 @@ define([
             let avgElement = chartData[key].averageElement;
             let updateElement = chartData[key].updateElement;
 
-            let delay = Util.getCurrentTriggerDelay( key, 0 );
+            let delay = Util.getCurrentTriggerDelay(key, 0);
 
             if(delay){
-                updateElement[0].textContent = ' delay: ' + delay + 'ms ';
+                updateElement[0].textContent = ' delay: ' + delay.toFixed(2) + ' ms';
             }
 
             // set/change average line
             chartData[key].graph.options.goals = [tempChartData.average];
 
             // change avg. display
-            avgElement[0].textContent = 'Avg. ' + tempChartData.average + 'ms';
+            avgElement[0].textContent = 'avg. ' + tempChartData.average.toFixed(2) + ' ms';
 
             let avgStatus = getLogStatusByDuration(key, tempChartData.average);
             let avgStatusClass = Util.getLogInfo( avgStatus, 'class');
@@ -417,9 +438,9 @@ define([
      * @param logDuration
      * @returns {string}
      */
-    let getLogStatusByDuration = function(logKey, logDuration){
+    let getLogStatusByDuration = (logKey, logDuration) => {
         let logStatus = 'info';
-        if( logDuration > Init.timer[logKey].EXECUTION_LIMIT ){
+        if(logDuration > Init.timer[logKey].EXECUTION_LIMIT){
             logStatus = 'warning';
         }
         return logStatus;
@@ -430,8 +451,7 @@ define([
      * @param logType
      * @returns {string}
      */
-    let getLogTypeIconClass = function(logType){
-
+    let getLogTypeIconClass = logType => {
         let logIconClass = '';
 
         switch(logType){
@@ -470,23 +490,22 @@ define([
                 let logDuration = options.duration;
                 let logType = options.type;
 
-                // check log status by duration
-                let logStatus = getLogStatusByDuration(logKey, logDuration);
-                let statusClass = Util.getLogInfo( logStatus, 'class');
-                let typeIconClass = getLogTypeIconClass(logType);
-
                 // update graph data
                 updateLogGraph(logKey, logDuration);
 
+                let time = Util.getServerTime();
+                let timestamp = time.getTime();
+                let timestampFormatted = time.toLocaleTimeString('en-US', { hour12: false });
+
                 let logRowData = {
-                    status:  '<i class="fas fa-fw fa-circle txt-color ' + statusClass + '"></i>',
-                    time: getLogTime(),
-                    duration: '<span class="txt-color ' + statusClass + '">' + logDuration + '<small>ms</small></span>',
+                    status: getLogStatusByDuration(logKey, logDuration),
+                    timestamp: timestamp,
+                    timestampFormatted: timestampFormatted,
+                    duration: logDuration,
                     description: logDescription,
-                    type: '<i class="fas ' + typeIconClass + '"></i>',
+                    logType: logType,
                     key: logKey
                 };
-
 
                 if(logDataTable){
                     // add row if dataTable is initialized before new log
@@ -500,7 +519,7 @@ define([
             // delete old log entries from table ---------------------------------
             let rowCount = logData.length;
 
-            if( rowCount >= maxEntries ){
+            if(rowCount >= maxEntries){
 
                 if(logDataTable){
                     logDataTable.rows(0, {order:'index'}).remove().draw(false);
@@ -520,7 +539,6 @@ define([
 
     return {
         init: init,
-        getLogTime: getLogTime,
         showDialog: showDialog
     };
 });

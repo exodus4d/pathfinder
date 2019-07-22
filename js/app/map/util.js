@@ -5,13 +5,17 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
-], ($, Init, Util) => {
+    'app/util',
+    'app/map/scrollbar',
+    'app/map/overlay/util'
+], ($, Init, Util, Scrollbar, MapOverlayUtil) => {
     'use strict';
 
     let config = {
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
         defaultLocalJumpRadius: 3,                                      // default search radius (in jumps) for "nearby" pilots
+        zoomMax: 1.5,
+        zoomMin: 0.5,
 
         // local storage
         characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
@@ -35,32 +39,6 @@ define([
         tableCellEllipsis80Class: 'pf-table-cell-80',
         tableCellEllipsis90Class: 'pf-table-cell-90',
         tableCellEllipsis100Class: 'pf-table-cell-100'
-    };
-
-    // map menu options
-    let mapOptions = {
-        mapMagnetizer: {
-            buttonId: Util.config.menuButtonMagnetizerId,
-            description: 'Magnetizer',
-            onEnable: 'initMagnetizer',                                 // jQuery extension function
-            onDisable: 'destroyMagnetizer'                              // jQuery extension function
-        },
-        mapSnapToGrid : {
-            buttonId: Util.config.menuButtonGridId,
-            description: 'Grid snapping',
-            class: 'mapGridClass'
-        },
-        mapEndpoint : {
-            buttonId: Util.config.menuButtonEndpointId,
-            description: 'Endpoint overlay',
-            onEnable: 'showEndpointOverlays',                           // jQuery extension function
-            onDisable: 'hideEndpointOverlays'                           // jQuery extension function
-        },
-        mapCompact : {
-            buttonId: Util.config.menuButtonCompactId,
-            description: 'Compact system layout',
-            class: 'mapCompactClass'
-        }
     };
 
     // active jsPlumb instances currently running =====================================================================
@@ -209,25 +187,28 @@ define([
     };
 
     /**
-     * get system data by mapId and systemid
-     * @param mapId
-     * @param systemId
-     * @returns {boolean}
+     * get system data from mapData
+     * @see getSystemData
+     * @param mapData
+     * @param value
+     * @param key
+     * @returns {any}
      */
-    let getSystemData = (mapId, systemId) => {
-        let systemData = false;
-        let mapData = Util.getCurrentMapData(mapId);
+    let getSystemDataFromMapData = (mapData, value, key = 'id') => {
+        return mapData ? mapData.data.systems.find(system => system[key] === value) || false : false;
+    };
 
-        if(mapData){
-            for(let j = 0; j < mapData.data.systems.length; j++){
-                let systemDataTemp = mapData.data.systems[j];
-                if(systemDataTemp.id === systemId){
-                    systemData = systemDataTemp;
-                    break;
-                }
-            }
-        }
-        return systemData;
+    /**
+     * get system data by mapId system data selector
+     * -> e.g. value = 2 and key = 'id'
+     * -> e.g. value = 30002187 and key = 'systemId' => looks for 'Amarr' CCP systemId
+     * @param mapId
+     * @param value
+     * @param key
+     * @returns {any}
+     */
+    let getSystemData = (mapId, value, key = 'id') => {
+        return getSystemDataFromMapData(Util.getCurrentMapData(mapId), value, key);
     };
 
     /**
@@ -312,7 +293,7 @@ define([
      * @returns {*}
      */
     let filterDefaultTypes = types => {
-        let defaultTypes = ['', 'default', 'state_active', 'state_process'];
+        let defaultTypes = ['', 'default', 'info_signature', 'state_active', 'state_process'];
         return types.diff(defaultTypes);
     };
 
@@ -434,7 +415,7 @@ define([
             // remove connections from map
             let removeConnections = connections => {
                 for(let connection of connections){
-                    connection._jsPlumb.instance.detach(connection, {fireEvent: false});
+                    connection._jsPlumb.instance.deleteConnection(connection, {fireEvent: false});
                 }
             };
 
@@ -498,19 +479,26 @@ define([
      * -> data requires a signature bind to that connection
      * @param connection
      * @param connectionData
-     * @returns {{sourceLabels: Array, targetLabels: Array}}
+     * @returns {{source: {names: Array, labels: Array}, target: {names: Array, labels: Array}}}
      */
     let getConnectionDataFromSignatures = (connection, connectionData) => {
-        let signatureTypeNames = {
-            sourceLabels: [],
-            targetLabels: []
+        let signatureTypeData = {
+            source: {
+                names: [],
+                labels: []
+            },
+            target: {
+                names: [],
+                labels: []
+            }
         };
 
         if(
             connection &&
+            connectionData &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('app/ui/module/system_signature');
+            let SystemSignatures = require('module/system_signature');
 
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
@@ -530,11 +518,11 @@ define([
 
                     if(signatureData.system.id === sourceId){
                         // relates to "source" endpoint
-                        tmpSystemType = 'sourceLabels';
+                        tmpSystemType = 'source';
                         tmpSystem = sourceSystem;
                     }else if(signatureData.system.id === targetId){
                         // relates to "target" endpoint
-                        tmpSystemType = 'targetLabels';
+                        tmpSystemType = 'target';
                         tmpSystem = targetSystem;
                     }
 
@@ -544,18 +532,19 @@ define([
                         let availableSigTypeNames = SystemSignatures.getAllSignatureNamesBySystem(tmpSystem, 5);
                         let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
 
-                        if( flattenSigTypeNames.hasOwnProperty(signatureData.typeId) ){
+                        if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){
                             let label = flattenSigTypeNames[signatureData.typeId];
-                            // shorten label, just take the in game name
+                            // shorten label, just take the ingame name
                             label = label.substr(0, label.indexOf(' '));
-                            signatureTypeNames[tmpSystemType].push(label);
+                            signatureTypeData[tmpSystemType].names.push(signatureData.name);
+                            signatureTypeData[tmpSystemType].labels.push(label);
                         }
                     }
                 }
             }
         }
 
-        return signatureTypeNames;
+        return signatureTypeData;
     };
 
     /**
@@ -563,47 +552,53 @@ define([
      * -> Coordinates are relative to the Endpoint (not the system!)
      * -> jsPlumb specific format
      * @param endpoint
-     * @param label
+     * @param labels
      * @returns {number[]}
      */
-    let getLabelEndpointOverlayLocation = (endpoint, label) => {
-        let chars   = label.length ? label.length : 2;
-        let xTop    = chars === 2 ? +0.05 : chars <= 4 ? -0.75 : 3;
-        let xLeft   = chars === 2 ? -1.10 : chars <= 4 ? -2.75 : 3;
-        let xRight  = chars === 2 ? +1.25 : chars <= 4 ? +1.25 : 3;
-        let xBottom = chars === 2 ? +0.05 : chars <= 4 ? -0.75 : 3;
+    let getEndpointOverlaySignatureLocation = (endpoint, labels) => {
+        let defaultLocation = [0.5, 0.5];
 
-        let yTop    = chars === 2 ? -1.10 : chars <= 4 ? -1.75 : 3;
+        if(endpoint.anchor.getCurrentFace){
+            // ContinuousAnchor 
+            let count   = labels.length;
+            let xLeft   = count ? count === 1 ? -1.00 : 3 : -0.5;
+            let xRight  = count ? count === 1 ? +2.20 : 3 : +1.5;
 
-        switch(endpoint._continuousAnchorEdge){
-            case 'top': return [xTop, yTop];
-            case 'left': return [xLeft, 0];
-            case 'right': return [xRight, 0];
-            case 'bottom': return [xBottom , 1.3];
-            default: return [0.0, 0.0];
+            switch(endpoint.anchor.getCurrentFace()){
+                case 'top':     return [0.5, -0.75];
+                case 'left':    return [xLeft, 0.25];
+                case 'right':   return [xRight, 0.25];
+                case 'bottom':  return [0.5 , 1.75];
+                default:        return defaultLocation;
+            }
+        }else{
+            // e.g. floating endpoint (dragging)
+            // -> ContinuousAnchor
+            return defaultLocation;
         }
     };
 
     /**
      * get overlay HTML for connection endpoints by Label array
-     * @param label
+     * @param labels
      * @returns {string}
      */
-    let getEndpointOverlayContent = label => {
+    let formatEndpointOverlaySignatureLabel = labels => {
+        // default K162 in label array, or multiple labels
         let colorClass = 'txt-color-grayLighter';
+        let label = labels.join(', ');
 
-        if(label.length > 0){
-            // check if multiple labels found => conflict
-            if( label.includes(', ') ){
-                colorClass = 'txt-color-orangeLight';
-            }else if( !label.includes('K162') ){
-                colorClass = 'txt-color-yellow';
-            }
-        }else{
+        if(labels.length === 0){
             // endpoint not connected with a signature
             label = '<i class="fas fa-question-circle"></i>';
             colorClass = 'txt-color-red';
+        }else if(
+            labels.length === 1 &&
+            !labels.includes('K162')
+        ){
+            colorClass = Init.wormholes[labels[0]].class;
         }
+
         return '<span class="txt-color ' + colorClass + '">' + label + '</span>';
     };
 
@@ -632,64 +627,152 @@ define([
      */
     let filterMapByScopes = (map, scopes) => {
         if(map){
-            // TODO ^^sometimes map is undefined -> bug
-            let mapElement = $(map.getContainer());
-            let allSystems = mapElement.getSystems();
-            let allConnections = map.getAllConnections();
+            map.batch(() => {
+                let mapElement = $(map.getContainer());
+                let allSystems = mapElement.getSystems();
+                let allConnections = map.getAllConnections();
 
-            if(scopes && scopes.length){
-                // filter connections -------------------------------------------------------------------------------------
-                let visibleSystems = [];
-                let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
+                if(scopes && scopes.length){
+                    // filter connections -------------------------------------------------------------------------------------
+                    let visibleSystems = [];
+                    let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
 
-                for(let connection of allConnections){
-                    if(visibleConnections.indexOf(connection) >= 0){
-                        setConnectionVisible(connection, true);
-                        // source/target system should always be visible -> even if filter scope not matches system type
-                        if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
-                            visibleSystems.push(connection.endpoints[0].element);
+                    for(let connection of allConnections){
+                        if(visibleConnections.indexOf(connection) >= 0){
+                            setConnectionVisible(connection, true);
+                            // source/target system should always be visible -> even if filter scope not matches system type
+                            if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
+                                visibleSystems.push(connection.endpoints[0].element);
+                            }
+                            if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
+                                visibleSystems.push(connection.endpoints[1].element);
+                            }
+                        }else{
+                            setConnectionVisible(connection, false);
                         }
-                        if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
-                            visibleSystems.push(connection.endpoints[1].element);
-                        }
-                    }else{
-                        setConnectionVisible(connection, false);
                     }
-                }
 
-                // filter systems -----------------------------------------------------------------------------------------
-                let visibleTypeIds = [];
-                if(scopes.indexOf('wh') >= 0){
-                    visibleTypeIds.push(1);
-                }
-                if(scopes.indexOf('abyssal') >= 0){
-                    visibleTypeIds.push(4);
-                }
+                    // filter systems -----------------------------------------------------------------------------------------
+                    let visibleTypeIds = [];
+                    if(scopes.indexOf('wh') >= 0){
+                        visibleTypeIds.push(1);
+                    }
+                    if(scopes.indexOf('abyssal') >= 0){
+                        visibleTypeIds.push(4);
+                    }
 
-                for(let system of allSystems){
-                    if(
-                        visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
-                        visibleSystems.indexOf(system) >= 0
-                    ){
+                    for(let system of allSystems){
+                        if(
+                            visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
+                            visibleSystems.indexOf(system) >= 0
+                        ){
+                            setSystemVisible(system, map, true);
+                        }else{
+                            setSystemVisible(system, map, false);
+                        }
+                    }
+
+                    MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'show');
+                }else{
+                    // clear filter
+                    for(let system of allSystems){
                         setSystemVisible(system, map, true);
-                    }else{
-                        setSystemVisible(system, map, false);
                     }
-                }
+                    for(let connection of allConnections){
+                        setConnectionVisible(connection, true);
+                    }
 
-                mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
+                    MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'hide');
+                }
+            });
+        }
+    };
+
+    /**
+     * in/de-crease zoom level
+     * @param map
+     * @param zoomAction
+     * @returns {boolean}
+     */
+    let changeZoom = (map, zoomAction) => {
+        let zoomChange = false;
+        let zoom = map.getZoom();
+        let zoomStep = 0.1;
+        if('up' === zoomAction){
+            zoom += zoomStep;
+        }else{
+            zoom -= zoomStep;
+        }
+        zoom = Math.round(zoom * 10) / 10;
+        if(zoom >= config.zoomMin && zoom <= config.zoomMax){
+            zoomChange = setZoom(map, zoom);
+        }
+        return zoomChange;
+    };
+
+    /**
+     * set zoom level for a map
+     * @param map
+     * @param zoom
+     * @returns {boolean}
+     */
+    let setZoom = (map, zoom = 1) => {
+        let zoomChange = false;
+        if(zoom !== map.getZoom()){
+            // zoom jsPlumb map http://jsplumb.github.io/jsplumb/zooming.html
+            let transformOrigin = [0, 0];
+            let el = map.getContainer();
+            let p = ['webkit', 'moz', 'ms', 'o'];
+            let s = 'scale(' + zoom + ')';
+            let oString = (transformOrigin[0] * 100) + '% ' + (transformOrigin[1] * 100) + '%';
+
+            for(let i = 0; i < p.length; i++){
+                el.style[p[i] + 'Transform'] = s;
+                el.style[p[i] + 'TransformOrigin'] = oString;
+            }
+            el.style.transform = s;
+            el.style.transformOrigin = oString;
+
+            zoomChange = map.setZoom(zoom);
+
+            // adjust mCustomScrollbar --------------------------------------------------------------------------------
+            let scaledWidth = el.getBoundingClientRect().width;
+            let scaledHeight = el.getBoundingClientRect().height;
+            let mapContainer = $(el);
+            let mapWidth = mapContainer.outerWidth(); // this is fix (should never change)
+            let mapHeight = mapContainer.outerHeight(); // this is fix (should never change)
+            let wrapperWidth = mapContainer.parents('.mCSB_container_wrapper').outerWidth(); // changes on browser resize (map window)
+            let wrapperHeight = mapContainer.parents('.mCSB_container_wrapper').outerHeight(); // changes on drag resize (map window)
+            let scrollableWidth = (zoom === 1 || mapWidth !== scaledWidth && scaledWidth > wrapperWidth);
+            let scrollableHeight = (zoom === 1 || mapHeight !== scaledHeight && scaledHeight > wrapperHeight);
+
+            mapContainer.parents('.mCSB_container').css({
+                'width': scrollableWidth ? scaledWidth + 'px' : (wrapperWidth - 50) + 'px',
+                'height': scrollableHeight ? scaledHeight + 'px' : (wrapperHeight) + 'px',
+            });
+
+            let mapWrapperElement = mapContainer.closest('.mCustomScrollbar');
+            if(scrollableWidth && scrollableHeight){
+                mapWrapperElement.mCustomScrollbar('update');
             }else{
-                // clear filter
-                for(let system of allSystems){
-                    setSystemVisible(system, map, true);
-                }
-                for(let connection of allConnections){
-                    setConnectionVisible(connection, true);
-                }
-
-                mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
+                mapWrapperElement.mCustomScrollbar('scrollTo', '#' + mapContainer.attr('id'), {
+                    scrollInertia: 0,
+                    scrollEasing: 'linear',
+                    timeout: 0,
+                    moveDragger: false
+                });
             }
         }
+
+        return zoomChange;
+    };
+
+    /**
+     * toggles editable input form for system rename (set alias)
+     * @param system
+     */
+    let toggleSystemAliasEditable = system => {
+        system.find('.editable').editable('toggle');
     };
 
     /**
@@ -745,19 +828,112 @@ define([
     };
 
     /**
+     * add/remove connection type to connection that was previous registered by registerConnectionTypes()
+     * -> this method is a wrapper for addType()/removeType()
+     *    with the addition of respecting active Arrow overlay direction
+     * @param action
+     * @param connection
+     * @param types
+     * @param params
+     * @param doNotRepaint
+     */
+    let changeConnectionTypes = (action, connection, types = [], params = [], doNotRepaint = false) => {
+
+        if(connection && types.length){
+            // check for active Arrow overlay
+            let overlayArrow, overlayArrowParams;
+            if(
+                !types.includes('info_signature') &&
+                connection.hasType('info_signature')
+            ){
+                overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
+                if(overlayArrow){
+                    overlayArrowParams = {
+                        direction: overlayArrow.direction,
+                        foldback: overlayArrow.foldback,
+                    };
+                }
+            }
+
+            for(let i = 0; i < types.length; i++){
+                // change the new type
+                connection[action](types[i], typeof params[i] === 'object' ? params[i] : {}, doNotRepaint);
+            }
+
+            // change Arrow overlay data back to initial direction
+            if(
+                overlayArrow &&
+                (
+                    overlayArrow.direction !== overlayArrowParams.direction ||
+                    overlayArrow.foldback !== overlayArrowParams.foldback
+                )
+            ){
+                overlayArrow.updateFrom(overlayArrowParams);
+                if(!doNotRepaint){
+                    connection.repaint();
+                }
+            }
+        }
+    };
+
+    /**
+     * add connection type to connection that was previous registered by registerConnectionTypes()
+     * @param connection
+     * @param type
+     * @param params
+     * @param doNotRepaint
+     */
+    let addConnectionType = (connection, type, params, doNotRepaint = false) => {
+        addConnectionTypes(connection, [type], typeof params === 'object' ? [params] : [], doNotRepaint);
+    };
+
+    let addConnectionTypes = (connection, types = [], params = [], doNotRepaint = false) => {
+        if(connection){
+            changeConnectionTypes('addType', connection, types.diff(connection.getType()), params, doNotRepaint);
+        }
+    };
+
+    /**
+     * remove connection type to connection that was previous registered by registerConnectionTypes()
+     * @param connection
+     * @param type
+     * @param params
+     * @param doNotRepaint
+     */
+    let removeConnectionType = (connection, type, params, doNotRepaint = false) => {
+        removeConnectionTypes(connection, [type], typeof params === 'object' ? [params] : [], doNotRepaint);
+    };
+
+    let removeConnectionTypes = (connection, types = [], params = [], doNotRepaint = false) => {
+        if(connection){
+            changeConnectionTypes('removeType', connection, types.intersect(connection.getType()), params, doNotRepaint);
+        }
+    };
+
+    let toggleConnectionType = (connection, type, params, doNotRepaint = false) => {
+        changeConnectionTypes('toggleType', connection, [type], typeof params === 'object' ? [params] : [], doNotRepaint);
+    };
+
+    /**
      * mark a connection as "active"
      * @param map
      * @param connections
      */
     let setConnectionsActive = (map, connections) => {
-        // set all inactive
-        for(let connection of getConnectionsByType(map, 'state_active')){
-            connection.removeType('state_active');
-        }
+        map.batch(() => {
+            // set all inactive
+            for(let connection of getConnectionsByType(map, 'state_active')){
+                if(!connections.includes(connection)){
+                    removeConnectionType(connection, 'state_active');
+                }
+            }
 
-        for(let connection of connections){
-            connection.addType('state_active');
-        }
+            for(let connection of connections){
+                if(!connection.hasType('state_active')){
+                    addConnectionType(connection, 'state_active');
+                }
+            }
+        });
     };
 
     /**
@@ -766,8 +942,11 @@ define([
      * @param visible
      */
     let setConnectionVisible = (connection, visible) => {
-        for(let endpoint of connection.endpoints){
-            endpoint.setVisible(visible);
+        if(connection.isVisible() !== visible){
+            connection.setVisible(visible, true);
+            for(let endpoint of connection.endpoints){
+                endpoint.setVisible(visible, true);
+            }
         }
     };
 
@@ -797,15 +976,18 @@ define([
     let toggleConnectionActive = (map, connections) => {
         let selectedConnections = [];
         let deselectedConnections = [];
-        for(let connection of connections){
-            if(connection.hasType('state_active')){
-                connection.removeType('state_active');
-                deselectedConnections.push(connection);
-            }else{
-                connection.addType('state_active');
-                selectedConnections.push(connection);
+        map.batch(() => {
+            for(let connection of connections){
+                if(connection.hasType('state_active')){
+                    removeConnectionType(connection, 'state_active');
+                    deselectedConnections.push(connection);
+                }else{
+                    addConnectionType(connection, 'state_active');
+                    selectedConnections.push(connection);
+                }
             }
-        }
+        });
+
         updateConnectionInfo(map, selectedConnections, deselectedConnections);
     };
 
@@ -960,10 +1142,10 @@ define([
      * @param types
      * @returns {string[]}
      */
-    let getConnectionFakeClassesByTypes = (types) => {
+    let getConnectionFakeClassesByTypes = types => {
         let connectionClasses = ['pf-fake-connection'];
         for(let i = 0; i < types.length; i++){
-            connectionClasses.push(getConnectionInfo( types[i], 'cssClass'));
+            connectionClasses.push(getConnectionInfo(types[i], 'cssClass'));
         }
         return connectionClasses;
     };
@@ -971,9 +1153,9 @@ define([
     /**
      * get all direct connections between two given systems
      * @param map
-     * @param {JQuery} systemA
-     * @param {JQuery} systemB
-     * @returns {Array}
+     * @param systemA
+     * @param systemB
+     * @returns {*[]}
      */
     let checkForConnection = (map, systemA, systemB) => {
         let connections = [];
@@ -989,21 +1171,17 @@ define([
      * @param {string} scope
      * @returns {string}
      */
-    let getDefaultConnectionTypeByScope = (scope) => {
+    let getDefaultConnectionTypeByScope = scope => {
         let type = '';
         switch(scope){
             case 'wh':
-                type = 'wh_fresh';
-                break;
+                type = 'wh_fresh'; break;
             case 'jumpbridge':
-                type = 'jumpbridge';
-                break;
+                type = 'jumpbridge'; break;
             case'stargate':
-                type = 'stargate';
-                break;
+                type = 'stargate'; break;
             case'abyssal':
-                type = 'abyssal';
-                break;
+                type = 'abyssal'; break;
             default:
                 console.error('Connection scope "' + scope + '" unknown!');
         }
@@ -1012,43 +1190,56 @@ define([
     };
 
     /**
-     * set/change connection status of a wormhole
-     * @param {Object} connection - jsPlumb object
-     * @param {string} status
+     * get all available connection types for "mass status"
+     * @returns {string[]}
      */
-    let setConnectionWHStatus = (connection, status) => {
-        if(
-            status === 'wh_fresh' &&
-            connection.hasType('wh_fresh') !== true
-        ){
-            connection.removeType('wh_reduced');
-            connection.removeType('wh_critical');
-            connection.addType('wh_fresh');
-        }else if(
-            status === 'wh_reduced' &&
-            connection.hasType('wh_reduced') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_critical');
-            connection.addType('wh_reduced');
-        }else if(
-            status === 'wh_critical' &&
-            connection.hasType('wh_critical') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_reduced');
-            connection.addType('wh_critical');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }
+    let allConnectionMassStatusTypes = () => {
+        return ['wh_fresh', 'wh_reduced', 'wh_critical'];
+    };
+
+    /**
+     * get all available connection types for "jump mass size"
+     * @returns {string[]}
+     */
+    let allConnectionJumpMassTypes = () => {
+        return ['wh_jump_mass_s', 'wh_jump_mass_m', 'wh_jump_mass_l', 'wh_jump_mass_xl'];
+    };
+
+    /**
+     * set/change/remove connection mass status of connection
+     * -> statusType == undefined will remove (all) existing mass status types
+     * @param connection
+     * @param statusType
+     */
+    let setConnectionMassStatusType = (connection, statusType) => {
+        setUniqueConnectionType(connection, statusType, allConnectionMassStatusTypes());
+
+    };
+
+    /**
+     * set/change/remove connection jump mass of a connection
+     * -> massType == undefined will remove (all) existing jump mass types
+     * @param connection
+     * @param massType
+     */
+    let setConnectionJumpMassType = (connection, massType) => {
+        setUniqueConnectionType(connection, massType, allConnectionJumpMassTypes());
+    };
+
+    /**
+     * set/change/remove connection type
+     * -> type == undefined will remove (all) existing provided types
+     * @param connection
+     * @param type
+     * @param types
+     */
+    let setUniqueConnectionType = (connection, type, types) => {
+        type = types.includes(type) ? [type] : [];
+
+        connection._jsPlumb.instance.batch(() => {
+            removeConnectionTypes(connection, types.diff(type));
+            addConnectionTypes(connection, type);
+        });
     };
 
     /**
@@ -1163,12 +1354,12 @@ define([
 
         let visualizeMapExecutor = (resolve, reject) => {
             // start map update counter -> prevent map updates during animations
-            mapElement.getMapOverlay('timer').startMapUpdateCounter();
+            MapOverlayUtil.getMapOverlay(mapElement, 'timer').startMapUpdateCounter();
 
             let systemElements = mapElement.find('.' + config.systemClass);
-            let endpointElements =  mapElement.find('.jsplumb-endpoint:visible');
-            let connectorElements = mapElement.find('.jsplumb-connector:visible');
-            let overlayElements = mapElement.find('.jsplumb-overlay:visible, .tooltip');
+            let endpointElements =  mapElement.find('.jtk-endpoint:visible');
+            let connectorElements = mapElement.find('.jtk-connector:visible');
+            let overlayElements = mapElement.find('.jtk-overlay:visible, .tooltip');
 
             let hideElements = (elements) => {
                 if(elements.length > 0){
@@ -1257,8 +1448,9 @@ define([
     };
 
     /**
-     * set default map Options (
-     * -> HINT: This function triggers Events! Promise is resolved before trigger completed
+     * Set default map options (from right menu)
+     * This function is called only ONCE per map after create!
+     * -> HINT: This function triggers events! Promise is resolved before trigger callback finishes
      * @param mapElement
      * @param mapConfig
      * @returns {Promise<any>}
@@ -1272,27 +1464,29 @@ define([
             });
 
             // init compact system layout ---------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapCompact',
                 toggle: false
             });
 
             // init magnetizer --------------------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapMagnetizer',
                 toggle: false
             });
 
             // init grid snap ---------------------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
+            Util.triggerMenuAction(mapElement, 'MapOption', {
                 option: 'mapSnapToGrid',
                 toggle: false
             });
 
             // init endpoint overlay --------------------------------------------------------------------------
-            mapElement.triggerMenuEvent('MapOption', {
-                option: 'mapEndpoint',
-                toggle: false
+            Util.triggerMenuAction(mapElement, 'MapOption', {
+                option: 'mapSignatureOverlays',
+                toggle: false,
+                skipOnEnable: true,     // skip callback -> Otherwise it would run 2 times on map create
+                skipOnDisable: true     // skip callback -> Otherwise it would run 2 times on map create
             });
 
             resolve({
@@ -1321,30 +1515,61 @@ define([
 
     /**
      * scroll map to default (stored) x/y coordinates
-     * @param mapElement
+     * @param map
      * @returns {Promise<any>}
      */
-    let scrollToDefaultPosition = (mapElement) => {
+    let scrollToDefaultPosition = map => {
 
-        let scrollToDefaultPositionExecutor = (resolve, reject) => {
-            let mapWrapper = mapElement.parents('.' + config.mapWrapperClass);
+        let scrollToDefaultPositionExecutor = resolve => {
+            let payload = {
+                action: 'scrollToDefaultPosition',
+                data: false
+            };
 
-            // auto scroll map to previous stored position
+            // no map scroll on zoomed maps -> scrollbar offset on zoomed maps does not work properly
+            // -> implementation would be difficult...
+            if(map.getZoom() === 1){
+                let mapElement = $(map.getContainer());
+                let promiseStore = getLocaleData('map', mapElement.data('id'));
+                promiseStore.then(data => {
+                    if(data && data.scrollOffset){
+                        let mapWrapper = mapElement.parents('.' + config.mapWrapperClass);
+                        Scrollbar.scrollToPosition(mapWrapper, [data.scrollOffset.y, data.scrollOffset.x]);
+                    }
+
+                    resolve(payload);
+                });
+            }else{
+                resolve(payload);
+            }
+        };
+
+        return new Promise(scrollToDefaultPositionExecutor);
+    };
+
+    /**
+     * zoom map to default (stored) scale()
+     * @param map
+     * @returns {Promise<any>}
+     */
+    let zoomToDefaultScale = map => {
+
+        let zoomToDefaultScaleExecutor = resolve => {
+            let mapElement = $(map.getContainer());
             let promiseStore = getLocaleData('map', mapElement.data('id'));
             promiseStore.then(data => {
-                // This code runs once the value has been loaded from  offline storage
-                if(data && data.scrollOffset){
-                    mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
+                if(data && data.mapZoom){
+                    setZoom(map, data.mapZoom);
                 }
 
                 resolve({
-                    action: 'scrollToDefaultPosition',
+                    action: 'zoomToDefaultScale',
                     data: false
                 });
             });
         };
 
-        return new Promise(scrollToDefaultPositionExecutor);
+        return new Promise(zoomToDefaultScaleExecutor);
     };
 
     /**
@@ -1397,7 +1622,7 @@ define([
             if(rallyUpdated !== rally){
                 // rally status changed
                 if( !options.hideCounter ){
-                    system.getMapOverlay('timer').startMapUpdateCounter();
+                    MapOverlayUtil.getMapOverlay(system, 'timer').startMapUpdateCounter();
                 }
 
                 let rallyClass = getInfoForSystem('rally', 'class');
@@ -1652,13 +1877,12 @@ define([
 
                 let title = tooltipData.name;
 
+                if(tooltipData.size){
+                    title += '&nbsp;&nbsp;<kbd>' + tooltipData.size.label + '</kbd>';
+                }
+
                 if(tooltipData.security){
                     // K162 has no security
-
-                    if(!tooltipData.class){
-                        tooltipData.class = Util.getSecurityClassForSystem(tooltipData.security);
-                    }
-
                     title += '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
                 }
 
@@ -1694,6 +1918,38 @@ define([
                     element.popover('show');
                 }
             });
+        });
+    };
+
+    /**
+     *
+     * @param container any parent element that holds the event
+     * @param selector element that bubbles up hover
+     * @param options tooltip options
+     */
+    let initWormholeInfoTooltip = (container, selector, options = {}) => {
+        let defaultOptions = {
+            trigger: 'manual',
+            placement: 'top',
+            smaller: false,
+            show: true
+        };
+
+        options = Object.assign({}, defaultOptions, options);
+
+        container.hoverIntent({
+            over: function(e){
+                let staticWormholeElement = $(this);
+                let wormholeName = staticWormholeElement.attr('data-name');
+                let wormholeData = Util.getObjVal(Init, 'wormholes.' + wormholeName);
+                if(wormholeData){
+                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, options);
+                }
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: selector
         });
     };
 
@@ -1788,7 +2044,6 @@ define([
 
     return {
         config: config,
-        mapOptions: mapOptions,
         setMapInstance: setMapInstance,
         getMapInstance: getMapInstance,
         existsMapInstance: existsMapInstance,
@@ -1799,17 +2054,22 @@ define([
         getMapIcons: getMapIcons,
         getInfoForMap: getInfoForMap,
         getInfoForSystem: getInfoForSystem,
+        getSystemDataFromMapData: getSystemDataFromMapData,
         getSystemData: getSystemData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,
+        addConnectionTypes: addConnectionTypes,
+        removeConnectionTypes: removeConnectionTypes,
+        toggleConnectionType: toggleConnectionType,
         toggleConnectionActive: toggleConnectionActive,
         setSystemActive: setSystemActive,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         showFindRouteDialog: showFindRouteDialog,
+        filterDefaultTypes: filterDefaultTypes,
         getEndpointLabel: getEndpointLabel,
         getConnectionsByType: getConnectionsByType,
         getEndpointsDataByConnection: getEndpointsDataByConnection,
@@ -1820,16 +2080,22 @@ define([
         getConnectionFakeClassesByTypes: getConnectionFakeClassesByTypes,
         checkForConnection: checkForConnection,
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
-        setConnectionWHStatus: setConnectionWHStatus,
+        allConnectionMassStatusTypes: allConnectionMassStatusTypes,
+        allConnectionJumpMassTypes: allConnectionJumpMassTypes,
+        setConnectionMassStatusType: setConnectionMassStatusType,
+        setConnectionJumpMassType: setConnectionJumpMassType,
         getScopeInfoForConnection: getScopeInfoForConnection,
         getDataByConnections: getDataByConnections,
         deleteConnections: deleteConnections,
         getConnectionDataFromSignatures: getConnectionDataFromSignatures,
-        getLabelEndpointOverlayLocation: getLabelEndpointOverlayLocation,
-        getEndpointOverlayContent: getEndpointOverlayContent,
+        getEndpointOverlaySignatureLocation: getEndpointOverlaySignatureLocation,
+        formatEndpointOverlaySignatureLabel: formatEndpointOverlaySignatureLabel,
         getTabContentElementByMapElement: getTabContentElementByMapElement,
         hasActiveConnection: hasActiveConnection,
         filterMapByScopes: filterMapByScopes,
+        changeZoom: changeZoom,
+        setZoom: setZoom,
+        toggleSystemAliasEditable: toggleSystemAliasEditable,
         storeLocaleCharacterData: storeLocaleCharacterData,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
@@ -1838,6 +2104,8 @@ define([
         setMapDefaultOptions: setMapDefaultOptions,
         getSystemPosition: getSystemPosition,
         scrollToDefaultPosition: scrollToDefaultPosition,
+        zoomToDefaultScale: zoomToDefaultScale,
+        initWormholeInfoTooltip: initWormholeInfoTooltip,
         getSystemId: getSystemId,
         checkRight: checkRight,
         getMapDeeplinkUrl: getMapDeeplinkUrl

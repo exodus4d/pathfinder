@@ -19,17 +19,32 @@ class CharacterModel extends AbstractPathfinderModel {
     /**
      * @var string
      */
-    protected $table = 'character';
+    protected $table                    = 'character';
 
     /**
      * cache key prefix for getData(); result WITH log data
      */
-    const DATA_CACHE_KEY_LOG                        = 'LOG';
+    const DATA_CACHE_KEY_LOG            = 'LOG';
 
     /**
      * log message for character access
      */
-    const LOG_ACCESS                                = 'charId: [%20s], status: %s, charName: %s';
+    const LOG_ACCESS                    = 'charId: [%20s], status: %s, charName: %s';
+
+    /**
+     * max count of historic character logs
+     */
+    const MAX_LOG_HISTORY_DATA          = 5;
+
+    /**
+     * TTL for historic character logs
+     */
+    const TTL_LOG_HISTORY               = 60 * 60 * 22;
+
+    /**
+     * cache key prefix historic character logs
+     */
+    const DATA_CACHE_KEY_LOG_HISTORY    = 'LOG_HISTORY';
 
     /**
      * character authorization status
@@ -186,56 +201,60 @@ class CharacterModel extends AbstractPathfinderModel {
 
     /**
      * get character data
-     * @param bool|false $addCharacterLogData
-     * @return null|object|\stdClass
+     * @param bool $addLogData
+     * @param bool $addLogHistoryData
+     * @return mixed|object|null
      * @throws \Exception
      */
-    public function getData($addCharacterLogData = false){
-        $cacheKeyModifier = '';
-
-        // check if there is cached data
-        // -> IMPORTANT: $addCharacterLogData is optional! -> therefore we need 2 cache keys!
-        if($addCharacterLogData){
-            $cacheKeyModifier = self::DATA_CACHE_KEY_LOG;
-        }
-        $characterData = $this->getCacheData($cacheKeyModifier);
-
-        if(is_null($characterData)){
+    public function getData($addLogData = false, $addLogHistoryData = false){
+        // check for cached data
+        if(is_null($characterData = $this->getCacheData())){
             // no cached character data found
 
-            $characterData                  = (object) [];
-            $characterData->id              = $this->_id;
-            $characterData->name            = $this->name;
-            $characterData->role            = $this->roleId->getData();
-            $characterData->shared          = $this->shared;
-            $characterData->logLocation     = $this->logLocation;
-            $characterData->selectLocation  = $this->selectLocation;
-
-            if($addCharacterLogData){
-                if($logModel = $this->getLog()){
-                    $characterData->log     = $logModel->getData();
-                }
-            }
+            $characterData                      = (object) [];
+            $characterData->id                  = $this->_id;
+            $characterData->name                = $this->name;
+            $characterData->role                = $this->roleId->getData();
+            $characterData->shared              = $this->shared;
+            $characterData->logLocation         = $this->logLocation;
+            $characterData->selectLocation      = $this->selectLocation;
 
             // check for corporation
             if($corporation = $this->getCorporation()){
-                $characterData->corporation = $corporation->getData();
+                $characterData->corporation     = $corporation->getData();
             }
 
             // check for alliance
             if($alliance = $this->getAlliance()){
-                $characterData->alliance = $alliance->getData();
+                $characterData->alliance        = $alliance->getData();
             }
 
             // max caching time for a system
-            // the cached date has to be cleared manually on any change
-            // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($characterData, $cacheKeyModifier);
+            // cached date has to be cleared manually on any change
+            // this applies to system, connection,... changes (+ all other dependencies)
+            $this->updateCacheData($characterData);
+        }
+
+        if($addLogData){
+            if(is_null($logData = $this->getCacheData(self::DATA_CACHE_KEY_LOG))){
+                if($logModel = $this->getLog()){
+                    $logData = $logModel->getData();
+                    $this->updateCacheData($logData, self::DATA_CACHE_KEY_LOG);
+                }
+            }
+
+            if($logData){
+                $characterData->log             = $logData;
+            }
+        }
+
+        if($addLogHistoryData && $characterData->log){
+            $characterData->logHistory          = $this->getLogsHistory();
         }
 
         // temp "authStatus" should not be cached
         if($this->authStatus){
-            $characterData->authStatus      = $this->authStatus;
+            $characterData->authStatus          = $this->authStatus;
         }
 
         return $characterData;
@@ -507,7 +526,7 @@ class CharacterModel extends AbstractPathfinderModel {
 
     /**
      * get ESI API "access_token" from OAuth
-     * @return bool|mixed
+     * @return bool|string
      */
     public function getAccessToken(){
         $accessToken = false;
@@ -798,6 +817,31 @@ class CharacterModel extends AbstractPathfinderModel {
     }
 
     /**
+     * get online status data from ESI
+     * @param string $accessToken
+     * @return array
+     */
+    protected function getOnlineData(string $accessToken) : array {
+        return self::getF3()->ccpClient()->getCharacterOnlineData($this->_id, $accessToken);
+    }
+
+    /**
+     * check online state from ESI
+     * @param string $accessToken
+     * @return bool
+     */
+    public function isOnline(string $accessToken) : bool {
+        $isOnline = false;
+        $onlineData = $this->getOnlineData($accessToken);
+
+        if($onlineData['online'] === true){
+            $isOnline = true;
+        }
+
+        return $isOnline;
+    }
+
+    /**
      * update character log (active system, ...)
      * -> API request for character log data
      * @param array $additionalOptions (optional) request options for cURL request
@@ -815,170 +859,162 @@ class CharacterModel extends AbstractPathfinderModel {
             $this->hasBasicScopes()
         ){
             // Try to pull data from API
-            if( $accessToken = $this->getAccessToken() ){
-                $onlineData = self::getF3()->ccpClient()->getCharacterOnlineData($this->_id, $accessToken);
+            if($accessToken = $this->getAccessToken()){
+                if($this->isOnline($accessToken)){
+                    $locationData = self::getF3()->ccpClient()->getCharacterLocationData($this->_id, $accessToken);
 
-                // check whether character is currently ingame online
-                if(is_bool($onlineData['online'])){
-                    if($onlineData['online'] === true){
-                        $locationData = self::getF3()->ccpClient()->getCharacterLocationData($this->_id, $accessToken);
+                    if( !empty($locationData['system']['id']) ){
+                        // character is currently in-game
 
-                        if( !empty($locationData['system']['id']) ){
-                            // character is currently in-game
+                        // get current $characterLog or get new ---------------------------------------------------
+                        if( !($characterLog = $this->getLog()) ){
+                            // create new log
+                            $characterLog = $this->rel('characterLog');
+                        }
 
-                            // get current $characterLog or get new ---------------------------------------------------
-                            if( !($characterLog = $this->getLog()) ){
-                                // create new log
-                                $characterLog = $this->rel('characterLog');
-                            }
+                        // get current log data and modify on change
+                        $logData = $characterLog->getDataAsArray();
 
-                            // get current log data and modify on change
-                            $logData = json_decode(json_encode( $characterLog->getData()), true);
+                        // check system and station data for changes ----------------------------------------------
 
-                            // check system and station data for changes ----------------------------------------------
+                        // IDs for "systemId", "stationId" that require more data
+                        $lookupUniverseIds = [];
 
-                            // IDs for "systemId", "stationId" that require more data
-                            $lookupUniverseIds = [];
+                        if(
+                            empty($logData['system']['name']) ||
+                            $logData['system']['id'] !== $locationData['system']['id']
+                        ){
+                            // system changed -> request "system name" for current system
+                            $lookupUniverseIds[] = $locationData['system']['id'];
+                        }
 
+                        if( !empty($locationData['station']['id']) ){
                             if(
-                                empty($logData['system']['name']) ||
-                                $logData['system']['id'] !== $locationData['system']['id']
+                                empty($logData['station']['name']) ||
+                                $logData['station']['id']  !== $locationData['station']['id']
                             ){
-                                // system changed -> request "system name" for current system
-                                $lookupUniverseIds[] = $locationData['system']['id'];
+                                // station changed -> request "station name" for current station
+                                $lookupUniverseIds[] = $locationData['station']['id'];
                             }
+                        }else{
+                            unset($logData['station']);
+                        }
 
-                            if( !empty($locationData['station']['id']) ){
+                        $logData = array_replace_recursive($logData, $locationData);
+
+                        // get "more" data for systemId and/or stationId -----------------------------------------
+                        if( !empty($lookupUniverseIds) ){
+                            // get "more" information for some Ids (e.g. name)
+                            $universeData = self::getF3()->ccpClient()->getUniverseNamesData($lookupUniverseIds);
+
+                            if( !empty($universeData) && !isset($universeData['error']) ){
+                                // We expect max ONE system AND/OR station data, not an array of e.g. systems
+                                if(!empty($universeData['system'])){
+                                    $universeData['system'] = reset($universeData['system']);
+                                }
+                                if(!empty($universeData['station'])){
+                                    $universeData['station'] = reset($universeData['station']);
+                                }
+
+                                $logData = array_replace_recursive($logData, $universeData);
+                            }else{
+                                // this is important! universe data is a MUST HAVE!
+                                $deleteLog = true;
+                            }
+                        }
+
+                        // check structure data for changes -------------------------------------------------------
+                        if(!$deleteLog){
+
+                            // IDs for "structureId" that require more data
+                            $lookupStructureId = 0;
+                            if( !empty($locationData['structure']['id']) ){
                                 if(
-                                    empty($logData['station']['name']) ||
-                                    $logData['station']['id']  !== $locationData['station']['id']
+                                    empty($logData['structure']['name']) ||
+                                    $logData['structure']['id']  !== $locationData['structure']['id']
                                 ){
-                                    // station changed -> request "station name" for current station
-                                    $lookupUniverseIds[] = $locationData['station']['id'];
+                                    // structure changed -> request "structure name" for current station
+                                    $lookupStructureId = $locationData['structure']['id'];
                                 }
                             }else{
-                                unset($logData['station']);
+                                unset($logData['structure']);
                             }
 
-                            $logData = array_replace_recursive($logData, $locationData);
-
-                            // get "more" data for systemId and/or stationId -----------------------------------------
-                            if( !empty($lookupUniverseIds) ){
-                                // get "more" information for some Ids (e.g. name)
-                                $universeData = self::getF3()->ccpClient()->getUniverseNamesData($lookupUniverseIds);
-
-                                if( !empty($universeData) && !isset($universeData['error']) ){
-                                    // We expect max ONE system AND/OR station data, not an array of e.g. systems
-                                    if(!empty($universeData['system'])){
-                                        $universeData['system'] = reset($universeData['system']);
-                                    }
-                                    if(!empty($universeData['station'])){
-                                        $universeData['station'] = reset($universeData['station']);
-                                    }
-
-                                    $logData = array_replace_recursive($logData, $universeData);
-                                }else{
-                                    // this is important! universe data is a MUST HAVE!
-                                    $deleteLog = true;
-                                }
-                            }
-
-                            // check structure data for changes -------------------------------------------------------
-                            if(!$deleteLog){
-
-                                // IDs for "structureId" that require more data
-                                $lookupStructureId = 0;
-                                if( !empty($locationData['structure']['id']) ){
-                                    if(
-                                        empty($logData['structure']['name']) ||
-                                        $logData['structure']['id']  !== $locationData['structure']['id']
-                                    ){
-                                        // structure changed -> request "structure name" for current station
-                                        $lookupStructureId = $locationData['structure']['id'];
-                                    }
+                            // get "more" data for structureId  ---------------------------------------------------
+                            if($lookupStructureId > 0){
+                                /**
+                                 * @var $structureModel Universe\StructureModel
+                                 */
+                                $structureModel = Universe\AbstractUniverseModel::getNew('StructureModel');
+                                $structureModel->loadById($lookupStructureId, $accessToken, $additionalOptions);
+                                if(!$structureModel->dry()){
+                                    $structureData['structure'] = (array)$structureModel->getData();
+                                    $logData = array_replace_recursive($logData, $structureData);
                                 }else{
                                     unset($logData['structure']);
                                 }
+                            }
+                        }
 
-                                // get "more" data for structureId  ---------------------------------------------------
-                                if($lookupStructureId > 0){
-                                    /**
-                                     * @var $structureModel Universe\StructureModel
-                                     */
-                                    $structureModel = Universe\AbstractUniverseModel::getNew('StructureModel');
-                                    $structureModel->loadById($lookupStructureId, $accessToken, $additionalOptions);
-                                    if(!$structureModel->dry()){
-                                        $structureData['structure'] = (array)$structureModel->getData();
-                                        $logData = array_replace_recursive($logData, $structureData);
-                                    }else{
-                                        unset($logData['structure']);
-                                    }
+                        // check ship data for changes ------------------------------------------------------------
+                        if( !$deleteLog ){
+                            $shipData = self::getF3()->ccpClient()->getCharacterShipData($this->_id, $accessToken);
+
+                            // IDs for "shipTypeId" that require more data
+                            $lookupShipTypeId = 0;
+                            if( !empty($shipData['ship']['typeId']) ){
+                                if(
+                                    empty($logData['ship']['typeName']) ||
+                                    $logData['ship']['typeId'] !== $shipData['ship']['typeId']
+                                ){
+                                    // ship changed -> request "station name" for current station
+                                    $lookupShipTypeId = $shipData['ship']['typeId'];
                                 }
+
+                                // "shipName"/"shipId" could have changed...
+                                $logData = array_replace_recursive($logData, $shipData);
+                            }else{
+                                // ship data should never be empty -> keep current one
+                                //unset($logData['ship']);
+                                $invalidResponse = true;
                             }
 
-                            // check ship data for changes ------------------------------------------------------------
-                            if( !$deleteLog ){
-                                $shipData = self::getF3()->ccpClient()->getCharacterShipData($this->_id, $accessToken);
-
-                                // IDs for "shipTypeId" that require more data
-                                $lookupShipTypeId = 0;
-                                if( !empty($shipData['ship']['typeId']) ){
-                                    if(
-                                        empty($logData['ship']['typeName']) ||
-                                        $logData['ship']['typeId'] !== $shipData['ship']['typeId']
-                                    ){
-                                        // ship changed -> request "station name" for current station
-                                        $lookupShipTypeId = $shipData['ship']['typeId'];
-                                    }
-
-                                    // "shipName"/"shipId" could have changed...
+                            // get "more" data for shipTypeId  ----------------------------------------------------
+                            if($lookupShipTypeId > 0){
+                                /**
+                                 * @var $typeModel Universe\TypeModel
+                                 */
+                                $typeModel = Universe\AbstractUniverseModel::getNew('TypeModel');
+                                $typeModel->loadById($lookupShipTypeId, '', $additionalOptions);
+                                if(!$typeModel->dry()){
+                                    $shipData['ship'] = (array)$typeModel->getShipData();
                                     $logData = array_replace_recursive($logData, $shipData);
                                 }else{
-                                    // ship data should never be empty -> keep current one
-                                    //unset($logData['ship']);
-                                    $invalidResponse = true;
-                                }
-
-                                // get "more" data for shipTypeId  ----------------------------------------------------
-                                if($lookupShipTypeId > 0){
-                                    /**
-                                     * @var $typeModel Universe\TypeModel
-                                     */
-                                    $typeModel = Universe\AbstractUniverseModel::getNew('TypeModel');
-                                    $typeModel->loadById($lookupShipTypeId, '', $additionalOptions);
-                                    if(!$typeModel->dry()){
-                                        $shipData['ship'] = (array)$typeModel->getShipData();
-                                        $logData = array_replace_recursive($logData, $shipData);
-                                    }else{
-                                        // this is important! ship data is a MUST HAVE!
-                                        $deleteLog = true;
-                                    }
+                                    // this is important! ship data is a MUST HAVE!
+                                    $deleteLog = true;
                                 }
                             }
+                        }
 
-                            if( !$deleteLog ){
-                                // mark log as "updated" even if no changes were made
-                                if($additionalOptions['markUpdated'] === true){
-                                    $characterLog->touch('updated');
-                                }
-
-                                $characterLog->setData($logData);
-                                $characterLog->characterId = $this->id;
-                                $characterLog->save();
-
-                                $this->characterLog = $characterLog;
+                        if( !$deleteLog ){
+                            // mark log as "updated" even if no changes were made
+                            if($additionalOptions['markUpdated'] === true){
+                                $characterLog->touch('updated');
                             }
-                        }else{
-                            // systemId should always exists
-                            $invalidResponse = true;
+
+                            $characterLog->setData($logData);
+                            $characterLog->characterId = $this->_id;
+                            $characterLog->save();
+
+                            $this->characterLog = $characterLog;
                         }
                     }else{
-                        // user is in-game offline
-                        $deleteLog = true;
+                        // systemId should always exists
+                        $invalidResponse = true;
                     }
                 }else{
-                    // online status request failed
-                    $invalidResponse = true;
+                    // user is in-game offline
+                    $deleteLog = true;
                 }
             }else{
                 // access token request failed
@@ -994,6 +1030,51 @@ class CharacterModel extends AbstractPathfinderModel {
         }
 
         return $this;
+    }
+
+    /**
+     * filter'character log' history data by $callback
+     * @param \Closure $callback
+     * @return array
+     */
+    protected function filterLogsHistory(\Closure $callback) : array {
+        return array_filter($this->getLogsHistory() , $callback);
+    }
+
+    /**
+     * @return array
+     */
+    public function getLogsHistory() : array {
+        if(!is_array($logHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_LOG_HISTORY))){
+            $logHistoryData = [];
+        }
+        return $logHistoryData;
+    }
+
+    /**
+     * add new 'character log' history entry
+     * @param CharacterLogModel $characterLog
+     * @param string $action
+     */
+    public function updateLogsHistory(CharacterLogModel $characterLog, string $action = 'update'){
+        if(
+            !$this->dry() &&
+            $this->_id === $characterLog->get('characterId', true)
+        ){
+            $logHistoryData = $this->getLogsHistory();
+            $historyEntry = [
+                'stamp'     => strtotime($characterLog->updated),
+                'action'    => $action,
+                'log'       => $characterLog->getDataAsArray()
+            ];
+
+            array_unshift($logHistoryData, $historyEntry);
+
+            // limit max history data
+            array_splice($logHistoryData, self::MAX_LOG_HISTORY_DATA);
+
+            $this->updateCacheData($logHistoryData, self::DATA_CACHE_KEY_LOG_HISTORY, self::TTL_LOG_HISTORY);
+        }
     }
 
     /**
@@ -1055,15 +1136,33 @@ class CharacterModel extends AbstractPathfinderModel {
 
     /**
      * get the character log entry for this character
-     * @return bool|CharacterLogModel
+     * @return CharacterLogModel|null
      */
-    public function getLog(){
-        $characterLog = false;
-        if(
-            $this->hasLog() &&
-            !$this->characterLog->dry()
-        ){
-            $characterLog = $this->characterLog;
+    public function getLog() : ?CharacterLogModel {
+        return ($this->hasLog() && !$this->characterLog->dry()) ? $this->characterLog : null;
+    }
+
+    /**
+     * get the first matched (most recent) log entry before $systemId.
+     * -> The returned log entry *might* be previous system for this character
+     * @param int $systemId
+     * @return CharacterLogModel|null
+     */
+    public function getLogPrevSystem(int $systemId) : ?CharacterLogModel {
+        $logHistoryData = $this->filterLogsHistory(function(array $historyEntry) use ($systemId) : bool {
+            return (
+                !empty($historySystemId = (int)$historyEntry['log']['system']['id']) &&
+                $historySystemId !== $systemId
+            );
+        });
+
+        $characterLog = null;
+        if(!empty($historyEntry = reset($logHistoryData))){
+            /**
+             * @var $characterLog CharacterLogModel
+             */
+            $characterLog = $this->rel('characterLog');
+            $characterLog->setData($historyEntry['log']);
         }
 
         return $characterLog;

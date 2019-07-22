@@ -989,6 +989,9 @@ input[type="email"]{
 	}
 }
 
+.dropdown-submenu.disabled>a:after {
+	border-left-color: $gray-light;
+}
 
 .dropdown-submenu.pull-left {
   float: none;

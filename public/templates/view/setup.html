@@ -1,12 +1,11 @@
 {* splash page *}
-<include href="templates/ui/splash.html"/>
+<include href="templates/layout/splash.html"/>
 
 <include href="img/logo.svg"/>
 
 {* counter for DB warnings (all databases) *}
 {{ @tplCounter('reset', 'database_warning_all') }}
-
-<section id="pf-setup-server">
+<section>
     <div class="container">
 
         <div class="row"></div>
@@ -22,14 +21,19 @@
 
         {* Errors *}
         <check if="{{ @errorData }}">
-                <div class="alert alert-danger">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
-                    <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
-                    <small> {{ @errorData->message }}</small>
-                </div>
+            <div class="alert alert-danger">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
+                <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
+                <small> {{ @errorData->message }}</small>
+            </div>
         </check>
+    </div>
+</section>
 
-        <h4><i class="fas fa-fw fa-home"></i> Server</h4>
+<section id="pf-setup-server">
+    <div class="container">
+
+        <h4><i class="fas fa-fw fa-network-wired"></i> Server</h4>
 
         <div class="row text-center">
 
@@ -505,7 +509,7 @@
 
                                 <check if="{{ @dbInformation.info.dbConfig }}">
                                     <tr>
-                                        <td data-target=".{{ @dbInformation.info.name }}_dbConfig_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @dbInformation.info.name }}__dbConfig_col">
+                                        <td data-target=".{{ @dbInformation.info.name }}_dbConfig_col" data-toggle="collapse">
                                             <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
                                         </td>
                                         <td class="col-sm-3 col-md-3 text-right">required</td>
@@ -1012,7 +1016,7 @@
 <section id="pf-setup-socket">
     <div class="container">
 
-        <h4><i class="fas fa-fw fa-exchange-alt"></i> Socket configuration <span class="txt-color txt-color-gray">[optional]</span></h4>
+        <h4><i class="fas fa-fw fa-random"></i> Socket configuration <span class="txt-color txt-color-gray">[optional]</span></h4>
 
         <div class="row text-center">
 
@@ -1020,7 +1024,7 @@
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                     <div id="pf-setup-{{ @socketType }}" data-token="{{ @socketData.token }}" class="panel panel-default pricing-big" style="position: relative">
                         <div class="panel-heading text-left">
-                            <h3 class="panel-title">{{ @socketData.label }}
+                            <h3 class="panel-title"><i class="fas {{ @socketData.icon }}"></i>&nbsp;&nbsp;{{ @socketData.label }}
                                 <check if="{{ @socketData.stats }}">
                                     <span class="pull-right">
                                         <kbd title="current active connections">{{ @socketData.stats.connections }} con</kbd>&nbsp;&nbsp;&nbsp;
@@ -1069,6 +1073,73 @@
                                 {{ @tplCounter('increment', 'socket_danger') }}
                             </check>
                         </div>
+
+                        {* show log data from "stats" array *}
+                        <check if="{{ @socketData.stats.logs }}">
+                            <div class="panel-body no-padding text-left">
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <td class="col-xs-1" data-target=".{{ @socketType }}_log_col" data-toggle="collapse">
+                                            <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
+                                        </td>
+                                        <td>client URI</td>
+                                        <td class="col-xs-2">file #line</td>
+                                        <td>message</td>
+                                        <td class="col-md-1 text-right">type</td>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    <set logsCheck = 'OK' />
+                                    <repeat group="{{ @socketData.stats.logs }}" value="{{ @logData }}">
+                                        <set logTypeClass = "" />
+                                        <check if="{{ in_array('info', @logData.logTypes) }}">
+                                            <set logTypeClass = "txt-color-info" />
+                                        </check>
+                                        <check if="{{ in_array('error', @logData.logTypes) }}">
+                                            <set logTypeClass = "txt-color-warning" />
+                                            <set logsCheck = 'ERROR' />
+                                        </check>
+
+                                        <tr class="{{ @socketType }}_log_col {{ @logsCheck == 'OK' ? 'collapse' : '' }}">
+                                            <td class="bg-color bg-color-tealDarker" title="{{ @logData.mTimeFormat1 }}" data-container="body">
+                                                {{ @logData.mTimeFormat2 }}
+                                            </td>
+                                            <td class="bg-color bg-color-tealDarker" title="{{ @logData.remoteAddress }}" data-container="body">
+                                                <set cellValue = "{{ parse_url(@logData.remoteAddress, PHP_URL_HOST) . parse_url(@logData.remoteAddress, PHP_URL_PATH) }}" />
+                                                <check if="{{ parse_url(@logData.remoteAddress, PHP_URL_PORT) }}">
+                                                    <set cellValue = "{{ @cellValue . ':' . parse_url(@logData.remoteAddress, PHP_URL_PORT) }}" />
+                                                </check>
+
+                                                <check if="{{ @logData.resourceId }}">
+                                                    <set cellValue = "{{ @cellValue . '&nbsp;#' . @logData.resourceId }}" />
+                                                </check>
+
+                                                <check if="{{ @cellValue }}">
+                                                    <true>
+                                                        <kbd>{{ @cellValue}}</kbd>
+                                                    </true>
+                                                    <false>
+                                                        <check if="{{ @logData.action != 'START' }}">
+                                                            <kbd title="send to multiple clients" class="txt-color txt-color-success">broadcast</kbd>
+                                                        </check>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                            <td class="bg-color bg-color-tealDarker" title="{{ @logData.fileName }} #{{ @logData.lineNumber }}" data-container="body">
+                                                <kbd>{{ mb_strimwidth(pathinfo(@logData.fileName, PATHINFO_FILENAME), 0, 15, '…') }}</kbd>
+                                            </td>
+                                            <td class="bg-color bg-color-tealDarker">{{ @logData.message }}</td>
+                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(@logData.logTypes, ', ') }}" data-placement="right" data-container="body">
+                                                <i class="fas fa-fw fa-tag txt-color {{ @logTypeClass }}"></i>
+                                            </td>
+                                        </tr>
+                                    </repeat>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </check>
 
                     </div>
                 </div>
@@ -1239,4 +1310,4 @@
 </nav>
 
 {* footer *}
-<include href="templates/ui/footer.html"/>
+<include href="templates/layout/footer_simple.html"/>

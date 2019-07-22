@@ -9,6 +9,7 @@
 namespace Model;
 
 use DB\Cortex;
+use DB\CortexCollection;
 use DB\SQL\Schema;
 use lib\logging;
 use Controller;
@@ -330,6 +331,13 @@ abstract class AbstractModel extends Cortex {
                         $valid = true;
                     }
                     break;
+                case Schema::DT_VARCHAR128:
+                case Schema::DT_VARCHAR256:
+                case Schema::DT_VARCHAR512:
+                    if(!empty($val)){
+                        $valid = true;
+                    }
+                    break;
                 default:
             }
         }
@@ -542,7 +550,34 @@ abstract class AbstractModel extends Cortex {
             /**
              * @var $relModel self|bool
              */
-            $relModel = $this->rel($key)->findone($this->mergeFilter([$this->mergeWithRelFilter($key, $filter), $relFilter]));
+            $relModel = $this->rel($key)->findone($this->mergeFilter([$relFilter, $this->mergeWithRelFilter($key, $filter)]));
+        }
+
+        return $relModel ? : null;
+    }
+
+    /**
+     * get all models from a relation that match $filter
+     * @param string $key
+     * @param array $filter
+     * @return CortexCollection|null
+     */
+    protected function relFind(string $key, array $filter) : ?CortexCollection {
+        $relModel = null;
+        $relFilter = [];
+        if($this->exists($key, true)){
+            $fieldConf = $this->getFieldConfiguration();
+            if(array_key_exists($key, $fieldConf)){
+                if(array_key_exists($type = 'has-many', $fieldConf[$key])){
+                    $fromConf = $fieldConf[$key][$type];
+                    $relFilter = self::getFilter($fromConf[1], $this->getRaw($fromConf['relField']));
+                }
+            }
+
+            /**
+             * @var $relModel CortexCollection|bool
+             */
+            $relModel = $this->rel($key)->find($this->mergeFilter([$relFilter, $this->mergeWithRelFilter($key, $filter)]));
         }
 
         return $relModel ? : null;
@@ -862,13 +897,18 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
-     * get filter for Cortex
+     * get new filter array representation
+     * -> $suffix can be used fore unique placeholder,
+     *    in case the same $key is used with different $values in the same query
      * @param string $key
-     * @param $value
+     * @param mixed $value
+     * @param string $operator
+     * @param string $suffix
      * @return array
      */
-    public static function getFilter(string $key, $value) : array {
-        return [$key . ' = :' . $key, ':' . $key => $value];
+    public static function getFilter(string $key, $value, string $operator = '=', string $suffix = '') : array {
+        $placeholder = ':' . implode('_', array_filter([$key, $suffix]));
+        return [$key . ' ' . $operator . ' ' . $placeholder, $placeholder => $value];
     }
 
     /**

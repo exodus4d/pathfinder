@@ -33,7 +33,7 @@ class SignatureHistory extends AbstractRestController {
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){
-                $historyDataAll = $system->getSignaturesHistoryData();
+                $historyDataAll = $system->getSignaturesHistory();
                 foreach($historyDataAll as $historyEntry){
                     $label = [
                         $historyEntry['character']->name,
@@ -74,7 +74,7 @@ class SignatureHistory extends AbstractRestController {
             $system = Pathfinder\AbstractPathfinderModel::getNew('SystemModel');
             $system->getById($systemId, 0);
             if($system->hasAccess($activeCharacter)){
-                if($historyEntry = $system->getSignatureHistoryData($stamp)){
+                if($historyEntry = $system->getSignatureHistoryEntry($stamp)){
                     $updateSignaturesHistory = false;
 
                     // history entry found for $stamp -> format signatures data
@@ -108,8 +108,9 @@ class SignatureHistory extends AbstractRestController {
                     $signatures = $system->getSignatures();
                     foreach($signatures as $signature){
                         if(!in_array($signature->_id, $updatedSignatureIds)){
-                            $signature->delete();
-                            $updateSignaturesHistory = true;
+                            if($signature->delete()){
+                                $updateSignaturesHistory = true;
+                            }
                         }
                     }
 

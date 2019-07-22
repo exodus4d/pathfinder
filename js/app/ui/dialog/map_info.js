@@ -307,7 +307,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.id});
+                            Util.triggerMenuAction(Util.getMapModule().getActiveMap(), 'SelectSystem', {systemId: rowData.id});
                         });
                     }
                 },{
@@ -382,9 +382,7 @@ define([
                             let statics = [];
                             for(let wormholeName of cellData){
                                 let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                                let security = wormholeData.security;
-                                let secClass = Util.getSecurityClassForSystem(security);
-                                statics.push('<span class="' + secClass + '">' + security + '</span>');
+                                statics.push('<span class="' + wormholeData.class + '">' + wormholeData.security + '</span>');
                             }
                             return statics.join('&nbsp;&nbsp;');
                         }
@@ -566,7 +564,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.source});
+                            Util.triggerMenuAction(Util.getMapModule().getActiveMap(), 'SelectSystem', {systemId: rowData.source});
                         });
                     }
                 },{
@@ -596,7 +594,7 @@ define([
                         display: (cellData, type, rowData, meta) => {
                             let connectionClasses = MapUtil.getConnectionFakeClassesByTypes(cellData);
                             connectionClasses = connectionClasses.join(' ');
-                            return  '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
+                            return  '<div class="' + connectionClasses + '"></div>';
                         }
                     }
                 },{
@@ -622,7 +620,7 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // select system
                         $(cell).on('click', function(e){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.target});
+                            Util.triggerMenuAction(Util.getMapModule().getActiveMap(), 'SelectSystem', {systemId: rowData.target});
                         });
                     }
                 },{
@@ -812,8 +810,8 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
-                            let rowData = e.data.tableApi.row(this).data();
+                        $(cell).on('click', { tableApi: this.api(), rowIndex: rowIndex }, function(e){
+                            let rowData = e.data.tableApi.row(e.data.rowIndex).data();
                             Util.openIngameWindow(rowData.id);
                         });
                     }
@@ -852,7 +850,7 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
+                        $(cell).on('click', { tableApi: this.api() }, function(e){
                             let cellData = e.data.tableApi.cell(this).data();
                             Util.openIngameWindow(cellData.id);
                         });
@@ -1134,8 +1132,8 @@ define([
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         // open character information window (ingame)
-                        $(cell).on('click', { tableApi: this.DataTable() }, function(e){
-                            let rowData = e.data.tableApi.row(this).data();
+                        $(cell).on('click', { tableApi: this.api(), rowIndex: rowIndex }, function(e){
+                            let rowData = e.data.tableApi.row(e.data.rowIndex).data();
                             Util.openIngameWindow(rowData.context.data.character.id);
                         });
                     }
@@ -1260,7 +1258,7 @@ define([
             ]
         } );
 
-        logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
+        logDataTable.buttons().container().appendTo($(this).find('.' + config.tableToolsClass));
     };
 
     /**

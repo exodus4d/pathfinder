@@ -1,0 +1,47 @@
+
+{{! Render the *.svg logo. So it can be used through the "use" tag}}
+{{{logo}}}
+
+<nav id="{{id}}" class="navbar navbar-default  pf-head" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header pull-left">
+            <a class="navbar-brand pf-head-menu" href="">
+                <svg class="{{brandLogo}}" width="24px" height="24px">
+                    <use xlink:href="#pf-logo"/>
+                </svg>
+                &nbsp;&nbsp;Menu
+            </a>
+            <p class="navbar-text {{popoverTriggerClass}} {{userCharacterClass}}" title="switch character" data-easein="flipYIn">
+                <a href="javascript:void(0);">
+                    <img class="pf-head-image --left {{userCharacterImageClass}}" src=""/>
+                    <span class="hidden-xs">{{! will be filled with current user name }}</span>
+                </a>
+            </p>
+
+            <p class="navbar-text {{usersActiveClass}}">
+                <i class="fas fa-fighter-jet fa-fw"></i>
+                <span class="badge txt-color" data-type="inside" data-on="txt-color-greenLight" data-off="txt-color-red" title="pilots on map"></span>
+                <span class="badge txt-color" data-type="outside" data-on="txt-color-grayLighter" data-off="txt-color-grayLighter" title="pilots beyond map"></span>
+                <span class="badge txt-color" data-type="inactive" data-on="txt-color-grayLighter" data-off="txt-color-grayLighter" title="pilots not ingame / no location"></span>
+            </p>
+        </div>
+
+        <div class="navbar-header pull-right">
+            <div class="navbar-text no-margin">
+                <ul id="{{ userLocationId }}" class="pf-head-breadcrumb">{{! will be filled with current user location history }}</ul>
+            </div>
+
+            <p class="navbar-text txt-color txt-color-red pf-head-program-status" title="connection status">
+                <i class="fas fa-fw fa-bolt"></i>
+                <span>offline</span>
+            </p>
+            <p class="navbar-text pf-head-map-tracking text-right" title="map connection tracking">
+                <input id="{{mapTrackingId}}" type="checkbox" data-toggle="toggle" value="1" >
+            </p>
+            <a class="navbar-brand pf-head-map" href="">
+                &nbsp;&nbsp;Map&nbsp;<i class="fas fa-fw fa-sitemap"></i>
+            </a>
+        </div>
+    </div>
+</nav>
+

@@ -2,7 +2,7 @@
  *  Init
  */
 
-define(['jquery'], ($) => {
+define([], () => {
 
     'use strict';
 
@@ -16,7 +16,6 @@ define(['jquery'], ($) => {
             getCookieCharacterData: '/api/user/getCookieCharacter',         // ajax URL - get character data from cookie
             logIn: '/api/user/logIn',                                       // ajax URL - login
             logout: '/api/user/logout',                                     // ajax URL - logout
-            deleteLog: '/api/user/deleteLog',                               // ajax URL - delete character log
             openIngameWindow: '/api/user/openIngameWindow',                 // ajax URL - open inGame Window
             saveUserConfig: '/api/user/saveAccount',                        // ajax URL - saves/update user account
             deleteAccount: '/api/user/deleteAccount',                       // ajax URL - delete Account data
@@ -27,6 +26,7 @@ define(['jquery'], ($) => {
             getAccessData: '/api/map/getAccessData',                        // ajax URL - get map access tokens (WebSocket)
             updateMapData: '/api/map/updateData',                           // ajax URL - main map update trigger
             updateUserData: '/api/map/updateUserData',                      // ajax URL - main map user data trigger
+            updateUnloadData: '/api/map/updateUnloadData',                  // post URL - for my sync onUnload
             // map API
             saveMap: '/api/map/save',                                       // ajax URL - save/update map
             deleteMap: '/api/map/delete',                                   // ajax URL - delete map
@@ -104,6 +104,14 @@ define(['jquery'], ($) => {
                 label: 'anchor',
                 unicode: '&#xf13d;'
             },{
+                class: 'fa-satellite',
+                label: 'satellite',
+                unicode: '&#xf7bf;'
+            },{
+                class: 'fa-skull-crossbones',
+                label: 'skull crossbones',
+                unicode: '&#xf714;'
+            },{
                 class: 'fa-fire',
                 label: 'fire',
                 unicode: '&#xf06d;'
@@ -119,6 +127,10 @@ define(['jquery'], ($) => {
                 class: 'fa-star',
                 label: 'star',
                 unicode: '&#xf005;'
+            },{
+                class: 'fa-hat-wizard',
+                label: 'hat wizard',
+                unicode: '&#xf6e8;'
             },{
                 class: 'fa-plane',
                 label: 'plane',
@@ -145,7 +157,6 @@ define(['jquery'], ($) => {
                 unicode: '&#xf619;'
             }
         ],
-
         classes: {
             // log types
             logTypes: {
@@ -343,51 +354,97 @@ define(['jquery'], ($) => {
                 }
             },
             wh_eol: {
-                cssClass: 'pf-map-connection-wh-eol',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-eol'
             },
             wh_fresh: {
-                cssClass: 'pf-map-connection-wh-fresh',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-fresh'
             },
             wh_reduced: {
-                cssClass: 'pf-map-connection-wh-reduced',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-reduced'
             },
             wh_critical: {
-                cssClass: 'pf-map-connection-wh-critical',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-wh-critical'
             },
-            frigate: {
-                cssClass: 'pf-map-connection-frig',
+            wh_jump_mass_s: {
+                cssClass: 'pf-map-connection-wh-size-s',
                 paintStyle: {
-                    dashstyle: '0.99'
+                    dashstyle: '0.5 1',
+                    strokeWidth: 3
                 },
-                overlays:[
+                overlays: [
                     ['Label',
                         {
-                            label: 'frig',
-                            cssClass: ['pf-map-component-overlay', 'frig'].join(' '),
-                            location: 0.6
+                            label: '<i class="fas fa-char pf-jump-mass-s" data-char-content="S"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
+                        }]
+                ]
+            },
+            wh_jump_mass_m: {
+                cssClass: 'pf-map-connection-wh-size-m',
+                paintStyle: {
+                    dashstyle: '3 1'
+                },
+                overlays: [
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-char pf-jump-mass-m" data-char-content="M"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
+                        }]
+                ]
+            },
+            wh_jump_mass_l: {
+                cssClass: 'pf-map-connection-wh-size-l',
+                overlays: [
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-char pf-jump-mass-l" data-char-content="L"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
+                        }]
+                ]
+            },
+            wh_jump_mass_xl: {
+                cssClass: 'pf-map-connection-wh-size-xl',
+                paintStyle: {
+                    strokeWidth: 6
+                },
+                overlays: [
+                    ['Label',
+                        {
+                            label: '<i class="fas fa-char pf-jump-mass-xl" data-char-content="XL"></i>',
+                            cssClass: ['pf-map-component-overlay', 'small', 'text-center'].join(' '),
+                            location: 0.65,
+                            id: 'pf-map-connection-jump-mass-overlay'
                         }]
                 ]
             },
             preserve_mass: {
                 cssClass: 'pf-map-connection-preserve-mass',
-                overlays:[
+                overlays: [
                     ['Label',
                         {
                             label: '<i class="fas fa-fw fa-exclamation-triangle"></i>&nbsp;save mass',
                             cssClass: ['pf-map-component-overlay', 'mass'].join(' '),
-                            location: 0.6
+                            location: 0.35
+                        }]
+                ]
+            },
+            info_signature: {
+                overlays: [
+                    ['Arrow',
+                        {
+                            id: 'pf-map-connection-arrow-overlay',
+                            cssClass: 'pf-map-connection-arrow-overlay',
+                            width: 12,
+                            length: 15,
+                            direction: 1,
+                            foldback: 0.8,
+                            location: 0.5
                         }]
                 ]
             },
@@ -396,40 +453,70 @@ define(['jquery'], ($) => {
             },
             state_process: {
                 cssClass: 'pf-map-connection-process',
-                overlays:[
+                overlays: [
                     ['Label',
                         {
                             label: '<i class="fas fa-fw fa-sync fa-spin"></i>',
                             cssClass: ['pf-map-connection-state-overlay'].join(' '),
-                            location: 0.6
+                            location: 0.5
                         }]
                 ]
+            }
+        },
+        wormholeSizes: {
+            wh_jump_mass_xl: {
+                jumpMassMin: 1000000000,
+                type: 'wh_jump_mass_xl',
+                class: 'pf-jump-mass-xl',
+                label: 'XL',
+                text: 'capital ships'
+            },
+            wh_jump_mass_l: {
+                jumpMassMin: 300000000,
+                type: 'wh_jump_mass_l',
+                class: 'pf-jump-mass-l',
+                label: 'L',
+                text: 'larger ships'
+            },
+            wh_jump_mass_m: {
+                jumpMassMin: 20000000,
+                type: 'wh_jump_mass_m',
+                class: 'pf-jump-mass-m',
+                label: 'M',
+                text: 'medium ships'
+            },
+            wh_jump_mass_s: {
+                jumpMassMin: 1000,
+                type: 'wh_jump_mass_s',
+                class: 'pf-jump-mass-s',
+                label: 'S',
+                text: 'smallest ships'
             }
         },
         // signature groups
         signatureGroups: {
             1: {
-                name: '(combat site|kampfgebiet|site de combat|Боевой район)', //*
+                name: '(combat site|kampfgebiet|site de combat|Боевой район|战斗地点)',
                 label: 'Combat'
             },
             2: {
-                name: '(relic site|reliktgebiet|site de reliques|Археологический район)', //*
+                name: '(relic site|reliktgebiet|site de reliques|Археологический район|遗迹地点)',
                 label: 'Relic'
             },
             3: {
-                name: '(data site|datengebiet|site de données|Информационный район)',
+                name: '(data site|datengebiet|site de données|Информационный район|数据地点)',
                 label: 'Data'
             },
             4: {
-                name: '(gas site|gasgebiet|site de collecte de gaz|Газовый район)',
+                name: '(gas site|gasgebiet|site de collecte de gaz|Газовый район|气云地点)',
                 label: 'Gas'
             },
             5: {
-                name: '(wormhole|wurmloch|trou de ver|Червоточина)',
+                name: '(wormhole|wurmloch|trou de ver|Червоточина|虫洞)',
                 label: 'Wormhole'
             },
             6: {
-                name: '(ore site|mineraliengebiet|site de minerai|Астероидный район)',
+                name: '(ore site|mineraliengebiet|site de minerai|Астероидный район|矿石地点)',
                 label: 'Ore'
             },
             7: {

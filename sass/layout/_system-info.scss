@@ -230,22 +230,21 @@
           cursor: initial;
         }
 
-        &.pf-map-connection-frig{
-          width: 32px;
-
-          &:after{
-            left: 4px;
-          }
+        &[class*=' pf-map-connection-wh-size-']{
+          width: 25px;
         }
-        &.pf-map-connection-preserve-mass{
-          width: 26px;
 
+        &:after{
+          font-size: 10px;
+        }
+
+        &.pf-map-connection-preserve-mass{
           &:after{
             content: "\f071";
             font-family: "Font Awesome 5 Free";
             font-style: normal;
             font-weight: bold;
-            left: 4px;
+            left: calc(50% - 7px);
           }
         }
       }

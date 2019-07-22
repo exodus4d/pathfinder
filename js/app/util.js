@@ -38,7 +38,7 @@ define([
 
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
-        headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
+        headUserLocationId: 'pf-head-user-location',                            // id for "location" breadcrumb
 
         // menu
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullScreen"
@@ -399,7 +399,7 @@ define([
     };
 
     /**
-     * check multiple element if they arecurrently visible in viewport
+     * check multiple element if they are currently visible in viewport
      * @returns {Array}
      */
     $.fn.isInViewport = function(){
@@ -963,11 +963,35 @@ define([
      * init utility prototype functions
      */
     let initPrototypes = () => {
-        // Array diff
-        // [1,2,3,4,5,6].diff( [3,4,5] );
-        // => [1, 2, 6]
+
+        /**
+         * Array diff
+         * [1,2,3,4,5].diff([4,5,6]) => [1,2,3]
+         * @param a
+         * @returns {*[]}
+         */
         Array.prototype.diff = function(a){
-            return this.filter(function(i){return a.indexOf(i) < 0;});
+            return this.filter(i => !a.includes(i));
+        };
+
+        /**
+         * Array intersect
+         * [1,2,3,4,5].intersect([4,5,6]) => [4,5]
+         * @param a
+         * @returns {*[]}
+         */
+        Array.prototype.intersect = function(a){
+            return this.filter(i => a.includes(i));
+        };
+
+        /**
+         * compares two arrays if all elements in a are also in b
+         * element order is ignored
+         * @param a
+         * @returns {boolean}
+         */
+        Array.prototype.equalValues = function(a){
+            return this.diff(a).concat(a.diff(this)).length === 0;
         };
 
         /**
@@ -1484,21 +1508,29 @@ define([
     };
 
     /**
-     * set currentUserData as "global" variable
-     * this function should be called continuously after data change
-     * to keep the data always up2data
+     * set currentUserData as "global" store var
+     * this function should be called whenever userData changed
      * @param userData
+     * @returns {boolean} true on success
      */
-    let setCurrentUserData = (userData) => {
-        Init.currentUserData = userData;
+    let setCurrentUserData = userData => {
+        let isSet = false;
 
-        // check if function is available
-        // this is not the case in "login" page
-        if( $.fn.updateHeaderUserData ){
-            $.fn.updateHeaderUserData();
+        // check if userData is valid
+        if(userData && userData.character && userData.characters){
+            let changes = compareUserData(getCurrentUserData(), userData);
+            // check if there is any change
+            if(Object.values(changes).some(val => val)){
+                $(document).trigger('pf:changedUserData', [userData, changes]);
+            }
+
+            Init.currentUserData = userData;
+            isSet = true;
+        }else{
+            console.error('Could not set userData %o. Missing or malformed obj', userData);
         }
 
-        return getCurrentUserData();
+        return isSet;
     };
 
     /**
@@ -1514,14 +1546,7 @@ define([
      * @returns {number}
      */
     let getCurrentCharacterId = () => {
-        let userData = getCurrentUserData();
-        let currentCharacterId = 0;
-        if(
-            userData &&
-            userData.character
-        ){
-            currentCharacterId = parseInt( userData.character.id );
-        }
+        let currentCharacterId = parseInt(getObjVal(getCurrentUserData(), 'character.id')) || 0;
 
         if(!currentCharacterId){
             // no active character... -> get default characterId from initial page load
@@ -1529,6 +1554,28 @@ define([
         }
 
         return currentCharacterId;
+    };
+
+    /**
+     * compares two userData objects for changes that are relevant
+     * @param oldUserData
+     * @param newUserData
+     * @returns {{characterShipType: *, charactersIds: boolean, characterLogLocation: *, characterSystemId: *, userId: *, characterId: *}}
+     */
+    let compareUserData = (oldUserData, newUserData) => {
+        let valueChanged = key => getObjVal(oldUserData, key) !== getObjVal(newUserData, key);
+
+        let oldCharactersIds = (getObjVal(oldUserData, 'characters') || []).map(data => data.id).sort();
+        let newCharactersIds = (getObjVal(newUserData, 'characters') || []).map(data => data.id).sort();
+
+        return {
+            userId: valueChanged('id'),
+            characterId: valueChanged('character.id'),
+            characterLogLocation: valueChanged('character.logLocation'),
+            characterSystemId: valueChanged('character.log.system.id'),
+            characterShipType: valueChanged('character.log.ship.typeId'),
+            charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString()
+        };
     };
 
     /**
@@ -1808,8 +1855,26 @@ define([
      * @param jqXHR XMLHttpRequest instance
      * @returns {boolean}
      */
-    let isXHRAborted = (jqXHR) => {
+    let isXHRAborted = jqXHR => {
         return !jqXHR.getAllResponseHeaders();
+    };
+
+    /**
+     * trigger global menu action 'event' on dom 'element' with optional 'data'
+     * @param element
+     * @param action
+     * @param data
+     */
+    let triggerMenuAction = (element, action, data) => {
+        if(element){
+            if(typeof(action) === 'string' && action.length){
+                $(element).trigger('pf:menuAction', [action, data]);
+            }else{
+                console.error('Invalid action: %o', action);
+            }
+        }else{
+            console.error('Invalid element: %o', element);
+        }
     };
 
     /**
@@ -1817,7 +1882,7 @@ define([
      * @param role
      * @returns {*|jQuery|HTMLElement}
      */
-    let getLabelByRole = (role) => {
+    let getLabelByRole = role => {
         return $('<span>', {
             class: ['label', 'label-' + role.style].join(' '),
             text: role.label
@@ -1829,7 +1894,7 @@ define([
      * @param mapOverlay
      * @returns {jQuery}
      */
-    let getMapElementFromOverlay = (mapOverlay) => {
+    let getMapElementFromOverlay = mapOverlay => {
         return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
     };
 
@@ -2266,7 +2331,7 @@ define([
      */
     let getDataIndexByMapId = (data, mapId) => {
         let index = false;
-        if( Array.isArray(data) && mapId === parseInt(mapId, 10) ){
+        if(Array.isArray(data) && mapId === parseInt(mapId, 10)){
             for(let i = 0; i < data.length; i++){
                 if(data[i].config.id === mapId){
                     index = i;
@@ -2330,9 +2395,7 @@ define([
      * @param mapId
      * @returns {boolean|int}
      */
-    let getCurrentMapUserDataIndex = mapId => {
-        return getDataIndexByMapId(Init.currentMapUserData, mapId);
-    };
+    let getCurrentMapUserDataIndex = mapId => getDataIndexByMapId(Init.currentMapUserData, mapId);
 
     /**
      * update cached mapUserData for a single map
@@ -2375,17 +2438,13 @@ define([
     let getCurrentMapData = mapId => {
         let currentMapData = false;
 
-        if( mapId === parseInt(mapId, 10) ){
-            // search for a specific map
-            for(let i = 0; i < Init.currentMapData.length; i++){
-                if(Init.currentMapData[i].config.id === mapId){
-                    currentMapData = Init.currentMapData[i];
-                    break;
-                }
+        if(Init.currentMapData){
+            if(mapId === parseInt(mapId, 10)){
+                currentMapData = Init.currentMapData.find(mapData => mapData.config.id === mapId);
+            }else{
+                // get data for all maps
+                currentMapData = Init.currentMapData;
             }
-        }else{
-            // get data for all maps
-            currentMapData = Init.currentMapData;
         }
 
         return currentMapData;
@@ -2405,7 +2464,7 @@ define([
      * @param mapData
      */
     let updateCurrentMapData = mapData => {
-        let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
+        let mapDataIndex = getCurrentMapDataIndex(mapData.config.id);
 
         if(mapDataIndex !== false){
             Init.currentMapData[mapDataIndex].config = mapData.config;
@@ -2424,8 +2483,8 @@ define([
     let filterCurrentMapData = (path, value) => {
         let currentMapData = getCurrentMapData();
         if(currentMapData){
-            currentMapData = currentMapData.filter((mapData) => {
-                return (getObjVal(mapData, path) === value);
+            currentMapData = currentMapData.filter(mapData => {
+                return getObjVal(mapData, path) === value;
             });
         }
         return currentMapData;
@@ -2436,7 +2495,7 @@ define([
      * @param mapId
      */
     let deleteCurrentMapData = mapId => {
-        Init.currentMapData = Init.currentMapData.filter((mapData) => {
+        Init.currentMapData = Init.currentMapData.filter(mapData => {
             return (mapData.config.id !== mapId);
         });
     };
@@ -2445,20 +2504,7 @@ define([
      * get the current log data for the current user character
      * @returns {boolean}
      */
-    let getCurrentCharacterLog = () => {
-        let characterLog = false;
-        let currentUserData = getCurrentUserData();
-
-        if(
-            currentUserData &&
-            currentUserData.character &&
-            currentUserData.character.log
-        ){
-            characterLog = currentUserData.character.log;
-        }
-
-        return characterLog;
-    };
+    let getCurrentCharacterLog = () => getObjVal(getCurrentUserData(), 'character.log') || false;
 
     /**
      * get information for the current mail user
@@ -2794,27 +2840,15 @@ define([
     };
 
     /**
-     * set current location data
-     * -> system data where current user is located
-     * @param systemId
-     * @param systemName
-     */
-    let setCurrentLocationData = (systemId, systemName) => {
-        let locationLink = $('#' + config.headCurrentLocationId).find('a');
-        locationLink.data('systemId', systemId);
-        locationLink.data('systemName', systemName);
-    };
-
-    /**
      * get current location data
      * -> system data where current user is located
      * @returns {{id: *, name: *}}
      */
     let getCurrentLocationData = () => {
-        let locationLink = $('#' + config.headCurrentLocationId).find('a');
+        let breadcrumbElement = $('#' + config.headUserLocationId + '>li:last-of-type');
         return {
-            id: locationLink.data('systemId') || 0,
-            name: locationLink.data('systemName') || false
+            id: parseInt(breadcrumbElement.attr('data-systemId')) || 0,
+            name: breadcrumbElement.attr('data-systemName') || false
         };
     };
 
@@ -3057,6 +3091,18 @@ define([
     let isDomElement = obj => !!(obj && obj.nodeType === 1);
 
     /**
+     * converts array of objects into object with properties
+     * @param array
+     * @param keyField
+     * @returns {*}
+     */
+    let arrayToObject = (array, keyField = 'id') =>
+        array.reduce((obj, item) => {
+            obj[item[keyField]] = item;
+            return obj;
+        }, {});
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3204,6 +3250,7 @@ define([
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        triggerMenuAction: triggerMenuAction,
         getLabelByRole: getLabelByRole,
         getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
@@ -3233,7 +3280,6 @@ define([
         getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
-        setCurrentLocationData: setCurrentLocationData,
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
@@ -3262,6 +3308,7 @@ define([
         htmlDecode: htmlDecode,
         isValidHtml: isValidHtml,
         isDomElement: isDomElement,
+        arrayToObject: arrayToObject,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

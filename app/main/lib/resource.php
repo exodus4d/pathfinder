@@ -24,6 +24,7 @@ class Resource extends \Prefab {
         'style'     => 'style',
         'script'    => 'script',
         'font'      => 'font',
+        'document'  => 'document',
         'image'     => 'image'
     ];
 
@@ -49,6 +50,7 @@ class Resource extends \Prefab {
         'style'     => '',
         'script'    => '',
         'font'      => '',
+        'document'  => '',
         'image'     => ''
     ];
 
@@ -60,6 +62,7 @@ class Resource extends \Prefab {
     private $fileExt = [
         'style'     => 'css',
         'script'    => 'js',
+        'document'  => 'html',
         'font'      => 'woff2'
     ];
 

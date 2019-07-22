@@ -17,37 +17,37 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * system position x max
      */
-    const MAX_POS_X                     = 2440;
+    const MAX_POS_X                         = 2440;
 
     /**
      * system position y max
      */
-    const MAX_POS_Y                     = 1480;
+    const MAX_POS_Y                         = 1480;
 
     /**
      * max count of history signature data in cache
      */
-    const MAX_HISTORY_SIGNATURES        = 10;
+    const MAX_SIGNATURES_HISTORY_DATA       = 10;
 
     /**
      * TTL for history signature data
      */
-    const TTL_HISTORY_SIGNATURES        = 7200;
+    const TTL_SIGNATURES_HISTORY            = 7200;
 
     /**
      * cache key prefix for getData(); result WITH log data
      */
-    const DATA_CACHE_KEY_SIGNATURES     = 'SIGNATURES';
+    const DATA_CACHE_KEY_SIGNATURES_HISTORY = 'HISTORY_SIGNATURES';
 
     /**
      * @var string
      */
-    protected $table                    = 'system';
+    protected $table                        = 'system';
 
     /**
      * @var array
      */
-    protected $staticSystemDataCache    = [];
+    protected $staticSystemDataCache        = [];
 
     /**
      * @var array
@@ -258,7 +258,7 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * get static system data by key
      * @param string $key
-     * @return null
+     * @return mixed|null
      * @throws \Exception
      */
     private function getStaticSystemValue(string $key){
@@ -483,15 +483,21 @@ class SystemModel extends AbstractMapTrackingModel {
     public function beforeUpdateEvent($self, $pkeys) : bool {
         $status = parent::beforeUpdateEvent($self, $pkeys);
 
-        if( !$self->isActive()){
+        if($status && !$self->isActive()){
             // reset "rally point" fields
             $self->rallyUpdated = 0;
             $self->rallyPoke = false;
 
             // delete connections
-            $connections = $self->getConnections();
-            foreach($connections as $connection){
+            foreach($self->getConnections() as $connection){
                 $connection->erase();
+            }
+
+            // delete signatures
+            if(!$self->getMap()->persistentSignatures){
+                foreach($self->getSignatures() as $signature){
+                    $signature->erase();
+                }
             }
         }
 
@@ -538,14 +544,14 @@ class SystemModel extends AbstractMapTrackingModel {
      * @return logging\LogInterface
      * @throws \Exception\ConfigException
      */
-    public function newLog($action = '') : Logging\LogInterface{
+    public function newLog(string $action = '') : Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
     }
 
     /**
      * @return MapModel
      */
-    public function getMap() : MapModel{
+    public function getMap() : MapModel {
         return $this->get('mapId');
     }
 
@@ -562,14 +568,10 @@ class SystemModel extends AbstractMapTrackingModel {
      * delete a system from a map
      * hint: signatures and connections will be deleted on cascade
      * @param CharacterModel $characterModel
+     * @return bool
      */
     public function delete(CharacterModel $characterModel){
-        if( !$this->dry() ){
-            // check if character has access
-            if($this->hasAccess($characterModel)){
-                $this->erase();
-            }
-        }
+        return ($this->valid() && $this->hasAccess($characterModel)) ? $this->erase() : false;
     }
 
     /**
@@ -794,8 +796,8 @@ class SystemModel extends AbstractMapTrackingModel {
      * @param string $stamp
      * @return array|null
      */
-    public function getSignatureHistoryData(string $stamp) : ?array {
-        $signatureHistoryData = array_filter($this->getSignaturesHistoryData(), function($historyEntry) use ($stamp){
+    public function getSignatureHistoryEntry(string $stamp) : ?array {
+        $signatureHistoryData = array_filter($this->getSignaturesHistory(), function($historyEntry) use ($stamp){
             return md5($historyEntry['stamp']) == $stamp;
         });
         return empty($signatureHistoryData) ? null : reset($signatureHistoryData);
@@ -804,22 +806,24 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * @return array
      */
-    public function getSignaturesHistoryData() : array {
-        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_SIGNATURES))){
+    public function getSignaturesHistory() : array {
+        if(!is_array($signaturesHistoryData = $this->getCacheData(self::DATA_CACHE_KEY_SIGNATURES_HISTORY))){
             $signaturesHistoryData = [];
         }
         return $signaturesHistoryData;
     }
 
     /**
-     * CharacterModel $character
+     * Updates the signature history cache
+     * -> each (bulk) change to signatures of this system must result in a new signature history cache entry
+     * -> This method also clears the cache of this system, so that new signature data gets returned for in getData()
      * @param CharacterModel $character
      * @param string $action
      * @throws \Exception
      */
-    public function updateSignaturesHistory(CharacterModel $character, string $action = 'edit'){
+    public function updateSignaturesHistory(CharacterModel $character, string $action = 'edit') : void {
         if(!$this->dry()){
-            $signaturesHistoryData = $this->getSignaturesHistoryData();
+            $signaturesHistoryData = $this->getSignaturesHistory();
             $historyEntry = [
                 'stamp'         => microtime(true),
                 'character'     => $character->getBasicData(),
@@ -830,9 +834,14 @@ class SystemModel extends AbstractMapTrackingModel {
             array_unshift($signaturesHistoryData, $historyEntry);
 
             // limit max history data
-            array_splice($signaturesHistoryData, self::MAX_HISTORY_SIGNATURES);
+            array_splice($signaturesHistoryData, self::MAX_SIGNATURES_HISTORY_DATA);
 
-            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_SIGNATURES, self::TTL_HISTORY_SIGNATURES);
+            $this->updateCacheData($signaturesHistoryData, self::DATA_CACHE_KEY_SIGNATURES_HISTORY, self::TTL_SIGNATURES_HISTORY);
+
+            // clear system cache here
+            // -> Signature model updates should NOT update the system cache on change
+            //    because a "bulk" change to signatures would clear the system cache multiple times
+            $this->clearCacheData();
         }
     }
 

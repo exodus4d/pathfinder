@@ -1,5 +1,5 @@
 {* splash page *}
-<include href="templates/ui/splash.html"/>
+<include href="templates/layout/splash.html"/>
 
 <nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
     <div class="container col-sm-12">
@@ -30,6 +30,6 @@
 <include if="{{ @tplPage }}" href="{{ 'templates/admin/' . @tplPage . '.html' }}" />
 
 {* footer *}
-<include href="templates/ui/footer.html"/>
+<include href="templates/layout/footer_simple.html"/>
 
 

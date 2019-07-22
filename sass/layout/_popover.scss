@@ -12,6 +12,12 @@
     text-transform: capitalize;
     font-family: $font-family-readable;
     font-weight: bold;
+
+    kbd{
+      line-height: 90%;
+      vertical-align: middle;
+      box-shadow: none;
+    }
   }
 
   .popover-content {

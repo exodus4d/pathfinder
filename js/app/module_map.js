@@ -5,13 +5,13 @@ define([
     'app/map/map',
     'app/map/util',
     'sortable',
-    'app/ui/module/system_info',
-    'app/ui/module/system_graph',
-    'app/ui/module/system_signature',
-    'app/ui/module/system_route',
-    'app/ui/module/system_intel',
-    'app/ui/module/system_killboard',
-    'app/ui/module/connection_info',
+    'module/system_info',
+    'module/system_graph',
+    'module/system_signature',
+    'module/system_route',
+    'module/system_intel',
+    'module/system_killboard',
+    'module/connection_info',
     'app/counter'
 ], (
     $,
@@ -54,18 +54,16 @@ define([
         moduleClass: 'pf-module',                                               // class for a module
         moduleSpacerClass: 'pf-module-spacer',                                  // class for "spacer" module (preserves height during hide/show animation)
         moduleClosedClass: 'pf-module-closed'                                   // class for a closed module
-
     };
 
     let mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
 
     /**
      * get all maps for a maps module
-     * @returns {*}
+     * @param mapModule
+     * @returns {jQuery}
      */
-    $.fn.getMaps = function(){
-        return $(this).find('.' + config.mapClass);
-    };
+    let getMaps = mapModule => $(mapModule).find('.' + config.mapClass);
 
     /**
      * get the current active mapElement
@@ -748,7 +746,7 @@ define([
                     MapUtil.storeLocaleCharacterData('defaultMapId', mapId);
                 }else{
                     // add new Tab selected
-                    $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+                    Util.triggerMenuAction(document, 'ShowMapSettings', {tab: 'new'});
                     e.preventDefault();
                 }
             });
@@ -1217,7 +1215,7 @@ define([
                 clearMapModule(mapModule)
                     .then(payload => {
                         // no map data available -> show "new map" dialog
-                        $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+                        Util.triggerMenuAction(document, 'ShowMapSettings', {tab: 'new'});
                     })
                     .then(payload => resolve());
             }else{
@@ -1341,16 +1339,17 @@ define([
      * collect all data (systems/connections) for export/save from each active map in the map module
      * if no change detected -> do not attach map data to return array
      * @param mapModule
+     * @param filter
      * @returns {Array}
      */
-    let getMapModuleDataForUpdate = mapModule => {
+    let getMapModuleDataForUpdate = (mapModule, filter = ['hasId', 'hasChanged']) => {
         // get all active map elements for module
-        let mapElements = mapModule.getMaps();
+        let mapElements = getMaps(mapModule);
 
         let data = [];
         for(let i = 0; i < mapElements.length; i++){
             // get all changed (system / connection) data from this map
-            let mapData = Map.getMapDataForSync($(mapElements[i]), ['hasId', 'hasChanged']);
+            let mapData = Map.getMapDataForSync($(mapElements[i]), filter);
             if(mapData !== false){
                 if(
                     mapData.data.systems.length > 0 ||

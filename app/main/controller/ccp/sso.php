@@ -251,7 +251,7 @@ class Sso extends Api\User{
                                         $this->setLoginCookie($characterModel);
 
                                         // -> pass current character data to target page
-                                        $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA, $characterModel->_id);
+                                        $this->setTempCharacterData($characterModel->_id);
 
                                         // route to "map"
                                         if($rootAlias == 'admin'){
@@ -401,8 +401,7 @@ class Sso extends Api\User{
             if( !empty($authCodeRequestData['expiresIn']) ){
                 // expire time for accessToken
                 try{
-                    $timezone = $this->getF3()->get('getTimeZone')();
-                    $accessTokenExpires = new \DateTime('now', $timezone);
+                    $accessTokenExpires = $this->getF3()->get('getDateTime')();
                     $accessTokenExpires->add(new \DateInterval('PT' . (int)$authCodeRequestData['expiresIn'] . 'S'));
 
                     $accessData->esiAccessTokenExpires = $accessTokenExpires->format('Y-m-d H:i:s');

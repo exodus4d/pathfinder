@@ -9,8 +9,9 @@ define([
     'app/util',
     'bootbox',
     'app/map/util',
-    'app/map/layout'
-], ($, Init, Util, bootbox, MapUtil, Layout) => {
+    'app/map/layout',
+    'app/map/magnetizing'
+], ($, Init, Util, bootbox, MapUtil, Layout, Magnetizer) => {
     'use strict';
 
     let config = {
@@ -39,6 +40,7 @@ define([
         dialogSystemSectionInfoId: 'pf-system-dialog-section-info',                     // id for "info" section element
         dialogSystemSectionInfoStatusId: 'pf-system-dialog-section-info-status',        // id for "status" message in "info" element
         dialogSystemAliasId: 'pf-system-dialog-alias',                                  // id for "alias" static element
+        dialogSystemSignaturesId: 'pf-system-dialog-signatures',                        // id for "signatures" count static element
         dialogSystemDescriptionId: 'pf-system-dialog-description',                      // id for "description" static element
         dialogSystemCreatedId: 'pf-system-dialog-created',                              // id for "created" static element
         dialogSystemUpdatedId: 'pf-system-dialog-updated',                              // id for "updated" static element
@@ -84,6 +86,7 @@ define([
 
             let statusId = false;   // -> no value change
             let alias = labelEmpty;
+            let signaturesCount = 0;
             let description = labelEmpty;
             let createdTime = labelUnknown;
             let updatedTime = labelUnknown;
@@ -95,6 +98,7 @@ define([
                 info = labelExist;
                 statusId = parseInt(Util.getObjVal(systemData, 'status.id')) || statusId;
                 alias = systemData.alias.length ? Util.htmlEncode(systemData.alias) : alias;
+                signaturesCount = (Util.getObjVal(systemData, 'signatures') || []).length;
                 description = systemData.description.length ? systemData.description : description;
 
                 let dateCreated = new Date(systemData.created.created * 1000);
@@ -116,6 +120,7 @@ define([
                 dialogElement.find('#' + config.dialogSystemStatusSelectId).val(statusId).trigger('change');
             }
             dialogElement.find('#' + config.dialogSystemAliasId).html(alias);
+            dialogElement.find('#' + config.dialogSystemSignaturesId).toggleClass('txt-color-green', signaturesCount > 0).html(signaturesCount);
             dialogElement.find('#' + config.dialogSystemDescriptionId).html(description);
             dialogElement.find('#' + config.dialogSystemCreatedId).html('<i class="fas fa-fw fa-plus"></i>&nbsp' + createdTime);
             dialogElement.find('#' + config.dialogSystemUpdatedId).html('<i class="fas fa-fw fa-pen"></i>&nbsp' + updatedTime);
@@ -172,22 +177,29 @@ define([
             sectionInfoId: config.dialogSystemSectionInfoId,
             sectionInfoStatusId: config.dialogSystemSectionInfoStatusId,
             aliasId: config.dialogSystemAliasId,
+            signaturesId: config.dialogSystemSignaturesId,
             descriptionId: config.dialogSystemDescriptionId,
             createdId: config.dialogSystemCreatedId,
             updatedId: config.dialogSystemUpdatedId,
             statusData: statusData
         };
 
-        // set current position as "default" system to add ------------------------------------------------------------
-        let currentCharacterLog = Util.getCurrentCharacterLog();
+        // check for pre-selected system ------------------------------------------------------------------------------
+        let systemData;
+        if(options.systemData){
+            systemData = options.systemData;
+        }else{
+            // ... check for current active system (characterLog) -----------------------------------------------------
+            let currentCharacterLog = Util.getCurrentCharacterLog();
+            if(currentCharacterLog !== false){
+                // set system from 'characterLog' data as pre-selected system
+                systemData = Util.getObjVal(currentCharacterLog, 'system');
+            }
+        }
 
-        if(
-            currentCharacterLog !== false &&
-            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
-        ){
-            // current system is NOT already on this map
-            // set current position as "default" system to add
-            data.currentSystem = currentCharacterLog.system;
+        // check if pre-selected system is NOT already on this map
+        if(mapSystemIds.indexOf(Util.getObjVal(systemData, 'id')) === -1){
+            data.currentSystem = systemData;
         }
 
         requirejs(['text!templates/dialog/system.html', 'mustache'], (template, Mustache) => {
@@ -234,7 +246,7 @@ define([
 
                                 // get new position
                                 newPosition = calculateNewSystemPosition(sourceSystem);
-                            }else{
+                            }else if(options.position){
                                 // check mouse cursor position (add system to map)
                                 newPosition = {
                                     x: options.position.x,
@@ -417,7 +429,7 @@ define([
                             system.setSystemRally(1, {
                                 poke: Boolean(formData.pokeDesktop)
                             });
-                            system.markAsChanged();
+                            MapUtil.markAsChanged(system);
 
                             // send poke data to server
                             sendPoke(formData, {
@@ -637,7 +649,7 @@ define([
      * @param system
      * @returns {string}
      */
-    let getSystemTooltipPlacement = (system) => {
+    let getSystemTooltipPlacement = system => {
         let offsetParent = system.parent().offset();
         let offsetSystem = system.offset();
 
@@ -651,7 +663,7 @@ define([
      * @param systems
      * @param callback function
      */
-    let deleteSystems = (map, systems = [], callback = (systems) => {}) => {
+    let deleteSystems = (map, systems = [], callback = systems => {}) => {
         let mapContainer = $( map.getContainer() );
         let systemIds = systems.map(system => $(system).data('id'));
 
@@ -699,9 +711,11 @@ define([
                 $(tabContentElement).trigger('pf:removeSystemModules');
             }
 
-            // remove endpoints and their connections
-            // do not fire a "connectionDetached" event
-            map.detachAllConnections(system, {fireEvent: false});
+            // remove connections do not fire a "connectionDetached" event
+            map.deleteConnectionsForElement(system, {fireEvent: false});
+
+            // unregister from "magnetizer"
+            Magnetizer.removeElement(system.data('mapid'), system[0]);
 
             // destroy tooltip/popover
             system.toggleSystemTooltip('destroy', {});
@@ -723,7 +737,6 @@ define([
     let calculateNewSystemPosition = sourceSystem => {
         let mapContainer = sourceSystem.parent();
         let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
-
         let x = 0;
         let y = 0;
 
@@ -753,12 +766,7 @@ define([
             y = currentY + config.newSystemOffset.y;
         }
 
-        let newPosition = {
-            x: x,
-            y: y
-        };
-
-        return newPosition;
+        return {x: x, y: y};
     };
 
     /**
@@ -767,7 +775,7 @@ define([
      * @param data
      * @returns {*}
      */
-    let getHeadInfoElement = (data) => {
+    let getHeadInfoElement = data => {
         let headInfo = null;
         let headInfoLeft = [];
         let headInfoRight = [];

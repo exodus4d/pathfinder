@@ -24,31 +24,31 @@ class Setup extends Controller {
      * @var array
      */
     protected $environmentVars = [
-        'ENVIRONMENT_CONFIG',
-        'BASE',
-        'URL',
-        'DEBUG',
-        'DB_PF_DNS',
-        'DB_PF_NAME',
-        'DB_PF_USER',
-        'DB_PF_PASS',
-        'DB_UNIVERSE_DNS',
-        'DB_UNIVERSE_NAME',
-        'DB_UNIVERSE_USER',
-        'DB_UNIVERSE_PASS',
-        'CCP_SSO_URL',
-        'CCP_SSO_CLIENT_ID',
-        'CCP_SSO_SECRET_KEY',
-        'CCP_SSO_DOWNTIME',
-        'CCP_ESI_URL',
-        'CCP_ESI_DATASOURCE',
-        'SMTP_HOST',
-        'SMTP_PORT',
-        'SMTP_SCHEME',
-        'SMTP_USER',
-        'SMTP_PASS',
-        'SMTP_FROM',
-        'SMTP_ERROR'
+        'ENVIRONMENT_CONFIG' => [],
+        'BASE' => ['missingOk' => true],
+        'URL' => [],
+        'DEBUG' => [],
+        'DB_PF_DNS' => [],
+        'DB_PF_NAME' => [],
+        'DB_PF_USER' => [],
+        'DB_PF_PASS' => [],
+        'DB_UNIVERSE_DNS' => [],
+        'DB_UNIVERSE_NAME' => [],
+        'DB_UNIVERSE_USER' => [],
+        'DB_UNIVERSE_PASS' => [],
+        'CCP_SSO_URL' => [],
+        'CCP_SSO_CLIENT_ID' => [],
+        'CCP_SSO_SECRET_KEY' => [],
+        'CCP_SSO_DOWNTIME' => [],
+        'CCP_ESI_URL' => [],
+        'CCP_ESI_DATASOURCE' => [],
+        'SMTP_HOST' => [],
+        'SMTP_PORT' => [],
+        'SMTP_SCHEME' => [],
+        'SMTP_USER' => [],
+        'SMTP_PASS' => [],
+        'SMTP_FROM' => [],
+        'SMTP_ERROR' => []
     ];
 
     /**
@@ -313,12 +313,12 @@ class Setup extends Controller {
         // obscure some values
         $obscureVars = ['CCP_SSO_CLIENT_ID', 'CCP_SSO_SECRET_KEY', 'SMTP_PASS'];
 
-        foreach($this->environmentVars as $var){
+        foreach($this->environmentVars as $var => $options){
             if( !in_array($var, $excludeVars) ){
                 $value = Config::getEnvironmentData($var);
                 $check = true;
 
-                if(is_null($value)){
+                if(is_null($value) && !array_key_exists('missingOk', $options)){
                     // variable missing
                     $check = false;
                     $value = '[missing]';
@@ -1557,23 +1557,29 @@ class Setup extends Controller {
             'class' => 'txt-color-danger'
         ];
 
-        $webSocketStatus = [
+        $statusWeb = [
             'type'  => 'danger',
             'label' => 'INIT CONNECTION…',
             'class' => 'txt-color-danger'
         ];
 
-        $statsTcp = [
-            'startup'           => 0,
-            'connections'       => 0,
-            'maxConnections'    => 0
-        ];
+        $statsTcp = false;
+        $statsWeb = false;
+
+        $setStats = function(array $stats) use (&$statsTcp, &$statsWeb) {
+            if(!empty($stats['tcpSocket'])){
+                $statsTcp = $stats['tcpSocket'];
+            }
+            if(!empty($stats['webSocket'])){
+                $statsWeb = $stats['webSocket'];
+            }
+        };
 
         // ping TCP Socket with "healthCheck" task
         $f3->webSocket(['timeout' => $ttl])
             ->write($task, $healthCheckToken)
             ->then(
-                function($payload) use ($task, $healthCheckToken, &$statusTcp, &$statsTcp) {
+                function($payload) use ($task, $healthCheckToken, &$statusTcp, $setStats) {
                     if(
                         $payload['task'] == $task &&
                         $payload['load'] == $healthCheckToken
@@ -1581,24 +1587,26 @@ class Setup extends Controller {
                         $statusTcp['type'] = 'success';
                         $statusTcp['label'] = 'PING OK';
                         $statusTcp['class'] = 'txt-color-success';
-
-                        // statistics (e.g. current connection count)
-                        if(!empty($payload['stats'])){
-                            $statsTcp = $payload['stats'];
-                        }
                     }else{
                         $statusTcp['type'] = 'warning';
                         $statusTcp['label'] = is_string($payload['load']) ? $payload['load'] : 'INVALID RESPONSE';
                         $statusTcp['class'] = 'txt-color-warning';
                     }
+
+                    // statistics (e.g. current connection count)
+                    $setStats((array)$payload['stats']);
                 },
-                function($payload) use (&$statusTcp) {
+                function($payload) use (&$statusTcp, $setStats) {
                     $statusTcp['label'] = $payload['load'];
+
+                    // statistics (e.g. current connection count)
+                    $setStats((array)$payload['stats']);
                 });
 
         $socketInformation = [
             'tcpSocket' => [
-                'label'  => 'Socket (intern) [TCP]',
+                'label'  => 'TCP-Socket (intern)',
+                'icon' => 'fa-exchange-alt',
                 'status' => $statusTcp,
                 'stats'  => $statsTcp,
                 'data' => [
@@ -1620,15 +1628,17 @@ class Setup extends Controller {
                         'check' => !empty( $ttl )
                     ],[
                         'label' => 'uptime',
-                        'value' => Config::formatTimeInterval($statsTcp['startup']),
+                        'value' => Config::formatTimeInterval($statsTcp['startup'] ? : 0),
                         'check' => $statsTcp['startup'] > 0
                     ]
                 ],
                 'token' => $healthCheckToken
             ],
             'webSocket' => [
-                'label' => 'WebSocket (clients) [HTTP]',
-                'status' => $webSocketStatus,
+                'label' => 'Web-Socket',
+                'icon' => 'fa-random',
+                'status' => $statusWeb,
+                'stats'  => $statsWeb,
                 'data' => [
                     [
                         'label' => 'URI',

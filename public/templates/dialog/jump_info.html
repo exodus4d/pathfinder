@@ -1,109 +1,163 @@
-<div class="pf-dynamic-area">
-    <table class="compact stripe order-column row-border {{config.wormholeInfoMassTableClass}}" data-order="[0, &quot;asc&quot;]">
-        <thead>
-        <tr>
-            <th class=""></th>
-            <th class="text-center">Leads to</th>
-            <th class="text-center pf-table-cell-10" title="is static"><i class="fas fa-thumbtack"></i></th>
-            <th class="text-right">Mass total</th>
-            <th class="text-right">Mass individual</th>
-            <th class="text-right">Mass regeneration</th>
-            <th class="text-right">Lifetime</th>
-            <th class="text-right">Sig strength</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#wormholes}}
-        <tr>
-            <td>{{name}}</td>
-            <td class="text-center {{#securityClass}}{{security}}{{/securityClass}}">{{security}}</td>
-            <td class="text-center" data-order="{{static}}">{{#formatStatic}}{{static}}{{/formatStatic}}</td>
-            <td class="text-right" data-order="{{massTotal}}">{{#massValue}}{{massTotal}}{{/massValue}}</td>
-            <td class="text-right" data-order="{{massIndividual}}">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
-            <td class="text-right" data-order="{{massRegeneration}}">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
-            <td class="text-right txt-color {{^maxStableTime}}txt-color-grayLight{{/maxStableTime}}" data-order="{{maxStableTime}}">{{#formatTime}}{{maxStableTime}}{{/formatTime}}</td>
-            <td class="text-right txt-color {{^signatureStrength}}txt-color-grayLight{{/signatureStrength}}" data-order="{{signatureStrength}}">
-                {{#sigStrengthValue}}{{signatureStrength}}{{/sigStrengthValue}}
-            </td>
-        </tr>
-        {{/wormholes}}
-        </tbody>
-    </table>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="navbar-header pull-left">
+        <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
+            <li class="active">
+                <a role="tab" data-toggle="tab" data-name="infoSummary" href="#{{config.wormholeInfoDialogListId}}">Wormholes</a>
+            </li>
+            <li>
+                <a role="tab" data-toggle="tab" data-name="infoUsers" href="#{{config.wormholeInfoDialogStaticId}}">Statics</a>
+            </li>
+            <li>
+                <a role="tab" data-toggle="tab" data-name="infoUsers" href="#{{config.wormholeInfoDialogJumpId}}">Jump distance</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="tab-content">
+
+    {{! "Wormholes" tab -------------------------------------------------------------------------------------------- }}
+    <div role="tabpanel" class="tab-pane fade in active" id="{{config.wormholeInfoDialogListId}}">
+        <div class="pf-dynamic-area">
+            <table class="compact stripe order-column row-border {{config.wormholeInfoMassTableClass}}" data-order="[0, &quot;asc&quot;]">
+                <thead>
+                <tr>
+                    <th class=""></th>
+                    <th class="text-center">Leads to</th>
+                    <th class="text-center">Size</th>
+                    <th class="text-center" title="is static"><i class="fas fa-thumbtack"></i></th>
+                    <th class="text-right">Mass total</th>
+                    <th class="text-right">Mass individual</th>
+                    <th class="text-right">Mass regeneration</th>
+                    <th class="text-right" title="lifetime"><i class="fas fa-hourglass-start"></i></th>
+                    <th class="text-right">Sig strength</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#wormholes}}
+                <tr>
+                    <td>{{name}}</td>
+                    <td class="text-center {{class}}">{{security}}</td>
+                    <td class="text-center {{#size}}{{size.class}}{{/size}}" data-order="{{size.jumpMassMin}}">{{#size}}{{size.label}}{{/size}}</td>
+                    <td class="text-center" data-order="{{static}}">{{#formatStatic}}{{static}}{{/formatStatic}}</td>
+                    <td class="text-right" data-order="{{massTotal}}">{{#massValue}}{{massTotal}}{{/massValue}}</td>
+                    <td class="text-right" data-order="{{massIndividual}}">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
+                    <td class="text-right" data-order="{{massRegeneration}}">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
+                    <td class="text-right txt-color {{^maxStableTime}}txt-color-grayLight{{/maxStableTime}}" data-order="{{maxStableTime}}">{{#formatTime}}{{maxStableTime}}{{/formatTime}}</td>
+                    <td class="text-right txt-color {{^signatureStrength}}txt-color-grayLight{{/signatureStrength}}" data-order="{{signatureStrength}}">
+                        {{#sigStrengthValue}}{{signatureStrength}}{{/sigStrengthValue}}
+                    </td>
+                </tr>
+                {{/wormholes}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{! "Statics" tab ---------------------------------------------------------------------------------------------- }}
+    <div role="tabpanel" class="tab-pane fade" id="{{config.wormholeInfoDialogStaticId}}">
+        <div class="pf-dynamic-area">
+            <table class="compact stripe order-column row-border {{config.wormholeInfoStaticTableClass}}">
+                <thead>
+                {{#staticsMatrixHead}}
+                <tr>
+                    {{#.}}
+                    <th class="text-center {{#securityClass}}{{.}}{{/securityClass}}">{{.}}</th>
+                    {{/.}}
+                </tr>
+                {{/staticsMatrixHead}}
+                </thead>
+                <tbody>
+                {{#staticsMatrixBody}}
+                <tr>
+                    {{#.}}
+                    <td class="text-center">
+                        {{#label}}
+                        <div class="{{class}} {{#hasPopover}}pf-help-default {{popoverTriggerClass}}{{/hasPopover}}" data-name="{{.}}">{{.}}</div>
+
+                        {{/label}}
+                    </td>
+                    {{/.}}
+                </tr>
+                {{/staticsMatrixBody}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{! "Jump distance" tab ---------------------------------------------------------------------------------------- }}
+    <div role="tabpanel" class="tab-pane fade" id="{{config.wormholeInfoDialogJumpId}}">
+        <div class="pf-dynamic-area">
+            <table class="compact stripe order-column row-border {{config.wormholeInfoJumpTableClass}}">
+                <thead>
+                <tr>
+                    <th>Ship</th>
+                    <th class="text-right sorting_disabled">Mass</th>
+                    <th class="text-right sorting_disabled">Base Distance</th>
+                    <th colspan="2" class="text-right sorting_disabled">Distance to jump range</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th class="text-right">min</th>
+                    <th class="text-right">max</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Covert Ops Frigate</td>
+                    <td class="text-right">{{#massValue}}1280000{{/massValue}}</td>
+                    <td class="text-right">5.5 km</td>
+                    <td class="text-right">0 km</td>
+                    <td class="text-right">5.5 km</td>
+                </tr>
+                <tr>
+                    <td>Plated T3 Cruiser</td>
+                    <td class="text-right">{{#massValue}}14300000{{/massValue}}</td>
+                    <td class="text-right">6.9 km</td>
+                    <td class="text-right">0 km</td>
+                    <td class="text-right">6.9 km</td>
+                </tr>
+                <tr>
+                    <td>Plated Bhaalgorn</td>
+                    <td class="text-right">{{#massValue}}101000000{{/massValue}}</td>
+                    <td class="text-right">8.8 km</td>
+                    <td class="text-right">0 km</td>
+                    <td class="text-right">8.8 km</td>
+                </tr>
+                <tr>
+                    <td>Orca</td>
+                    <td class="text-right">{{#massValue}}250000000{{/massValue}}</td>
+                    <td class="text-right">10.1 km</td>
+                    <td class="text-right">0.1 km</td>
+                    <td class="text-right">10.1 km</td>
+                </tr>
+                <tr>
+                    <td>Average Carrier</td>
+                    <td class="text-right">{{#massValue}}1120000000{{/massValue}}</td>
+                    <td class="text-right">13.5 km</td>
+                    <td class="text-right">3.5 km</td>
+                    <td class="text-right">13.5 km</td>
+                </tr>
+                <tr>
+                    <td>Average Dreadnought</td>
+                    <td class="text-right">{{#massValue}}1240000000{{/massValue}}</td>
+                    <td class="text-right">13.8 km</td>
+                    <td class="text-right">3.8 km</td>
+                    <td class="text-right">13.8 km</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <blockquote>
+                <p>
+                    The new base distance would scale as high as ~14km from the wormhole for the largest ships, and the random factor for each jump would range from 2km (for a fresh wormhole) to 5km (for a crit wormhole) in either direction.
+                    The distance from a wormhole that ships must be within to jump will remain 5km as always.
+                </p>
+                <small> By CCP Fozzie | Mass-Based Spawn Distance after Wormhole Jumps</small>
+            </blockquote>
+        </div>
+    </div>
 </div>
-
-<h4><i class="fas fa-space-shuttle fa-lg fa-fw"></i> Jump distance</h4>
-
-<div class="pf-dynamic-area">
-    <table class="compact stripe order-column row-border {{config.wormholeInfoJumpTableClass}}">
-        <thead>
-            <tr>
-                <th>Ship</th>
-                <th class="text-right sorting_disabled">Mass</th>
-                <th class="text-right sorting_disabled">Base Distance</th>
-                <th colspan="2" class="text-right sorting_disabled">Distance to jump range</th>
-            </tr>
-            <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th class="text-right">min</th>
-                <th class="text-right">max</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Covert Ops Frigate</td>
-                <td class="text-right">{{#massValue}}1280000{{/massValue}}</td>
-                <td class="text-right">5.5 km</td>
-                <td class="text-right">0 km</td>
-                <td class="text-right">5.5 km</td>
-            </tr>
-            <tr>
-                <td>Plated T3 Cruiser</td>
-                <td class="text-right">{{#massValue}}14300000{{/massValue}}</td>
-                <td class="text-right">6.9 km</td>
-                <td class="text-right">0 km</td>
-                <td class="text-right">6.9 km</td>
-            </tr>
-            <tr>
-                <td>Plated Bhaalgorn</td>
-                <td class="text-right">{{#massValue}}101000000{{/massValue}}</td>
-                <td class="text-right">8.8 km</td>
-                <td class="text-right">0 km</td>
-                <td class="text-right">8.8 km</td>
-            </tr>
-            <tr>
-                <td>Orca</td>
-                <td class="text-right">{{#massValue}}250000000{{/massValue}}</td>
-                <td class="text-right">10.1 km</td>
-                <td class="text-right">0.1 km</td>
-                <td class="text-right">10.1 km</td>
-            </tr>
-            <tr>
-                <td>Average Carrier</td>
-                <td class="text-right">{{#massValue}}1120000000{{/massValue}}</td>
-                <td class="text-right">13.5 km</td>
-                <td class="text-right">3.5 km</td>
-                <td class="text-right">13.5 km</td>
-            </tr>
-            <tr>
-                <td>Average Dreadnought</td>
-                <td class="text-right">{{#massValue}}1240000000{{/massValue}}</td>
-                <td class="text-right">13.8 km</td>
-                <td class="text-right">3.8 km</td>
-                <td class="text-right">13.8 km</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <blockquote>
-        <p>
-            The new base distance would scale as high as ~14km from the wormhole for the largest ships, and the random factor for each jump would range from 2km (for a fresh wormhole) to 5km (for a crit wormhole) in either direction.
-            The distance from a wormhole that ships must be within to jump will remain 5km as always.
-        </p>
-        <small> By CCP Fozzie | Mass-Based Spawn Distance after Wormhole Jumps</small>
-    </blockquote>
-</div>
-
-
 

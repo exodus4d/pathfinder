@@ -10,6 +10,12 @@ define([
             label:      'Close open dialog',
             keyNames:   ['ESC']
         },
+        // map ----------------------------------------------------------------------------------------------
+        mapMove: {
+            group:      'map',
+            label:      'Move map section',
+            keyNames:   ['space', 'drag']
+        },
         // signature ----------------------------------------------------------------------------------------
         signatureSelect: {
             group:      'signatures',
@@ -36,6 +42,11 @@ define([
             label:      'Update signatures/D-Scan from clipboard',
             keyNames:   ['CONTROL', 'V'],
             alias:      'paste'
+        },
+        renameSystem: {
+            group:      'map',
+            label:      'Rename system',
+            keyNames:   ['ALT', 'N']
         },
         newSignature: {
             group:      'signatures',
@@ -78,12 +89,6 @@ define([
      * @type {boolean}
      */
     let debug                                   = false;
-
-    /**
-     * check interval for "new" active keys
-     * @type {number}
-     */
-    let keyWatchPeriod                          = 100;
 
     /**
      * DOM data key for an element that lists all active events (comma separated)
@@ -132,6 +137,13 @@ define([
     let getActiveKeys = () => {
         return Object.keys(map);
     };
+
+    /**
+     * checks whether a key is currently active (keydown)
+     * @param key
+     * @returns {boolean}
+     */
+    let isActive = key => map.hasOwnProperty(key) && map[key] === true;
 
     /**
      * callback function that compares two arrays
@@ -460,6 +472,7 @@ define([
     };
 
     return {
+        isActive: isActive,
         getGroupedShortcuts: getGroupedShortcuts
     };
 });

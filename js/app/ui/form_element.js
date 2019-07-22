@@ -166,7 +166,7 @@ define([
                     if(type.includes('wh_critical')){
                         styleClass.push('pf-wh-critical');
                     }
-                    if(type.includes('frigate')){
+                    if(type.includes('wh_jump_mass_s')){
                         styleClass.push('pf-wh-frig');
                     }
                 }
@@ -208,6 +208,53 @@ define([
                 dropdownParent: selectElement.parents('.modal-body'),
                 maximumSelectionLength: 5
             })
+        );
+    };
+
+    /**
+     * init a select element as "select2" for connection size types
+     * @param options
+     */
+    $.fn.initConnectionSizeSelect = function(options){
+        let selectElement = $(this);
+
+        let defaultConfig = {
+            dropdownParent: selectElement.parents('.modal-body'),
+            minimumResultsForSearch: -1,
+            width: '100%',
+            maxSelectionLength: 1
+        };
+        options = $.extend({}, defaultConfig, options);
+
+        let formatConnectionSizeResultData = data => {
+            if(data.loading) return data.text;
+            if(data.placeholder) return data.placeholder;
+
+            let connectionClass = MapUtil.getConnectionInfo(data.text, 'cssClass');
+
+            let label = Util.getObjVal(Init.wormholeSizes, data.text + '.label') || '?';
+            let text = Util.getObjVal(Init.wormholeSizes, data.text + '.text') || 'all';
+
+            let markup = '<div class="clearfix">';
+            markup += '<div class="col-xs-1">';
+            markup += '<i class="fas fa-char fa-fw" data-char-content="' + label + '"></i>';
+            markup += '</div>';
+            markup += '<div class="col-xs-3">';
+            markup += '<div class="pf-fake-connection ' + connectionClass + '"></div>';
+            markup += '</div>';
+            markup += '<div class="col-xs-8">';
+            markup += text;
+            markup += '</div>';
+            markup += '</div>';
+
+            return $(markup);
+        };
+
+        options.templateSelection = formatConnectionSizeResultData;
+        options.templateResult = formatConnectionSizeResultData;
+
+        $.when(
+            selectElement.select2(options)
         );
     };
 

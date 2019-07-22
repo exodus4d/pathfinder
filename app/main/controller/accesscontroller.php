@@ -75,14 +75,24 @@ class AccessController extends Controller {
     }
 
     /**
+     * broadcast MapModel to clients
+     * @see broadcastMapData()
+     * @param Pathfinder\MapModel $map
+     */
+    protected function broadcastMap(Pathfinder\MapModel $map) : void {
+        $this->broadcastMapData($this->getFormattedMapData($map));
+    }
+
+
+    /**
      * broadcast map data to clients
      * -> send over TCP Socket
-     * @param Pathfinder\MapModel $map
-     * @throws \Exception
+     * @param array|null $mapData
      */
-    protected function broadcastMapData(Pathfinder\MapModel $map) : void {
-        $mapData = $this->getFormattedMapData($map);
-        $this->getF3()->webSocket()->write('mapUpdate', $mapData);
+    protected function broadcastMapData(?array $mapData) : void {
+        if(!empty($mapData)){
+            $this->getF3()->webSocket()->write('mapUpdate', $mapData);
+        }
     }
 
     /**
@@ -91,16 +101,27 @@ class AccessController extends Controller {
      * @return array
      * @throws \Exception
      */
-    protected function getFormattedMapData(Pathfinder\MapModel $map) : array {
-        $mapData = $map->getData();
 
-        return [
-            'config' => $mapData->mapData,
-            'data' => [
-                'systems' => $mapData->systems,
-                'connections' => $mapData->connections,
-            ]
-        ];
+    /**
+     * @param Pathfinder\MapModel $map
+     * @return array|null
+     */
+    protected function getFormattedMapData(Pathfinder\MapModel $map) : ?array {
+        $data = null;
+        try{
+            $mapData = $map->getData();
+            $data = [
+                'config' => $mapData->mapData,
+                'data' => [
+                    'systems' => $mapData->systems,
+                    'connections' => $mapData->connections,
+                ]
+            ];
+        }catch(\Exception $e){
+
+        }
+
+        return $data;
     }
 
 }

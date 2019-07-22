@@ -4,12 +4,8 @@
 
 define([
     'app/util'
-], function(Util){
+], (Util) => {
     'use strict';
-
-    let config = {
-
-    };
 
     let sharedWorker    = null;
     let MsgWorker       = null;
@@ -29,17 +25,13 @@ define([
      * get SharedWorker Script path
      * @returns {string}
      */
-    let getWorkerScript = () => {
-        return '/public/js/' + Util.getVersion() + '/app/worker/map.js';
-    };
+    let getWorkerScript = () => '/public/js/' + Util.getVersion() + '/app/worker/map.js';
 
     /**
      * get path to message object
      * @returns {string}
      */
-    let getMessageWorkerObjectPath = () => {
-        return '/public/js/' + Util.getVersion() + '/app/worker/message.js';
-    };
+    let getMessageWorkerObjectPath = () => '/public/js/' + Util.getVersion() + '/app/worker/message.js';
 
     /**
      * init (connect) WebSocket within SharedWorker
@@ -51,14 +43,14 @@ define([
             characterId: characterId,
         });
 
-        sharedWorker.port.postMessage(MsgWorkerInit);
+        sendMessage(MsgWorkerInit);
     };
 
     /**
-     * init (start/connect) to "SharedWorker"
+     * init (start/connect) to "SharedWorker" thread
      * -> set worker events
      */
-    let init = (config) => {
+    let init = config => {
         // set characterId that is connected with this SharedWorker PORT
         characterId = parseInt(config.characterId);
 
@@ -67,9 +59,9 @@ define([
             MsgWorker = window.MsgWorker;
 
             // start/connect to "SharedWorker"
-            sharedWorker = new SharedWorker( getWorkerScript(), getMessageWorkerObjectPath() );
+            sharedWorker = new SharedWorker(getWorkerScript(), getMessageWorkerObjectPath());
 
-            sharedWorker.port.addEventListener('message', (e) => {
+            sharedWorker.port.addEventListener('message', e => {
                 let MsgWorkerMessage = e.data;
                 Object.setPrototypeOf(MsgWorkerMessage, MsgWorker.prototype);
 
@@ -90,7 +82,7 @@ define([
                 }
             }, false);
 
-            sharedWorker.onerror = (e) => {
+            sharedWorker.onerror = e => {
                 // could not connect to SharedWorker script -> send error back
                 let MsgWorkerError = new MsgWorker('sw:error');
                 MsgWorkerError.meta({
@@ -111,17 +103,52 @@ define([
         });
     };
 
+    /**
+     * send data to "SharedWorker" thread
+     * @param task
+     * @param data
+     */
     let send = (task, data) => {
         let MsgWorkerSend = new MsgWorker('ws:send');
         MsgWorkerSend.task(task);
         MsgWorkerSend.data(data);
 
-        sharedWorker.port.postMessage(MsgWorkerSend);
+        sendMessage(MsgWorkerSend);
+    };
+
+    /**
+     * send close port task to "SharedWorker" thread
+     * -> this removes the port from its port collection and closes it
+     */
+    let close = () => {
+        // check if MsgWorker is available (SharedWorker was initialized)
+        if(MsgWorker){
+            let MsgWorkerClose = new MsgWorker('sw:closePort');
+            MsgWorkerClose.task('unsubscribe');
+            sendMessage(MsgWorkerClose);
+        }
+    };
+
+    /**
+     *
+     * @param  {window.MsgWorker} MsgWorkerSend
+     */
+    let sendMessage = MsgWorkerSend => {
+        if(sharedWorker instanceof SharedWorker){
+            if(MsgWorkerSend instanceof window.MsgWorker){
+                sharedWorker.port.postMessage(MsgWorkerSend);
+            }else{
+                console.error('MsgWorkerSend must be instance of window.MsgWorker');
+            }
+        }else{
+            console.error('SharedWorker thread not found');
+        }
     };
 
     return {
         getWebSocketURL: getWebSocketURL,
         init: init,
-        send: send
+        send: send,
+        close: close
     };
 });

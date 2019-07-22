@@ -6,12 +6,15 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/map/worker'
-], function($, Init, Util, MapWorker){
+    'app/map/worker',
+    'mustache',
+], function($, Init, Util, MapWorker, Mustache){
     'use strict';
 
     let config = {
-        splashOverlayClass: 'pf-splash'                     // class for "splash" overlay
+        splashOverlayClass: 'pf-splash',                                // class for "splash" overlay
+        webSocketStatsId: 'pf-setup-webSocket-stats',                   // id for webSocket "stats" panel
+        webSocketRefreshStatsId: 'pf-setup-webSocket-stats-refresh'     // class for "reload stats" button
     };
 
     /**
@@ -43,6 +46,18 @@ define([
     };
 
     /**
+     *
+     * @param container
+     * @param selector
+     */
+    let setCollapseObserver = (container, selector) => {
+        container.find(selector).css({cursor: 'pointer'});
+        container.on('click', selector, function(){
+            $(this).find('.pf-animate-rotate').toggleClass('right');
+        });
+    };
+
+    /**
      * set page observer
      */
     let setPageObserver = () => {
@@ -52,9 +67,7 @@ define([
         Util.initPageScroll(body);
 
         // collapse ---------------------------------------------------------------------------------------------------
-        body.find('[data-toggle="collapse"]').css({cursor: 'pointer'}).on('click', function(){
-            $(this).find('.pf-animate-rotate').toggleClass('right');
-        });
+        setCollapseObserver(body, '[data-toggle="collapse"]');
 
         // buttons ----------------------------------------------------------------------------------------------------
         // exclude "download" && "navigation" buttons
@@ -129,6 +142,29 @@ define([
     };
 
     /**
+     * get WebSockets "subscriptions" <table> HTML
+     * @param subscriptionStats
+     * @returns {Promise<any>}
+     */
+    let getWebSocketSubscriptionTable = subscriptionStats => {
+
+        let executor = resolve => {
+            requirejs(['text!templates/modules/subscriptions_table.html', 'mustache'], (template, Mustache) => {
+                let data = {
+                    panelId: config.webSocketStatsId,
+                    refreshButtonId: config.webSocketRefreshStatsId,
+                    subStats: subscriptionStats,
+                    channelCount: (Util.getObjVal(subscriptionStats, 'channels') || []).length
+                };
+
+                resolve(Mustache.render(template, data));
+            });
+        };
+
+        return new Promise(executor);
+    };
+
+    /**
      * perform a basic check if Clients (browser) can connect to the webSocket server
      */
     let testWebSocket = () => {
@@ -158,7 +194,7 @@ define([
             let socketDangerCount = parseInt(badgeSocketDanger.text()) || 0;
 
             if(data.uri){
-                let uriRow = webSocketPanel.find('.panel-body table tr');
+                let uriRow = webSocketPanel.find('.panel-body').filter(':first').find('table tr');
                 uriRow.find('td:nth-child(2) kbd').html(data.uri.value);
                 if(data.uri.status){
                     let statusIcon = uriRow.find('td:nth-child(3) i');
@@ -206,6 +242,18 @@ define([
             }
         });
 
+        /**
+         * @param socket
+         * @param task
+         * @param load
+         */
+        let sendMessage = (socket, task, load) => {
+            socket.send(JSON.stringify({
+                task: task,
+                load: load
+            }));
+        };
+
         // try to connect to WebSocket server
         let socket = new WebSocket(webSocketURI);
 
@@ -219,10 +267,7 @@ define([
             });
 
             // sent token and check response
-            socket.send(JSON.stringify({
-                task: 'healthCheck',
-                load: tcpSocketPanel.data('token')
-            }));
+            sendMessage(socket, 'healthCheck', tcpSocketPanel.attr('data-token'));
 
             webSocketPanel.hideLoadingAnimation();
         };
@@ -230,7 +275,7 @@ define([
         socket.onmessage = (e) => {
             let response = JSON.parse(e.data);
 
-            if(response === 1){
+            if(Util.getObjVal(response, 'load.isValid') === true){
                 // SUCCESS
                 updateWebSocketPanel({
                     status: {
@@ -238,6 +283,23 @@ define([
                         label:  'CONNECTED',
                         class: 'txt-color-success'
                     }
+                });
+
+                // show subscription stats table
+                getWebSocketSubscriptionTable(Util.getObjVal(response, 'load.subStats')).then(payload => {
+                    // remove existing table -> then insert new
+                    $('#' + config.webSocketStatsId).remove();
+                    $(payload).insertAfter(webSocketPanel).initTooltips();
+
+                    let token = Util.getObjVal(response, 'load.token');
+                    tcpSocketPanel.attr('data-token', token);
+
+                    // set "reload stats" observer
+                    $('#' + config.webSocketRefreshStatsId).on('click', function(){
+                        $('#' + config.webSocketStatsId).showLoadingAnimation();
+
+                        sendMessage(socket, 'healthCheck', token);
+                    });
                 });
             }else{
                 // Got response but INVALID
@@ -274,6 +336,8 @@ define([
             });
 
             webSocketPanel.hideLoadingAnimation();
+
+            $('#' + config.webSocketStatsId).remove();
         };
     };
 
@@ -286,7 +350,7 @@ define([
         Util.showVersionInfo();
 
         // hide splash loading animation ------------------------------------------------------------------------------
-        $('.' + config.splashOverlayClass).hideSplashOverlay();
+        $('.' + config.splashOverlayClass + '[data-status="ok"]').hideSplashOverlay();
 
         setPageObserver();
 
