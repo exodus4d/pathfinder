@@ -966,6 +966,13 @@ class Map extends Controller\AccessController {
                 $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
             }
 
+            if(
+                $sourceSystemId ||
+                $targetLog->shipTypeId != $sourceLog->shipTypeId
+            ){
+                $mapDataChanged = true;
+            }
+
             if($sourceSystemId){
                 $sourceSystem = null;
                 $targetSystem = null;
