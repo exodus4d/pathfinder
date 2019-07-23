@@ -1163,6 +1163,7 @@ class CharacterModel extends AbstractPathfinderModel {
              */
             $characterLog = $this->rel('characterLog');
             $characterLog->setData($historyEntry['log']);
+            $characterLog->virtual('tmpStamp', (int)$historyEntry['stamp']);
         }
 
         return $characterLog;

@@ -942,14 +942,29 @@ class Map extends Controller\AccessController {
         if(
             ( $mapScope = $map->getScope() ) &&
             ( $mapScope->name != 'none' ) && // tracking is disabled for map
-            ( $targetLog = $character->getLog() )
+            ( $targetLog = $character->getLog() ) &&
+            ( $user = $character->getUser() )
         ){
+            $targetLog->virtual('tmpStamp', (int)strtotime($targetLog->updated));
+
             // character is currently in a system
             $targetSystemId = (int)$targetLog->systemId;
 
             // get 'character log' from source system. If not log found -> assume $sourceLog == $targetLog
             $sourceLog = $character->getLogPrevSystem($targetSystemId) ? : $targetLog;
-            $sourceSystemId = (int)$sourceLog->systemId;
+            $sourceSystemId = 0;
+
+            if(
+                !empty($sessionCharacter = $user->getSessionCharacterData($character->_id)) &&
+                $sessionCharacter['ID'] === $character->_id &&
+                $sourceLog->tmpStamp > (int)$sessionCharacter['TMP_STAMP']
+            ){
+                $sourceSystemId = (int)$sourceLog->systemId;
+                $sessionCharacter['TMP_STAMP'] = $sourceLog->tmpStamp;
+
+                $sessionCharacters = Pathfinder\CharacterModel::mergeSessionCharacterData([$sessionCharacter]);
+                $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
+            }
 
             if($sourceSystemId){
                 $sourceSystem = null;
