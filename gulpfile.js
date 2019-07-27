@@ -93,7 +93,8 @@ let trackTable = {
 // https://www.npmjs.com/package/uglify-es
 let uglifyJsOptions = {
     warnings: true,
-    toplevel: false
+    toplevel: false,
+    ecma: 8
 };
 
 // Sourcemaps options

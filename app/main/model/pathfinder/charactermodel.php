@@ -33,8 +33,9 @@ class CharacterModel extends AbstractPathfinderModel {
 
     /**
      * max count of historic character logs
+     * -> this includes logs where just e.g. shipTypeId has changed but no systemId change!
      */
-    const MAX_LOG_HISTORY_DATA          = 5;
+    const MAX_LOG_HISTORY_DATA          = 10;
 
     /**
      * TTL for historic character logs
@@ -249,7 +250,7 @@ class CharacterModel extends AbstractPathfinderModel {
         }
 
         if($addLogHistoryData && $characterData->log){
-            $characterData->logHistory          = $this->getLogsHistory();
+            $characterData->logHistory          = $this->getLogHistoryJumps($characterData->log->system->id);
         }
 
         // temp "authStatus" should not be cached
@@ -1033,12 +1034,34 @@ class CharacterModel extends AbstractPathfinderModel {
     }
 
     /**
-     * filter'character log' history data by $callback
+     * get 'character log' history data. Filter all data that does not represent a 'jump' (systemId change)
+     * -> e.g. If just 'shipTypeId' has changed, this entry is filtered
+     * @param int $systemIdPrev
+     * @return array
+     */
+    protected function getLogHistoryJumps(int $systemIdPrev =  0) : array {
+        return $this->filterLogsHistory(function(array $historyEntry) use (&$systemIdPrev) : bool {
+            $addEntry = false;
+            if(
+                !empty($historySystemId = (int)$historyEntry['log']['system']['id']) &&
+                $historySystemId !== $systemIdPrev
+            ){
+                $addEntry = true;
+                $systemIdPrev = $historySystemId;
+            }
+
+            return $addEntry;
+        });
+    }
+
+    /**
+     * filter 'character log' history data by $callback
+     * -> reindex array keys! Otherwise json_encode() on result would return object!
      * @param \Closure $callback
      * @return array
      */
     protected function filterLogsHistory(\Closure $callback) : array {
-        return array_filter($this->getLogsHistory() , $callback);
+        return array_values(array_filter($this->getLogsHistory() , $callback));
     }
 
     /**
@@ -1056,25 +1079,81 @@ class CharacterModel extends AbstractPathfinderModel {
      * @param CharacterLogModel $characterLog
      * @param string $action
      */
-    public function updateLogsHistory(CharacterLogModel $characterLog, string $action = 'update'){
+    public function updateLogsHistory(CharacterLogModel $characterLog, string $action = 'update') : void {
         if(
-            !$this->dry() &&
+            $this->valid() &&
             $this->_id === $characterLog->get('characterId', true)
         ){
-            $logHistoryData = $this->getLogsHistory();
+            $task = 'add';
+            $mapIds = [];
+            $historyLog = $characterLog->getDataAsArray();
+
+            if($logHistoryData = $this->getLogsHistory()){
+                // skip logging if no relevant fields changed
+                list($historyEntryPrev) = $logHistoryData;
+                if($historyLogPrev = $historyEntryPrev['log']){
+                    if(
+                        $historyLog['system']['id']     === $historyLogPrev['system']['id'] &&
+                        $historyLog['ship']['typeId']   === $historyLogPrev['ship']['typeId'] &&
+                        $historyLog['station']['id']    === $historyLogPrev['station']['id'] &&
+                        $historyLog['structure']['id']  === $historyLogPrev['structure']['id']
+                    ){
+                        // no changes in 'relevant' fields -> just update timestamp
+                        $task = 'update';
+                        $mapIds = (array)$historyEntryPrev['mapIds'];
+                    }
+                }
+            }
+
             $historyEntry = [
                 'stamp'     => strtotime($characterLog->updated),
                 'action'    => $action,
-                'log'       => $characterLog->getDataAsArray()
+                'mapIds'    => $mapIds,
+                'log'       => $historyLog
             ];
 
-            array_unshift($logHistoryData, $historyEntry);
+            if($task == 'update'){
+                $logHistoryData[0] = $historyEntry;
+            }else{
+                array_unshift($logHistoryData, $historyEntry);
 
-            // limit max history data
-            array_splice($logHistoryData, self::MAX_LOG_HISTORY_DATA);
+                // limit max history data
+                array_splice($logHistoryData, self::MAX_LOG_HISTORY_DATA);
+            }
 
             $this->updateCacheData($logHistoryData, self::DATA_CACHE_KEY_LOG_HISTORY, self::TTL_LOG_HISTORY);
         }
+    }
+
+    /**
+     * try to update existing 'character log' history entry (replace data)
+     * -> matched by 'stamp' timestamp
+     * @param array $historyEntry
+     * @return bool
+     */
+    protected function updateLogHistoryEntry(array $historyEntry) : bool {
+        $updated = false;
+
+        if(
+            $this->valid() &&
+            ($logHistoryData = $this->getLogsHistory())
+        ){
+            $map = function(array $entry) use ($historyEntry, &$updated) : array {
+                if($entry['stamp'] === $historyEntry['stamp']){
+                    $updated = true;
+                    $entry = $historyEntry;
+                }
+                return $entry;
+            };
+
+            $logHistoryData = array_map($map, $logHistoryData);
+
+            if($updated){
+                $this->updateCacheData($logHistoryData, self::DATA_CACHE_KEY_LOG_HISTORY, self::TTL_LOG_HISTORY);
+            }
+        }
+
+        return $updated;
     }
 
     /**
@@ -1145,24 +1224,48 @@ class CharacterModel extends AbstractPathfinderModel {
     /**
      * get the first matched (most recent) log entry before $systemId.
      * -> The returned log entry *might* be previous system for this character
+     * @param int $mapId
      * @param int $systemId
      * @return CharacterLogModel|null
      */
-    public function getLogPrevSystem(int $systemId) : ?CharacterLogModel {
-        $logHistoryData = $this->filterLogsHistory(function(array $historyEntry) use ($systemId) : bool {
-            return (
-                !empty($historySystemId = (int)$historyEntry['log']['system']['id']) &&
-                $historySystemId !== $systemId
-            );
-        });
-
+    public function getLogPrevSystem(int $mapId, int $systemId) : ?CharacterLogModel {
         $characterLog = null;
-        if(!empty($historyEntry = reset($logHistoryData))){
-            /**
-             * @var $characterLog CharacterLogModel
-             */
-            $characterLog = $this->rel('characterLog');
-            $characterLog->setData($historyEntry['log']);
+
+        if($mapId && $systemId){
+            $skipRest = false;
+            $logHistoryData = $this->filterLogsHistory(function(array $historyEntry) use ($mapId, $systemId, &$skipRest) : bool {
+                $addEntry = false;
+                if(in_array($mapId, (array)$historyEntry['mapIds'], true)){
+                    $skipRest = true;
+                }
+
+                if(
+                    !$skipRest &&
+                    !empty($historySystemId = (int)$historyEntry['log']['system']['id']) &&
+                    $historySystemId !== $systemId
+                ){
+                    $addEntry = true;
+                    $skipRest = true;
+                }
+
+                return $addEntry;
+            });
+
+            if(
+                !empty($historyEntry = reset($logHistoryData)) &&
+                is_array($historyEntry['mapIds'])
+            ){
+                /**
+                 * @var $characterLog CharacterLogModel
+                 */
+                $characterLog = $this->rel('characterLog');
+                $characterLog->setData($historyEntry['log']);
+
+                // mark $historyEntry data as "checked" for $mapId
+                array_push($historyEntry['mapIds'], $mapId);
+
+                $this->updateLogHistoryEntry($historyEntry);
+            }
         }
 
         return $characterLog;

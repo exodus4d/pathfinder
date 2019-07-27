@@ -214,7 +214,7 @@ define([
             // loop all active pilots and build cache-key
             let cacheArray = [];
             for(let tempUserData of data.user){
-                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
+                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.typeId);
             }
 
             // make sure cacheArray values are sorted for key comparison
@@ -223,9 +223,8 @@ define([
 
             // we need to add "view mode" option to key
             // -> if view mode change detected -> key no longer valid
-            cacheArray.unshift(compactView ? 'compact' : 'default');
-
-            let cacheKey = cacheArray.join('_').hashCode();
+            let cacheKey = compactView ? 'compact' : 'default';
+            cacheKey += '_' + cacheArray.join('_').hashCode();
 
             // check for if cacheKey has changed
             if(cacheKey !== oldCacheKey){
@@ -2772,11 +2771,12 @@ define([
 
         // update "local" overlay for this map
         mapContainer.on('pf:updateLocal', function(e, userData){
-            let mapElement = $(this);
-            let mapOverlay = MapOverlayUtil.getMapOverlay(mapElement, 'local');
+            let mapId = Util.getObjVal(userData, 'config.id') || 0;
 
-            if(userData && userData.config && userData.config.id){
-                let currentMapData = Util.getCurrentMapData(userData.config.id);
+            if(mapId){
+                let mapElement = $(this);
+                let mapOverlay = MapOverlayUtil.getMapOverlay(mapElement, 'local');
+                let currentMapData = Util.getCurrentMapData(mapId);
                 let currentCharacterLog = Util.getCurrentCharacterLog();
                 let clearLocal = true;
 
@@ -2785,7 +2785,7 @@ define([
                     currentCharacterLog &&
                     currentCharacterLog.system
                 ){
-                    let currentSystemData = currentMapData.data.systems.filter(function(system){
+                    let currentSystemData = currentMapData.data.systems.filter(system => {
                         return system.systemId === currentCharacterLog.system.id;
                     });
 

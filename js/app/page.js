@@ -980,7 +980,7 @@ define([
         if(changes.charactersIds){
             updateTasks.push(updateHeaderCharacterSwitch(userData, changes.characterId));
         }
-        if(changes.characterSystemId || changes.characterShipType){
+        if(changes.characterSystemId || changes.characterShipType || changes.characterLogHistory){
             updateTasks.push(updateHeaderCharacterLocation(userData, changes.characterShipType));
         }
 

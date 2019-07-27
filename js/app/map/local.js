@@ -237,7 +237,7 @@ define([
             // open Overlay -------------------------------------------------------------------------------------------
             if( !isOpen(overlay) ){
                 let promiseStore = MapUtil.getLocaleData('map', mapId);
-                promiseStore.then(function(dataStore){
+                promiseStore.then(dataStore => {
                     if(
                         dataStore &&
                         dataStore.showLocal

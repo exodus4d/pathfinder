@@ -1568,13 +1568,17 @@ define([
         let oldCharactersIds = (getObjVal(oldUserData, 'characters') || []).map(data => data.id).sort();
         let newCharactersIds = (getObjVal(newUserData, 'characters') || []).map(data => data.id).sort();
 
+        let oldHistoryLogStamps = (getObjVal(oldUserData, 'character.logHistory') || []).map(data => data.stamp).sort();
+        let newHistoryLogStamps = (getObjVal(newUserData, 'character.logHistory') || []).map(data => data.stamp).sort();
+
         return {
             userId: valueChanged('id'),
             characterId: valueChanged('character.id'),
             characterLogLocation: valueChanged('character.logLocation'),
             characterSystemId: valueChanged('character.log.system.id'),
             characterShipType: valueChanged('character.log.ship.typeId'),
-            charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString()
+            charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString(),
+            characterLogHistory: oldHistoryLogStamps.toString() !== newHistoryLogStamps.toString()
         };
     };
 

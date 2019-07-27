@@ -11,6 +11,11 @@ namespace Model\Pathfinder;
 
 use DB\SQL\Schema;
 
+/**
+ * Class CharacterLogModel
+ * @package Model\Pathfinder
+ * @property CharacterModel $characterId
+ */
 class CharacterLogModel extends AbstractPathfinderModel {
 
     /**
@@ -244,26 +249,11 @@ class CharacterLogModel extends AbstractPathfinderModel {
      * @param string $action
      */
     protected function updateLogsHistory(string $action){
-        // add new log history entry if 'systemId' changed
-        // -> if e.g. 'shipTypeId', 'stationId',.. changed -> no new entry (for now)
         if(
-            !empty($this->fieldChanges) &&
-            array_key_exists('systemId', $this->fieldChanges) && // new history entry
+            $this->valid() &&
             is_object($this->characterId)
         ){
-            $oldLog = clone $this;
-
-            // get 'updated' timestamp and reapply after __set() fields data
-            // -> because any __set() call updates 'updated' col
-            $updated = $oldLog->updated;
-            foreach($this->fieldChanges as $key => $change){
-                if($oldLog->exists($key)){
-                    $oldLog->$key = $change['old'];
-                }
-            }
-            $oldLog->updated = $updated;
-
-            $oldLog->characterId->updateLogsHistory($oldLog, $action);
+            $this->characterId->updateLogsHistory($this, $action);
         }
     }
 
