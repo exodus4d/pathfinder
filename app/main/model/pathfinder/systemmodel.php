@@ -656,7 +656,7 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * check whether this system is a wormhole
+     * check whether this system is in w-space
      * @return bool
      */
     public function isWormhole() : bool {
@@ -664,7 +664,15 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * check whether this system is an Abyss system
+     * check whether this system is in k-space
+     * @return bool
+     */
+    public function isKspace() : bool {
+        return ($this->typeId->id === 2);
+    }
+
+    /**
+     * check whether this system is in a-space
      * @return bool
      */
     public function isAbyss() : bool {

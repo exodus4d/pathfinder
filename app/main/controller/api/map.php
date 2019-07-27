@@ -942,36 +942,14 @@ class Map extends Controller\AccessController {
         if(
             ( $mapScope = $map->getScope() ) &&
             ( $mapScope->name != 'none' ) && // tracking is disabled for map
-            ( $targetLog = $character->getLog() ) &&
-            ( $user = $character->getUser() )
+            ( $targetLog = $character->getLog() )
         ){
-            $targetLog->virtual('tmpStamp', (int)strtotime($targetLog->updated));
-
             // character is currently in a system
             $targetSystemId = (int)$targetLog->systemId;
 
             // get 'character log' from source system. If not log found -> assume $sourceLog == $targetLog
-            $sourceLog = $character->getLogPrevSystem($targetSystemId) ? : $targetLog;
-            $sourceSystemId = 0;
-
-            if(
-                !empty($sessionCharacter = $user->getSessionCharacterData($character->_id)) &&
-                $sessionCharacter['ID'] === $character->_id &&
-                $sourceLog->tmpStamp > (int)$sessionCharacter['TMP_STAMP']
-            ){
-                $sourceSystemId = (int)$sourceLog->systemId;
-                $sessionCharacter['TMP_STAMP'] = $sourceLog->tmpStamp;
-
-                $sessionCharacters = Pathfinder\CharacterModel::mergeSessionCharacterData([$sessionCharacter]);
-                $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
-            }
-
-            if(
-                $sourceSystemId ||
-                $targetLog->shipTypeId != $sourceLog->shipTypeId
-            ){
-                $mapDataChanged = true;
-            }
+            $sourceLog = $character->getLogPrevSystem($map->_id, $targetSystemId) ? : $targetLog;
+            $sourceSystemId = (int)$sourceLog->systemId;
 
             if($sourceSystemId){
                 $sourceSystem = null;
@@ -1042,12 +1020,12 @@ class Map extends Controller\AccessController {
                             break;
                         case 'k-space':
                             if($sameSystem){
-                                if( !$sourceSystem->isWormhole() ){
+                                if($sourceSystem->isKspace()){
                                     $addSourceSystem = true;
                                 }
                             }elseif(
-                                !$sourceSystem->isWormhole() ||
-                                !$targetSystem->isWormhole()
+                                $sourceSystem->isKspace() ||
+                                $targetSystem->isKspace()
                             ){
                                 $addSourceSystem = true;
                                 $addTargetSystem = true;
@@ -1057,7 +1035,7 @@ class Map extends Controller\AccessController {
                         case 'wh':
                         default:
                             if($sameSystem){
-                                if( $sourceSystem->isWormhole() ){
+                                if($sourceSystem->isWormhole()){
                                     $addSourceSystem = true;
                                 }
                             }elseif(
