@@ -761,12 +761,12 @@ define([
             let currentLocationData = Util.getCurrentLocationData();
             if(
                 currentLocationData.id &&
-                currentLocationData.id !== systemData.id
+                currentLocationData.id !== systemData.systemId
             ){
                 let systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
                 systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 
-                let msg = 'Update structures in ' + systemNameStr + ' ? This not your current location, "' + currentLocationData.name + '" !';
+                let msg = 'Update structures in ' + systemNameStr + ' ? This is not your current location, "' + currentLocationData.name + '" !';
                 bootbox.confirm(msg, result => {
                     if(result){
                         saveStructureData(structureData, context);
