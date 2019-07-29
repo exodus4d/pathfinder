@@ -1212,7 +1212,7 @@ define([
                 mapConfig.map.setContainer(mapContainer);
 
                 // init custom scrollbars and add overlay
-                parentElement.initMapScrollbar();
+                initMapScrollbar(mapWrapper);
 
                 // set map observer
                 setMapObserver(mapConfig.map);
@@ -2708,7 +2708,7 @@ define([
 
                 if(select){
                     let mapWrapper = mapContainer.closest('.' + config.mapWrapperClass);
-                    Scrollbar.scrollToSystem(mapWrapper, MapUtil.getSystemPosition(system));
+                    Scrollbar.scrollToCenter(mapWrapper, system);
                     // select system
                     MapUtil.showSystemInfo(map, system);
                 }
@@ -3166,15 +3166,13 @@ define([
 
     /**
      * init scrollbar for Map element
+     * @param mapWrapper
      */
-    $.fn.initMapScrollbar = function(){
-        // get Map Scrollbar
-        let mapTabContentElement = $(this);
-        let mapWrapperElement = mapTabContentElement.find('.' + config.mapWrapperClass);
-        let mapElement = mapTabContentElement.find('.' + config.mapClass);
+    let initMapScrollbar = mapWrapper => {
+        let mapElement = mapWrapper.find('.' + config.mapClass);
         let mapId = mapElement.data('id');
 
-        mapWrapperElement.initCustomScrollbar({
+        Scrollbar.initScrollbar(mapWrapper, {
             callbacks: {
                 onInit: function(){
                     // init 'space' key + 'mouse' down for map scroll -------------------------------------------------
@@ -3291,8 +3289,8 @@ define([
         // ------------------------------------------------------------------------------------------------------------
         // add map overlays after scrollbar is initialized
         // because of its absolute position
-        mapWrapperElement.initMapOverlays();
-        mapWrapperElement.initLocalOverlay(mapId);
+        mapWrapper.initMapOverlays();
+        mapWrapper.initLocalOverlay(mapId);
     };
 
     return {

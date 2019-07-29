@@ -1,73 +1,129 @@
-/**
- * Created by Exodus on 26.06.2016.
- */
 define([
     'jquery',
-    'app/init',
-    'app/util',
     'mousewheel',
     'customScrollbar'
-], ($, Init, Util) => {
+], ($) => {
     'use strict';
+
+    let defaultConfig = {
+        axis: 'yx',
+        theme: 'light-3' ,
+        scrollInertia: 200,
+        autoExpandScrollbar: false,
+        scrollButtons:{
+            enable: true,
+            scrollAmount: 30,
+            scrollType: 'stepless'
+        },
+        callbacks: {
+            onTotalScrollOffset: 0,
+            onTotalScrollBackOffset: 0,
+            alwaysTriggerOffsets: true
+        },
+
+        advanced: {
+            autoUpdateTimeout: 120, // auto-update timeout (default: 60)
+            updateOnContentResize: true,
+            autoExpandHorizontalScroll: false,  // on resize css scale() scroll content should not change
+            //autoExpandHorizontalScroll: 2,
+            autoScrollOnFocus: 'div',
+        },
+        mouseWheel: {
+            enable: false, // scroll wheel currently disabled
+            scrollAmount: 'auto',
+            axis: 'x',
+            preventDefault: true
+        },
+        keyboard: {
+            enable: false,  // not working with pathfinder "shortcuts"
+            scrollType: 'stepless',
+            scrollAmount: 'auto'
+        },
+        scrollbarPosition: 'inside',
+        autoDraggerLength: true,
+        autoHideScrollbar: false
+    };
 
     /**
      * init map scrollbar
+     * @param scrollWrapper
      * @param config
      */
-    $.fn.initCustomScrollbar = function(config){
-
-        // default config -------------------------------------------------------------------------
-        let defaultConfig = {
-            axis: 'yx',
-            theme: 'light-3' ,
-            scrollInertia: 300,
-            autoExpandScrollbar: false,
-            scrollButtons:{
-                enable: true,
-                scrollAmount: 30,
-                scrollType: 'stepless'
-            },
-            callbacks: {
-                onTotalScrollOffset: 0,
-                onTotalScrollBackOffset: 0,
-                alwaysTriggerOffsets: true
-            },
-
-            advanced: {
-                autoUpdateTimeout: 120, // auto-update timeout (default: 60)
-                updateOnContentResize: true,
-                autoExpandHorizontalScroll: false,  // on resize css scale() scroll content should not change
-                //autoExpandHorizontalScroll: 2,
-                autoScrollOnFocus: 'div',
-            },
-            mouseWheel: {
-                enable: false, // scroll wheel currently disabled
-                scrollAmount: 'auto',
-                axis: 'x',
-                preventDefault: true
-            },
-            keyboard: {
-                enable: false,  // not working with pathfinder "shortcuts"
-                scrollType: 'stepless',
-                scrollAmount: 'auto'
-            },
-            scrollbarPosition: 'inside',
-            autoDraggerLength: true,
-            autoHideScrollbar: false
-        };
-
-        // init -----------------------------------------------------------------------------------
+    let initScrollbar = (scrollWrapper, config) => {
         config = $.extend(true, {}, defaultConfig, config);
 
-        return this.each(function(){
-            let mapWrapperElement = $(this);
+        scrollWrapper.mCustomScrollbar(config);
+    };
 
-            // prevent multiple initialization
-            mapWrapperElement.mCustomScrollbar('destroy');
+    /**
+     * get mCustomScrollbar container
+     * @param element
+     * @returns {*|[]}
+     */
+    let getContainer = element =>  element.parents('.mCSB_container');
 
-            // init custom scrollbars
-            mapWrapperElement.mCustomScrollbar(config);
-        });
+    /**
+     *
+     * @param container
+     * @param element
+     * @returns {{x: number, y: number}}
+     */
+    let getElementPos = (container, element) => {
+        return {
+            x: element.offset().left - container.offset().left,
+            y: element.offset().top - container.offset().top
+        };
+    };
+
+    /**
+     * @param element
+     * @returns {{x: number, y: number}}
+     */
+    let getElementDim = element => {
+        return {
+            x: element.outerWidth(false),
+            y: element.outerHeight(false)
+        };
+    };
+
+    /**
+     * check if an element is 100% visible
+     * -> scrolled into viewport
+     * @param element
+     * @returns {boolean}
+     */
+    let isInView = element => {
+        let container = getContainer(element);
+        let wrapper = container.parent();
+        let cPos = {x: container[0].offsetLeft, y: container[0].offsetTop};
+        let ePos = getElementPos(container, element);
+        let eDim = getElementDim(element);
+
+        return cPos.y + ePos.y >= 0 &&
+            cPos.y + ePos.y < wrapper.height() - eDim.y &&
+            cPos.x + ePos.x >= 0 &&
+            cPos.x + ePos.x < wrapper.width() - eDim.x;
+    };
+
+    /**
+     * get new scrollTo coordinates to center element in viewport
+     * @param element
+     * @returns {{x: number, y: number}}
+     */
+    let getCenterScrollPosition = element => {
+        let container = getContainer(element);
+        let wrapper = container.parent();
+        let cDim = getElementDim(container);
+        let wDim = {x: wrapper.width(), y: wrapper.height()};
+        let eDim = getElementDim(element);
+        let ePos = getElementPos(container, element);
+
+        let eOff = {
+            x: (-wDim.x / 2) + (eDim.x / 2),
+            y: (-wDim.y / 2) + (eDim.y / 2)
+        };
+
+        return adjustPos(addOffset(ePos, eOff), cDim);
     };
 
     /**
@@ -82,33 +138,55 @@ define([
     };
 
     /**
-     * scroll to a specific system on map
+     * scroll to center an element
      * -> subtract some offset for tooltips/connections
      * @param scrollWrapper
-     * @param position
-     * @param options
+     * @param element
      */
-    let scrollToSystem = (scrollWrapper, position, options) => {
-        position = getOffsetPosition(position, {x: -15, y: -35});
-        scrollToPosition(scrollWrapper, position, options);
+    let scrollToCenter = (scrollWrapper, element) => {
+        // no scroll if element is already FULL visible in scrollable viewport
+        if(!isInView(element)){
+            // get scrollTo position for centered element
+            scrollToPosition(scrollWrapper, getCenterScrollPosition(element));
+        }
     };
 
     /**
      * add/subtract offset coordinates from position
-     * -> no negative values returned
-     * @param position
-     * @param offset
+     * @param {{x: number, y: number}} position
+     * @param {{x: number, y: number}} offset
      * @returns {{x: number, y: number}}
      */
-    let getOffsetPosition = (position, offset) => {
-        return {
-            x: Math.max(0, position.x + offset.x),
-            y: Math.max(0, position.y + offset.y)
-        };
-    };
+    let addOffset = (position, offset) => mapObject(position, (v, k) => v + offset[k]);
+
+    /**
+     * round position
+     * @param {{x: number, y: number}} position
+     * @returns {{x: number, y: number}}
+     */
+    let roundPos = position => mapObject(position, Math.round);
+
+    /**
+     *
+     * @param {{x: number, y: number}} position
+     * @param {{x: number, y: number}} dimension
+     * @returns {{x: number, y: number}}
+     */
+    let adjustPos = (position, dimension) => mapObject(roundPos(position), (v, k) => Math.max(1, Math.min(dimension[k], v)) );
+
+    /**
+     * like Array.map() for objects
+     * -> callback f is called for each property
+     * @see https://stackoverflow.com/a/38829074/4329969
+     * @param o
+     * @param f
+     * @returns {Object}
+     */
+    let mapObject = (o, f) => Object.assign(...Object.entries(o).map(([k, v]) => ({[k]: f(v, k) })));
 
     return {
+        initScrollbar: initScrollbar,
         scrollToPosition: scrollToPosition,
-        scrollToSystem: scrollToSystem
+        scrollToCenter: scrollToCenter
     };
 });
