@@ -399,40 +399,6 @@ define([
     };
 
     /**
-     * check multiple element if they are currently visible in viewport
-     * @returns {Array}
-     */
-    $.fn.isInViewport = function(){
-        let visibleElement = [];
-
-        this.each(function(){
-            let element = $(this)[0];
-
-            let top = element.offsetTop;
-            let left = element.offsetLeft;
-            let width = element.offsetWidth;
-            let height = element.offsetHeight;
-
-            while(element.offsetParent){
-                element = element.offsetParent;
-                top += element.offsetTop;
-                left += element.offsetLeft;
-            }
-
-            if(
-                top < (window.pageYOffset + window.innerHeight) &&
-                left < (window.pageXOffset + window.innerWidth) &&
-                (top + height) > window.pageYOffset &&
-                (left + width) > window.pageXOffset
-            ){
-                visibleElement.push(this);
-            }
-        });
-
-        return visibleElement;
-    };
-
-    /**
      * init the map-update-counter as "easy-pie-chart"
      */
     $.fn.initMapUpdateCounter = function(){
@@ -1024,17 +990,172 @@ define([
     };
 
     /**
-     *
-     * @param element
+     * filter elements from elements array that are not within viewport
+     * @param elements
+     * @returns {[]}
      */
-    let initPageScroll = (element) => {
-        $(element).on('click', '.page-scroll', function(){
-            // scroll to ancor element
-            $($(this).attr('data-anchor')).velocity('scroll', {
-                duration: 300,
-                easing: 'swing'
-            });
-        });
+    let findInViewport = elements => {
+        let visibleElement = [];
+
+        for(let element of elements){
+            if(!(element instanceof HTMLElement)){
+                console.warn('findInViewport() expects Array() of %O; %o given', HTMLElement, element);
+                continue;
+            }
+
+            let top = element.offsetTop;
+            let left = element.offsetLeft;
+            let width = element.offsetWidth;
+            let height = element.offsetHeight;
+            let origElement = element;
+
+            while(element.offsetParent){
+                element = element.offsetParent;
+                top += element.offsetTop;
+                left += element.offsetLeft;
+            }
+
+            if(
+                top < (window.pageYOffset + window.innerHeight) &&
+                left < (window.pageXOffset + window.innerWidth) &&
+                (top + height) > window.pageYOffset &&
+                (left + width) > window.pageXOffset
+            ){
+                visibleElement.push(origElement);
+            }
+        }
+
+        return visibleElement;
+    };
+
+    /**
+     * "Scroll Spy" implementation
+     * @see https://github.com/cferdinandi/gumshoe/blob/master/src/js/gumshoe/gumshoe.js
+     * @param navElement
+     * @param scrollElement
+     * @param settings
+     */
+    let initScrollSpy = (navElement, scrollElement = window, settings = {}) => {
+        let timeout, current;
+
+        let contents = Array.from(navElement.querySelectorAll('.page-scroll')).map(link => ({
+            link: link,
+            content: document.getElementById(link.getAttribute('data-target'))
+        }));
+
+        let getOffset = settings => {
+            if(typeof settings.offset === 'function'){
+                return parseFloat(settings.offset());
+            }
+            // Otherwise, return it as-is
+            return parseFloat(settings.offset);
+        };
+
+        let getDocumentHeight = () => {
+            return Math.max(
+                document.body.scrollHeight, document.documentElement.scrollHeight,
+                document.body.offsetHeight, document.documentElement.offsetHeight,
+                document.body.clientHeight, document.documentElement.clientHeight
+            );
+        };
+
+        let activate = item => {
+            if(!item) return;
+
+            // Get the parent list item
+            let li = item.link.closest('li');
+            if(!li) return;
+
+            // Add the active class to li
+            li.classList.add('active');
+        };
+
+        let deactivate = item => {
+            if(!item) return;
+
+            // remove focus
+            if(document.activeElement === item.link){
+                document.activeElement.blur();
+            }
+
+            // Get the parent list item
+            let li = item.link.closest('li');
+            if(!li) return;
+
+            // Remove the active class from li
+            li.classList.remove('active');
+        };
+
+        let isInView = (elem, settings, bottom) => {
+            let bounds = elem.getBoundingClientRect();
+            let offset = getOffset(settings);
+            if(bottom){
+                return parseInt(bounds.bottom, 10) < (window.innerHeight || document.documentElement.clientHeight);
+            }
+            return parseInt(bounds.top, 10) <= offset;
+        };
+
+        let isAtBottom = () => {
+            return window.innerHeight + window.pageYOffset >= getDocumentHeight();
+        };
+
+        let useLastItem = (item, settings) => {
+            return !!(isAtBottom() && isInView(item.content, settings, true));
+        };
+
+        let getActive = (contents, settings) => {
+            let last = contents[contents.length - 1];
+            if(useLastItem(last, settings)) return last;
+            for(let i = contents.length - 1; i >= 0; i--){
+                if(isInView(contents[i].content, settings)) return contents[i];
+            }
+        };
+
+        let detect = () => {
+            let active = getActive(contents, settings);
+
+            // if there's no active content, deactivate and bail
+            if(!active){
+                if(current){
+                    deactivate(current);
+                    current = null;
+                }
+                return;
+            }
+
+            // If the active content is the one currently active, do nothing
+            if (current && active.content === current.content) return;
+
+            // Deactivate the current content and activate the new content
+            deactivate(current);
+            activate(active);
+
+            // Update the currently active content
+            current = active;
+        };
+
+        let scrollHandler = () => {
+            // If there's a timer, cancel it
+            if(timeout){
+                window.cancelAnimationFrame(timeout);
+            }
+            timeout = window.requestAnimationFrame(detect);
+        };
+
+        // Find the currently active content
+        detect();
+
+        scrollElement.addEventListener('scroll', scrollHandler, false);
+
+        // set click observer for links
+        let clickHandler = function(e){
+            e.preventDefault();
+            this.content.scrollIntoView({behavior: 'smooth'});
+        };
+
+        for(let item of contents){
+            $(item.link).on('click', clickHandler.bind(item));
+        }
     };
 
     /**
@@ -3287,7 +3408,8 @@ define([
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
-        initPageScroll: initPageScroll,
+        findInViewport: findInViewport,
+        initScrollSpy: initScrollSpy,
         convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,

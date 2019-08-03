@@ -333,7 +333,6 @@
     padding: 10px 10px 5px 10px;
     min-width: 155px;
     min-height: 184px;
-    overflow: visible;  // overwrite default
     @include border-radius(10px);
     @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
 

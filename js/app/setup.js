@@ -13,6 +13,10 @@ define([
 
     let config = {
         splashOverlayClass: 'pf-splash',                                // class for "splash" overlay
+
+        // navigation
+        navigationElementId: 'pf-navbar',                               // id for navbar element
+
         webSocketStatsId: 'pf-setup-webSocket-stats',                   // id for webSocket "stats" panel
         webSocketRefreshStatsId: 'pf-setup-webSocket-stats-refresh'     // class for "reload stats" button
     };
@@ -64,7 +68,9 @@ define([
         let body = $('body');
 
         // navigation (scroll) ----------------------------------------------------------------------------------------
-        Util.initPageScroll(body);
+        Util.initScrollSpy(document.getElementById(config.navigationElementId), window, {
+            offset: 300
+        });
 
         // collapse ---------------------------------------------------------------------------------------------------
         setCollapseObserver(body, '[data-toggle="collapse"]');
@@ -188,8 +194,8 @@ define([
          * @param data
          */
         let updateWebSocketPanel = (data) => {
-            let badgeSocketWarning = $('.navbar a[data-anchor="#pf-setup-socket"] .txt-color-warning');
-            let badgeSocketDanger = $('.navbar a[data-anchor="#pf-setup-socket"] .txt-color-danger');
+            let badgeSocketWarning = $('.navbar a[data-target="pf-setup-socket"] .txt-color-warning');
+            let badgeSocketDanger = $('.navbar a[data-target="pf-setup-socket"] .txt-color-danger');
             let socketWarningCount = parseInt(badgeSocketWarning.text()) || 0;
             let socketDangerCount = parseInt(badgeSocketDanger.text()) || 0;
 

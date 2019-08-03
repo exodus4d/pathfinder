@@ -664,24 +664,16 @@ table{
     width: 100%;
   }
 }
-.navbar-nav {
-  li:not(.disabled):not(.hide-before){
-    &:hover, &.active{
 
-      &:before{
-        top: -4px;
-        opacity: 1;
-      }
+.modal .navbar-nav {
+  li {
+    @include pf-navigation-indicator(top);
+  }
+}
 
-    }
-
-    &:before{
-      @include navigation-active-indicator(top);
-      width: 100%;
-      height: 2px;
-      top: 0;
-    }
-
+.navbar-fixed-top .navbar-nav {
+  li {
+    @include pf-navigation-indicator(bottom);
   }
 }
 

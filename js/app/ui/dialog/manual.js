@@ -26,7 +26,6 @@ define([
     $.fn.showMapManual = function(){
 
         requirejs(['text!templates/dialog/map_manual.html', 'mustache'], (template, Mustache) => {
-
             let data = {
                 dialogNavigationClass: config.dialogNavigationClass,
                 dialogNavLiClass: config.dialogNavigationListItemClass,
@@ -67,8 +66,7 @@ define([
 
             let scrollspyElement = $('#' + config.mapManualScrollspyId);
 
-            let whileScrolling = function(){
-
+            let whileScrolling = () => {
                 if(disableOnScrollEvent === false){
                     for(let i = 0; i < scrollBreakpointElements.length; i++){
                         let offset = $(scrollBreakpointElements[i]).offset().top;
@@ -124,11 +122,9 @@ define([
 
                             let mainNavigationLiElement = $(this).parent('.' + config.dialogNavigationListItemClass);
 
-
                             whileScrolling();
 
                             // if link is a main navigation link (not an anchor link)
-
                             if(mainNavigationLiElement.length > 0){
                                 // remove all active classes
                                 scrollNavLiElements.removeClass('active');
@@ -138,7 +134,6 @@ define([
                             }
 
                         });
-
                     },
                     onScroll: function(){
                         disableOnScrollEvent = false;

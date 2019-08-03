@@ -22,23 +22,23 @@
             </p>
 
             <ul class="nav navbar-nav navbar-right" role="tablist">
-                <li class="hide-before"><a class="pf-navbar-manual" href="#">Manual</a></li>
+                <li><a class="pf-navbar-manual" href="#">Manual</a></li>
             </ul>
         </div>
         <div  class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right" role="tablist">
-                <li class="hide-before"><a class="page-scroll" data-anchor="#pf-landing-top" href="#">Login</a></li>
+                <li><a class="page-scroll" data-target="pf-landing-top" href="#pf-landing-top">Login</a></li>
                 <check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
-                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-gallery" href="#">Features</a></li>
+                    <li> <a class="page-scroll" data-target="pf-landing-gallery" href="#pf-landing-gallery-thumb-container">Features</a></li>
                 </check>
-                <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-maps" href="#">Maps</a></li>
+                <li> <a class="page-scroll" data-target="pf-landing-maps" href="#pf-landing-maps">Maps</a></li>
                 <check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
-                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-admin" href="#">Admin</a></li>
-                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-install" href="#">Install</a></li>
-                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-about" href="#">About</a></li>
+                    <li> <a class="page-scroll" data-target="pf-landing-admin" href="#pf-landing-admin">Admin</a></li>
+                    <li> <a class="page-scroll" data-target="pf-landing-install" href="#pf-landing-install">Install</a></li>
+                    <li> <a class="page-scroll" data-target="pf-landing-about" href="#pf-landing-about">About</a></li>
                 </check>
-                <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-faq" href="#">FAQ</a></li>
-                <li class="hide-before"> <a class="pf-navbar-license" href="#">License</a></li>
+                <li> <a class="page-scroll" data-target="pf-landing-faq" href="#pf-landing-faq">FAQ</a></li>
+                <li> <a class="pf-navbar-license" href="#">License</a></li>
             </ul>
         </div>
     </div>

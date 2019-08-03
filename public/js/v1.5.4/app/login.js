@@ -314,7 +314,6 @@ define([
                         }
                     });
                 });
-
             }
         });
     };
@@ -406,13 +405,13 @@ define([
      * init scrollSpy for navigation bar
      */
     let initScrollSpy = () => {
-        // init scrollspy
+        let scrollElement = window;
+        let timeout;
 
         // show elements that are currently in the viewport
         let showVisibleElements = () => {
             // find all elements that should be animated
-            let visibleElements = $('.' + config.animateElementClass).isInViewport();
-
+            let visibleElements = Util.findInViewport($('.' + config.animateElementClass));
             $(visibleElements).removeClass( config.animateElementClass );
 
             $(visibleElements).velocity('transition.flipXIn', {
@@ -431,16 +430,23 @@ define([
             });
         };
 
-        $( window ).scroll(() => {
-            // check for new visible elements
-            showVisibleElements();
-        });
+        let scrollHandler = () => {
+            // If there's a timer, cancel it
+            if(timeout){
+                window.cancelAnimationFrame(timeout);
+            }
+            timeout = window.requestAnimationFrame(showVisibleElements);
+        };
+
+        scrollElement.addEventListener('scroll', scrollHandler, false);
 
         // initial check for visible elements
         showVisibleElements();
 
-        // event listener for navigation links
-        Util.initPageScroll('#' + config.navigationElementId);
+
+        Util.initScrollSpy(document.getElementById(config.navigationElementId), scrollElement, {
+            offset: 150
+        });
     };
 
     /**

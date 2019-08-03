@@ -883,21 +883,7 @@ $mapBubbleWidth:        30px;
 
   // top menu
   &[role] > li{
-
-    &:not(.disabled){
-      position: relative; // otherwise :before indicator gets to height
-      &:before{
-        @include navigation-active-indicator(left);
-        width: 2px;
-        height: 100%;
-        left: 0;
-      }
-
-      &:hover:before{
-        left: -4px;
-        opacity: 1;
-      }
-    }
+    @include pf-navigation-indicator(left);
   }
 
   & > li {

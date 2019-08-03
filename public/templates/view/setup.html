@@ -1297,8 +1297,8 @@
         <div class="navbar-collapse">
             <ul class="nav navbar-nav navbar-right" role="tablist">
                 <repeat group="{{ @tplNavigation }}" key="{{ @navKey }}" value="{{ @navConfig }}">
-                    <li class="hide-before">
-                        <a class="page-scroll" data-anchor="#pf-setup-{{ @navKey }}" href="#"><i class="fas fa-fw {{ @navConfig.icon }}"></i>&nbsp;{{ lcfirst(@navKey) }}
+                    <li>
+                        <a class="page-scroll" data-target="pf-setup-{{ @navKey }}" href="#pf-setup-{{ @navKey }}"><i class="fas fa-fw {{ @navConfig.icon }}"></i>&nbsp;{{ lcfirst(@navKey) }}
                             <span class="badge txt-color txt-color-warning" title="warning" data-placement="bottom">{{ @tplCounter('get', @navKey . '_warning') }}</span>
                             <span class="badge txt-color txt-color-danger" title="error" data-placement="bottom">{{ @tplCounter('get', @navKey . '_danger') }}</span>
                         </a>
