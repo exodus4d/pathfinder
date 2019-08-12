@@ -840,7 +840,7 @@ define([
             let invalidSignatures = 0;
 
             for(let i = 0; i < signatureRows.length; i++){
-                let rowData = signatureRows[i].split(/\t/g);
+                let rowData = signatureRows[i].split(/\t|\s{4}/g);
                 if(rowData.length === 6){
                     // check if sig Type = anomaly or combat site
                     if(validSignatureNames.indexOf( rowData[1] ) !== -1){
