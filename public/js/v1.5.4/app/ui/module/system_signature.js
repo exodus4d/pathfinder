@@ -1131,7 +1131,7 @@ define([
      * @returns {*}
      */
     let getNeighboringCell = (tableApi, cell, columnSelector) => {
-        return tableApi.cell(tableApi.row(cell).index(), columnSelector);
+        return tableApi.cell(tableApi.cell(cell).index().row, columnSelector);
     };
 
     /**
@@ -1768,7 +1768,7 @@ define([
                     targets: 4,
                     name: 'description',
                     orderable: false,
-                    searchable: false,
+                    searchable: true,
                     title: 'description',
                     class: [config.tableCellFocusClass, config.tableCellActionClass].join(' '),
                     type: 'html',
