@@ -189,7 +189,7 @@ define([
                             html: '<i class="fas fa-fw fa-question-circle"></i>'
                         }),
                         $('<td>', {
-                            text: scopeLabel.charAt(0).toUpperCase() + scopeLabel.slice(1)
+                            text: scopeLabel.capitalize()
                         }),
                         $('<td>', {
                             class: ['text-right', config.connectionInfoTableCellConnectionClass].join(' ')
@@ -883,15 +883,11 @@ define([
 
                             if(rowData.active){
                                 let confirmationSettings = {
-                                    container: 'body',
-                                    placement: 'left',
-                                    btnCancelClass: 'btn btn-sm btn-default',
-                                    btnCancelLabel: 'cancel',
-                                    btnCancelIcon: 'fas fa-fw fa-ban',
                                     title: 'delete jump log',
-                                    btnOkClass: 'btn btn-sm btn-danger',
-                                    btnOkLabel: 'delete',
-                                    btnOkIcon: 'fas fa-fw fa-times',
+                                    template: Util.getConfirmationTemplate(null, {
+                                        size: 'small',
+                                        noTitle: true
+                                    }),
                                     onConfirm : function(e, target){
                                         // get current row data (important!)
                                         // -> "rowData" param is not current state, values are "on createCell()" state

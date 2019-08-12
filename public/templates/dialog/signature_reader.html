@@ -1,32 +1,79 @@
 <form role="form" class="form-horizontal">
     <div class="row">
-        <div class="col-sm-12">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="col-sm-2 control-label" for="form_result">Scan result</label>
-                <div class="col-sm-10">
-                    <textarea style="resize: vertical" rows="3"  id="form_result" name="clipboard" class="form-control custom-scroll" autofocus></textarea>
-                    <span class="help-block">
-                        Copy and paste signatures from your probe scanning window.<br>
-                        Hit <kbd>ctrl</kbd> + <kbd>c</kbd> (copy) then <kbd>ctrl</kbd> + <kbd>v</kbd> (paste).
-                        This tool can add and update signatures.
-                    </span>
-                </div>
+        <div class="col-xs-4 col-sm-3 col-md-2">
+            <h4><i class="fas fa-fw fa-cogs"></i>&nbsp;&nbsp;Update options</h4>
+
+            <div class="checkbox checkbox-warning">
+                <input id="{{sigReaderLazyUpdateId}}" name="deleteOld" value="1" type="checkbox" {{#sigInfoLazyUpdateStatus}}checked=""{{/sigInfoLazyUpdateStatus}}>
+                <label for="{{sigReaderLazyUpdateId}}">'lazy' delete&nbsp;
+                    (<i class="fas fa-fw fa-exchange-alt"></i>)
+                    <i class="fas fa-fw fa-question-circle pf-help-light" title="Delete saved signatures, not found in scan result"></i>
+                </label>
+            </div>
+
+            <i class="fas fa-tree-child"></i>
+
+            <div class="checkbox checkbox-danger">
+                <input id="{{sigReaderConnectionDeleteId}}" name="deleteConnection" value="1" type="checkbox">
+                <label for="{{sigReaderConnectionDeleteId}}">Delete 'leads to'
+                    <i class="fas fa-fw fa-question-circle pf-help-light" title="Delete 'leads to' connections from map, on signature delete"></i>
+                </label>
             </div>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="form-group" style="margin-bottom: 0;">
-                <div class="col-sm-offset-2 col-sm-10 col-xs-9">
-                    <div class="checkbox checkbox-warning">
-                        <input id="form_delete" name="deleteOld" value="1" type="checkbox">
-                        <label for="form_delete" title="delete saved signatures not found in scan result">'lazy' delete&nbsp;
-                            (<i class="fas fa-fw fa-exchange-alt"></i>)
-                        </label>
+        <div class="col-xs-8 col-sm-9 col-md-10">
+            <div class="form-group has-feedback" style="margin-bottom: 0;">
+                <label for="{{sigInfoTextareaId}}" class="col-sm-2 control-label">Scan result</label>
+                <div class="col-sm-10">
+                    <textarea id="{{sigInfoTextareaId}}" name="clipboard" class="form-control" rows="4" data-clipboard="rdd" data-required-error="Scan result can not be empty" required></textarea>
+                    <div class="help-block with-errors">
+                        Copy ( <kbd>ctrl</kbd> + <kbd>c</kbd> ) and paste ( <kbd>ctrl</kbd> + <kbd>v</kbd> ) scan result.
                     </div>
+                    <span class="fas form-control-feedback" aria-hidden="true"></span>
                 </div>
             </div>
         </div>
     </div>
 </form>
+
+<h4>
+    <i class="fas fa-eye fa-fw"></i>&nbsp;&nbsp;Preview&nbsp;&nbsp;
+    <span class="label label-default txt-color txt-color-warning bg-color bg-color-grayDarker">beta</span>
+    {{{sigInfoProgressElement}}}
+    <span class="progress-label-right">0%</span>
+</h4>
+
+<div id="{{sigInfoId}}" class="pf-dynamic-area"></div>
+
+<div class="row">
+    <div class="col-xs-8">
+        <div class="well well-sm">
+            <div class="row">
+                <div class="col-xs-3">Signatures:</div>
+                <div class="col-xs-3 text-right" title="New signatures found">
+                    new&nbsp;
+                    <kbd id="{{sigInfoCountSigNewId}}" class="txt-color" data-class="txt-color-success">0</kbd>
+                </div>
+                <div class="col-xs-3 text-right" title="Update signatures">
+                    change&nbsp;
+                    <kbd id="{{sigInfoCountSigChangeId}}" class="txt-color" data-class="txt-color-warning">0</kbd>
+                </div>
+                <div class="col-xs-3 text-right" title="Delete signatures">
+                    delete&nbsp;
+                    <kbd id="{{sigInfoCountSigDeleteId}}" class="txt-color" data-class="txt-color-red">0</kbd>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xs-4">
+        <div class="well well-sm">
+            <div class="row">
+                <div class="col-xs-6">Connections:</div>
+                <div class="col-xs-6 text-right" title="Delete linked connections">
+                    delete&nbsp;
+                    <kbd id="{{sigInfoCountConDeleteId}}" class="txt-color" data-class="txt-color-red">0</kbd>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

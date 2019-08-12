@@ -75,13 +75,11 @@ define([
         select2ImageLazyLoadClass: 'pf-select2-image-lazyLoad',
 
         // animation
-        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
-        animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
-        animationPulseDangerClass: 'pf-animation-pulse-danger',                 // animation class
+        animationPulseClassPrefix: 'pf-animation-pulse-',                       // class prefix for "pulse" background animation
 
         // popover
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
-        popoverSmallClass: 'pf-popover-small',                                  // class for small "popover"
+        popoverSmallClass: 'popover-small',                                     // class for small "popover"
         popoverCharacterClass: 'pf-popover-character',                          // class for character "popover"
 
         // Summernote
@@ -765,28 +763,30 @@ define([
     /**
      * highlight jquery elements
      * add/remove css class for keyframe animation
-     * @returns {any|JQuery|*}
+     * @param status
+     * @param keepVisible
+     * @param clear
+     * @returns {void|*|undefined}
      */
-    $.fn.pulseBackgroundColor = function(status, clear){
-
-        let animationClass = '';
+    $.fn.pulseBackgroundColor = function(status, keepVisible = false, clear = false){
+        let animationClass = config.animationPulseClassPrefix;
         switch(status){
-            case 'added':
-                animationClass = config.animationPulseSuccessClass;
-                break;
-            case 'changed':
-                animationClass = config.animationPulseWarningClass;
-                break;
-            case 'deleted':
-                animationClass = config.animationPulseDangerClass;
-                break;
+            case 'added': animationClass += 'success'; break;
+            case 'changed': animationClass += 'warning'; break;
+            case 'deleted': animationClass += 'danger'; break;
+            default: console.warn('Invalid status: %s', status);
+        }
+
+        // if keepVisible -> background color animation class will not be deleted
+        if(keepVisible){
+            animationClass += '-keep';
         }
 
         let clearTimer = element => {
-            element.removeClass( animationClass );
+            element.removeClass(animationClass);
             let currentTimer = element.data('animationTimer');
 
-            if( animationTimerCache.hasOwnProperty(currentTimer) ){
+            if(animationTimerCache.hasOwnProperty(currentTimer)){
                 clearTimeout( currentTimer );
                 delete animationTimerCache[currentTimer];
                 element.removeData('animationTimer');
@@ -796,18 +796,20 @@ define([
         return this.each(function(){
             let element = $(this);
 
-            if( element.hasClass(animationClass) ){
+            if(element.hasClass(animationClass)){
                 // clear timer -> set new timer
                 clearTimer(element);
             }
 
-            if(clear !== true){
+            if(!clear){
                 element.addClass(animationClass);
-                let timer = setTimeout(clearTimer, 1500, element);
-                element.data('animationTimer', timer);
-                animationTimerCache[timer] = true;
+                // remove class after animation finish, if not 'keepVisible'
+                if(!keepVisible){
+                    let timer = setTimeout(clearTimer, 1500, element);
+                    element.data('animationTimer', timer);
+                    animationTimerCache[timer] = true;
+                }
             }
-
         });
     };
 
@@ -969,6 +971,14 @@ define([
             return this.slice(0).sort((a,b) => {
                 return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
             });
+        };
+
+        /**
+         * capitalize first letter
+         * @returns {string}
+         */
+        String.prototype.capitalize = function(){
+            return this.charAt(0).toUpperCase() + this.slice(1);
         };
 
         /**
@@ -1159,6 +1169,52 @@ define([
     };
 
     /**
+     * get template for Bootstrap "Confirmation" popover plugin
+     * -> if HTML 'content' not set, we expect the default template
+     *    https://www.npmjs.com/package/bs-confirmation
+     * -> options.size for "small" popover layout
+     * -> options.noTitle for hide title element
+     * @param content
+     * @param options
+     * @returns {string}
+     */
+    let getConfirmationTemplate = (content, options) => {
+        let getButtons = () => {
+            let buttonHtml = '<div class="btn-group">';
+            buttonHtml += '<a data-apply="confirmation">Yes</a>';
+            buttonHtml += '<a data-dismiss="confirmation">No</a>';
+            buttonHtml += '</div>';
+            return buttonHtml;
+        };
+
+        let getContent = content => {
+            let contentHtml = content ? content : '';
+            contentHtml += '<div class="popover-footer">';
+            contentHtml += getButtons();
+            contentHtml += '</div>';
+            return contentHtml;
+        };
+
+        let popoverClass = ['popover'];
+        if('small' === getObjVal(options, 'size')){
+            popoverClass.push('popover-small');
+        }
+
+        let contentClass = ['popover-content', 'no-padding'];
+
+        let html = '<div class="' + popoverClass.join(' ') + '">';
+        html += '<div class="arrow"></div>';
+        if(true !== getObjVal(options, 'noTitle')){
+            html += '<h3 class="popover-title"></h3>';
+        }
+        html += '<div class="' + contentClass.join(' ') + '">';
+        html += getContent(content);
+        html += '</div>';
+        html += '</div>';
+        return html;
+    };
+
+    /**
      * convert XEditable Select <option> data into Select2 data format
      * -> "prepend" (empty) options get added, too
      * -> "metaData" can be used to pass custom data per <option>
@@ -1239,7 +1295,7 @@ define([
     };
 
     /**
-     * set default configuration for "Bootbox"
+     * set default configuration for "Bootbox" plugin
      */
     let initDefaultBootboxConfig = () => {
         bootbox.setDefaults({
@@ -1248,7 +1304,22 @@ define([
     };
 
     /**
-     * set default configuration for "Select2"
+     * set default configuration for "Confirmation" popover plugin
+     */
+    let initDefaultConfirmationConfig = () => {
+        $.fn.confirmation.Constructor.DEFAULTS.placement = 'left';
+        $.fn.confirmation.Constructor.DEFAULTS.container = 'body';
+        $.fn.confirmation.Constructor.DEFAULTS.btnCancelClass = 'btn btn-sm btn-default';
+        $.fn.confirmation.Constructor.DEFAULTS.btnCancelLabel = 'cancel';
+        $.fn.confirmation.Constructor.DEFAULTS.btnCancelIcon = 'fas fa-fw fa-ban';
+        $.fn.confirmation.Constructor.DEFAULTS.btnOkClass = 'btn btn-sm btn-danger';
+        $.fn.confirmation.Constructor.DEFAULTS.btnOkLabel = 'delete';
+        $.fn.confirmation.Constructor.DEFAULTS.btnOkIcon = 'fas fa-fw fa-times';
+        $.fn.confirmation.Constructor.DEFAULTS.template = getConfirmationTemplate();
+    };
+
+    /**
+     * set default configuration for "Select2" plugin
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
@@ -1372,7 +1443,7 @@ define([
     };
 
     /**
-     * set default configuration for "xEditable"
+     * set default configuration for "xEditable" plugin
      */
     let initDefaultEditableConfig = () => {
         // use fontAwesome buttons template
@@ -1462,7 +1533,7 @@ define([
         // Server is running with GMT/UTC (EVE Time)
         let localDate = new Date();
 
-        let serverDate= new Date(
+        let serverDate = new Date(
             localDate.getUTCFullYear(),
             localDate.getUTCMonth(),
             localDate.getUTCDate(),
@@ -1766,8 +1837,8 @@ define([
      * Request data from Server
      * -> This function should be used (in future) for all Ajax and REST API calls
      * -> works as a "wrapper" for jQueries ajax() method
-     * @param action
-     * @param entity
+     * @param {String} action
+     * @param {String} entity
      * @param ids
      * @param data
      * @param context
@@ -1779,7 +1850,7 @@ define([
         let requestExecutor = (resolve, reject) => {
             let payload = {
                 action: 'request',
-                name: action.toLowerCase() + entity.charAt(0).toUpperCase() + entity.slice(1)
+                name: action.toLowerCase() + entity.capitalize()
             };
 
             // build request url --------------------------------------------------------------------------------------
@@ -2206,7 +2277,7 @@ define([
                 let typeClass = '';
                 let matches = regex.exec(typeName.toLowerCase());
                 if(matches && matches[1]){
-                    typeName = matches[1].charAt(0).toUpperCase() + matches[1].slice(1);
+                    typeName = matches[1].capitalize();
                     typeClass = getPlanetInfo(matches[1]);
                 }
 
@@ -3356,6 +3427,7 @@ define([
         showVersionInfo: showVersionInfo,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
+        initDefaultConfirmationConfig: initDefaultConfirmationConfig,
         initDefaultSelect2Config: initDefaultSelect2Config,
         initDefaultEditableConfig: initDefaultEditableConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
@@ -3410,6 +3482,7 @@ define([
         getCurrentCharacterLog: getCurrentCharacterLog,
         findInViewport: findInViewport,
         initScrollSpy: initScrollSpy,
+        getConfirmationTemplate: getConfirmationTemplate,
         convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,

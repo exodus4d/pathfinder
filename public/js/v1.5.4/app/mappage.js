@@ -31,6 +31,9 @@ define([
         // set default dialog config
         Util.initDefaultBootboxConfig();
 
+        // set default confirmation popover config
+        Util.initDefaultConfirmationConfig();
+
         // set default select2 config
         Util.initDefaultSelect2Config();
 

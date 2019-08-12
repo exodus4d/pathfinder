@@ -141,15 +141,14 @@ define([
 
             // show Cookie accept hint on SSO login button
             let confirmationSettings = {
-                container: 'body',
                 placement: 'bottom',
-                btnOkClass: 'btn btn-sm btn-default',
-                btnOkLabel: 'dismiss',
-                btnOkIcon: 'fas fa-fw fa-sign-in-alt',
                 title: 'Accept cookies',
                 btnCancelClass: 'btn btn-sm btn-success',
                 btnCancelLabel: 'accept',
                 btnCancelIcon: 'fas fa-fw fa-check',
+                btnOkClass: 'btn btn-sm btn-default',
+                btnOkLabel: 'dismiss',
+                btnOkIcon: 'fas fa-fw fa-sign-in-alt',
                 onCancel: function(e, target){
                     // "Accept cookies"
                     setAcceptCookie();

@@ -18,7 +18,8 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
   - [wiki](https://github.com/exodus4d/pathfinder/wiki)
 - Developer [Slack](https://slack.com) chat:
   - https://pathfinder-eve-online.slack.com
-  - Please send me a mail for invite: pathfinder@exodus4d.de
+  - Join channel [pathfinder-eve-online.slack.com](https://join.slack.com/t/pathfinder-eve-online/shared_invite/enQtMzMyOTkyMjczMTA3LWI2NGE1OTY5ODBmNDZlMDY3MDIzYjk5ZTljM2JjZjIwNDRkNzMyMTEwMDUzOGQwM2E3ZjE1NGEwNThlMzYzY2Y)
+  - Can´t join? pathfinder@exodus4d.de
 
 **Feel free to check the code for bugs and security issues.
 Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
@@ -49,7 +50,7 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
       |-- app.js            --> require.js config (!required for production!)
   |-- [0777] logs/          --> log files
       |-- ...
-  | -- node_modules/        --> node.js modules (not used for production)
+  |-- node_modules/         --> node.js modules (not used for production)
       |-- ...
   |-- [0755] public/        --> frontend source
       |-- css/              --> CSS dist/build folder (minified)

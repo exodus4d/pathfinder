@@ -627,6 +627,11 @@
     }
   }
 
+  .badge{
+    color: $gray-lighter;
+    background-color: $gray-darker;
+  }
+
   // table
   table tr td {
     line-height: 1;

@@ -569,15 +569,11 @@ define([
                             $(cell).find('i').tooltip();
                         }else{
                             let confirmationSettings = {
-                                container: 'body',
-                                placement: 'left',
-                                btnCancelClass: 'btn btn-sm btn-default',
-                                btnCancelLabel: 'cancel',
-                                btnCancelIcon: 'fas fa-fw fa-ban',
                                 title: 'delete structure',
-                                btnOkClass: 'btn btn-sm btn-danger',
-                                btnOkLabel: 'delete',
-                                btnOkIcon: 'fas fa-fw fa-times',
+                                template: Util.getConfirmationTemplate(null, {
+                                    size: 'small',
+                                    noTitle: true
+                                }),
                                 onConfirm : function(e, target){
                                     // get current row data (important!)
                                     // -> "rowData" param is not current state, values are "on createCell()" state

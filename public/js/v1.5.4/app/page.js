@@ -853,6 +853,10 @@ define([
                 let modalElement = $(e.target);
                 modalElement.destroyTimestampCounter(true);
 
+                // destroy all form validators
+                // -> does not work properly. validation functions still used (js error) after 'destroy'
+                //modalElement.find('form').filter((i, form) => $(form).data('bs.validator')).validator('destroy');
+
                 // destroy all popovers
                 modalElement.find('.' + Util.config.popoverTriggerClass).popover('destroy');
 

@@ -56,7 +56,7 @@ class Signature extends AbstractRestController {
                             $data['groupId'] == 5 ||
                             $data['typeId'] == 0
                         ){
-                            unset( $data['typeId'] );
+                            unset($data['typeId']);
                         }
 
                         // "sig reader" should not overwrite signature group information
@@ -65,6 +65,7 @@ class Signature extends AbstractRestController {
                             $signature->groupId > 0
                         ){
                             unset($data['groupId']);
+                            unset($data['typeId']);
                         }
                     }
 
@@ -78,13 +79,20 @@ class Signature extends AbstractRestController {
 
                 // delete "old" signatures ----------------------------------------------------------------------------
                 if((bool)$requestData['deleteOld']){
+                    // if linked ConnectionModels should be deleted as well
+                    $deleteConnectionId = (bool)$requestData['deleteConnection'];
+
                     $updatedSignatureIds = array_column($signaturesData, 'id');
                     $signatures = $system->getSignatures();
                     foreach($signatures as $signature){
                         if(!in_array($signature->_id, $updatedSignatureIds)){
+                            // set if potential linked ConnectionModel should be deleted as well
+                            $signature->virtual('connectionIdDeleteCascade', $deleteConnectionId);
                             if($signature->delete()){
                                 $updateSignaturesHistory = true;
                             }
+                            // clear temp virtual field as well
+                            $signature->clearVirtual('connectionIdDeleteCascade');
                         }
                     }
                 }
@@ -190,6 +198,9 @@ class Signature extends AbstractRestController {
             $system->getById($systemId);
 
             if($system->hasAccess($activeCharacter)){
+                // if linked ConnectionModels should be deleted as well
+                $deleteConnectionId = (bool)$requestData['deleteConnection'];
+
                 // if there is any changed/deleted/updated signature
                 // -> we need to update signature history data for the system
                 $updateSignaturesHistory = false;
@@ -202,11 +213,15 @@ class Signature extends AbstractRestController {
                     $signature->getById($signatureId);
                     // make sure signature belongs to main system (user has access)
                     if($signature->get('systemId', true) == $systemId){
+                        // set if potential linked ConnectionModel should be deleted as well
+                        $signature->virtual('connectionIdDeleteCascade', $deleteConnectionId);
                         if($signature->delete()){
                             $deletedSignatureIds[] = $signatureId;
                             $updateSignaturesHistory = true;
                         }
                         $signature->reset();
+                        // clear temp virtual field as well
+                        $signature->clearVirtual('connectionIdDeleteCascade');
                     }
                 }
 

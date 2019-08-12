@@ -40,6 +40,10 @@ em{
   }
 }
 
+.pf-font-uppercase{
+  text-transform: uppercase;
+}
+
 .pf-font-capitalize{
   text-transform: capitalize;
 }
@@ -54,6 +58,15 @@ em{
     font-weight: bold;
     content: attr(data-char-content);
   }
+}
+
+.fa-tree-child{
+  @extend .fa-fw;
+  @extend .fa-lg;
+  @extend .fa-level-up-alt;
+  @extend .fa-rotate-90;
+  color: $gray-light;
+  padding-right: 5px;
 }
 
 .no-scroll{
@@ -141,6 +154,7 @@ em{
 
 .pf-help-default{
   cursor: help;
+  pointer-events: auto;   // enable mouse events even if a parent was set to 'none' (e.g. disabled xEditable cells in sig-reader dialog table)
   @include transition( color 0.08s ease-out );
 
   &:hover{
@@ -196,10 +210,6 @@ a{
 // form fields custom styles ======================================================================
 .editable-input{
 
-  .pf-editable-name{
-    text-transform: uppercase;
-  }
-
   optgroup[label]{
     background-color: $gray;
     color: $gray-light;
@@ -229,6 +239,10 @@ a{
 
     .pf-editable-unknown[value='0'] + span {
       color: $red;
+    }
+
+    .pf-editable-warn + span {
+      color: $orange;
     }
   }
 }
@@ -283,6 +297,12 @@ select:active, select:hover {
   .dataTables_length select{
     margin: 0 3px;  // <select> for page size
     padding: 1px;
+  }
+
+  .pf-table-toolbar-status{
+    text-align: center;
+    line-height: 22px;
+    color: $gray-light;
   }
 
   .dt-buttons,

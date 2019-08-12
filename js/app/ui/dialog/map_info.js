@@ -56,18 +56,6 @@ define([
         }
     };
 
-    // confirmation dialog settings (e.g. delete row)
-    let confirmationSettings = {
-        container: 'body',
-        placement: 'left',
-        btnCancelClass: 'btn btn-sm btn-default',
-        btnCancelLabel: 'cancel',
-        btnCancelIcon: 'fas fa-fw fa-ban',
-        btnOkClass: 'btn btn-sm btn-danger',
-        btnOkLabel: 'delete',
-        btnOkIcon: 'fas fa-fw fa-times'
-    };
-
     /**
      * get icon that marks a table cell as clickable
      * @returns {string}
@@ -456,44 +444,49 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
-                        let tempConfirmationSettings = confirmationSettings;
-                        tempConfirmationSettings.title = 'Delete system';
-                        tempConfirmationSettings.onConfirm = function(e, target){
-                            let deleteRowElement = $(target).parents('tr');
+                        let confirmationSettings = {
+                            placement: 'left',
+                            title: 'Delete system',
+                            template: Util.getConfirmationTemplate(null, {
+                                size: 'small',
+                                noTitle: true
+                            }),
+                            onConfirm: function(e, target){
+                                let deleteRowElement = $(target).parents('tr');
 
-                            let activeMap = Util.getMapModule().getActiveMap();
-                            let systemElement = $('#' + MapUtil.getSystemId(mapData.config.id, rowData.id) );
+                                let activeMap = Util.getMapModule().getActiveMap();
+                                let systemElement = $('#' + MapUtil.getSystemId(mapData.config.id, rowData.id) );
 
-                            if(systemElement.length){
-                                // trigger system delete event
-                                activeMap.trigger('pf:deleteSystems', [{
-                                    systems: [systemElement[0]],
-                                    callback: function(deletedSystems){
-                                        // callback function after ajax "delete" success
-                                        // check if system was deleted
-                                        if(deletedSystems.length === 1){
-                                            // remove table row
-                                            tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                if(systemElement.length){
+                                    // trigger system delete event
+                                    activeMap.trigger('pf:deleteSystems', [{
+                                        systems: [systemElement[0]],
+                                        callback: function(deletedSystems){
+                                            // callback function after ajax "delete" success
+                                            // check if system was deleted
+                                            if(deletedSystems.length === 1){
+                                                // remove table row
+                                                tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
 
-                                            Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
+                                                Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
-                                            // refresh connection table (connections might have changed) --------------
-                                            let connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                            let mapDataNew = activeMap.getMapDataFromClient(['hasId']);
+                                                // refresh connection table (connections might have changed) --------------
+                                                let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                                let mapDataNew = activeMap.getMapDataFromClient(['hasId']);
 
-                                            connectionsElement.initConnectionInfoTable(mapDataNew);
-                                        }else{
-                                            // error
-                                            Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
+                                                connectionsElement.initConnectionInfoTable(mapDataNew);
+                                            }else{
+                                                // error
+                                                Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
+                                            }
                                         }
-                                    }
-                                }]);
+                                    }]);
+                                }
                             }
                         };
 
                         // init confirmation dialog
-                        $(cell).confirmation(tempConfirmationSettings);
-
+                        $(cell).confirmation(confirmationSettings);
                     }
                 }
             ],
@@ -652,23 +645,29 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
-                        let tempConfirmationSettings = confirmationSettings;
-                        tempConfirmationSettings.title = 'Delete connection';
-                        tempConfirmationSettings.onConfirm = function(e, target){
-                            let deleteRowElement = $(target).parents('tr');
+                        let confirmationSettings = {
+                            placement: 'left',
+                            title: 'Delete connection',
+                            template: Util.getConfirmationTemplate(null, {
+                                size: 'small',
+                                noTitle: true
+                            }),
+                            onConfirm: function(e, target){
+                                let deleteRowElement = $(target).parents('tr');
 
-                            // deleteSignatures(row);
-                            let connection = $().getConnectionById(mapData.config.id, rowData.id);
+                                // deleteSignatures(row);
+                                let connection = $().getConnectionById(mapData.config.id, rowData.id);
 
-                            MapUtil.deleteConnections([connection], () => {
-                                // callback function after ajax "delete" success
-                                // remove table row
-                                tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
-                            });
+                                MapUtil.deleteConnections([connection], () => {
+                                    // callback function after ajax "delete" success
+                                    // remove table row
+                                    tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                });
+                            }
                         };
 
                         // init confirmation dialog
-                        $(cell).confirmation(tempConfirmationSettings);
+                        $(cell).confirmation(confirmationSettings);
                     }
                 }
             ],

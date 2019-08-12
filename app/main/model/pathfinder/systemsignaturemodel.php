@@ -278,6 +278,13 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      */
     public function afterEraseEvent($self, $pkeys){
         $self->logActivity('signatureDelete');
+
+        if(
+            $self->connectionIdDeleteCascade === true &&
+            ($connection = $self->getConnection())
+        ){
+            $connection->erase();
+        }
     }
 
     /**
