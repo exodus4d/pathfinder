@@ -1,0 +1,242 @@
+# nginx Configuration File
+# http://wiki.nginx.org/Configuration
+
+# Run as a less privileged user for security reasons.
+# user www-data www-data;
+
+# How many worker threads to run;
+# "auto" sets it to the number of CPU cores available in the system, and
+# offers the best performance. Don't set it higher than the number of CPU
+# cores if changing this parameter.
+
+# The maximum number of connections for Nginx is calculated by:
+# max_clients = worker_processes * worker_connections
+# (2 Cores = 4 processes) check cores: grep processor /proc/cpuinfo | wc -l
+#worker_processes auto;
+worker_processes 4;
+
+# Maximum open file descriptors per process;
+# should be > worker_connections.
+worker_rlimit_nofile 20000;
+
+events {
+  # The worker_connections command tells our worker processes how many people can simultaneously be served by Nginx.
+  # When you need > 8000 * cpu_cores connections, you start optimizing your OS,
+  # and this is probably the point at which you hire people who are smarter than
+  # you, as this is *a lot* of requests.
+  # worker_connections 768;
+  worker_connections            19000;
+  multi_accept                  on;
+  use                           epoll;
+}
+
+# Default error log file
+# (this is only used when you don't override error_log on a server{} level)
+error_log  /dev/stdout warn;
+pid        /var/run/nginx.pid;
+
+
+http {
+
+  # Hide nginx version information.
+  server_tokens on;
+
+  # Define the MIME types for files.
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+
+  # Update charset_types due to updated mime.types
+  charset_types text/css text/plain text/vnd.wap.wml application/javascript application/json application/rss+xml application/xml;
+
+  # Speed up file transfers by using sendfile() to copy directly
+  # between descriptors rather than using read()/write().
+  # For performance reasons, on FreeBSD systems w/ ZFS
+  # this option should be disabled as ZFS's ARC caches
+  # frequently used files in RAM by default.
+  sendfile        on;
+
+  # Tell Nginx not to send out partial frames; this increases throughput
+  # since TCP frames are filled up before being sent out. (adds TCP_CORK)
+  tcp_nopush      off;
+
+  # Send packages immediately (on). Otherwise nginx will "wait" 200ms for additional data to fullfill a package.
+  tcp_nodelay     on;
+
+  # Timeouts ==================================================================================================================
+
+  # 'Body' and 'Header' max response timings. If neither a body or header is sent, the server will issue a 408 error or Request time out. (Default: 60s)
+  client_body_timeout 12;
+  client_header_timeout 12;
+
+  # Assigns the timeout for keep-alive connections with the client.
+  # Simply put, Nginx will close connections with the client after this period of time.(Default: 65)
+  keepalive_timeout 20s;
+
+  # Finally, the send_timeout is established not on the entire transfer of answer, but only between two operations of reading;
+  # if after this time client will take nothing, then Nginx is shutting down the connection.
+  send_timeout 10s;
+
+  # Sets a timeout for name resolution. (Default: 30s)
+  resolver_timeout 5s;
+
+  # Timeout period for connection with FastCGI-server. It should be noted that this value can't exceed 75 seconds. (Default: 60s)
+  fastcgi_connect_timeout 5s;
+
+  # Amount of time for upstream to wait for a fastcgi process to send data.
+  # Change this directive if you have long running fastcgi processes that do not produce output until they have finished processing.
+  # If you are seeing an upstream timed out error in the error log, then increase this parameter to something more appropriate. (Default: 60s)
+  fastcgi_read_timeout 40s;
+
+  # Request timeout to the server. The timeout is calculated between two write operations, not for the whole request.
+  # If no data have been written during this period then serve closes the connection. (Default: 60s)
+  fastcgi_send_timeout  15s;
+
+  # WebSockets ===============================================================================================================
+
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+  }
+
+  upstream ws_dev_map_update {
+    server 127.0.0.1:8020;
+  }
+
+  upstream ws_prod_map_update {
+    server 127.0.0.1:8030;
+  }
+
+  # Buffer ====================================================================================================================
+
+  # Similar to the previous directive, only instead it handles the client header size.
+  # For all intents and purposes, 1K is usually a decent size for this directive.
+  client_header_buffer_size 1k;
+
+  # The maximum number and size of buffers for large client headers.
+  large_client_header_buffers 4 4k;
+
+  # The maximum allowed size for a client request. If the maximum size is exceeded, then Nginx will spit out a 413 error or Request Entity Too Large. (Default: 1m)
+  # php max upload limit cannot be larger than this
+  client_max_body_size 8m;
+
+  # This handles the client buffer size, meaning any POST actions sent to Nginx. POST actions are typically form submissions.
+  client_body_buffer_size 32k;
+
+  output_buffers                        2 32k;
+
+  fastcgi_buffering                     on;
+  fastcgi_buffers                       8 32k;
+  fastcgi_buffer_size                   32k;
+
+  # Caching ==================================================================================================================
+
+  # Above sample tells nginx to cache a file information as long as minimum 2 requests are made during 5m window.
+  open_file_cache                       max=10000 inactive=5m;
+  open_file_cache_valid                 2m;
+  open_file_cache_min_uses              1;
+  open_file_cache_errors                on;
+
+  # Fast CGI
+  # fastcgi_cache_path /etc/nginx/cache levels=1:2 keys_zone=MYAPP:100m inactive=60m;
+  # fastcgi_cache_key "$scheme$request_method$host$request_uri";
+
+  # Logging ===================================================================================================================
+
+  # Format to use in log files
+  log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+  # Extended Logging (e.g. for Nginx Aplify log graphs)
+  log_format  main_ext  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for" '
+                      '"$host" sn="$server_name" '
+                      'rt=$request_time '
+                      'ua="$upstream_addr" us="$upstream_status" '
+                      'ut="$upstream_response_time" ul="$upstream_response_length" '
+                      'cs=$upstream_cache_status' ;
+
+  # This excludes 2xx and 3xx status codes from beeing loged
+  map $status $loggable {
+    ~^[23]  0;
+    default 1;
+  }
+
+  # logs just 5xxx errors
+  map $status $log_production {
+    ~^[1234]  0;
+    default 1;
+  }
+
+  # Default log file
+  # (this is only used when you don't override access_log on a server{} level)
+  access_log /dev/stdout main if=$loggable;
+
+  # Compression ===============================================================================================================
+
+  # Enable Gzip compressed.
+  gzip on;
+
+  # Compression level (1-9).
+  # 5 is a perfect compromise between size and cpu usage, offering about
+  # 75% reduction for most ascii files (almost identical to level 9).
+  gzip_comp_level    5;
+
+  # Don't compress anything that's already small and unlikely to shrink much
+  # if at all (the default is 20 bytes, which is bad as that usually leads to
+  # larger files after gzipping).
+  gzip_min_length    256;
+
+  # Compress data even for clients that are connecting to us via proxies,
+  # identified by the "Via" header (required for CloudFront).
+  # gzip_proxied expired no-cache no-store private auth;
+  gzip_proxied       any;
+
+  # Tell proxies to cache both the gzipped and regular version of a resource
+  # whenever the client's Accept-Encoding capabilities header varies;
+  # Avoids the issue where a non-gzip capable client (which is extremely rare
+  # today) would display gibberish if their proxy gave them the gzipped version.
+  gzip_vary          on;
+
+  # Compress all output labeled with one of the following MIME-types.
+  gzip_types
+    application/atom+xml
+    application/javascript
+    application/json
+    application/ld+json
+    application/manifest+json
+    application/rss+xml
+    application/vnd.geo+json
+    application/vnd.ms-fontobject
+    application/x-font-ttf
+    application/x-web-app-manifest+json
+    application/xhtml+xml
+    application/xml
+    font/opentype
+    image/bmp
+    image/svg+xml
+    image/x-icon
+    text/cache-manifest
+    text/css
+    text/plain
+    text/vcard
+    text/vnd.rim.location.xloc
+    text/vtt
+    text/x-component
+    text/x-cross-domain-policy;
+    # text/html;
+
+  # This should be turned on if you are going to have pre-compressed copies (.gz) of
+  # static files available. If not it should be left off as it will cause extra I/O
+  # for the check. It is best if you enable this in a location{} block for
+  # a specific directory, or on an individual server{} level.
+  gzip_static off;
+
+  # Include files in the sites-enabled folder. server{} configuration files should be
+  # placed in the sites-available folder, and then the configuration should be enabled
+  # by creating a symlink to it in the sites-enabled folder.
+  # See doc/sites-enabled.md for more info.
+  # include /etc/nginx/conf.d/*.conf;
+  # include /etc/nginx/sites_enabled/*.conf;
+}
