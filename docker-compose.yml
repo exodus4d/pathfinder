@@ -1,0 +1,72 @@
+version: "3.7"
+services:
+  php-fpm:
+    container_name: pathfinder-php-fpm
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile
+    volumes:
+      - ./.docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./.docker/php/php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - web
+  nginx:
+    container_name: pathfinder-nginx
+    build:
+      context: .
+      dockerfile: ./.docker/nginx/Dockerfile
+    environment:
+      - SETUP_PASS=password
+      - SETUP_USER=critmebaby
+    networks:
+      - web
+    labels:
+      - "traefik.frontend.rule=Host:tripwire.critical-horizon.com"
+      - "traefik.docker.network=web"
+      - "traefik.port=80"
+      - "traefik.enable=true"
+  mysql:
+    container_name: pathfinder-mysql
+    image: mysql:5.7
+    volumes:
+      - ./.docker/mysql/aa_init.sql:/docker-entrypoint-initdb.d/aa_init.sql
+      - ./export/sql/bb_eve_universe.sql:/eve_universe.sql
+      - mysql_data:/var/lib/mysql
+    networks:
+      - web
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+  redis:
+    container_name: pathfinder-redis
+    image: redis:5.0.5-alpine
+    volumes:
+      - ./.docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis_data:/data
+    networks:
+      - web
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--appendonly yes"]
+  websocket:
+    container_name: pathfinder-websocket
+    build:
+      context: ./.docker/websocket
+      dockerfile: Dockerfile
+    ports:
+      - 8020:8020
+      - 8030:8030
+      - 5555:5555
+    networks:
+      - web
+    command: ["php", "/opt/app/cmd.php", "--debug", "3"]
+  # Development Only
+  adminer:
+    image: adminer
+    ports:
+      - 8081:8080
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  web:
+    external: true
