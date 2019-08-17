@@ -25,6 +25,40 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
 
 ***
 
+## Docker
+### In this stack
+- Redis
+- PHP-fpm
+- Nginx
+- MySQL
+- Pathfinder Websocket (PHP)
+
+## Docker Setup and Installation
+
+- Install Docker from docker.com
+
+```sh
+curl -fsSL https://get.docker.com -o get-docker.sh
+
+sudo sh get-docker.sh
+```
+- Clone the repo
+
+```
+git clone https://github.com/insuusvenerati/pathfinder
+```
+
+- Edit the required files to configure
+  - `app/environment.ini` - SSO and DB Information
+  - `app/pathfinder.ini` - Pathfinder specific information
+  - `app/routes.ini` - Uncomment the setup route to install / Recomment after setup done
+  - `docker-compose.yml` - Docker environment configuration
+    - See https://docs.docker.com/compose/compose-file/
+
+> See the Pathfinder Wiki for information regarding the configuration options
+
+***
+
 ### Project structure
 
 ```
