@@ -1,0 +1,3 @@
+[submodule ".docker/websocket"]
+	path = .docker/websocket
+	url = https://github.com/insuusvenerati/pathfinder_websocket
