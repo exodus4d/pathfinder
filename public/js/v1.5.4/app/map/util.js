@@ -806,10 +806,9 @@ define([
 
         // collect all required data from map module to update the info element
         // store them global and assessable for each module
-        Util.setCurrentSystemData({
-            systemData: system.getSystemData(),
-            mapId: parseInt( system.attr('data-mapid') )
-        });
+        let systemData = system.getSystemData();
+        systemData.mapId = parseInt(system.attr('data-mapid')) || 0;
+        Util.setCurrentSystemData(systemData);
     };
 
     /**
@@ -1869,10 +1868,10 @@ define([
                 if(tooltipData.maxStableTime){
                     data.maxStableTime = tooltipData.maxStableTime + ' h';
                 }
-                if(tooltipData.signatureStrength){
-                    data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString() + '&nbsp;&#37;';
+                if(tooltipData.scanWormholeStrength){
+                    data.scanWormholeStrength = parseFloat(tooltipData.scanWormholeStrength).toLocaleString() + '&nbsp;&#37;';
                 }else{
-                    data.signatureStrength = '<span class="txt-color txt-color-grayLight">unknown</span>';
+                    data.scanWormholeStrength = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
 
                 let title = tooltipData.name;

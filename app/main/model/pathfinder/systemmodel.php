@@ -161,80 +161,78 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * get map data as object
      * @return \stdClass
-     * @throws \Exception
      */
     public function getData(){
-
         // check if there is cached data
-        $systemData = $this->getCacheData();
-
-        if(is_null($systemData)){
-            // no cached system data found
-
-            $systemData                         = (object) [];
-            $systemData->id                     = $this->_id;
-            $systemData->mapId                  = is_object($this->mapId) ? $this->get('mapId', true) : 0;
-            $systemData->systemId               = $this->systemId;
-            $systemData->alias                  = $this->alias;
+        if(is_null($data = $this->getCacheData())){
+            $data                           = (object) [];
+            $data->id                       = $this->_id;
+            $data->mapId                    = is_object($this->mapId) ? $this->get('mapId', true) : 0;
+            $data->systemId                 = $this->systemId;
+            $data->alias                    = $this->alias;
 
             if(is_object($this->typeId)){
-                $systemData->type               = $this->typeId->getData();
+                $data->type                 = $this->typeId->getData();
             }
 
             if(is_object($this->statusId)){
-                $systemData->status             = $this->statusId->getData();
+                $data->status               = $this->statusId->getData();
             }
 
-            $systemData->locked                 = $this->locked;
-            $systemData->rallyUpdated           = strtotime($this->rallyUpdated);
-            $systemData->rallyPoke              = $this->rallyPoke;
-            $systemData->description            = $this->description ? : '';
+            $data->locked                   = $this->locked;
+            $data->rallyUpdated             = strtotime($this->rallyUpdated);
+            $data->rallyPoke                = $this->rallyPoke;
+            $data->description              = $this->description ? : '';
 
-            $systemData->position               = (object) [];
-            $systemData->position->x            = $this->posX;
-            $systemData->position->y            = $this->posY;
+            $data->position                 = (object) [];
+            $data->position->x              = $this->posX;
+            $data->position->y              = $this->posY;
 
-            $systemData->created                = (object) [];
-            $systemData->created->created       = strtotime($this->created);
+            $data->created                  = (object) [];
+            $data->created->created         = strtotime($this->created);
             if(is_object($this->createdCharacterId)){
-                $systemData->created->character = $this->createdCharacterId->getData();
+                $data->created->character   = $this->createdCharacterId->getData();
             }
 
-            $systemData->updated                = (object) [];
-            $systemData->updated->updated       = strtotime($this->updated);
+            $data->updated                  = (object) [];
+            $data->updated->updated         = strtotime($this->updated);
             if(is_object($this->updatedCharacterId)){
-                $systemData->updated->character = $this->updatedCharacterId->getData();
+                $data->updated->character   = $this->updatedCharacterId->getData();
             }
 
             // static system data -------------------------------------------------------------------------------------
-            $systemData->name                   = $this->name;
-            $systemData->security               = $this->security;
-            $systemData->trueSec                = $this->trueSec;
-            $systemData->effect                 = $this->effect;
-            $systemData->shattered              = $this->shattered;
+            $data->name                     = $this->name;
+            $data->security                 = $this->security;
+            $data->trueSec                  = $this->trueSec;
+            $data->effect                   = $this->effect;
+            $data->shattered                = $this->shattered;
 
-            $systemData->constellation          = (object) [];
-            $systemData->constellation->id      = $this->constellationId;
-            $systemData->constellation->name    = $this->constellation;
+            $data->constellation            = (object) [];
+            $data->constellation->id        = $this->constellationId;
+            $data->constellation->name      = $this->constellation;
 
-            $systemData->region                 = (object) [];
-            $systemData->region->id             = $this->regionId;
-            $systemData->region->name           = $this->region;
+            $data->region                   = (object) [];
+            $data->region->id               = $this->regionId;
+            $data->region->name             = $this->region;
 
-            $systemData->planets                = $this->planets ? : [];
-            $systemData->statics                = $this->statics ? : [];
+            $data->planets                  = $this->planets ? : [];
+            $data->statics                  = $this->statics ? : [];
 
-            if(is_object($this->faction)){
-                $systemData->faction            = $this->faction;
+            if(is_object($sovereignty = $this->sovereignty)){
+                $data->sovereignty          = $sovereignty;
+            }
+
+            if(is_object($factionWar = $this->factionWar)){
+                $data->factionWar           = $factionWar;
             }
 
             // max caching time for a system
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($systemData);
+            $this->updateCacheData($data);
         }
 
-        return $systemData;
+        return $data;
     }
 
     /**
@@ -435,10 +433,6 @@ class SystemModel extends AbstractMapTrackingModel {
         return ($constellationData && $constellationData->region) ? $constellationData->region->name : null;
     }
 
-    public function get_faction(){
-        return $this->getStaticSystemValue('faction');
-    }
-
     public function get_security(){
         return $this->getStaticSystemValue('security');
     }
@@ -461,6 +455,14 @@ class SystemModel extends AbstractMapTrackingModel {
 
     public function get_planets(){
         return $this->getStaticSystemValue('planets');
+    }
+
+    public function get_sovereignty(){
+        return $this->getStaticSystemValue('sovereignty');
+    }
+
+    public function get_factionWar(){
+        return $this->getStaticSystemValue('factionWar');
     }
 
     /**
@@ -652,7 +654,7 @@ class SystemModel extends AbstractMapTrackingModel {
      * @return \stdClass[]
      */
     public function getStructuresData() : array {
-        return $this->getMap()->getStructuresData([$this->systemId]);
+        return $this->getMap()->getStructuresData($this->systemId);
     }
 
     /**

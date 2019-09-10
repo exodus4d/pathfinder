@@ -93,6 +93,7 @@ define([
             let url = '/api/setup/' + element.attr('data-action');
             sendRequest(url, {
                 type: element.attr('data-type'),
+                countAll: element.attr('data-countall'),
                 count: 0,
                 offset: 0
             }, {
@@ -116,15 +117,21 @@ define([
      * @param responseData
      */
     let updateIndexCount = (context, responseData) => {
-        let countElement = context.target.closest('.row').children().eq(1).find('kbd');
+        let countElement = context.target.closest('tr').children().eq(1).find('kbd');
         countElement.text(responseData.countBuildAll + '/' + responseData.countAll);
         countElement.removeClass('txt-color-success txt-color-danger txt-color-warning');
-        if(responseData.countBuildAll >=responseData.countAll){
+        if(responseData.countBuildAll >= responseData.countAll){
             countElement.addClass('txt-color-success');
         }else if(responseData.countBuildAll > 0){
             countElement.addClass('txt-color-warning');
         }else{
             countElement.addClass('txt-color-danger');
+        }
+
+        // update 'subCount' element (shows e.g. invType count)
+        if(responseData.subCount){
+            let subCountElement = context.target.closest('tr').children().eq(2).find('kbd');
+            subCountElement.text(responseData.subCount.countBuildAll + '/' + subCountElement.attr('data-countall'));
         }
 
         context.target.find('.btn-progress').html('&nbsp;&nbsp;' + responseData.progress + '%').css('width', responseData.progress + '%');
@@ -136,6 +143,7 @@ define([
         ){
             sendRequest(context.url, {
                 type: responseData.type,
+                countAll: responseData.countAll,
                 count: responseData.count,
                 offset: responseData.offset
             }, {

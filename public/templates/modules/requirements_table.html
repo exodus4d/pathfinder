@@ -38,7 +38,7 @@
                     </check>
 
                     <td
-                            class="{{ isset(@requirement.required) ? 'text-right col-md-3 text-right' : 'text-right col-md-6 text-right' }}"
+                            class="{{ isset(@requirement.required) ? 'text-right col-xs-2 col-md-3 text-right' : 'text-right col-xs-4 col-md-6 text-right' }}"
                             colspan="{{ isset(@requirement.required) ? '1' : '2' }}"
                     >
                         <check if="{{ @requirement.check }}">
@@ -55,7 +55,7 @@
 
                     <check if="{{ @requirement.task }}">
                         <true>
-                            <td class="text-right col-md-2 no-padding text-right">
+                            <td class="text-right col-xs-{{ count(@requirement.task) * 2 }} col-md-{{ count(@requirement.task) * 2 }} no-padding text-right">
                                 <div class="btn-group btn-group-justified">
                                     <repeat group="{{ @requirement.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
                                         <a href="?{{ @taskData.action }}" class="btn btn-default {{ @taskData.btn }}" role="button">
@@ -67,7 +67,7 @@
                         </true>
                         <false>
                             {* no task data *}
-                            <td class="text-right col-md-1">
+                            <td class="text-right col-sm-1 col-md-1">
                                 <check if="{{ @requirement.check }}">
                                     <true>
                                         {* Check ok *}

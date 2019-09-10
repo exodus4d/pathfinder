@@ -38,19 +38,19 @@ define([
 
             switch(data.categoryType){
                 case 'character':
-                    imagePath = Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg';
+                    imagePath = Util.eveImageUrl('character', data.id);
                     break;
                 case 'corporation':
-                    imagePath = Init.url.ccpImageServer + '/Corporation/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('corporation', data.id);
                     break;
                 case 'alliance':
-                    imagePath = Init.url.ccpImageServer + '/Alliance/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('alliance', data.id);
                     break;
                 case 'inventoryType':
-                    imagePath = Init.url.ccpImageServer + '/Type/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('type', data.id);
                     break;
                 case 'render':
-                    imagePath = Init.url.ccpImageServer + '/Render/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('render', data.id);
                     break;
                 case 'station':
                     iconName = 'fa-home';

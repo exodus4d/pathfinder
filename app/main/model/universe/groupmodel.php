@@ -12,8 +12,19 @@ use DB\SQL\Schema;
 
 class GroupModel extends AbstractUniverseModel {
 
-    protected $table = 'group';
+    /**
+     * @var string
+     */
+    protected $table                        = 'group';
 
+    /**
+     * @var bool
+     */
+    public $storeDogmaAttributes            = TypeModel::DEFAULT_STORE_DOGMA_ATTRIBUTES;
+
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,
@@ -50,7 +61,7 @@ class GroupModel extends AbstractUniverseModel {
      */
     public function getData(array $additionalData = []){
         $groupData = (object) [];
-        $groupData->id = $this->id;
+        $groupData->id = $this->_id;
         $groupData->name = $this->name;
 
         if($typesData = $this->getTypesData($additionalData)){
@@ -65,7 +76,7 @@ class GroupModel extends AbstractUniverseModel {
      * @param bool $published
      * @return array|mixed
      */
-    protected function getTypes(bool $published = true){
+    public function getTypes(bool $published = true){
         $types = [];
         if($published){
             $this->filter('types', [
@@ -102,7 +113,7 @@ class GroupModel extends AbstractUniverseModel {
      * @return int
      */
     public function getTypesCount(bool $published = true) : int {
-        return $this->dry() ? 0 : count($this->getTypes($published));
+        return $this->valid() ? count($this->getTypes($published)) : 0;
     }
 
     /**
@@ -111,8 +122,7 @@ class GroupModel extends AbstractUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient()->getUniverseGroupData($id);
-        if(!empty($data)){
+        if(!empty($data = self::getUniverseGroupData($id))){
             /**
              * @var $category CategoryModel
              */
@@ -127,24 +137,62 @@ class GroupModel extends AbstractUniverseModel {
 
     /**
      * load types data for this group
-     * @return int
+     * @param int $offset
+     * @param int $length   0 -> all types
+     * @return array
      */
-    public function loadTypesData(){
-        $count = 0;
-        if( !$this->dry() ){
-            $data = self::getF3()->ccpClient()->getUniverseGroupData($this->_id);
-            if(!empty($data)){
-                foreach((array)$data['types'] as $typeId){
-                    /**
-                     * @var $type TypeModel
-                     */
-                    $type = $this->rel('types');
-                    $type->loadById($typeId);
-                    $type->reset();
-                    $count++;
-                }
+    public function loadTypesData(int $offset = 0, int $length = 0) : array {
+        $info = ['countAll' => 0, 'countChunk' => 0, 'count' => 0, 'offset' => $offset];
+
+        if(
+            $this->valid() &&
+            !empty($data = self::getUniverseGroupData($this->_id))
+        ){
+            $info['countAll'] = count($data['types']);
+
+            array_multisort($data['types'], SORT_ASC, SORT_NUMERIC);
+            if($length){
+                $data['types'] = array_slice($data['types'], $offset, $length);
+            }
+
+            $info['countChunk'] = count($data['types']);
+            foreach($data['types'] as $typeId){
+                /**
+                 * @var $type TypeModel
+                 */
+                $type = $this->rel('types');
+                $type->storeDogmaAttributes = $this->storeDogmaAttributes;
+                $type->loadById($typeId);
+                $type->reset();
+
+                $info['count']++;
+                $info['offset']++;
             }
         }
-        return $count;
+
+        return $info;
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public static function getUniverseGroupData(int $id) : array {
+        return self::getF3()->ccpClient()->getUniverseGroupData($id);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getUniverseGroups() : array {
+        return self::getF3()->ccpClient()->getUniverseGroups();
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public static function getUniverseGroupTypes(int $id) : array {
+        return empty($data = self::getUniverseGroupData($id)) ? [] : $data['types'];
     }
 }

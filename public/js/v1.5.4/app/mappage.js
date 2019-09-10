@@ -447,7 +447,7 @@ define([
                                     // start user update trigger after map loaded
                                     updateTimeouts.userUpdate = setTimeout(() => {
                                         triggerUserUpdatePing();
-                                    }, 1000);
+                                    }, 500);
                                 }
                             });
                         }

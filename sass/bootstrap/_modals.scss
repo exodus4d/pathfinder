@@ -107,8 +107,9 @@
   position: relative;
   padding: $modal-inner-padding;
   color: $gray-lighter;
-  border-left: 1px solid $modal-content-bg;
-  border-right: 1px solid $modal-content-bg;
+  //border-left: 1px solid $modal-content-bg;
+  //border-right: 1px solid $modal-content-bg;
+  border: none;
 }
 
 // Footer (for actions)

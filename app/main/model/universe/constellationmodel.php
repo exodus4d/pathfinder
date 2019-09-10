@@ -55,6 +55,9 @@ class ConstellationModel extends AbstractUniverseModel {
         ],
         'systems' => [
             'has-many' => ['Model\Universe\SystemModel', 'constellationId']
+        ],
+        'systemNeighbours' => [
+            'has-many' => ['Model\Universe\SystemNeighbourModel', 'constellationId']
         ]
     ];
 

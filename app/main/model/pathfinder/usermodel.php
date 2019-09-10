@@ -202,16 +202,15 @@ class UserModel extends AbstractPathfinderModel {
     }
 
     /**
-     * get current character data from session
+     * get current character from session data
      * -> if $characterId == 0 -> get first character data (random)
      * @param int $characterId
-     * @param bool $objectCheck
-     * @return array
+     * @param int $ttl
+     * @return CharacterModel|null
      * @throws Exception
      */
-    public function getSessionCharacterData($characterId = 0, $objectCheck = true) : array {
+    public function getSessionCharacter(int $characterId = 0, int $ttl = self::DEFAULT_SQL_TTL) : ?CharacterModel {
         $data = [];
-        $characterId = (int)$characterId;
         $currentSessionUser = (array)$this->getF3()->get(User::SESSION_KEY_USER);
 
         if($this->_id === $currentSessionUser['ID']){
@@ -228,28 +227,22 @@ class UserModel extends AbstractPathfinderModel {
             }
         }
 
-        if(
-            $objectCheck === true &&
-            !empty($data)
-        ){
+        if($characterId = (int)$data['ID']){
             // check if character still exists on DB (e.g. was manually removed in the meantime)
             // -> This should NEVER happen just for security and "local development"
             /**
              * @var $character CharacterModel
              */
             $character = AbstractPathfinderModel::getNew('CharacterModel');
-            $character->getById((int)$data['ID']);
+            $character->getById($characterId, $ttl);
 
-            if(
-                $character->dry() ||
-                !$character->hasUserCharacter()
-            ){
-                // character data is invalid!
-                $data = [];
+            if($character->valid() && $character->hasUserCharacter()){
+                // character data is valid!
+                return $character;
             }
         }
 
-        return $data;
+        return null;
     }
 
     /**
@@ -259,10 +252,9 @@ class UserModel extends AbstractPathfinderModel {
      */
     public function findSessionCharacterData(int $characterId) : array {
         $data = [];
-        if($characterId){
-            $sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);
+        if($characterId && $this->getF3()->exists(User::SESSION_KEY_CHARACTERS, $sessionCharacters)){
             // search for specific characterData
-            foreach($sessionCharacters as $characterData){
+            foreach((array)$sessionCharacters as $characterData){
                 if($characterId === (int)$characterData['ID']){
                     $data = $characterData;
                     break;

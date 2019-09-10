@@ -225,7 +225,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [14, 'desc'],
+            order: [15, 'desc'],
             hover: false,
             data: mapData.data.systems,
             columnDefs: [],
@@ -312,6 +312,22 @@ define([
                     title: 'region',
                     data: 'region.name',
                     className: 'min-screen-l',
+                },{
+                    name: 'sovereignty',
+                    title: 'sov.',
+                    width: 30,
+                    className: 'text-center',
+                    data: 'sovereignty.alliance.ticker',
+                    defaultContent: '',
+                    render: {
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData){
+                                value = '&lt;' + cellData + '&gt;';
+                            }
+                            return value;
+                        }
+                    }
                 },{
                     name: 'planets',
                     title: '<i class="fas fa-circle" title="planets" data-toggle="tooltip"></i>',
@@ -748,7 +764,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(data && type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
+                                value = '<img src="' + Util.eveImageUrl('render', value.typeId) + '" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
                         }
@@ -786,7 +802,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Character/' + value + '_32.jpg" />';
+                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
                             }
                             return value;
                         }
@@ -826,7 +842,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Corporation/' + value.id + '_32.png" />';
+                                value = '<img src="' + Util.eveImageUrl('corporation', value.id) + '"/>';
                             }
                             return value;
                         }
@@ -1109,7 +1125,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Character/' + value + '_32.jpg" />';
+                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
                             }
                             return value;
                         }

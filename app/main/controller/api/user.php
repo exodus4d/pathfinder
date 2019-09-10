@@ -128,7 +128,7 @@ class User extends Controller\Controller{
                 // character is valid and allowed to login
                 $return->character = reset($characters)->getData();
                 // get Session status for character
-                if($activeCharacter = $this->getCharacter()){
+                if($activeCharacter = $this->getCharacter(0)){
                     if($activeUser = $activeCharacter->getUser()){
                         if($sessionCharacterData = $activeUser->findSessionCharacterData($return->character->id)){
                             $return->character->hasActiveSession = true;

@@ -416,6 +416,8 @@
       }
 
       .pf-character-image{
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
         @include transition(all 0.3s ease-out);
         @include filter(grayscale(0%));
       }

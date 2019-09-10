@@ -499,14 +499,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return UserModel|null
      */
     public function getUser() : ?UserModel {
-        $user = null;
-        if($this->hasUserCharacter()){
-            /**
-             * @var $user UserModel
-             */
-            $user = $this->userCharacter->userId;
-        }
-        return $user;
+        return $this->hasUserCharacter() ? $this->userCharacter->userId : null;
     }
 
     /**

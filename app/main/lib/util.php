@@ -52,6 +52,24 @@ class Util {
     }
 
     /**
+     * transforms array with assoc. arrays as values
+     * into assoc. array where $key column data is used for its key
+     * @param array $array
+     * @param string $key
+     * @param bool $unsetKey
+     * @return array
+     */
+    static function arrayGetBy(array $array, string $key, bool $unsetKey = true) : array {
+        // we can remove $key from nested arrays
+        return array_map(function($val) use ($key, $unsetKey) : array {
+            if($unsetKey){
+                unset($val[$key]);
+            }
+            return $val;
+        }, array_column($array, null, $key));
+    }
+
+    /**
      * checks whether an array is associative or not (sequential)
      * @param mixed $array
      * @return bool

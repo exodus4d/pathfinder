@@ -546,13 +546,15 @@ define([
         system.data('region', data.region.name);
         system.data('constellationId', parseInt(data.constellation.id));
         system.data('constellation', data.constellation.name);
-        system.data('faction', data.faction);
         system.data('planets', data.planets);
         system.data('shattered', data.shattered);
         system.data('statics', data.statics);
         system.data('updated', parseInt(data.updated.updated));
         system.data('changed', false);
         system.attr('data-mapid', parseInt(mapContainer.data('id')));
+        if(data.sovereignty){
+            system.data('sovereignty', data.sovereignty);
+        }
 
         // locked system
         if( Boolean(system.data('locked')) !== data.locked ){
@@ -3046,47 +3048,58 @@ define([
      */
     $.fn.getSystemData = function(minimal = false){
         let system = $(this);
+        let data = system.data();
 
         let systemData = {
-            id: parseInt(system.data('id')),
+            id: parseInt(data.id),
             updated: {
-                updated: parseInt(system.data('updated'))
+                updated: parseInt(data.updated)
             }
         };
 
         if(!minimal){
-            systemData = Object.assign(systemData, {
-                systemId: parseInt(system.data('systemId')),
-                name: system.data('name'),
+            let systemDataComplete = {
+                systemId: parseInt(data.systemId),
+                name: data.name,
                 alias: system.getSystemInfo(['alias']),
-                effect: system.data('effect'),
+                effect: data.effect,
                 type: {
-                    id: system.data('typeId')
+                    id: data.typeId
                 },
-                security: system.data('security'),
-                trueSec: system.data('trueSec'),
+                security: data.security,
+                trueSec: data.trueSec,
                 region: {
-                    id: system.data('regionId'),
-                    name: system.data('region')
+                    id: data.regionId,
+                    name: data.region
                 },
                 constellation: {
-                    id: system.data('constellationId'),
-                    name: system.data('constellation')
+                    id: data.constellationId,
+                    name: data.constellation
                 },
                 status: {
-                    id: system.data('statusId')
+                    id: data.statusId
                 },
-                locked: system.data('locked') ? 1 : 0,
-                rallyUpdated: system.data('rallyUpdated') || 0,
-                rallyPoke: system.data('rallyPoke') ? 1 : 0,
-                currentUser: system.data('currentUser'),        // if user is currently in this system
-                faction: system.data('faction'),
-                planets: system.data('planets'),
-                shattered: system.data('shattered') ? 1 : 0,
-                statics: system.data('statics'),
-                userCount: (system.data('userCount') ? parseInt(system.data('userCount')) : 0),
+                locked: data.locked ? 1 : 0,
+                rallyUpdated: data.rallyUpdated || 0,
+                rallyPoke: data.rallyPoke ? 1 : 0,
+                currentUser: data.currentUser, // if user is currently in this system
+                planets: data.planets,
+                shattered: data.shattered ? 1 : 0,
+                statics: data.statics,
+                userCount: parseInt(data.userCount) || 0,
                 position: MapUtil.getSystemPosition(system)
-            });
+            };
+
+            let optionalDataKeys = ['sovereignty'];
+
+            for(let dataKey of optionalDataKeys){
+                let value = system.data(dataKey);
+                if(value !== null && value !== undefined){
+                    systemDataComplete[dataKey] = value;
+                }
+            }
+
+            systemData = Object.assign(systemData, systemDataComplete);
         }
 
         return systemData;

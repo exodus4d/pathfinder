@@ -193,12 +193,39 @@ class Universe extends AbstractCron {
                     $model->loadStargatesData();
                 };
                 break;
+            case 'sovereignty':
+                // load sovereignty map data. Systems must be present first!
+                $sovData = $f3->ccpClient()->getSovereigntyMap();
+                $ids = !empty($sovData = $sovData['map']) ? array_keys($sovData): [];
+                $modelClass = 'SystemModel';
+                $setupModel = function(Model\Universe\SystemModel &$model, int $id) use ($sovData) {
+                    if($model->getById($id)){
+                        $model->updateSovereigntyData($sovData[$id]);
+                    }else{
+                        echo 'NOT VALID ' . $id . PHP_EOL;
+                        die();
+                    }
+                };
+                break;
+            case 'faction_war_systems':
+                $fwSystems = $f3->ccpClient()->getFactionWarSystems();
+                $ids = !empty($fwSystems = $fwSystems['systems']) ? array_keys($fwSystems): [];
+                $modelClass = 'SystemModel';
+                $setupModel = function(Model\Universe\SystemModel &$model, int $id) use ($fwSystems) {
+                    if($model->getById($id)){
+                        $model->updateFactionWarData($fwSystems[$id]);
+                    }else{
+                        echo 'NOT VALID ' . $id . PHP_EOL;
+                        die();
+                    }
+                };
+                break;
             case 'index_system':
                 // setup system index, Systems must be present first!
                 $ids = $f3->ccpClient()->getUniverseSystems();
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
-                    $model->getById($id); // no loadById() here! would take "forever" when system not exists and build up first...
+                    $model->getById($id); // no loadById() here! would take "forever" when system not exists and must be build up first...
                     $model->buildIndex();
                 };
                 break;
@@ -243,6 +270,34 @@ class Universe extends AbstractCron {
     }
 
     /**
+     * update Sovereignty system data from ESI
+     * -> this updates Faction warfare data as well
+     * >> php index.php "/cron/updateSovereigntyData"
+     * @param \Base $f3
+     * @throws \Exception
+     */
+    function updateSovereigntyData(\Base $f3){
+        $this->setMaxExecutionTime();
+        $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
+
+        $sovData = $f3->ccpClient()->getSovereigntyMap();
+        $fwSystems = $f3->ccpClient()->getFactionWarSystems();
+        $fwSystems = $fwSystems['systems'];
+        $ids = !empty($sovData = $sovData['map']) ? array_keys($sovData): [];
+
+        foreach($ids as $id){
+            if($system->getById($id)){
+                $system->updateSovereigntyData($sovData[$id]);
+
+                if(is_array($fwSystems[$id])){
+                    $system->updateFactionWarData($fwSystems[$id]);
+                }
+                $system->reset();
+            }
+        }
+    }
+
+    /**
      * update static universe system data from ESI
      * -> updates small chunk of systems at once
      * >> php index.php "/cron/updateUniverseSystems"
@@ -251,9 +306,12 @@ class Universe extends AbstractCron {
      */
     function updateUniverseSystems(\Base $f3){
         $this->setMaxExecutionTime();
-
-        $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
-        $systems = $system->find( null, ['order' => 'updated', 'limit' => 2]);
+        /**
+         * @var $systemModel Model\Universe\SystemModel
+         * @var $system Model\Universe\SystemModel
+         */
+        $systemModel = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
+        $systems = $systemModel->find( null, ['order' => 'updated', 'limit' => 2]);
         if($systems){
             foreach ($systems as $system){
                 $system->updateModel();

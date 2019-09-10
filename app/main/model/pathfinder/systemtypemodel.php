@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class SystemTypeModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_type';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -28,6 +34,9 @@ class SystemTypeModel extends AbstractPathfinderModel {
         ]
     ];
 
+    /**
+     * @var array
+     */
     protected static $tableData = [
         [
             'id' => 1,

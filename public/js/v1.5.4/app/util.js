@@ -552,7 +552,7 @@ define([
                 userData: userData,
                 otherCharacters: () => {
                     return userData.characters.filter((character, i) => {
-                        let characterImage = Init.url.ccpImageServer + '/Character/' + character.id + '_32.jpg';
+                        let characterImage = eveImageUrl('character', character.id);
                         // preload image (prevent UI flicker
                         let img= new Image();
                         img.src = characterImage;
@@ -851,6 +851,23 @@ define([
      * show current program version information in browser console
      */
     let showVersionInfo = () => Con.showVersionInfo(getVersion());
+
+    /**
+     * get CCP image URLs for
+     * @param type 'alliance'|'corporation'|'character'|'type'|'render'
+     * @param id
+     * @param size
+     * @returns {boolean}
+     */
+    let eveImageUrl = (type, id, size = 32) => {
+        let url = false;
+        if(typeof type === 'string' && typeof id === 'number' && typeof size === 'number'){
+            type = type.capitalize();
+            let format = type === 'Character' ? 'jpg' : 'png';
+            url = Init.url.ccpImageServer + '/' + type + '/' + id + '_' + size + '.' + format;
+        }
+        return url;
+    };
 
     /**
      * polyfill for "passive" events
@@ -2303,26 +2320,28 @@ define([
      * get a HTML table with universe region information
      * e.g. for popover
      * @param regionName
-     * @param faction
+     * @param sovereignty
      * @returns {string}
      */
-    let getSystemRegionTable = (regionName, faction) => {
+    let getSystemRegionTable = (regionName, sovereignty) => {
+        let data = [{label: 'Region', value: regionName}];
+        if(sovereignty){
+            if(sovereignty.faction){
+                data.push({label: 'Sov. Faction', value: sovereignty.faction.name});
+            }
+            if(sovereignty.alliance){
+                data.push({label: 'Sov. Ally', value: sovereignty.alliance.name});
+            }
+        }
+
         let table = '<table>';
-        table += '<tr>';
-        table += '<td>';
-        table += 'Region';
-        table += '</td>';
-        table += '<td class="text-right">';
-        table += regionName;
-        table += '</td>';
-        table += '</tr>';
-        table += '<tr>';
-        if(faction){
+        for(let rowData of data){
+            table += '<tr>';
             table += '<td>';
-            table += 'Faction';
+            table += rowData.label;
             table += '</td>';
             table += '<td class="text-right">';
-            table += faction.name;
+            table += rowData.value;
             table += '</td>';
             table += '</tr>';
         }
@@ -3425,6 +3444,7 @@ define([
         config: config,
         getVersion: getVersion,
         showVersionInfo: showVersionInfo,
+        eveImageUrl: eveImageUrl,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         initDefaultConfirmationConfig: initDefaultConfirmationConfig,

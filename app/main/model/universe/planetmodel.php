@@ -66,13 +66,13 @@ class PlanetModel extends AbstractUniverseModel {
      * @return \stdClass
      */
     public function getData(){
-        $planetData                 = (object) [];
-        $planetData->name           = $this->name;
+        $data               = (object) [];
+        $data->name         = $this->name;
 
-        $planetData->type           = (object) [];
-        $planetData->type->name     = $this->typeId->name;
+        $data->type         = (object) [];
+        $data->type->name   = $this->typeId->name;
 
-        return $planetData;
+        return $data;
     }
 
     /**

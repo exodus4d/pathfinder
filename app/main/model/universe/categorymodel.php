@@ -38,7 +38,7 @@ class CategoryModel extends AbstractUniverseModel {
      */
     public function getData(array $additionalData = []){
         $categoryData = (object) [];
-        $categoryData->id = $this->id;
+        $categoryData->id = $this->_id;
         $categoryData->name = $this->name;
 
         if($groupsData = $this->getGroupsData($additionalData)){
@@ -77,11 +77,23 @@ class CategoryModel extends AbstractUniverseModel {
         $groupsData = [];
         $groups = $this->getGroups();
 
+        /**
+         * @var $group GroupModel
+         */
         foreach($groups as $group){
             $groupsData[] = $group->getData($additionalData);
         }
 
         return $groupsData;
+    }
+
+    /**
+     * get groups count
+     * @param bool $published
+     * @return int
+     */
+    public function getGroupsCount(bool $published = true) : int {
+        return $this->valid() ? count($this->getGroups($published)) : 0;
     }
 
     /**
@@ -91,7 +103,7 @@ class CategoryModel extends AbstractUniverseModel {
      */
     public function getTypesCount(bool $published = true) : int {
         $count = 0;
-        if( !$this->dry() ){
+        if($this->valid()){
             /**
              * @var $group GroupModel
              */
@@ -109,8 +121,7 @@ class CategoryModel extends AbstractUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient()->getUniverseCategoryData($id);
-        if(!empty($data)){
+        if(!empty($data = self::getUniverseCategoryData($id))){
             $this->copyfrom($data, ['id', 'name', 'published']);
             $this->save();
         }
@@ -123,25 +134,71 @@ class CategoryModel extends AbstractUniverseModel {
      * @return array
      */
     public function loadGroupsData(int $offset = 0, int $length = 0) : array {
-        $groupIds = [];
-        if( !$this->dry() ){
-            $data = self::getF3()->ccpClient()->getUniverseCategoryData($this->_id);
-            if(!empty($data)){
-                array_multisort($data['groups'], SORT_ASC, SORT_NUMERIC);
-                if($length){
-                    $data['groups'] = array_slice($data['groups'], $offset, $length);
-                }
-                foreach($data['groups'] as $groupId){
-                    /**
-                     * @var $group GroupModel
-                     */
-                    $group = $this->rel('groups');
-                    $group->loadById($groupId);
-                    $groupIds[] = $groupId;
-                    $group->reset();
-                }
+        $info = ['countAll' => 0, 'countChunk' => 0, 'count' => 0, 'offset' => $offset, 'groupTypes' => []];
+
+        if(
+            $this->valid() &&
+            !empty($data = self::getUniverseCategoryData($this->_id))
+        ){
+            $info['countAll'] = count($data['groups']);
+
+            array_multisort($data['groups'], SORT_ASC, SORT_NUMERIC);
+            if($length){
+                $data['groups'] = array_slice($data['groups'], $offset, $length);
+            }
+
+            $info['countChunk'] = count($data['groups']);
+            foreach($data['groups'] as $groupId){
+                /**
+                 * @var $group GroupModel
+                 */
+                $group = $this->rel('groups');
+                $group->loadById($groupId);
+
+                $info['groupTypes'][$groupId] = $group->loadTypesData();
+
+                $group->reset();
+
+                $info['count']++;
+                $info['offset']++;
             }
         }
-        return $groupIds;
+
+        return $info;
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public static function getUniverseCategoryData(int $id) : array {
+        return self::getF3()->ccpClient()->getUniverseCategoryData($id);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getUniverseCategories() : array {
+        return self::getF3()->ccpClient()->getUniverseCategories();
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public static function getUniverseCategoryGroups(int $id) : array {
+        return empty($data = self::getUniverseCategoryData($id)) ? [] : $data['groups'];
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public static function getUniverseCategoryTypes(int $id) : array {
+        $types = [];
+        foreach($groupIds = self::getUniverseCategoryGroups($id) as $groupId){
+            $types[$groupId] = GroupModel::getUniverseGroupTypes($groupId);
+        }
+        return $types;
     }
 }

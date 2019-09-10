@@ -454,10 +454,17 @@ define([
      */
     let initServerStatus = () => {
         $.ajax({
-            type: 'POST',
+            type: 'GET',
             url: Init.path.getServerStatus,
             dataType: 'json'
         }).done(function(responseData, textStatus, request){
+
+            let dateLastModified = new Date(request.getResponseHeader('Last-Modified') || Date.now());
+            let dateExpires = new Date(request.getResponseHeader('Expires') || Date.now());
+
+            var options = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC', timeZoneName: 'short' };
+            responseData.api.cache = dateLastModified.toLocaleTimeString('en-US', options);
+            responseData.api.cacheExpire = 'TTL ' + (dateExpires - dateLastModified) / 1000 + 's';
 
             let data = {
                 stickyPanelServerId: config.stickyPanelServerId,
@@ -471,7 +478,8 @@ define([
                             case 'online':
                             case 'green':   return 'txt-color-green';
                             case 'vip':
-                            case 'yellow':  return 'txt-color-orange';
+                            case 'yellow':  return 'txt-color-yellow';
+                            case 'orange':  return 'txt-color-orange';
                             case 'offline':
                             case 'red':     return 'txt-color-red';
                             default:        return '';

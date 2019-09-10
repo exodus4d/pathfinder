@@ -452,7 +452,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display' && value){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Type/' + value + '_32.png" />';
+                                value = '<img src="' + Util.eveImageUrl('type', value) +'"/>';
                             }
                             return value;
                         }
@@ -486,7 +486,7 @@ define([
                             let value = data;
                             if(type === 'display' && value){
                                 value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                value += '<img src="' + Init.url.ccpImageServer + '/Corporation/' + data + '_32.png" />';
+                                value += '<img src="' + Util.eveImageUrl('corporation', data) + '"/>';
                                 value += '</a>';
                             }
                             return value;
@@ -625,7 +625,7 @@ define([
                             '<tr class="group">' +
                                 '<td></td>' +
                                 '<td class="' + config.tableCellImageClass + '">' +
-                                    '<img src="' + Init.url.ccpImageServer + '/Corporation/' + group.id + '_32.png" />' +
+                                    '<img src="' + Util.eveImageUrl('corporation', group.id) + '"/>' +
                                 '</td>' +
                                 '<td colspan="' + (columnCount - 2 ) + '">' + group.name + '</td>' +
                             '</tr>'

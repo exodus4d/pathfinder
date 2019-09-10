@@ -774,7 +774,7 @@ define([
                             _: function(data, type, row){
                                 let value = data.typeId;
                                 if(type === 'display'){
-                                    value = '<img src="' + Init.url.ccpImageServer + '/Render/' + value + '_32.png" title="' + data.typeName + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Util.eveImageUrl('render', value) + '" title="' + data.typeName + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }
@@ -794,7 +794,7 @@ define([
                             _: (cellData, type, rowData, meta) => {
                                 let value = cellData.name;
                                 if(type === 'display'){
-                                    value = '<img src="' + Init.url.ccpImageServer + '/Character/' + cellData.id + '_32.jpg" title="' + value + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Util.eveImageUrl('character', cellData.id) + '" title="' + value + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }

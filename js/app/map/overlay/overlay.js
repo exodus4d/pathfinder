@@ -370,15 +370,16 @@ define([
                         // init popover if not already exists
                         if(!systemHead.data('bs.popover')){
                             let system = systemHead.parent();
+                            let systemData = system.data();
                             systemHead.popover({
-                                placement: 'right',
+                                placement: 'bottom',
                                 html: true,
                                 trigger: 'manual',
                                 container: mapElement,
                                 title: false,
                                 content: Util.getSystemRegionTable(
-                                    system.data('region'),
-                                    system.data('faction') || null
+                                    Util.getObjVal(systemData, 'region'),
+                                    Util.getObjVal(systemData, 'sovereignty')
                                 )
                             });
                         }

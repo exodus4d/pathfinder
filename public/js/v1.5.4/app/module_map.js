@@ -353,7 +353,7 @@ define([
 
             // request "additional" system data (e.g. Structures, Description)
             // -> this is used to update some modules after initial draw
-            let promiseRequestData = Util.request('GET', 'system', currentSystemData.systemData.id, {mapId: currentSystemData.mapId});
+            let promiseRequestData = Util.request('GET', 'system', currentSystemData.id, {mapId: currentSystemData.mapId});
 
             // draw modules -------------------------------------------------------------------------------------------
 
@@ -361,22 +361,22 @@ define([
             let secondCell = tabContentElement.find('.' + config.mapTabContentCellSecond);
 
             // draw system info module
-            let promiseInfo = drawModule(firstCell, SystemInfoModule, currentSystemData.mapId, currentSystemData.systemData);
+            let promiseInfo = drawModule(firstCell, SystemInfoModule, currentSystemData.mapId, currentSystemData);
 
             // draw system graph module
-            drawModule(firstCell, SystemGraphModule, currentSystemData.mapId, currentSystemData.systemData);
+            drawModule(firstCell, SystemGraphModule, currentSystemData.mapId, currentSystemData);
 
             // draw signature table module
-            let promiseSignature = drawModule(firstCell, SystemSignatureModule, currentSystemData.mapId, currentSystemData.systemData);
+            let promiseSignature = drawModule(firstCell, SystemSignatureModule, currentSystemData.mapId, currentSystemData);
 
             // draw system routes module
-            drawModule(secondCell, SystemRouteModule, currentSystemData.mapId, currentSystemData.systemData);
+            drawModule(secondCell, SystemRouteModule, currentSystemData.mapId, currentSystemData);
 
             // draw system intel module
-            let promiseIntel = drawModule(secondCell, SystemIntelModule, currentSystemData.mapId, currentSystemData.systemData);
+            let promiseIntel = drawModule(secondCell, SystemIntelModule, currentSystemData.mapId, currentSystemData);
 
             // draw system killboard module
-            drawModule(secondCell, SystemKillboardModule, currentSystemData.mapId, currentSystemData.systemData);
+            drawModule(secondCell, SystemKillboardModule, currentSystemData.mapId, currentSystemData);
 
             // update some modules ------------------------------------------------------------------------------------
             promiseDrawAll.push(promiseRequestData, promiseInfo, promiseSignature, promiseIntel);
@@ -479,7 +479,7 @@ define([
 
             if(
                 currentSystemData &&
-                systemData.id === currentSystemData.systemData.id
+                systemData.id === currentSystemData.id
             ){
                 // trigger system update events
                 let tabContentElement = $('#' + config.mapTabIdPrefix + systemData.mapId + '.' + config.mapTabContentClass);

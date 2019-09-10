@@ -36,14 +36,15 @@ class AccessController extends Controller {
     }
 
     /**
-     * get current character and check if it is a valid character
+     * check login status and look or a valid character
      * @param \Base $f3
      * @return string
      * @throws \Exception
      */
     protected function isLoggedIn(\Base $f3) : string {
         $loginStatus = 'UNKNOWN';
-        if($character = $this->getCharacter()){
+        // disable ttl cache time here. Further getCharacter() calls should use a short ttl
+        if($character = $this->getCharacter(0)){
             if($character->checkLoginTimer()){
                 if(( $authStatus = $character->isAuthorized()) === 'OK'){
                     $loginStatus = 'OK';

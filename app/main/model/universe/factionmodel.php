@@ -46,8 +46,20 @@ class FactionModel extends AbstractUniverseModel {
             'nullable' => false,
             'default' => 0
         ],
-        'systems' => [
-            'has-many' => ['Model\Universe\SystemModel', 'factionId']
+        'alliances' => [
+            'has-many' => ['Model\Universe\AllianceModel', 'factionId']
+        ],
+        'corporations' => [
+            'has-many' => ['Model\Universe\CorporationModel', 'factionId']
+        ],
+        'sovereigntySystems' => [
+            'has-many' => ['Model\Universe\SovereigntyMapModel', 'factionId']
+        ],
+        'factionWarSystemOwners' => [
+            'has-many' => ['Model\Universe\FactionWarSystemModel', 'ownerFactionId']
+        ],
+        'factionWarSystemOccupiers' => [
+            'has-many' => ['Model\Universe\FactionWarSystemModel', 'occupierFactionId']
         ]
     ];
 

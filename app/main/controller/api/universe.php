@@ -112,7 +112,7 @@ class Universe extends Controller\AccessController {
 
         $constellation = Model\Universe\AbstractUniverseModel::getNew('ConstellationModel');
         $constellation->getById($constellationId);
-        if( !$constellation->dry() && $constellation->systems){
+        if($constellation->valid() && $constellation->systems){
             /**
              * @var Model\Universe\SystemModel $system
              */

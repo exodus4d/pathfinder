@@ -118,13 +118,13 @@ class LogController extends \Prefab  {
                 $updateSql = array_map($updateRule, $columnsForUpdate);
 
                 $sql = "INSERT DELAYED INTO 
-                        activity_log (" . implode(', ', $columnsQuoted) . ") values(
-                            " . implode(', ', $placeholder) . "
-                        ) 
-                    ON DUPLICATE KEY UPDATE
-                        updated = NOW(),
-                        " . implode(', ', $updateSql) . "
-                    ";
+                            activity_log (" . implode(', ', $columnsQuoted) . ") VALUES(
+                                " . implode(', ', $placeholder) . "
+                            ) 
+                        ON DUPLICATE KEY UPDATE
+                            updated = NOW(),
+                            " . implode(', ', $updateSql) . "
+                        ";
 
                 $db->exec($sql, $args);
             }

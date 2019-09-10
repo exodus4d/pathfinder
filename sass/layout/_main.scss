@@ -626,6 +626,24 @@ table{
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    &.pf-table-cell-bg-image{
+      padding: 0 0 0 5px !important;
+      vertical-align: middle !important;
+      border-top-color: transparent !important;
+
+      .pf-table-cell-bg-image-wrapper{
+        background-size: contain;
+        background-origin: content-box;
+        background-repeat: no-repeat;
+        background-image: var(--bg-image);
+        background-position: bottom 0 right 0;
+        image-rendering: -webkit-optimize-contrast;
+        width: auto;
+        height: 40px;
+        padding: 2px 0;
+      }
+    }
   }
 }
 
@@ -864,7 +882,9 @@ table{
   padding-bottom: 40px; // space for footer
 
   >.pf-map-content-col:first-child{
-    padding-right: 0; // overwrite default
+    @media (min-width: $screen-md-min) {
+      padding-right: 0; // overwrite default
+    }
   }
 
   // all modules within a row
@@ -1566,7 +1586,7 @@ code {
 }
 
 // svg logo =======================================================================================
-#pf-logo-wrapper{
+.pf-logo-wrapper{
   display: block; // remove default height
 }
 

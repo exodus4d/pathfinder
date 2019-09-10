@@ -1,38 +1,26 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: Exodus 4D
- * Date: 18.05.2018
- * Time: 17:50
+ * User: Exodus4D
+ * Date: 15.08.2019
+ * Time: 22:00
  */
 
 namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class SystemStaticModel extends AbstractUniverseModel {
+class TypeAttributeModel extends AbstractUniverseModel {
 
     /**
      * @var string
      */
-    protected $table = 'system_static';
+    protected $table = 'type_attribute';
 
     /**
      * @var array
      */
     protected $fieldConf = [
-        'systemId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\Universe\SystemModel',
-            'constraint' => [
-                [
-                    'table' => 'system',
-                    'on-delete' => 'CASCADE'
-                ]
-            ],
-            'validate' => 'notDry'
-        ],
         'typeId' => [
             'type' => Schema::DT_INT,
             'index' => true,
@@ -44,6 +32,23 @@ class SystemStaticModel extends AbstractUniverseModel {
                 ]
             ],
             'validate' => 'notDry'
+        ],
+        'attributeId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\Universe\DogmaAttributeModel',
+            'constraint' => [
+                [
+                    'table' => 'dogma_attribute',
+                    'on-delete' => 'CASCADE'
+                ]
+            ],
+            'validate' => 'notDry'
+        ],
+        'value' => [
+            'type' => Schema::DT_FLOAT,
+            'nullable' => false,
+            'default' => 0
         ]
     ];
 
@@ -54,11 +59,13 @@ class SystemStaticModel extends AbstractUniverseModel {
     protected $addStaticFields = false;
 
     /**
-     * get static data
-     * @return null|string
+     * @return \stdClass
      */
     public function getData(){
-        return $this->typeId ? $this->typeId->getWormholeName() : null;
+        $typeAttributeData          = $this->attributeId->getData();
+        $typeAttributeData->value   = (float)$this->value;
+
+        return $typeAttributeData;
     }
 
     /**
@@ -78,7 +85,7 @@ class SystemStaticModel extends AbstractUniverseModel {
      */
     public static function setup($db = null, $table = null, $fields = null){
         if($status = parent::setup($db, $table, $fields)){
-            $status = parent::setMultiColumnIndex(['systemId', 'typeId'], true);
+            $status = parent::setMultiColumnIndex(['typeId', 'attributeId'], true);
         }
         return $status;
     }

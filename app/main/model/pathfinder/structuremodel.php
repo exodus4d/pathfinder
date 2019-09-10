@@ -20,11 +20,6 @@ class StructureModel extends AbstractPathfinderModel {
     protected $table = 'structure';
 
     /**
-     * categoryId (from ESI) that holds all "groups" with structure "types"
-     */
-    const CATEGORY_STRUCTURE_ID = 65;
-
-    /**
      * @var array
      */
     protected $fieldConf = [
