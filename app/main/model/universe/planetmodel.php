@@ -76,21 +76,6 @@ class PlanetModel extends AbstractUniverseModel {
     }
 
     /**
-     * setter for positions array (x/y/z)
-     * @param $position
-     * @return null
-     */
-    public function set_position($position){
-        $position = (array)$position;
-        if(count($position) === 3){
-            $this->x = $position['x'];
-            $this->y = $position['y'];
-            $this->z = $position['z'];
-        }
-        return null;
-    }
-
-    /**
      * @param int $id
      * @param string $accessToken
      * @param array $additionalOptions

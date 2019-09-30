@@ -78,9 +78,11 @@ define([
         animationPulseClassPrefix: 'pf-animation-pulse-',                       // class prefix for "pulse" background animation
 
         // popover
+        popoverClass: 'pf-popover',                                             // class for "popover" - custom modifier
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
         popoverSmallClass: 'popover-small',                                     // class for small "popover"
         popoverCharacterClass: 'pf-popover-character',                          // class for character "popover"
+        popoverListIconClass: 'pf-popover-list-icon',                           // class for list "icon"s in "
 
         // Summernote
         summernoteClass: 'pf-summernote',                                       // class for Summernote "WYSIWYG" elements
@@ -606,7 +608,7 @@ define([
                             container: 'body',
                             content: content,
                             animation: false
-                        }).data('bs.popover').tip().addClass('pf-popover');
+                        }).data('bs.popover').tip().addClass(config.popoverClass);
 
                         button.popover('show');
 
@@ -1011,6 +1013,22 @@ define([
                 hash |= 0; // Convert to 32bit integer
             }
             return hash;
+        };
+
+        String.prototype.trimLeftChars = function(charList){
+            if(charList === undefined)
+                charList = '\\s';
+            return this.replace(new RegExp('^[' + charList + ']+'), '');
+        };
+
+        String.prototype.trimRightChars = function(charList){
+            if(charList === undefined)
+                charList = '\\s';
+            return this.replace(new RegExp('[' + charList + ']+$'), '');
+        };
+
+        String.prototype.trimChars = function(charList){
+            return this.trimLeftChars(charList).trimRightChars(charList);
         };
 
         initPassiveEvents();
@@ -1786,6 +1804,8 @@ define([
             characterLogLocation: valueChanged('character.logLocation'),
             characterSystemId: valueChanged('character.log.system.id'),
             characterShipType: valueChanged('character.log.ship.typeId'),
+            characterStationId: valueChanged('character.log.station.id'),
+            characterStructureId: valueChanged('character.log.structure.id'),
             charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString(),
             characterLogHistory: oldHistoryLogStamps.toString() !== newHistoryLogStamps.toString()
         };
@@ -2886,11 +2906,12 @@ define([
     };
 
     /**
-     * set new destination for a system
-     * @param systemData
+     * set new destination for a system/station/structure
      * @param type
+     * @param destType
+     * @param destData
      */
-    let setDestination = (systemData, type) => {
+    let setDestination = (type, destType, destData) => {
         let description = '';
         switch(type){
             case 'set_destination':
@@ -2910,22 +2931,20 @@ define([
             data: {
                 clearOtherWaypoints: (type === 'set_destination') ? 1 : 0,
                 first: (type === 'add_last_waypoint') ? 0 : 1,
-                systemData: [{
-                    systemId: systemData.systemId,
-                    name: systemData.name
-                }]
+                destData: [destData]
             },
             context: {
+                destType: destType,
                 description: description
             },
             dataType: 'json'
         }).done(function(responseData){
             if(
-                responseData.systemData &&
-                responseData.systemData.length > 0
+                responseData.destData &&
+                responseData.destData.length > 0
             ){
-                for(let j = 0; j < responseData.systemData.length; j++){
-                    showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
+                for(let j = 0; j < responseData.destData.length; j++){
+                    showNotify({title: this.description, text: this.destType + ': ' + responseData.destData[j].name, type: 'success'});
                 }
             }
 
@@ -2934,7 +2953,7 @@ define([
                 responseData.error.length > 0
             ){
                 for(let i = 0; i < responseData.error.length; i++){
-                    showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
+                    showNotify({title: this.description + ' error', text: this.destType + ': ' + responseData.error[i].message, type: 'error'});
                 }
             }
 
@@ -3254,7 +3273,16 @@ define([
      * @param tableType
      * @returns {string}
      */
-    let getTableId = (prefix, mapId, systemId, tableType) => prefix + [mapId, systemId, tableType].join('-');
+    let getTableId = (prefix, tableType, mapId, systemId) => prefix + [tableType, mapId, systemId].join('-');
+
+    /**
+     * get dataTable row id
+     * @param prefix
+     * @param tableType
+     * @param rowId
+     * @returns {string}
+     */
+    let getTableRowId = (prefix, tableType, rowId) => prefix + [tableType, rowId].join('-');
 
     /**
      * get a dataTableApi instance from global cache
@@ -3266,7 +3294,7 @@ define([
      */
     let getDataTableInstance = (prefix, mapId, systemId, tableType) => {
         let instance = null;
-        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(prefix, mapId, systemId, tableType));
+        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(prefix, tableType, mapId, systemId));
         if(table.node()){
             instance = table;
         }
@@ -3522,6 +3550,7 @@ define([
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,
         getTableId: getTableId,
+        getTableRowId: getTableRowId,
         getDataTableInstance: getDataTableInstance,
         htmlEncode: htmlEncode,
         htmlDecode: htmlDecode,

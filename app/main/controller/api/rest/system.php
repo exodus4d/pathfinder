@@ -38,6 +38,7 @@ class System extends AbstractRestController {
                 $systemData->signatures = $system->getSignaturesData();
                 $systemData->sigHistory = $system->getSignaturesHistory();
                 $systemData->structures = $system->getStructuresData();
+                $systemData->stations   = $system->getStationsData();
             }
         }
 

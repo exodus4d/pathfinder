@@ -112,6 +112,8 @@ class Setup extends Controller {
                 'Model\Universe\FactionModel',
                 'Model\Universe\AllianceModel',
                 'Model\Universe\CorporationModel',
+                'Model\Universe\RaceModel',
+                'Model\Universe\StationModel',
                 'Model\Universe\StructureModel',
                 'Model\Universe\StargateModel',
                 'Model\Universe\StarModel',

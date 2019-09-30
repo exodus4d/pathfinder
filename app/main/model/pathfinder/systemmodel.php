@@ -10,6 +10,7 @@ namespace Model\Pathfinder;
 
 use DB\SQL\Schema;
 use lib\logging;
+use lib\PriorityCacheStore;
 use Controller\Ccp\Universe;
 
 class SystemModel extends AbstractMapTrackingModel {
@@ -40,14 +41,14 @@ class SystemModel extends AbstractMapTrackingModel {
     const DATA_CACHE_KEY_SIGNATURES_HISTORY = 'HISTORY_SIGNATURES';
 
     /**
+     * @var PriorityCacheStore
+     */
+    protected static $priorityCacheStore;
+
+    /**
      * @var string
      */
     protected $table                        = 'system';
-
-    /**
-     * @var array
-     */
-    protected $staticSystemDataCache        = [];
 
     /**
      * @var array
@@ -242,14 +243,19 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     private function getStaticSystemData(){
         $staticData = null;
-        if( !empty($this->staticSystemDataCache[$this->systemId]) ){
-            $staticData = $this->staticSystemDataCache[$this->systemId];
+        if(!is_object(self::$priorityCacheStore)){
+            self::$priorityCacheStore = new PriorityCacheStore();
+        }
+
+        if(self::$priorityCacheStore->exists($this->systemId)){
+            $staticData = self::$priorityCacheStore->get($this->systemId);
         }else{
             $staticData = (new Universe())->getSystemData($this->systemId);
             if($staticData){
-                $this->staticSystemDataCache = [$this->systemId => $staticData];
+                self::$priorityCacheStore->set($this->systemId, $staticData);
             }
         }
+
         return $staticData;
     }
 
@@ -457,6 +463,10 @@ class SystemModel extends AbstractMapTrackingModel {
         return $this->getStaticSystemValue('planets');
     }
 
+    public function get_stations(){
+        return $this->getStaticSystemValue('stations');
+    }
+
     public function get_sovereignty(){
         return $this->getStaticSystemValue('sovereignty');
     }
@@ -655,6 +665,14 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     public function getStructuresData() : array {
         return $this->getMap()->getStructuresData($this->systemId);
+    }
+
+    /**
+     * get data for all stations in this system
+     * @return array
+     */
+    public function getStationsData() : array {
+        return $this->stations ? : [];
     }
 
     /**

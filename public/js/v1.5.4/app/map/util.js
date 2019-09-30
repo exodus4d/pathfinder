@@ -1764,6 +1764,91 @@ define([
     };
 
     /**
+     * add station services tooltip
+     * @param services
+     * @param options
+     * @returns {*}
+     */
+    $.fn.addStationServiceTooltip = function(services, options){
+        let getServiceIcon = service => {
+            switch(service){
+                case 'bounty-missions':         return false;
+                case 'assasination-missions':   return false;
+                case 'courier-missions':        return false;
+                case 'interbus':                return false;
+                case 'reprocessing-plant':      return 'reprocess';
+                case 'refinery':                return false;
+                case 'market':                  return 'market';
+                case 'black-market':            return false;
+                case 'stock-exchange':          return false;
+                case 'cloning':                 return 'clonebay';
+                case 'surgery':                 return false;
+                case 'dna-therapy':             return false;
+                case 'repair-facilities':       return 'repairshop';
+                case 'factory':                 return 'industry';
+                case 'labratory':               return 'research';
+                case 'gambling':                return false;
+                case 'fitting':                 return 'fitting';
+                case 'paintshop':               return 'skins';
+                case 'news':                    return false;
+                case 'storage':                 return false;
+                case 'insurance':               return 'insurance';
+                case 'docking':                 return 'docking';
+                case 'office-rental':           return false;
+                case 'jump-clone-facility':     return 'jumpclones';
+                case 'loyalty-point-store':     return 'lpstore';
+                case 'navy-offices':            return 'factionalwarfare';
+                case 'security-offices':        return 'concord';
+                default:                        return false;
+            }
+        };
+
+        let getStationServicesTable = services => {
+            let content = '';
+            for(let i = 0; i < services.length; i++){
+                let icon = getServiceIcon(services[i]);
+                if(icon){
+                    content += '<img class="' + Util.config.popoverListIconClass + '" src="/public/img/icons/client/ui/window/' + icon + '.png" alt="' + services[i] + '">';
+                }
+            }
+            return content;
+        };
+
+        let content = getStationServicesTable(services);
+
+        let title = '<i class="fas fa-tools fa-fw"></i>&nbsp;Services';
+
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: title,
+            content: '',
+            delay: {
+                show: 150,
+                hide: 0
+            },
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            let element = $(this);
+            element.popover(options);
+
+            // set new popover content
+            let popover = element.data('bs.popover');
+            popover.options.content = content;
+            popover.tip().addClass(Util.config.popoverClass);
+
+            if(options.show){
+                element.popover('show');
+            }
+        });
+    };
+
+    /**
      * add system effect tooltip
      * @param security
      * @param effect
@@ -1807,7 +1892,6 @@ define([
      * @returns {*}
      */
     $.fn.addSystemPlanetsTooltip = function(planets, options){
-
         let content = Util.getSystemPlanetsTable(planets);
 
         let defaultOptions = {

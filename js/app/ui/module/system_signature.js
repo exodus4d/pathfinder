@@ -169,7 +169,7 @@ define([
      * @param tableType
      * @returns {string}
      */
-    let getTableId = (mapId, systemId, tableType) => Util.getTableId(config.sigTableId, mapId, systemId, tableType);
+    let getTableId = (tableType, mapId, systemId) => Util.getTableId(config.sigTableId, tableType, mapId, systemId);
 
     /**
      * get a dataTableApi instance from global cache
@@ -2169,7 +2169,7 @@ define([
         let infoElement = $(dialogElement).find('#' + config.sigInfoId);
 
         let table = $('<table>', {
-            id: getTableId(mapId, systemData.id, 'info'),
+            id: getTableId('info', mapId, systemData.id),
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTableInfoClass].join(' ')
         });
 
@@ -2216,7 +2216,7 @@ define([
 
         // create "empty table for new signature
         let table = $('<table>', {
-            id: getTableId(mapId, systemData.id, 'secondary'),
+            id: getTableId('secondary', mapId, systemData.id),
             class: ['stripe', 'row-border', 'compact', 'nowrap', config.sigTableClass, config.sigTableSecondaryClass].join(' ')
         });
 
@@ -2497,7 +2497,7 @@ define([
     };
 
     /**
-     * init character info Tooltips
+     * init character info tooltips
      * -> e.g. table cell 'question mark' icon
      * @param element
      * @param tableApi
@@ -2528,7 +2528,7 @@ define([
      */
     let drawSignatureTable = (moduleElement, mapId, systemData) => {
         let table = $('<table>', {
-            id: getTableId(mapId, systemData.id, 'primary'),
+            id: getTableId('primary', mapId, systemData.id),
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
 

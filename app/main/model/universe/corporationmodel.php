@@ -64,6 +64,9 @@ class CorporationModel extends AbstractUniverseModel {
         ],
         'sovereigntySystems' => [
             'has-many' => ['Model\Universe\SovereigntyMapModel', 'corporationId']
+        ],
+        'stations' => [
+            'has-many' => ['Model\Universe\StationModel', 'corporationId']
         ]
     ];
 
@@ -102,7 +105,7 @@ class CorporationModel extends AbstractUniverseModel {
 
             if($data['allianceId']){
                 /**
-                 * @var $faction AllianceModel
+                 * @var $alliance AllianceModel
                  */
                 $alliance = $this->rel('allianceId');
                 $alliance->loadById($data['allianceId'], $accessToken, $additionalOptions);

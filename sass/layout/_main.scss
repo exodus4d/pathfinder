@@ -32,7 +32,8 @@ a, .pf-link{
   }
 }
 
-em{
+em,
+.pf-font-italic{
   font-style: italic;
 
   &.pf-brand{
@@ -428,6 +429,10 @@ select:active, select:hover {
       font-size: 9px !important; // should not be "so big" (10px default)
     }
 
+    > .label{
+      font-size: 80%;
+    }
+
     &.pf-table-link-cell{
       cursor: pointer;
       @extend .txt-color;
@@ -479,11 +484,12 @@ select:active, select:hover {
 
     &.pf-table-image-smaller-cell{
       padding: 0 !important;
+      border-right: 1px solid transparent;
       img{
-        width: 25px; // smaller image (default 32)
+        width: 23px; // smaller image (default 32)
         // overwrite "default" border for image cells
-        border-left: 1px solid transparent;
-        border-right: 1px solid transparent;
+        //border-left: 1px solid transparent;
+        //border-right: 1px solid transparent;
       }
     }
 
@@ -633,6 +639,7 @@ table{
       border-top-color: transparent !important;
 
       .pf-table-cell-bg-image-wrapper{
+        display: block;
         background-size: contain;
         background-origin: content-box;
         background-repeat: no-repeat;
@@ -642,6 +649,10 @@ table{
         width: auto;
         height: 40px;
         padding: 2px 0;
+
+        &.smaller{
+          height: 30px;
+        }
       }
     }
   }
@@ -897,6 +908,7 @@ table{
     will-change: height, transform, opacity;
     overflow: hidden;
     @include border-radius(5px);
+    border-top-left-radius: 0;
 
     &:before{
       content: '';
@@ -1532,6 +1544,64 @@ td.pf-popover-trigger{
   // last alert box in dynamic-area
   > [class~='alert']:last-of-type{
     margin-bottom: 0;
+  }
+
+  &[data-resizebar]{
+    padding-bottom: 15px;
+
+    &:hover{
+      .pf-resizearea{
+        @include transition-delay(.15s);
+        height: 40px;
+        opacity: 1;
+      }
+
+      .pf-resizebar-bar{
+        border-top: 1px solid $orange !important;
+      }
+    }
+  }
+
+  &:not([data-resizebar]){
+    .pf-dynamic-area-resizebar{
+      display: none;
+    }
+  }
+
+  .pf-resizearea{
+    height: 0;
+    opacity: 0;
+    @include transition(height .12s ease-out, opacity .12s ease-out);
+    will-change: height, opacity;
+  }
+
+  .pf-dynamic-area-statusbar{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: $gray-dark;
+    padding: 1px 0;
+
+    .pf-dynamic-area-resizebar{
+      width: 100%;
+      height: 9px;
+      padding-top: 1px;
+      cursor: ns-resize;
+
+      &:hover{
+        .pf-resizebar-bar{
+          border-top: 1px solid $orange;
+        }
+      }
+
+      .pf-resizebar-bar{
+        border-top: 1px solid $gray-light;
+        transition: border-top 0.15s ease-out;
+        width: 20px;
+        margin: 1px auto;
+      }
+    }
   }
 }
 

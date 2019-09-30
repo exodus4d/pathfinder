@@ -13,8 +13,14 @@ use DB\SQL\Schema;
 
 class StructureStatusModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'structure_status';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -42,6 +48,9 @@ class StructureStatusModel extends AbstractPathfinderModel {
         ]
     ];
 
+    /**
+     * @var array
+     */
     protected static $tableData = [
         [
             'id' => 1,

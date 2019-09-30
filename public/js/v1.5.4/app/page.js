@@ -1012,7 +1012,13 @@ define([
         if(changes.charactersIds){
             updateTasks.push(updateHeaderCharacterSwitch(userData, changes.characterId));
         }
-        if(changes.characterSystemId || changes.characterShipType || changes.characterLogHistory){
+        if(
+            changes.characterSystemId ||
+            changes.characterShipType ||
+            changes.characterStationId ||
+            changes.characterStructureId ||
+            changes.characterLogHistory
+        ){
             updateTasks.push(updateHeaderCharacterLocation(userData, changes.characterShipType));
         }
 
@@ -1087,6 +1093,16 @@ define([
                 let shipTypeId = Util.getObjVal(shipData, 'typeId') || 0;
                 let shipTypeName = Util.getObjVal(shipData, 'typeName') || '';
 
+                let stationData = Util.getObjVal(userData, 'character.log.station');
+                let stationId = Util.getObjVal(stationData, 'id') || 0;
+                let stationName = Util.getObjVal(stationData, 'name') || '';
+
+                let structureData = Util.getObjVal(userData, 'character.log.structure');
+                let structureTypeId = Util.getObjVal(structureData, 'type.id') || 0;
+                let structureTypeName = Util.getObjVal(structureData, 'type.name') || '';
+                let structureId = Util.getObjVal(structureData, 'id') || 0;
+                let structureName = Util.getObjVal(structureData, 'name') || '';
+
                 logDataAll.push(logData);
 
                 // check for log history data as well
@@ -1116,6 +1132,12 @@ define([
 
                     if(isCurrentLocation){
                         breadcrumbHtml += '<i class="fas fa-fw fa-map-marker-alt" title="current location"></i>';
+
+                        if(stationId > 0){
+                            breadcrumbHtml += '<i class="fas fa-home" title="' + stationName + '"></i>';
+                        }else if(structureId > 0){
+                            breadcrumbHtml += '<i class="fas fa-industry" title="' + structureTypeName + ' &quot;' + structureName + '&quot;"></i>';
+                        }
                     }
 
                     breadcrumbHtml += systemName;

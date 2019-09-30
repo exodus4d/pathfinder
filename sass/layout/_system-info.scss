@@ -1,5 +1,5 @@
 // system info module ======================================================
-$pfSystemSectionMinHeight: 124px;
+$pfSystemSectionMinHeight: 123px;
 
 .pf-system-info-module{
 
@@ -8,17 +8,22 @@ $pfSystemSectionMinHeight: 124px;
     text-transform: capitalize;
   }
 
-  .pf-system-sov-section{
-    @media (max-width: $screen-xs-max) {
-      margin: 10px 0;
-    }
-    @media (min-width: $screen-sm-min) {
+  > .row {
+    > div:not(:first-child){
       padding-left: 0;
-      padding-right: 0;
     }
+  }
 
+  .pf-system-sov-section{
     .pf-dynamic-area{
       min-height: $pfSystemSectionMinHeight;
+    }
+  }
+
+  .pf-system-description-section{
+    @media (max-width: $screen-xs-max) {
+      padding-left: 10px !important;
+      margin-top: 10px;
     }
   }
 
@@ -287,8 +292,13 @@ $pfSystemSectionMinHeight: 124px;
 // intel module ============================================================
 .pf-system-intel-module{
 
+  .pf-system-station-table,
   .pf-system-structure-table{
     font-size: 10px;
+  }
+
+   .pf-module-head:not(:first-child){
+     margin-top: 15px;
   }
 }
 

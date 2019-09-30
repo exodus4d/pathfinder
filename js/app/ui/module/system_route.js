@@ -1219,7 +1219,7 @@ define([
                     placement: 'top',
                     container: 'body',
                     content: content
-                }).data('bs.popover').tip().addClass('pf-popover');
+                }).data('bs.popover').tip().addClass(Util.config.popoverClass);
             });
 
             // set popup "close" observer

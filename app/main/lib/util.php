@@ -74,7 +74,7 @@ class Util {
      * @param mixed $array
      * @return bool
      */
-    static function is_assoc($array): bool {
+    static function is_assoc($array) : bool {
         $isAssoc = false;
         if(
             is_array($array) &&
@@ -127,7 +127,7 @@ class Util {
      * @param int $maxHideChars
      * @return string
      */
-    static function obscureString(string $string, int $maxHideChars = 10): string {
+    static function obscureString(string $string, int $maxHideChars = 10) : string {
         $formatted = '';
         $length = mb_strlen((string)$string);
         if($length > 0){
@@ -143,7 +143,7 @@ class Util {
      * @param array $scopes
      * @return string
      */
-    static function getHashFromScopes($scopes){
+    static function getHashFromScopes($scopes) : string {
         $scopes = (array)$scopes;
         sort($scopes);
         return md5(serialize($scopes));

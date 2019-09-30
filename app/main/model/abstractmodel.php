@@ -521,7 +521,7 @@ abstract class AbstractModel extends Cortex {
      * @return bool
      */
     public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true) : bool {
-        return $this->getByForeignKey('id', $id, ['limit' => 1], $ttl, $isActive);
+        return $this->getByForeignKey($this->primary, $id, ['limit' => 1], $ttl, $isActive);
     }
 
     /**
@@ -534,10 +534,7 @@ abstract class AbstractModel extends Cortex {
      * @return bool
      */
     public function getByForeignKey(string $key, $value, array $options = [], int $ttl = 0, bool $isActive = true) : bool {
-        $filters = [];
-        if($this->exists($key)){
-            $filters[] = [$key . ' = :' . $key, ':' . $key => $value];
-        }
+        $filters = [self::getFilter($key, $value)];
 
         if($isActive && $this->exists('active')){
             $filters[] = self::getFilter('active', true);
@@ -973,6 +970,15 @@ abstract class AbstractModel extends Cortex {
      */
     public static function getF3() : \Base {
         return \Base::instance();
+    }
+
+    /**
+     * get model data as array
+     * @param $data
+     * @return array
+     */
+    public static function toArray($data) : array {
+        return json_decode(json_encode($data), true);
     }
 
     /**

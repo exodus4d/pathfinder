@@ -176,7 +176,10 @@ class Map extends Controller\AccessController {
             // get third party APIs -----------------------------------------------------------------------------------
             $return->url = [
                 'ccpImageServer'        => Config::getPathfinderData('api.ccp_image_server'),
-                'zKillboard'            => Config::getPathfinderData('api.z_killboard')
+                'zKillboard'            => Config::getPathfinderData('api.z_killboard'),
+                'eveeye'                => Config::getPathfinderData('api.eveeye'),
+                'dotlan'                => Config::getPathfinderData('api.dotlan'),
+                'anoik'                 => Config::getPathfinderData('api.anoik')
             ];
 
             // Character default config -------------------------------------------------------------------------------

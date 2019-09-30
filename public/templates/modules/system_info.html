@@ -20,17 +20,6 @@
         <i class="fas fa-fw fa-lock" data-toggle="tooltip" title="locked"></i>
         {{/system.locked}}
     </h5>
-
-    {{#systemIsWormhole}}
-        <a href="{{#formatUrl}}http://evemaps.dotlan.net/system/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" title="dotlan" target="_blank" rel="noopener"></a>
-    {{/systemIsWormhole}}
-    {{^systemIsWormhole}}
-        <a href="{{#formatUrl}}http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" title="dotlan" target="_blank" rel="noopener"></a>
-    {{/systemIsWormhole}}
-
-    {{#systemIsWormhole}}
-        <a href="{{#formatUrl}}http://anoik.is/systems/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" title="anoik" target="_blank" rel="noopener"></a>
-    {{/systemIsWormhole}}
 </div>
 
 <div class="row">
@@ -41,7 +30,7 @@
             {{systemStatusLabel}}
         </span>
 
-        <div class="pf-dynamic-area">
+        <div class="pf-dynamic-area" data-resizebar>
             <table class="table table-condensed pf-table-fixed {{infoTableClass}}">
                 <thead>
                 <tr>
@@ -90,6 +79,49 @@
                 {{/static}}
                 </tbody>
             </table>
+
+            <div class="pf-resizearea">
+                <table class="table table-condensed pf-table-fixed {{infoTableClass}}">
+                    <colgroup>
+                        <col/>
+                        <col style="width: 40px;"/>
+                        <col style="width: 40px;"/>
+                        <col style="width: 40px;"/>
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Links</th>
+                        <th class="pf-table-cell-bg-image" rowspan="2">
+                            {{#thirdPartyLinks.1_url}}
+                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ domain }}" href="{{ url }}" target="_blank" rel="noopener"></a>
+                            {{/thirdPartyLinks.1_url}}
+                        </th>
+                        <th class="pf-table-cell-bg-image" rowspan="2">
+                            {{#thirdPartyLinks.2_url}}
+                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ domain }}" href="{{ url }}" target="_blank" rel="noopener"></a>
+                            {{/thirdPartyLinks.2_url}}
+                        </th>
+                        <th class="pf-table-cell-bg-image" rowspan="2">
+                            {{#thirdPartyLinks.3_url}}
+                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ domain }}" href="{{ url }}" target="_blank" rel="noopener"></a>
+                            {{/thirdPartyLinks.3_url}}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>&nbsp;</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pf-dynamic-area-statusbar">
+                <div class="pf-dynamic-area-resizebar">
+                    <div class="pf-resizebar-bar"></div>
+                    <div class="pf-resizebar-bar"></div>
+                    <div class="pf-resizebar-bar"></div>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -189,6 +189,61 @@ define([
     };
 
     /**
+     * @param pages
+     * @param systemData
+     */
+    let getThirdPartySystemLinks = (pages, systemData) => {
+        let urls = {};
+        let isWormhole = MapUtil.getSystemTypeInfo(Util.getObjVal(systemData, 'type.id'), 'name') === 'w-space';
+        let systemName = Util.getObjVal(systemData, 'name') || '';
+        let regionName = Util.getObjVal(systemData, 'region.name') || '';
+
+        let validUrls = 0;
+        for(let i = 0; i < pages.length; i++){
+            let url = false;
+            let domain = Util.getObjVal(Init, 'url.' + pages[i]);
+            if(domain || pages[i] === 'eve'){
+                switch(pages[i]){
+                    case 'eve':
+                        url = 'https://client'; // fake url
+                        break;
+                    case 'dotlan':
+                        systemName = systemName.replace(/ /g, '_');
+                        regionName = regionName.replace(/ /g, '_');
+                        if(isWormhole){
+                            url = domain + '/system/' + systemName;
+                        }else{
+                            url = domain + '/map/' + regionName + '/' + systemName;
+                        }
+                        break;
+                    case 'eveeye':
+                        if(!isWormhole){
+                            url = domain + '/?m=' + encodeURIComponent(regionName) + '&s=' + encodeURIComponent(systemName.replace(/ /g, '_'));
+                            url += '&t=eswkc&o=thera,con_svc,node_sov,sub_sec,sector_fac,tag_mk';
+                        }
+                        break;
+                    case 'anoik':
+                        if(isWormhole){
+                            url = domain + '/systems/' + systemName;
+                        }
+                        break;
+                }
+
+                if(url){
+                    let urlObj = new URL(url);
+                    urls[++validUrls + '_url'] = {
+                        page: pages[i],
+                        domain: urlObj.hostname,
+                        url: url
+                    };
+                }
+            }
+        }
+
+        return urls;
+    };
+
+    /**
      * get module element
      * @param parentElement
      * @param mapId
@@ -294,7 +349,6 @@ define([
 
             systemUrl: MapUtil.getMapDeeplinkUrl(mapId, systemData.id),
             systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
-            systemIsWormhole: MapUtil.getSystemTypeInfo(systemData.type.id, 'name') === 'w-space',
             systemStatusId: systemData.status.id,
             systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
             systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),
@@ -326,6 +380,7 @@ define([
             systemTypeLinkClass: config.typeLinkClass,
             systemUrlLinkClass: config.urlLinkClass,
             ccpImageServerUrl: Init.url.ccpImageServer,
+            thirdPartyLinks: getThirdPartySystemLinks(['eve', 'dotlan', 'eveeye', 'anoik'], systemData)
         };
 
         requirejs(['text!templates/modules/system_info.html', 'mustache', 'summernote.loader'], (template, Mustache, Summernote) => {

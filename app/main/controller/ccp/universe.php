@@ -161,7 +161,7 @@ class Universe extends Controller {
         $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
         $indexData = [];
         foreach($systemIds as $systemId){
-            $system->getById($systemId);
+            $system->getById($systemId, 0);
             if($hashKeyId = $system->getHashKey()){
                 $indexData[$hashKeyId] = $system->getData();
             }

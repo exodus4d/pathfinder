@@ -205,7 +205,7 @@ define([
         let systemsElement = $(this).empty();
 
         let systemTable = $('<table>', {
-            id: Util.getTableId(config.tableId, mapData.config.id, '', 'systems'),
+            id: Util.getTableId(config.tableId, 'systems', mapData.config.id, ''),
             class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
         systemsElement.append(systemTable);
@@ -864,7 +864,7 @@ define([
                         }
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        // open character information window (ingame)
+                        // open corporation information window (ingame)
                         $(cell).on('click', { tableApi: this.api() }, function(e){
                             let cellData = e.data.tableApi.cell(this).data();
                             Util.openIngameWindow(cellData.id);

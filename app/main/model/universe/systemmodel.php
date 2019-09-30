@@ -93,6 +93,9 @@ class SystemModel extends AbstractUniverseModel {
         'stargates' => [
             'has-many' => ['Model\Universe\StargateModel', 'systemId']
         ],
+        'stations' => [
+            'has-many' => ['Model\Universe\StationModel', 'systemId']
+        ],
         'structures' => [
             'has-many' => ['Model\Universe\StructureModel', 'systemId']
         ],
@@ -152,6 +155,10 @@ class SystemModel extends AbstractUniverseModel {
 
         if( !empty($stargatesData = $this->getStargatesData()) ){
             $data->stargates        = $stargatesData;
+        }
+
+        if( !empty($stationsData = $this->getStationsData()) ){
+            $data->stations         = $stationsData;
         }
 
         return $data;
@@ -228,24 +235,11 @@ class SystemModel extends AbstractUniverseModel {
     }
 
     /**
-     * setter for positions array (x/y/z)
-     * @param $position
-     * @return null
-     */
-    public function set_position($position){
-        $position = (array)$position;
-        if(count($position) === 3){
-            $this->x = $position['x'];
-            $this->y = $position['y'];
-            $this->z = $position['z'];
-        }
-        return null;
-    }
-
-    /**
      * @param array $sovData
+     * @return bool true if sovereignty data changed
      */
-    public function updateSovereigntyData(array $sovData = []){
+    public function updateSovereigntyData(array $sovData = []) : bool {
+        $hasChanged     = false;
         $systemId       = (int)$sovData['systemId'];
         $factionId      = (int)$sovData['factionId'];
         $allianceId     = (int)$sovData['allianceId'];
@@ -260,7 +254,7 @@ class SystemModel extends AbstractUniverseModel {
                     /**
                      * @var $sovereignty SovereigntyMapModel
                      */
-                    if( !($sovereignty = $this->sovereignty) ){
+                    if(!$sovereignty = $this->sovereignty){
                         // insert new sovereignty data
                         $sovereignty = $this->rel('sovereignty');
                     }
@@ -305,20 +299,31 @@ class SystemModel extends AbstractUniverseModel {
                     }
 
                     $sovereignty->copyfrom($sovData, ['systemId', 'factionId', 'allianceId', 'corporationId']);
+
+                    // must be called before save(). Changed fields get reset after save() is called!
+                    if($sovereignty->changed()){
+                        $hasChanged = true;
+                    }
+
                     $sovereignty->save();
                 }elseif($this->sovereignty){
                     // delete existing sov data
                     // -> hint: WH - systems never have sovereignty data
                     $this->sovereignty->erase();
+                    $hasChanged = true;
                 }
             }
         }
+
+        return $hasChanged;
     }
 
     /**
      * @param array $fwData
+     * @return bool true if faction warfare data changed
      */
-    public function updateFactionWarData(array $fwData = []){
+    public function updateFactionWarData(array $fwData = []) : bool {
+        $hasChanged         = false;
         $systemId           = (int)$fwData['systemId'];
         $ownerFactionId     = (int)$fwData['ownerFactionId'];
         $occupierFactionId  = (int)$fwData['occupierFactionId'];
@@ -328,7 +333,7 @@ class SystemModel extends AbstractUniverseModel {
                 /**
                  * @var $factionWar FactionWarSystemModel
                  */
-                if( !($factionWar = $this->factionWar) ){
+                if(!$factionWar = $this->factionWar){
                     // insert new faction war data
                     $factionWar = $this->rel('factionWar');
                 }
@@ -354,9 +359,17 @@ class SystemModel extends AbstractUniverseModel {
                 }
 
                 $factionWar->copyfrom($fwData, ['systemId', 'ownerFactionId', 'occupierFactionId', 'contested', 'victoryPoints', 'victoryPointsThreshold']);
+
+                // must be called before save(). Changed fields get reset after save() is called!
+                if($factionWar->changed()){
+                    $hasChanged = true;
+                }
+
                 $factionWar->save();
             }
         }
+
+        return $hasChanged;
     }
 
     /**
@@ -379,10 +392,10 @@ class SystemModel extends AbstractUniverseModel {
         $planetsData = [];
 
         if($this->planets){
+            /**
+             * @var $planet PlanetModel
+             */
             foreach($this->planets as &$planet){
-                /**
-                 * @var $planet PlanetModel
-                 */
                 $planetsData[] = $planet->getData();
             }
         }
@@ -397,10 +410,10 @@ class SystemModel extends AbstractUniverseModel {
         $staticsData = [];
 
         if($this->statics){
+            /**
+             * @var $static SystemStaticModel
+             */
             foreach($this->statics as &$static){
-                /**
-                 * @var $static SystemStaticModel
-                 */
                 $staticsData[] = $static->getData();
             }
         }
@@ -415,14 +428,51 @@ class SystemModel extends AbstractUniverseModel {
         $stargatesData = [];
 
         if($this->stargates){
+            /**
+             * @var $stargate StargateModel
+             */
             foreach($this->stargates as &$stargate){
-                /**
-                 * @var $stargate StargateModel
-                 */
                 $stargatesData[] = $stargate->getData();
             }
         }
         return $stargatesData;
+    }
+
+    /**
+     * get data from all stations
+     * @return array
+     */
+    protected function getStationsData() : array {
+        $stationsData = [];
+
+        if($this->stations){
+            /**
+             * @var $station StationModel
+             */
+            foreach($this->stations as &$station){
+                $data = $station->getData();
+                if(!$data->race){
+                    // should never happen NPC stations always have a owning race
+                    $data->race = (object) [];
+                    $data->race->id = 0;
+                    $data->race->name = 'unknown';
+                    $data->race->faction = (object) [];
+                    $data->race->faction->id = 0;
+                    $data->race->faction->name = 'unknown';
+                }
+
+                if(!array_key_exists($data->race->faction->id, $stationsData)){
+                    $stationsData[$data->race->faction->id] = [
+                        'id' => $data->race->faction->id,
+                        'name' => $data->race->name,
+                        'stations' => []
+                    ];
+                }
+
+                $stationsData[$data->race->faction->id]['stations'][] = $data;
+            }
+        }
+        return $stationsData;
     }
 
     /**
@@ -501,6 +551,25 @@ class SystemModel extends AbstractUniverseModel {
                     $stargate = $this->rel('stargates');
                     $stargate->loadById($stargateId);
                     $stargate->reset();
+                }
+            }
+        }
+    }
+
+    /**
+     * load NPC owned stations for this system
+     */
+    public function loadStationsData(){
+        if($this->valid()){
+            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
+            if($data['stations']){
+                foreach((array)$data['stations'] as $stationId){
+                    /**
+                     * @var $station SystemModel
+                     */
+                    $station = $this->rel('stations');
+                    $station->loadById($stationId);
+                    $station->reset();
                 }
             }
         }

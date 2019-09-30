@@ -96,6 +96,15 @@ class CharacterLogModel extends AbstractPathfinderModel {
             'default' => '',
             'activity-log' => true
         ],
+        'structureTypeId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'structureTypeName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
         'structureId' => [
             'type' => Schema::DT_BIGINT,
             'index' => true,
@@ -146,9 +155,13 @@ class CharacterLogModel extends AbstractPathfinderModel {
         }
 
         if( isset($logData['structure']) ){
+            $this->structureTypeId = (int)$logData['structure']['type']['id'];
+            $this->structureTypeName = $logData['structure']['type']['name'];
             $this->structureId = (int)$logData['structure']['id'];
             $this->structureName = $logData['structure']['name'];
         }else{
+            $this->structureTypeId = null;
+            $this->structureTypeName = '';
             $this->structureId = null;
             $this->structureName = '';
         }
@@ -178,18 +191,13 @@ class CharacterLogModel extends AbstractPathfinderModel {
         $logData->station->name         = $this->stationName;
 
         $logData->structure             = (object) [];
+        $logData->structure->type       = (object) [];
+        $logData->structure->type->id   = $this->structureTypeId;
+        $logData->structure->type->name = $this->structureTypeName;
         $logData->structure->id         = (int)$this->structureId;
         $logData->structure->name       = $this->structureName;
 
         return $logData;
-    }
-
-    /**
-     * get 'character log' data as array
-     * @return array
-     */
-    public function getDataAsArray() : array {
-        return json_decode(json_encode($this->getData()), true);
     }
 
     /**

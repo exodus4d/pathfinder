@@ -103,6 +103,9 @@ class TypeModel extends AbstractUniverseModel {
             'default' => 0,
             'index' => true
         ],
+        'stations' => [
+            'has-many' => ['Model\Universe\StationModel', 'typeId']
+        ],
         'structures' => [
             'has-many' => ['Model\Universe\StructureModel', 'typeId']
         ],
@@ -220,7 +223,7 @@ class TypeModel extends AbstractUniverseModel {
      * -> more fields can be added in here if needed
      * @return \stdClass
      */
-    public function getShipData(): \stdClass {
+    public function getShipData() : \stdClass {
         $shipData = (object) [];
         if($this->valid()){
             $shipData->typeId = $this->_id;

@@ -137,7 +137,8 @@ define([
 
         // mark as init
         tableElement.attr('data-counter', 'init');
-        let refreshIntervalId = window.setInterval(() => {
+
+        let updateTableCount = () => {
             tableApi.cells(null, columnSelector).every(function(rowIndex, colIndex, tableLoopCount, cellLoopCount){
                 let cell = this;
                 let node = cell.node();
@@ -148,7 +149,9 @@ define([
                     updateDateDiff( cell.nodes().to$(), date, round);
                 }
             });
-        }, 500);
+        };
+
+        let refreshIntervalId = window.setInterval(updateTableCount, 500);
 
         tableElement.data('interval', refreshIntervalId);
     };
