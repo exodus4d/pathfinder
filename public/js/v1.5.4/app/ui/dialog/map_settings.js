@@ -36,6 +36,7 @@ define([
         deleteEolConnectionsId: 'pf-map-dialog-delete-connections-eol',                 // id for "deleteEOLConnections" checkbox
         persistentAliasesId: 'pf-map-dialog-persistent-aliases',                        // id for "persistentAliases" checkbox
         persistentSignaturesId: 'pf-map-dialog-persistent-signatures',                  // id for "persistentSignatures" checkbox
+        trackAbyssalJumpsId: 'pf-map-dialog-track-abyss-jumps',                         // id for "trackAbyssalJumps" checkbox
 
         logHistoryId: 'pf-map-dialog-history',                                          // id for "history logging" checkbox
         logActivityId: 'pf-map-dialog-activity',                                        // id for "activity" checkbox
@@ -159,6 +160,7 @@ define([
                 let deleteEolConnections = true;
                 let persistentAliases = true;
                 let persistentSignatures = true;
+                let trackAbyssalJumps = true;
 
                 let logActivity = true;
                 let logHistory = true;
@@ -197,6 +199,7 @@ define([
                     deleteEolConnections = mapData.config.deleteEolConnections;
                     persistentAliases = mapData.config.persistentAliases;
                     persistentSignatures = mapData.config.persistentSignatures;
+                    trackAbyssalJumps = mapData.config.trackAbyssalJumps;
 
                     logActivity = mapData.config.logging.activity;
                     logHistory = mapData.config.logging.history;
@@ -255,10 +258,12 @@ define([
                     deleteEolConnectionsId : config.deleteEolConnectionsId,
                     persistentAliasesId : config.persistentAliasesId,
                     persistentSignaturesId : config.persistentSignaturesId,
+                    trackAbyssalJumpsId : config.trackAbyssalJumpsId,
                     deleteExpiredConnections: deleteExpiredConnections,
                     deleteEolConnections: deleteEolConnections,
                     persistentAliases: persistentAliases,
                     persistentSignatures: persistentSignatures,
+                    trackAbyssalJumps: trackAbyssalJumps,
 
                     logHistoryId: config.logHistoryId,
                     logActivityId: config.logActivityId,
@@ -397,6 +402,9 @@ define([
                                     }
                                     if( form.find('#' + config.persistentSignaturesId).length ){
                                         formData.persistentSignatures = formData.hasOwnProperty('persistentSignatures') ? parseInt( formData.persistentSignatures ) : 0;
+                                    }
+                                    if( form.find('#' + config.trackAbyssalJumpsId).length ){
+                                        formData.trackAbyssalJumps = formData.hasOwnProperty('trackAbyssalJumps') ? parseInt( formData.trackAbyssalJumps ) : 0;
                                     }
                                     if( form.find('#' + config.logHistoryId).length ){
                                         formData.logHistory = formData.hasOwnProperty('logHistory') ? parseInt( formData.logHistory ) : 0;

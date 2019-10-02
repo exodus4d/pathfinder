@@ -98,6 +98,12 @@ class MapModel extends AbstractMapTrackingModel {
             'default' => 1,
             'activity-log' => true
         ],
+        'trackAbyssalJumps' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1,
+            'activity-log' => true
+        ],
         'logActivity' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -223,6 +229,7 @@ class MapModel extends AbstractMapTrackingModel {
             $mapData->deleteEolConnections                  = $this->deleteEolConnections;
             $mapData->persistentAliases                     = $this->persistentAliases;
             $mapData->persistentSignatures                  = $this->persistentSignatures;
+            $mapData->trackAbyssalJumps                     = $this->trackAbyssalJumps;
 
             // map scope
             $mapData->scope                                 = (object) [];

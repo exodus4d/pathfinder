@@ -1068,6 +1068,24 @@ class Map extends Controller\AccessController {
                             break;
                     }
 
+                    // check for "abyss" systems =====================================================================
+                    if(!$map->trackAbyssalJumps){
+                        if(
+                            $sourceSystem->isAbyss() ||
+                            $targetSystem->isAbyss()
+                        ){
+                            $addConnection = false;
+
+                            if($sourceSystem->isAbyss()){
+                                $addSourceSystem = false;
+                            }
+
+                            if($targetSystem->isAbyss()){
+                                $addTargetSystem = false;
+                            }
+                        }
+                    }
+
                     // save source system =============================================================================
                     if(
                         $addSourceSystem &&
