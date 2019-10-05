@@ -662,19 +662,9 @@ define([
             case 'add_system':
                 // add new system dialog
                 let position = Layout.getEventCoordinates(e);
-
-                let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
-                let positionFinder = new Layout.Position({
-                    container: mapElement[0],
-                    center: [position.x, position.y],
-                    loops: 5,
-                    defaultGapX: 10,
-                    defaultGapY: 10,
-                    grid: mapElement.hasClass(MapUtil.config.mapGridClass) ? grid : false,
-                    debug: false
+                let dimensions = MapUtil.newSystemPositionByCoordinates(mapElement, {
+                    center: [position.x, position.y]
                 });
-
-                let dimensions = positionFinder.findNonOverlappingDimensions(1, 8);
 
                 if(dimensions.length){
                     position.x = dimensions[0].left;

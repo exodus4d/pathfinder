@@ -6,9 +6,10 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/map/layout',
     'app/map/scrollbar',
     'app/map/overlay/util'
-], ($, Init, Util, Scrollbar, MapOverlayUtil) => {
+], ($, Init, Util, Layout, Scrollbar, MapOverlayUtil) => {
     'use strict';
 
     let config = {
@@ -2113,6 +2114,132 @@ define([
     };
 
     /**
+     *
+     * @param options
+     * @param maxResults
+     * @param findChain
+     * @returns {Array}
+     */
+    let findNonOverlappingDimensions = (options = {}, maxResults = 1, findChain = false) => {
+        let defaultOptions = {
+            center: [0, 30],
+            loops: 4,
+            debug: false
+        };
+
+        options = Object.assign({}, defaultOptions, options);
+        let positionFinder = new Layout.Position(Object.assign({}, defaultOptions, options));
+
+        return positionFinder.findNonOverlappingDimensions(maxResults, findChain);
+    };
+
+    /**
+     * calculate the x/y coordinates for a new system - relative to a source system
+     * @param sourceSystem
+     * @returns {Array}
+     */
+    let newSystemPositionBySystem = sourceSystem => {
+        let mapContainer = sourceSystem.parent();
+        let grid = [config.mapSnapToGridDimension, config.mapSnapToGridDimension];
+
+        let options = {
+            container: mapContainer[0],
+            center: sourceSystem[0],
+            grid: mapContainer.hasClass(config.mapGridClass) ? grid : false
+        };
+
+        return findNonOverlappingDimensions(options);
+    };
+
+    /**
+     * calculate the x/y coordinates for a new system - relative to x/y position
+     * @param mapContainer
+     * @param options
+     * @param maxResults
+     * @param findChain
+     * @returns {Array}
+     */
+    let newSystemPositionByCoordinates = (mapContainer, options = {}, maxResults = 1, findChain = false) => {
+        let grid = [config.mapSnapToGridDimension, config.mapSnapToGridDimension];
+
+        let defaultOptions = {
+            container: mapContainer[0],
+            center: [0, 0],
+            grid: mapContainer.hasClass(config.mapGridClass) ? grid : false,
+            loops: 10,
+            defaultGapX: 10,
+            defaultGapY: 10,
+            //debugOk: true,
+            //debug: true
+        };
+
+        options = Object.assign({}, defaultOptions, options);
+
+        return findNonOverlappingDimensions(options, maxResults, findChain);
+    };
+
+    /**
+     *
+     * @param mapContainer
+     */
+    let newSystemPositionsByMap = mapContainer => {
+        let positions = {};
+
+        if(mapContainer){
+            let mapId = mapContainer.data('id');
+            let scrollPosition = {
+                x: Math.abs(parseInt(mapContainer.attr('data-scroll-left')) || 0),
+                y: Math.abs(parseInt(mapContainer.attr('data-scroll-top')) || 0)
+            };
+
+            // space new positions from map top (e.g. used for tooltips)
+            scrollPosition.y = Math.max(scrollPosition.y, 30);
+
+            // default position -> current map section top/left -------------------------------------------------------
+            positions.defaults = [scrollPosition];
+
+            // check default position for overlapping -----------------------------------------------------------------
+            let dimensions = newSystemPositionByCoordinates(mapContainer, {
+                center: [scrollPosition.x, scrollPosition.y],
+                minX: scrollPosition.x,
+                minY: scrollPosition.y
+            }, 2, true);
+
+            if(dimensions.length){
+                positions.defaults = dimensions.map(dim => ({
+                    x: parseInt(dim.left) || 0,
+                    y: parseInt(dim.top) || 0
+                }));
+            }
+
+            // -> calc possible coordinates for new system that should be used based on current user location ---------
+            let currentLocationData = Util.getCurrentLocationData();
+            if(currentLocationData.id){
+                // ... we need to the PF systemId for 'SelectSystem' trigger
+                let systemData = getSystemData(mapId, currentLocationData.id, 'systemId');
+                if(systemData){
+                    let currentSystem = $('#' + getSystemId(mapId, systemData.id));
+                    if(currentSystem.length){
+                        let dimensions = newSystemPositionBySystem(currentSystem);
+                        if(dimensions.length){
+                            //... empty map space found
+                            positions.location = {
+                                systemId: currentLocationData.id,
+                                position: {
+                                    x: dimensions[0].left,
+                                    y: dimensions[0].top
+                                }
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        return Object.keys(positions).length ? positions : null;
+    };
+
+    /**
      * get a unique map url for deeplinking
      * @param mapId
      * @param systemId
@@ -2191,6 +2318,9 @@ define([
         initWormholeInfoTooltip: initWormholeInfoTooltip,
         getSystemId: getSystemId,
         checkRight: checkRight,
+        newSystemPositionBySystem: newSystemPositionBySystem,
+        newSystemPositionByCoordinates: newSystemPositionByCoordinates,
+        newSystemPositionsByMap: newSystemPositionsByMap,
         getMapDeeplinkUrl: getMapDeeplinkUrl
     };
 });

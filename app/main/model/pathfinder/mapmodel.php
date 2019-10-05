@@ -17,6 +17,9 @@ use lib\logging;
 
 class MapModel extends AbstractMapTrackingModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'map';
 
     /**
@@ -27,6 +30,9 @@ class MapModel extends AbstractMapTrackingModel {
     const ERROR_SLACK_CHANNEL                       = 'Invalid #Slack channel column [%s]';
     const ERROR_DISCORD_CHANNEL                     = 'Invalid #Discord channel column [%s]';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,

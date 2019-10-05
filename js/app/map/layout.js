@@ -6,21 +6,32 @@ define(() => {
         constructor(config){
             this._defaultConfig = {
                 container: null,                        // parent DOM container element
-                center: null,                           // DOM elements that works as center
+                center: null,                           // DOM element OR [x,y] coordinates that works as center
                 elementClass: 'pf-system',              // class for all elements
+                defaultSteps: 8,                       // how many potential dimensions are checked on en ellipsis around the center
                 defaultGapX: 50,
                 defaultGapY: 50,
                 gapX: 50,                               // leave gap between elements (x-axis)
                 gapY: 50,                               // leave gap between elements (y-axis)
+                minX: 0,                                // min x for valid elements
+                minY: 0,                                // min y for valid elements
+                spacingX: 20,                           // spacing x between elements
+                spacingY: 10,                           // spacing y between elements
                 loops: 2,                               // max loops around "center" for search
                 grid: false,                            // set to [20, 20] to force grid snapping
                 newElementWidth: 100,                   // width for new element
                 newElementHeight: 22,                   // height for new element
+                mirrorSearch: false,                    // if true coordinates are "mirrored" for an "alternating" search
                 debug: false,                           // render debug elements
+                debugOk: false,                         // if true, only not overlapped dimensions are rendered for debug
                 debugElementClass: 'pf-system-debug'    // class for debug elements
             };
 
             this._config = Object.assign({}, this._defaultConfig, config);
+
+            this._config.dimensionCache = {};
+
+            this._cacheKey = (dim, depth) => ['dim', dim.left, dim.top, dim.width, dim.height, depth].join('_');
 
             /**
              * convert degree into radial unit
@@ -28,19 +39,17 @@ define(() => {
              * @returns {number}
              * @private
              */
-            this._degToRad = (deg) => {
-                return deg * Math.PI / 180;
-            };
+            this._degToRad = deg => deg * Math.PI / 180;
 
             /**
              * get element dimension/position of a DOM element
              * @param element
-             * @returns {*}
+             * @param spacingX
+             * @param spacingY
+             * @returns {{a: *, b: *, top: *, left: *, width: *, height: *}}
              * @private
              */
-            this._getElementDimension = element => {
-                let dim = null;
-
+            this._getElementDimension = (element, spacingX = 0, spacingY = 0) => {
                 let left = 0;
                 let top = 0;
                 let a = 0;
@@ -49,7 +58,7 @@ define(() => {
                 let height = this._config.newElementHeight;
 
                 if(Array.isArray(element)){
-                    // xy coordinates
+                    // x/y coordinates
                     let point = [
                         element[0] ? parseInt(element[0], 10) : 0,
                         element[1] ? parseInt(element[1], 10) : 0
@@ -63,14 +72,21 @@ define(() => {
                     top = point[1];
                     a = this._config.gapX;
                     b = this._config.gapY;
-                }else if(element){
+                }else if(element instanceof Element){
                     // DOM element
-                    left = element.style.left ? parseInt(element.style.left, 10) : 0;
-                    top = element.style.top ? parseInt(element.style.top, 10) : 0;
-                    a = parseInt((element.offsetWidth / 2).toString(), 10) + this._config.gapX;
-                    b = parseInt((element.offsetHeight / 2).toString(), 10) + this._config.gapY;
-                    width = element.offsetWidth;
-                    height = element.offsetHeight;
+                    left = (element.style.left ? parseInt(element.style.left, 10) : 0) - spacingX;
+                    top = (element.style.top ? parseInt(element.style.top, 10) : 0) - spacingY;
+                    a = parseInt((element.offsetWidth / 2).toString(), 10) + spacingX + this._config.gapX;
+                    b = parseInt((element.offsetHeight / 2).toString(), 10) + spacingY + this._config.gapY;
+                    width = element.offsetWidth + 2 * spacingX;
+                    height = element.offsetHeight + 2 * spacingY;
+                }else if(element instanceof Object){
+                    left = element.left - spacingX;
+                    top = element.top - spacingY;
+                    a = parseInt((element.width / 2).toString(), 10) + spacingX + this._config.gapX;
+                    b = parseInt((element.height / 2).toString(), 10) + spacingY + this._config.gapY;
+                    width = element.width + 2 * spacingX;
+                    height = element.height + 2 * spacingY;
                 }
 
                 // add "gap" to a and b in order to have some space around elements
@@ -121,7 +137,7 @@ define(() => {
                 let dimensions = [];
                 let surroundingElements = this._getContainer().getElementsByClassName(this._config.elementClass);
                 for(let element of surroundingElements){
-                    dimensions.push(this._getElementDimension(element));
+                    dimensions.push(this._getElementDimension(element, this._config.spacingX, this._config.spacingY));
                 }
                 return dimensions;
             };
@@ -132,7 +148,7 @@ define(() => {
              * @returns {*}
              * @private
              */
-            this._transformPointToGrid = (point) => {
+            this._transformPointToGrid = point => {
                 point[0] = Math.floor(point[0] / this._config.grid[0]) * this._config.grid[0];
                 point[1] = Math.floor(point[1] / this._config.grid[1]) * this._config.grid[1];
                 return point;
@@ -232,30 +248,43 @@ define(() => {
             };
 
             /**
+             * checks whether dim11 has valid x/y coordinate
+             * -> coordinates are >= "minX/Y" limit
+             * @param dim1
+             * @returns {*|boolean}
+             * @private
+             */
+            this._valid = dim1 => dim1 && dim1.left >= this._config.minX && dim1.top >= this._config.minY;
+
+            /**
              * checks whether dim1 is partially overlapped by any other element
              * @param dim1
              * @param dimensionContainer
              * @param allDimensions
+             * @param depth
              * @returns {boolean}
              * @private
              */
-            this._isOverlapping = (dim1, dimensionContainer, allDimensions) => {
+            this._isOverlapping = (dim1, dimensionContainer, allDimensions, depth) => {
                 let isOverlapping = false;
                 if(dim1){
-                    if(this._percentCovered(dimensionContainer, dim1 ) === 100){
+                    let cacheKey = this._cacheKey(dim1, depth);
+                    // check cache first (e.g. if grid is active some dimensions would be checked multiple times)
+                    if(this._config.dimensionCache[cacheKey]){
+                        return true;
+                    }else if(this._percentCovered(dimensionContainer, dim1) === 100){
                         // element is within parent container
                         for(let dim2 of allDimensions){
                             let percentCovered = this._percentCovered(dim1, dim2);
                             if(percentCovered){
                                 isOverlapping = true;
-                                // render debug element
-                                this._showDebugElement(dim1, percentCovered);
+                                this._config.dimensionCache[cacheKey] = percentCovered;
                                 break;
                             }
                         }
                     }else{
                         isOverlapping = true;
-                        this._showDebugElement(dim1, 100);
+                        this._config.dimensionCache[cacheKey] = 100;
                     }
                 }else{
                     isOverlapping = true;
@@ -265,35 +294,62 @@ define(() => {
             };
 
             /**
+             *
+             * @param dim1
+             * @returns {boolean}
+             * @private
+             */
+            this._existDimension = function(dim1){
+                return (
+                    dim1.left === this.left &&
+                    dim1.top === this.top &&
+                    dim1.width === this.width &&
+                    dim1.height === this.height
+                );
+            };
+
+            /**
              * find all dimensions around a centerDimension that are not overlapped by other elements
              * @param maxResults
              * @param steps
              * @param allDimensions
+             * @param depth
              * @param loops
              * @returns {Array}
              * @private
              */
-            this._findDimensions = (maxResults, steps, allDimensions, loops) => {
+            this._findDimensions = (maxResults, steps, allDimensions, depth, loops) => {
+                steps = steps || 1;
+                loops = loops || 1;
+
                 let dimensions = [];
                 let start = 0;
                 let end = 360;
                 let angle = end / steps;
+
+                // as default coordinates get checked clockwise Q4 -> Q3 -> Q2 -> Q1
+                // we could also check "mirrored" coordinates Q4+Q1 -> Q3+Q2
+                if(this._config.mirrorSearch){
+                    end /= end;
+                }
+
                 let dimensionContainer = this._getElementDimension(this._getContainer());
-                steps = steps || 1;
-                loops = loops || 1;
 
                 if(loops === 1){
                     // check center element
                     let centerDimension = this._getElementDimension(this._config.center);
-                    if(!this._isOverlapping(centerDimension, dimensionContainer, allDimensions)){
+                    if(
+                        this._valid(centerDimension) &&
+                        !dimensions.some(this._existDimension, centerDimension) &&
+                        !this._isOverlapping(centerDimension, dimensionContainer, allDimensions, depth)
+                    ){
                         dimensions.push({
                             left: centerDimension.left,
                             top: centerDimension.top,
                             width: centerDimension.width,
                             height: centerDimension.height
                         });
-                        // render debug element
-                        this._showDebugElement(centerDimension, 0);
+                        this._config.dimensionCache[this._cacheKey(centerDimension, depth)] = 0;
 
                         maxResults--;
                     }
@@ -308,27 +364,38 @@ define(() => {
                 while(maxResults > 0 && start < end){
                     // get all potential coordinates on an eclipse around a given "centerElementDimension"
                     let coordinate = this._getEllipseCoordinates(centerDimension, end);
-                    // transform relative x/y coordinate into a absolute 2D area
-                    let checkDimension = this._transformCoordinate(centerDimension, coordinate);
-                    if(!this._isOverlapping(checkDimension, dimensionContainer, allDimensions)){
-                        dimensions.push({
-                            left: checkDimension.left,
-                            top: checkDimension.top,
-                            width: checkDimension.width,
-                            height: checkDimension.height
-                        });
-                        // render debug element
-                        this._showDebugElement(checkDimension, 0);
-
-                        maxResults--;
+                    let coordinates = [coordinate];
+                    if(this._config.mirrorSearch && coordinate){
+                        coordinates.push({x: coordinate.x, y: coordinate.y * -1 });
                     }
+
+                    for(let coordinateTemp of coordinates){
+                        // transform relative x/y coordinate into a absolute 2D area
+                        let checkDimension = this._transformCoordinate(centerDimension, coordinateTemp);
+                        if(
+                            this._valid(checkDimension) &&
+                            !dimensions.some(this._existDimension, checkDimension) &&
+                            !this._isOverlapping(checkDimension, dimensionContainer, allDimensions, depth)
+                        ){
+                            dimensions.push({
+                                left: checkDimension.left,
+                                top: checkDimension.top,
+                                width: checkDimension.width,
+                                height: checkDimension.height
+                            });
+                            this._config.dimensionCache[this._cacheKey(checkDimension, depth)] = 0;
+
+                            maxResults--;
+                        }
+                    }
+
                     end -= angle;
                 }
 
                 if(maxResults > 0 && loops < this._config.loops){
                     loops++;
                     steps *= 2;
-                    dimensions = dimensions.concat(this._findDimensions(maxResults, steps, allDimensions, loops));
+                    dimensions = dimensions.concat(this._findDimensions(maxResults, steps, allDimensions, depth, loops));
                 }
 
                 return dimensions;
@@ -346,21 +413,33 @@ define(() => {
             /**
              * render debug element into parent container
              * -> checks overlapping dimension with other elements
-             * @param dimension
-             * @param percentCovered
              * @private
              */
-            this._showDebugElement = (dimension, percentCovered) => {
+            this._showDebugElements = () => {
                 if(this._config.debug){
-                    let element = document.createElement('div');
-                    element.style.left              = dimension.left + 'px';
-                    element.style.top               = dimension.top + 'px';
-                    element.style.width             = dimension.width + 'px';
-                    element.style.height            = dimension.height + 'px';
-                    element.style.backgroundColor   = Boolean(percentCovered) ? 'rgba(255,0,0,0.1)' : 'rgba(0,255,0,0.1)';
-                    element.innerHTML               = Math.round(percentCovered * 100) / 100  + '%';
-                    element.classList.add(this._config.debugElementClass);
-                    this._getContainer().appendChild(element);
+                    let documentFragment = document.createDocumentFragment();
+                    for(let [cacheKey, percentCovered] of Object.entries(this._config.dimensionCache)){
+                        if(this._config.debugOk && percentCovered){
+                            continue;
+                        }
+
+                        let element = document.createElement('div');
+                        let dimParts = cacheKey.split('_');
+                        element.style.left              = dimParts[1] + 'px';
+                        element.style.top               = dimParts[2] + 'px';
+                        element.style.width             = dimParts[3] + 'px';
+                        element.style.height            = dimParts[4] + 'px';
+                        element.style.backgroundColor   = Boolean(percentCovered) ? 'rgba(255,0,0,0.1)' : 'rgba(0,255,0,0.4)';
+                        element.style.opacity           = Boolean(percentCovered) ? 0.5 : 1;
+                        element.style.zIndex            = Boolean(percentCovered) ? 1000 : 2000;
+                        element.style.border            = Boolean(percentCovered) ? 'none' : '1px solid rgba(0,255,0,0.3)';
+                        element.innerHTML               = Math.round(percentCovered * 100) / 100  + '';
+                        element.classList.add(this._config.debugElementClass);
+                        element.setAttribute('data-depth', dimParts[5]);
+                        documentFragment.appendChild(element);
+                    }
+
+                    this._getContainer().appendChild(documentFragment);
                 }
             };
 
@@ -381,15 +460,45 @@ define(() => {
             /**
              * search for surrounding, non overlapping dimensions
              * @param maxResults
-             * @param steps
+             * @param findChain
              * @returns {Array}
              */
-            this.findNonOverlappingDimensions = (maxResults, steps) => {
+            this.findNonOverlappingDimensions = (maxResults, findChain = false) => {
                 this._hideDebugElements();
+                this._config.dimensionCache = {};
+
                 // element dimensions that exist and should be checked for overlapping
                 let allDimensions = this._getAllElementDimensions();
+                let dimensions = [];
+                let depth = 1;
+                let maxDepth = findChain ? maxResults : 1;
+                maxResults = findChain ? 1 : maxResults;
+                while(depth <= maxDepth){
+                    let dimensionsTemp = this._findDimensions(maxResults, this._config.defaultSteps, allDimensions, depth);
 
-                return this._findDimensions(maxResults, steps, allDimensions);
+                    if(dimensionsTemp.length){
+                        dimensions = dimensions.concat(dimensionsTemp);
+
+                        if(findChain){
+                            // if depth > 0 we have 2D dimension as "center" (not a x/y coordinate)
+                            // -> increase the gap
+                            this._config.defaultGapX = 10;
+                            this._config.defaultGapY = 10;
+                            this._config.gapX = 50;
+                            this._config.gapY = 50;
+                            this._config.center = dimensionsTemp[0];
+                            allDimensions = allDimensions.concat([this._getElementDimension(dimensionsTemp[0], this._config.spacingX, this._config.spacingY)]);
+                        }
+
+                        depth++;
+                    }else{
+                        break;
+                    }
+                }
+
+                this._showDebugElements();
+
+                return dimensions;
             };
         }
     }

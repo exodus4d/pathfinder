@@ -9,10 +9,11 @@ define([
     'app/logging',
     'app/page',
     'app/map/worker',
+    'app/map/util',
     'app/module_map',
     'app/key',
     'app/ui/form_element'
-], ($, Init, Util, Logging, Page, MapWorker, ModuleMap) => {
+], ($, Init, Util, Logging, Page, MapWorker, MapUtil, ModuleMap) => {
 
     'use strict';
 
@@ -464,11 +465,13 @@ define([
 
                 // IMPORTANT: Get user data for ONE map that is currently visible
                 // On later releases this can be easy changed to "full update" all maps for a user
-                //
                 let mapIds = [];
+                let newSystemPositions = null;
                 let activeMap = Util.getMapModule().getActiveMap();
+
                 if(activeMap){
-                    mapIds = [ activeMap.data('id') ];
+                    mapIds = [activeMap.data('id')];
+                    newSystemPositions = MapUtil.newSystemPositionsByMap(activeMap);
                 }
 
                 let updatedUserData = {
@@ -477,6 +480,10 @@ define([
                     mapTracking: locationToggle.is(':checked') ? 1 : 0, // location tracking
                     systemData: Util.getCurrentSystemData()
                 };
+
+                if(newSystemPositions){
+                    updatedUserData.newSystemPositions = newSystemPositions;
+                }
 
                 Util.timeStart(logKeyServerUserData);
 

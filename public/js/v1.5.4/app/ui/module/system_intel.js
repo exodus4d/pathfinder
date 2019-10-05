@@ -530,7 +530,7 @@ define([
                             '<tr class="group">' +
                             '<td></td>' +
                             '<td class="text-right ' + config.tableCellImageClass + '">' +
-                            '<img src="' + Util.eveImageUrl(imgType, group.id) + '"/>' +
+                            '<img src="' + Util.eveImageUrl(imgType, group.id, 64) + '"/>' +
                             '</td>' +
                             '<td colspan="' + Math.max((columnCount - 2), 1) + '">' + group.name + '</td>' +
                             '</tr>'
@@ -641,7 +641,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display' && value){
-                                value = '<img src="' + Util.eveImageUrl('type', value) +'"/>';
+                                value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
                             }
                             return value;
                         }
@@ -675,7 +675,7 @@ define([
                             let value = data;
                             if(type === 'display' && value){
                                 value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                value += '<img src="' + Util.eveImageUrl('corporation', data) + '"/>';
+                                value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
                                 value += '</a>';
                             }
                             return value;
@@ -869,7 +869,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data;
                                 if(type === 'display' && value){
-                                    value = '<img src="' + Util.eveImageUrl('type', value) +'"/>';
+                                    value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
                                 }
                                 return value;
                             }
@@ -885,8 +885,11 @@ define([
                             _: function(cellData, type, rowData, meta){
                                 let value = '';
                                 if(cellData){
-                                    let matches = /^(?<system>[a-z0-9\s\-]+) (?<count>[MDCLXVI]+) .*$/i.exec(cellData);
-                                    let count = Util.getObjVal(matches, 'groups.count');
+                                    // "grouped" regex not supported by FF
+                                    // let matches = /^(?<system>[a-z0-9\s\-]+) (?<count>[MDCLXVI]+) .*$/i.exec(cellData);
+                                    // let count = Util.getObjVal(matches, 'groups.count');
+                                    let matches = /^([a-z0-9\s\-]+) ([MDCLXVI]+) .*$/i.exec(cellData);
+                                    let count = Util.getObjVal(matches, '2');
 
                                     if(type === 'display'){
                                         value = count || 0;
@@ -908,17 +911,19 @@ define([
                             _: function(cellData, type, rowData, meta){
                                 let value = cellData;
                                 if(cellData){
-                                    let matches = /^(?<system>[a-z0-9\s\-]+) (?<count>[MDCLXVI]+) (?<label>\(\w+\)\s)?\- (?<moon>moon (?<moonCount>\d)+)?.*$/i.exec(cellData);
-                                    let systemName = Util.getObjVal(matches, 'groups.system');
-                                    let count = Util.getObjVal(matches, 'groups.count');
-                                    let moon = Util.getObjVal(matches, 'groups.moon');
+                                    // "grouped" regex not supported by FF
+                                    // let matches = /^(?<system>[a-z0-9\s\-]+) (?<count>[MDCLXVI]+) (?<label>\(\w+\)\s)?\- (?<moon>moon (?<moonCount>\d)+)?.*$/i.exec(cellData);
+                                    let matches = /^([a-z0-9\s\-]+) ([MDCLXVI]+) (\(\w+\)\s)?\- (moon (\d)+)?.*$/i.exec(cellData);
+                                    let systemName = Util.getObjVal(matches, '1');
+                                    let count = Util.getObjVal(matches, '2');
+                                    let moon = Util.getObjVal(matches, '4');
                                     if(systemName === (Util.getObjVal(systemData, 'name') || '')){
                                         value = value.slice(systemName.length).trim();
                                         if(count){
                                             value = value.slice(count.length).trimLeftChars(' \-');
                                         }
                                         if(moon){
-                                            let moonCount = Util.getObjVal(matches, 'groups.moonCount');
+                                            let moonCount = Util.getObjVal(matches, '5');
                                             value = value.replace(moon, 'M' + moonCount);
                                         }
                                     }
@@ -960,7 +965,7 @@ define([
                                 let value = data;
                                 if(type === 'display' && value){
                                     value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                    value += '<img src="' + Util.eveImageUrl('corporation', data) + '"/>';
+                                    value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
                                     value += '</a>';
                                 }
                                 return value;

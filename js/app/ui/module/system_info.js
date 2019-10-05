@@ -208,17 +208,17 @@ define([
                         url = 'https://client'; // fake url
                         break;
                     case 'dotlan':
-                        systemName = systemName.replace(/ /g, '_');
-                        regionName = regionName.replace(/ /g, '_');
+                        let systemNameTemp = systemName.replace(/ /g, '_');
+                        let regionNameTemp = regionName.replace(/ /g, '_');
                         if(isWormhole){
-                            url = domain + '/system/' + systemName;
+                            url = domain + '/system/' + systemNameTemp;
                         }else{
-                            url = domain + '/map/' + regionName + '/' + systemName;
+                            url = domain + '/map/' + regionNameTemp + '/' + systemNameTemp;
                         }
                         break;
                     case 'eveeye':
                         if(!isWormhole){
-                            url = domain + '/?m=' + encodeURIComponent(regionName) + '&s=' + encodeURIComponent(systemName.replace(/ /g, '_'));
+                            url = domain + '/?m=' + encodeURIComponent(regionName) + '&s=' + encodeURIComponent(systemName);
                             url += '&t=eswkc&o=thera,con_svc,node_sov,sub_sec,sector_fac,tag_mk';
                         }
                         break;

@@ -534,7 +534,18 @@ $mapBubbleWidth:        30px;
     line-height: 22px;
     text-align: center;
     pointer-events: none;
+    font-family: Oxygen, Arial, sans-serif;
     z-index: 500;
+
+    &:before{
+      content: attr(data-depth);
+      font-family: Oxygen, Arial, sans-serif;
+      position: absolute;
+      line-height: 10px;
+      top: 1px;
+      left: 2px;
+      color: $black;
+    }
   }
 
   // Endpoints ========================================================================================================
