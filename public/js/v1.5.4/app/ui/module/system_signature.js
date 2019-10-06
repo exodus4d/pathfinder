@@ -1571,14 +1571,15 @@ define([
                             value: cellData,
                             inputclass: config.fontUppercaseClass,
                             display: function(value){
-                                // change display value to first 3 letters
-                                $(this).text($.trim( value.substr(0, 3) ).toLowerCase());
+                                // change display value to first 3 chars -> unicode beware
+                                $(this).text([...$.trim(value)].slice(0, 3).join('').toLowerCase());
                             },
                             validate: function(value){
                                 let msg = false;
-                                if($.trim(value).length < 3){
+                                let mbLength = [...$.trim(value)].length; // unicode beware
+                                if(mbLength < 3){
                                     msg = 'Id is less than min of "3"';
-                                }else if($.trim(value).length > 10){
+                                }else if(mbLength > 10){
                                     msg = 'Id is more than max of "10"';
                                 }
 

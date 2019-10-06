@@ -13,8 +13,14 @@ use lib\logging;
 
 class SystemSignatureModel extends AbstractMapTrackingModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_signature';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
