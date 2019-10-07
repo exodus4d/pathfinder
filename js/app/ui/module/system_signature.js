@@ -311,7 +311,25 @@ define([
                     newSelectOptions.push({ text: 'Frigate', children: frigateWHData});
                 }
 
-                // add possible incoming holes
+                // add potential drifter holes (k-space only)
+                if([30, 31, 32].includes(areaId)){
+                    let drifterWHData = [];
+                    for(let drifterKey in Init.drifterWormholes){
+                        if(
+                            drifterKey > 0 &&
+                            Init.drifterWormholes.hasOwnProperty(drifterKey)
+                        ){
+                            newSelectOptionsCount++;
+                            drifterWHData.push( {value: newSelectOptionsCount, text: Init.drifterWormholes[drifterKey]} );
+                        }
+                    }
+
+                    if(drifterWHData.length > 0){
+                        newSelectOptions.push({ text: 'Drifter', children: drifterWHData});
+                    }
+                }
+
+                // add potential incoming holes
                 let incomingWHData = [];
                 for(let incomingKey in Init.incomingWormholes){
                     if(
@@ -337,7 +355,7 @@ define([
         }
 
         // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics,...
-        if( groupId === 5 ){
+        if(groupId === 5){
             // add static WH(s) for this system
             if(systemData.statics){
                 let staticWHData = [];

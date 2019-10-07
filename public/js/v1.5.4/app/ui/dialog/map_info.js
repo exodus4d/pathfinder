@@ -273,7 +273,7 @@ define([
                     }
                 },{
                     name: 'shattered',
-                    title: '<i class="fas fa-skull" title="shattered" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-chart-pie" title="shattered" data-toggle="tooltip"></i>',
                     width: 10,
                     className: ['text-center', 'min-screen-l'].join(' '),
                     searchable: false,
@@ -282,7 +282,7 @@ define([
                         display: (cellData, type, rowData, meta) => {
                             let value = '';
                             if(cellData){
-                                value = '<i class="fas fa-skull fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>';
+                                value = '<i class="fas fa-chart-pie fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>';
                             }
                             return value;
                         }

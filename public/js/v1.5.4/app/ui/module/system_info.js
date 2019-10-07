@@ -352,7 +352,7 @@ define([
             systemStatusId: systemData.status.id,
             systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
             systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),
-            securityClass: Util.getSecurityClassForSystem( systemData.security ),
+            securityClass: Util.getSecurityClassForSystem(systemData.security),
             trueSec: systemData.trueSec.toFixed(1),
             trueSecClass: Util.getTrueSecClassForSystem( systemData.trueSec ),
             effectName: effectName,

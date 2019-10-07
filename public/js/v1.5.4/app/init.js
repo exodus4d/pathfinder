@@ -244,6 +244,21 @@ define([], () => {
                 },
                 'C12': {
                     class: 'pf-system-sec-special'
+                },
+                'C14': {
+                    class: 'pf-system-sec-drifter'
+                },
+                'C15': {
+                    class: 'pf-system-sec-drifter'
+                },
+                'C16': {
+                    class: 'pf-system-sec-drifter'
+                },
+                'C17': {
+                    class: 'pf-system-sec-drifter'
+                },
+                'C18': {
+                    class: 'pf-system-sec-drifter'
                 }
             },
             // true sec
@@ -626,6 +641,14 @@ define([], () => {
                 7: 'Q003 - 0.0',
                 8: 'A009 - C13'
             }
+        },
+        // Drifter wormholes (can only appear in k-space)
+        drifterWormholes: {
+            1: 'S877 - C14 Sentinel',
+            2: 'B735 - C15 Barbican',
+            3: 'V928 - C16 Vidette',
+            4: 'C414 - C17 Conflux',
+            5: 'R259 - C18 Redoubt'
         },
         // incoming wormholes
         incomingWormholes: {

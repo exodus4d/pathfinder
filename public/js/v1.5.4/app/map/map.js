@@ -548,6 +548,7 @@ define([
         system.data('constellation', data.constellation.name);
         system.data('planets', data.planets);
         system.data('shattered', data.shattered);
+        system.data('drifter', data.drifter);
         system.data('statics', data.statics);
         system.data('updated', parseInt(data.updated.updated));
         system.data('changed', false);
@@ -3075,6 +3076,7 @@ define([
                 currentUser: data.currentUser, // if user is currently in this system
                 planets: data.planets,
                 shattered: data.shattered ? 1 : 0,
+                drifter: data.drifter ? 1 : 0,
                 statics: data.statics,
                 userCount: parseInt(data.userCount) || 0,
                 position: MapUtil.getSystemPosition(system)

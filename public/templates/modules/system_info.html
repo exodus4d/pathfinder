@@ -34,10 +34,13 @@
             <table class="table table-condensed pf-table-fixed {{infoTableClass}}">
                 <thead>
                 <tr>
-                    <th>Name</th>
+                    <th class="pf-table-cell-50">Name</th>
                     <th class="text-right pf-table-cell-ellipses-auto pf-system-info-name-cell">
+                        {{#system.drifter}}
+                        <i class="fas fa-fw fa-wave-square {{securityClass}}" data-toggle="tooltip" title="drifter"></i>&nbsp;
+                        {{/system.drifter}}
                         {{#system.shattered}}
-                        <i class="fas fa-fw fa-skull {{shatteredClass}}" data-toggle="tooltip" title="shattered"></i>&nbsp;
+                        <i class="fas fa-fw fa-chart-pie {{shatteredClass}}" data-toggle="tooltip" title="shattered"></i>&nbsp;
                         {{/system.shattered}}
                         <span class="pf-help-default {{nameInfoClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
                     </th>

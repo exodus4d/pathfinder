@@ -29,12 +29,39 @@ define([
      */
     $.fn.showJumpInfoDialog = function(){
         requirejs(['text!templates/dialog/jump_info.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
+            let iconShattered = '<i class="fas fa-fw fa-chart-pie pf-system-sec-unknown"></i>';
+            let iconDrifter = '<i class="fas fa-fw fa-wave-square pf-system-sec-drifter"></i>';
 
-            let staticsMatrixHead = [
+            let formatTableBodyData = (head, matrixBody) => {
+                return matrixBody.map((row, rowIndex) => {
+                    return row.map((label, colIndex) => {
+                        // get security name from "matrix Head" data if NOT first column
+                        let secName = colIndex ? head[0][colIndex] : label;
+                        return {
+                            label: label,
+                            class: Util.getSecurityClassForSystem(secName),
+                            hasPopover: colIndex && label.length
+                        };
+                    });
+                });
+            };
+
+            // Statics table first ------------------------------------------------------------------------------------
+            let headGroupFirst = [
+                [
+                    {label: '', class: 'separator-right', style: 'width: 55px;'},
+                    {colspan: 6, label: 'W-space', class: 'separator-right'},
+                    {colspan: 3, label: 'K-space', class: 'separator-right'},
+                    {label: 'Thera', class: 'separator-right'},
+                    {label: iconShattered}
+                ]
+            ];
+
+            let headFirst = [
                 ['From╲To', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'H', 'L', '0.0', 'C12', 'C13']
             ];
 
-            let staticsMatrixBody = [
+            let matrixBodyFirst = [
                 ['C1',  'H121', 'C125', 'O883', 'M609', 'L614', 'S804', 'N110', 'J244', 'Z060', 'F353', ''],
                 ['C2',  'Z647', 'D382', 'O477', 'Y683', 'N062', 'R474', 'B274', 'A239', 'E545', 'F135', ''],
                 ['C3',  'V301', 'I182', 'N968', 'T405', 'N770', 'A982', 'D845', 'U210', 'K346', 'F135', ''],
@@ -48,22 +75,48 @@ define([
                 ['?',   'E004', 'L005', 'Z006', 'M001', 'C008', 'G008', ''    , ''    , 'Q003', ''    , 'A009']
             ];
 
+
+            let staticsTableDataFirst = {
+                headGroup: headGroupFirst,
+                head: headFirst,
+                body: formatTableBodyData(headFirst, matrixBodyFirst)
+            };
+
+            // Statics table second -----------------------------------------------------------------------------------
+
+            let headGroupSecond = [
+                [
+                    {label: '', class: 'separator-right', style: 'width: 55px;'},
+                    {label: iconDrifter + '&nbsp;&nbsp;' + 'Sentinel', class: 'separator-right'},
+                    {label: iconDrifter + '&nbsp;&nbsp;' + 'Barbican', class: 'separator-right'},
+                    {label: iconDrifter + '&nbsp;&nbsp;' + 'Vidette', class: 'separator-right'},
+                    {label: iconDrifter + '&nbsp;&nbsp;' + 'Conflux', class: 'separator-right'},
+                    {label: iconDrifter + '&nbsp;&nbsp;' + 'Redoubt'}
+                ]
+            ];
+
+            let headSecond = [
+                ['From╲To', 'C14', 'C15', 'C16', 'C17', 'C18']
+            ];
+
+            let matrixBodySecond = [
+                ['?',   'S877', 'B735', 'V928', 'C414', 'R259']
+            ];
+
+            let staticsTableDataSecond = {
+                headline: 'Drifter W-space',
+                headGroup: headGroupSecond,
+                head: headSecond,
+                body: formatTableBodyData(headSecond, matrixBodySecond)
+            };
+
+            let staticsTablesData = [staticsTableDataFirst, staticsTableDataSecond];
+
             let data = {
                 config: config,
                 popoverTriggerClass: Util.config.popoverTriggerClass,
                 wormholes: Object.keys(Init.wormholes).map(function(k){ return Init.wormholes[k]; }), // convert Json to array
-                staticsMatrixHead: staticsMatrixHead,
-                staticsMatrixBody: staticsMatrixBody.map((row, rowIndex) => {
-                    return row.map((label, colIndex) => {
-                        // get security name from "matrix Head" data if NOT first column
-                        let secName = colIndex ? staticsMatrixHead[0][colIndex] : label;
-                        return {
-                            label: label,
-                            class: Util.getSecurityClassForSystem(secName),
-                            hasPopover: colIndex && label.length
-                        };
-                    });
-                }),
+                staticsTablesData: staticsTablesData,
                 massValue: function(){
                     return function(value, render){
                         let mass = render(value);

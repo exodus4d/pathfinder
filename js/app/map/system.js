@@ -770,8 +770,12 @@ define([
         let headInfoLeft = [];
         let headInfoRight = [];
 
+        if(data.drifter){
+            headInfoLeft.push('<i class="fas fa-fw fa-wave-square ' + Util.getSecurityClassForSystem(data.security) + '" title="drifter"></i>');
+        }
+
         if(data.shattered){
-            headInfoLeft.push('<i class="fas fa-fw fa-skull ' + Util.getSecurityClassForSystem('SH') + '" title="shattered"></i>');
+            headInfoLeft.push('<i class="fas fa-fw fa-chart-pie ' + Util.getSecurityClassForSystem('SH') + '" title="shattered"></i>');
         }
 
         // check systemData if headInfo element is needed

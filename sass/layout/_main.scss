@@ -269,6 +269,14 @@ select:active, select:hover {
     // smaller and less padding
     padding-left: 3px;
     padding-right: 3px;
+
+    &:first-child{
+      padding-left: 0;
+    }
+
+    &:last-child{
+      padding-right: 0;
+    }
   }
 
   .clearfix.pf-result-image [class*="col-"]{
@@ -621,6 +629,10 @@ table{
 
     &.pf-table-cell-20{
       width: 20px;
+    }
+
+    &.pf-table-cell-50{
+      width: 50px;
     }
 
     &.pf-table-cell-100{
@@ -1179,6 +1191,10 @@ table{
 
 .pf-system-sec-special{
   color: $yellow-dark;
+}
+
+.pf-system-sec-drifter{
+  color: $aqua;
 }
 
 // system status ==================================================================================

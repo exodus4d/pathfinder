@@ -181,6 +181,7 @@ class SystemModel extends AbstractMapTrackingModel {
             }
 
             $data->locked                   = $this->locked;
+            $data->drifter                  = $this->isDrifter();
             $data->rallyUpdated             = strtotime($this->rallyUpdated);
             $data->rallyPoke                = $this->rallyPoke;
             $data->description              = $this->description ? : '';
@@ -697,6 +698,14 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     public function isAbyss() : bool {
         return ($this->typeId->id === 3 && $this->security === 'A');
+    }
+
+    /**
+     * check whether this system is in drifter-space
+     * @return bool
+     */
+    public function isDrifter() : bool {
+        return in_array($this->security, ['C14', 'C15', 'C16', 'C17', 'C18']);
     }
 
     /**
