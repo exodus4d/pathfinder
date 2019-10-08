@@ -2147,6 +2147,13 @@ define([
     };
 
     /**
+     *
+     * @param ariaId
+     * @returns {number}
+     */
+    let getSystemEffectMultiplierByAreaId = ariaId => SystemEffect.getMultiplierByAreaId(ariaId);
+
+    /**
      * get areaId by security string
      * areaId is required as a key for signature names
      * if areaId is 0, no signature data is available for this system
@@ -2164,9 +2171,6 @@ define([
                 break;
             case '0.0':
                 areaId = 32;
-                break;
-            case 'SH':
-                areaId = 13;
                 break;
             default:
                 // w-space
@@ -3499,6 +3503,7 @@ define([
         getLabelByRole: getLabelByRole,
         getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
+        getSystemEffectMultiplierByAreaId: getSystemEffectMultiplierByAreaId,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
         getSystemPlanetsTable: getSystemPlanetsTable,

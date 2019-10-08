@@ -1859,9 +1859,11 @@ define([
     $.fn.addSystemEffectTooltip = function(security, effect, options){
         let effectClass = getEffectInfoForSystem(effect, 'class');
         let systemEffectData = Util.getSystemEffectData(security, effect);
+        let areaId = Util.getAreaIdBySecurity(security);
 
         let title = '<i class="fas fa-square fa-fw ' + effectClass + '"></i>&nbsp;' +
-            getEffectInfoForSystem(effect, 'name') +
+            getEffectInfoForSystem(effect, 'name') + '&nbsp;&nbsp;' +
+            '<kbd>' + Util.getSystemEffectMultiplierByAreaId(parseInt(areaId)) + 'x' + '</kbd>' +
             '<span class="pull-right ' + Util.getSecurityClassForSystem(security) + '">' + security + '</span>';
 
         let content = Util.getSystemEffectTable(systemEffectData);
