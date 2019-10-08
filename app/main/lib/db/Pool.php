@@ -110,8 +110,8 @@ class Pool extends \Prefab {
                 $schema = new Schema($db);
                 if(!in_array($newDbName, $schema->getDatabases())){
                     $db->exec("CREATE DATABASE IF NOT EXISTS 
-                        `" . $newDbName . "` DEFAULT CHARACTER SET utf8 
-                        COLLATE utf8_general_ci;");
+                        `" . $newDbName . "` DEFAULT CHARACTER SET utf8mb4 
+                        COLLATE utf8mb4_unicode_ci;");
                     $db->exec("USE `" . $newDbName . "`");
 
                     // check if DB create was successful

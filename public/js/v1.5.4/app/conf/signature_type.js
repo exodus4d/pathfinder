@@ -383,6 +383,51 @@ define(['jquery'], ($) => {
                     30: 'K346 - 0.0',
                     31: 'Z060 - 0.0'
                 }
+            },
+            14: {   // Drifter Sentinel WH
+                1: {    // Combat
+                    1: 'Monolith',
+                    2: 'Wormhole in Rock Circle',
+                    3: 'Opposing Spatial Rifts',
+                    4: 'Sleeper Enclave Debris',
+                    5: 'Crystal Resource'
+                }
+            },
+            15: {   // Drifter Barbican WH
+                1: {    // Combat
+                    1: 'Wrecked Ships',
+                    2: 'Unstable Wormhole',
+                    3: 'Spatial Rift',
+                    4: 'Heavily Guarded Spatial Rift',
+                    5: 'Crystals'
+                }
+            },
+            16: {   // Drifter Vidette WH
+                1: {    // Combat
+                    1: 'Ship Graveyard',
+                    2: 'Sleeper Engineering Station',
+                    3: 'Spatial Rift',
+                    4: 'Sleeper Enclave in Coral Rock',
+                    5: 'Crystals and Stone Circle'
+                }
+            },
+            17: {   // Drifter Conflux WH
+                1: {    // Combat
+                    1: 'Monolith',
+                    2: 'Caged Wormhole',
+                    3: 'Rock Formation and Wormhole',
+                    4: 'Particle Acceleration Array',
+                    5: 'Guarded Asteroid Station'
+                }
+            },
+            18: {   // Drifter Redoubt WH
+                1: {    // Combat
+                    1: 'Ship Graveyard',
+                    2: 'Caged Wormhole',
+                    3: 'Spatial Rift Generator',
+                    4: 'Sleeper Enclave',
+                    5: 'Hollow Asteroid'
+                }
             }
         }, // system type (k-space)
         2:  {
