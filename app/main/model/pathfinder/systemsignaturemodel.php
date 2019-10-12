@@ -13,8 +13,14 @@ use lib\logging;
 
 class SystemSignatureModel extends AbstractMapTrackingModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_signature';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -278,6 +284,13 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      */
     public function afterEraseEvent($self, $pkeys){
         $self->logActivity('signatureDelete');
+
+        if(
+            $self->connectionIdDeleteCascade === true &&
+            ($connection = $self->getConnection())
+        ){
+            $connection->erase();
+        }
     }
 
     /**

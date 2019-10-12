@@ -52,11 +52,29 @@ class Util {
     }
 
     /**
+     * transforms array with assoc. arrays as values
+     * into assoc. array where $key column data is used for its key
+     * @param array $array
+     * @param string $key
+     * @param bool $unsetKey
+     * @return array
+     */
+    static function arrayGetBy(array $array, string $key, bool $unsetKey = true) : array {
+        // we can remove $key from nested arrays
+        return array_map(function($val) use ($key, $unsetKey) : array {
+            if($unsetKey){
+                unset($val[$key]);
+            }
+            return $val;
+        }, array_column($array, null, $key));
+    }
+
+    /**
      * checks whether an array is associative or not (sequential)
      * @param mixed $array
      * @return bool
      */
-    static function is_assoc($array): bool {
+    static function is_assoc($array) : bool {
         $isAssoc = false;
         if(
             is_array($array) &&
@@ -109,7 +127,7 @@ class Util {
      * @param int $maxHideChars
      * @return string
      */
-    static function obscureString(string $string, int $maxHideChars = 10): string {
+    static function obscureString(string $string, int $maxHideChars = 10) : string {
         $formatted = '';
         $length = mb_strlen((string)$string);
         if($length > 0){
@@ -125,7 +143,7 @@ class Util {
      * @param array $scopes
      * @return string
      */
-    static function getHashFromScopes($scopes){
+    static function getHashFromScopes($scopes) : string {
         $scopes = (array)$scopes;
         sort($scopes);
         return md5(serialize($scopes));

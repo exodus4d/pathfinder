@@ -65,7 +65,7 @@ class CharacterUpdate extends AbstractCron {
                  */
                 if(is_object($characterLog->characterId)){
                     if($accessToken = $characterLog->characterId->getAccessToken()){
-                        if($this->isOnline($accessToken)){
+                        if($characterLog->characterId->isOnline($accessToken)){
                             // force characterLog as "updated" even if no changes were made
                             $characterLog->touch('updated');
                             $characterLog->save();

@@ -141,15 +141,14 @@ define([
 
             // show Cookie accept hint on SSO login button
             let confirmationSettings = {
-                container: 'body',
                 placement: 'bottom',
-                btnOkClass: 'btn btn-sm btn-default',
-                btnOkLabel: 'dismiss',
-                btnOkIcon: 'fas fa-fw fa-sign-in-alt',
                 title: 'Accept cookies',
                 btnCancelClass: 'btn btn-sm btn-success',
                 btnCancelLabel: 'accept',
                 btnCancelIcon: 'fas fa-fw fa-check',
+                btnOkClass: 'btn btn-sm btn-default',
+                btnOkLabel: 'dismiss',
+                btnOkIcon: 'fas fa-fw fa-sign-in-alt',
                 onCancel: function(e, target){
                     // "Accept cookies"
                     setAcceptCookie();
@@ -314,7 +313,6 @@ define([
                         }
                     });
                 });
-
             }
         });
     };
@@ -406,13 +404,13 @@ define([
      * init scrollSpy for navigation bar
      */
     let initScrollSpy = () => {
-        // init scrollspy
+        let scrollElement = window;
+        let timeout;
 
         // show elements that are currently in the viewport
         let showVisibleElements = () => {
             // find all elements that should be animated
-            let visibleElements = $('.' + config.animateElementClass).isInViewport();
-
+            let visibleElements = Util.findInViewport($('.' + config.animateElementClass));
             $(visibleElements).removeClass( config.animateElementClass );
 
             $(visibleElements).velocity('transition.flipXIn', {
@@ -431,16 +429,23 @@ define([
             });
         };
 
-        $( window ).scroll(() => {
-            // check for new visible elements
-            showVisibleElements();
-        });
+        let scrollHandler = () => {
+            // If there's a timer, cancel it
+            if(timeout){
+                window.cancelAnimationFrame(timeout);
+            }
+            timeout = window.requestAnimationFrame(showVisibleElements);
+        };
+
+        scrollElement.addEventListener('scroll', scrollHandler, false);
 
         // initial check for visible elements
         showVisibleElements();
 
-        // event listener for navigation links
-        Util.initPageScroll('#' + config.navigationElementId);
+
+        Util.initScrollSpy(document.getElementById(config.navigationElementId), scrollElement, {
+            offset: 150
+        });
     };
 
     /**
@@ -449,10 +454,17 @@ define([
      */
     let initServerStatus = () => {
         $.ajax({
-            type: 'POST',
+            type: 'GET',
             url: Init.path.getServerStatus,
             dataType: 'json'
         }).done(function(responseData, textStatus, request){
+
+            let dateLastModified = new Date(request.getResponseHeader('Last-Modified') || Date.now());
+            let dateExpires = new Date(request.getResponseHeader('Expires') || Date.now());
+
+            var options = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC', timeZoneName: 'short' };
+            responseData.api.cache = dateLastModified.toLocaleTimeString('en-US', options);
+            responseData.api.cacheExpire = 'TTL ' + (dateExpires - dateLastModified) / 1000 + 's';
 
             let data = {
                 stickyPanelServerId: config.stickyPanelServerId,
@@ -466,7 +478,8 @@ define([
                             case 'online':
                             case 'green':   return 'txt-color-green';
                             case 'vip':
-                            case 'yellow':  return 'txt-color-orange';
+                            case 'yellow':  return 'txt-color-yellow';
+                            case 'orange':  return 'txt-color-orange';
                             case 'offline':
                             case 'red':     return 'txt-color-red';
                             default:        return '';

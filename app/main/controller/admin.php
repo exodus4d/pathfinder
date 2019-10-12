@@ -89,7 +89,7 @@ class Admin extends Controller{
     protected function getAdminCharacter(\Base $f3){
         $adminCharacter = null;
         if( !$f3->exists(Sso::SESSION_KEY_SSO_ERROR) ){
-            if( $character = $this->getCharacter() ){
+            if( $character = $this->getCharacter(0) ){
                 if(in_array($character->roleId->name, ['SUPER', 'CORPORATION'], true)){
                     // current character is admin
                     $adminCharacter = $character;
@@ -288,7 +288,7 @@ class Admin extends Controller{
         $characters = [];
         // check if kickCharacters belong to same Corp as admin character
         // -> remove admin char from valid characters...
-        if( !empty($characterIds = array_diff( [$characterId], [$character->_id])) ){
+        if( !empty($characterIds = array_diff([$characterId], [$character->_id])) ){
             if($character->roleId->name === 'SUPER'){
                 if($filterCharacters = CharacterModel::getAll($characterIds)){
                     $characters = $filterCharacters;
@@ -337,7 +337,7 @@ class Admin extends Controller{
                 $maps = $filterMaps;
             }
         }else{
-            $maps = $character->getCorporation()->getMaps([$mapId], ['addInactive' => true, 'ignoreMapCount' => true]);
+            $maps = $character->getCorporation()->getMaps($mapId, ['addInactive' => true, 'ignoreMapCount' => true]);
         }
 
         return $maps;
@@ -404,7 +404,7 @@ class Admin extends Controller{
             $corporations = $this->getAccessibleCorporations($character);
 
             foreach($corporations as $corporation){
-                if($maps = $corporation->getMaps([], ['addInactive' => true, 'ignoreMapCount' => true])){
+                if($maps = $corporation->getMaps(null, ['addInactive' => true, 'ignoreMapCount' => true])){
                     $data->corpMaps[$corporation->name] = $maps;
                 }
             }

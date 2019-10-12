@@ -499,14 +499,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return UserModel|null
      */
     public function getUser() : ?UserModel {
-        $user = null;
-        if($this->hasUserCharacter()){
-            /**
-             * @var $user UserModel
-             */
-            $user = $this->userCharacter->userId;
-        }
-        return $user;
+        return $this->hasUserCharacter() ? $this->userCharacter->userId : null;
     }
 
     /**
@@ -864,23 +857,22 @@ class CharacterModel extends AbstractPathfinderModel {
                 if($this->isOnline($accessToken)){
                     $locationData = self::getF3()->ccpClient()->getCharacterLocationData($this->_id, $accessToken);
 
-                    if( !empty($locationData['system']['id']) ){
+                    if(!empty($locationData['system']['id'])){
                         // character is currently in-game
 
-                        // get current $characterLog or get new ---------------------------------------------------
-                        if( !($characterLog = $this->getLog()) ){
+                        // get current $characterLog or get new -------------------------------------------------------
+                        if(!$characterLog = $this->getLog()){
                             // create new log
                             $characterLog = $this->rel('characterLog');
                         }
 
                         // get current log data and modify on change
-                        $logData = $characterLog->getDataAsArray();
+                        $logData = $characterLog::toArray($characterLog->getData());
 
-                        // check system and station data for changes ----------------------------------------------
+                        // check system and station data for changes --------------------------------------------------
 
                         // IDs for "systemId", "stationId" that require more data
                         $lookupUniverseIds = [];
-
                         if(
                             empty($logData['system']['name']) ||
                             $logData['system']['id'] !== $locationData['system']['id']
@@ -889,32 +881,17 @@ class CharacterModel extends AbstractPathfinderModel {
                             $lookupUniverseIds[] = $locationData['system']['id'];
                         }
 
-                        if( !empty($locationData['station']['id']) ){
-                            if(
-                                empty($logData['station']['name']) ||
-                                $logData['station']['id']  !== $locationData['station']['id']
-                            ){
-                                // station changed -> request "station name" for current station
-                                $lookupUniverseIds[] = $locationData['station']['id'];
-                            }
-                        }else{
-                            unset($logData['station']);
-                        }
-
                         $logData = array_replace_recursive($logData, $locationData);
 
-                        // get "more" data for systemId and/or stationId -----------------------------------------
-                        if( !empty($lookupUniverseIds) ){
+                        // get "more" data for systemId ---------------------------------------------------------------
+                        if(!empty($lookupUniverseIds)){
                             // get "more" information for some Ids (e.g. name)
                             $universeData = self::getF3()->ccpClient()->getUniverseNamesData($lookupUniverseIds);
 
-                            if( !empty($universeData) && !isset($universeData['error']) ){
+                            if(!empty($universeData) && !isset($universeData['error'])){
                                 // We expect max ONE system AND/OR station data, not an array of e.g. systems
                                 if(!empty($universeData['system'])){
                                     $universeData['system'] = reset($universeData['system']);
-                                }
-                                if(!empty($universeData['station'])){
-                                    $universeData['station'] = reset($universeData['station']);
                                 }
 
                                 $logData = array_replace_recursive($logData, $universeData);
@@ -924,32 +901,63 @@ class CharacterModel extends AbstractPathfinderModel {
                             }
                         }
 
-                        // check structure data for changes -------------------------------------------------------
+                        // check station data for changes -------------------------------------------------------------
                         if(!$deleteLog){
+                            // IDs for "stationId" that require more data
+                            $lookupStationId = 0;
+                            if(!empty($locationData['station']['id'])){
+                                if(
+                                    empty($logData['station']['name']) ||
+                                    $logData['station']['id']  !== $locationData['station']['id']
+                                ){
+                                    // station changed -> request station data
+                                    $lookupStationId = $locationData['station']['id'];
+                                }
+                            }else{
+                                unset($logData['station']);
+                            }
 
+                            // get "more" data for stationId
+                            if($lookupStationId > 0){
+                                /**
+                                 * @var $stationModel Universe\StationModel
+                                 */
+                                $stationModel = Universe\AbstractUniverseModel::getNew('StationModel');
+                                $stationModel->loadById($lookupStationId, $accessToken, $additionalOptions);
+                                if($stationModel->valid()){
+                                    $stationData['station'] = $stationModel::toArray($stationModel->getData());
+                                    $logData = array_replace_recursive($logData, $stationData);
+                                }else{
+                                    unset($logData['station']);
+                                }
+                            }
+                        }
+
+                        // check structure data for changes -----------------------------------------------------------
+                        if(!$deleteLog){
                             // IDs for "structureId" that require more data
                             $lookupStructureId = 0;
-                            if( !empty($locationData['structure']['id']) ){
+                            if(!empty($locationData['structure']['id'])){
                                 if(
                                     empty($logData['structure']['name']) ||
                                     $logData['structure']['id']  !== $locationData['structure']['id']
                                 ){
-                                    // structure changed -> request "structure name" for current station
+                                    // structure changed -> request structure data
                                     $lookupStructureId = $locationData['structure']['id'];
                                 }
                             }else{
                                 unset($logData['structure']);
                             }
 
-                            // get "more" data for structureId  ---------------------------------------------------
+                            // get "more" data for structureId
                             if($lookupStructureId > 0){
                                 /**
                                  * @var $structureModel Universe\StructureModel
                                  */
                                 $structureModel = Universe\AbstractUniverseModel::getNew('StructureModel');
                                 $structureModel->loadById($lookupStructureId, $accessToken, $additionalOptions);
-                                if(!$structureModel->dry()){
-                                    $structureData['structure'] = (array)$structureModel->getData();
+                                if($structureModel->valid()){
+                                    $structureData['structure'] = $structureModel::toArray($structureModel->getData());
                                     $logData = array_replace_recursive($logData, $structureData);
                                 }else{
                                     unset($logData['structure']);
@@ -957,13 +965,13 @@ class CharacterModel extends AbstractPathfinderModel {
                             }
                         }
 
-                        // check ship data for changes ------------------------------------------------------------
-                        if( !$deleteLog ){
+                        // check ship data for changes ----------------------------------------------------------------
+                        if(!$deleteLog){
                             $shipData = self::getF3()->ccpClient()->getCharacterShipData($this->_id, $accessToken);
 
                             // IDs for "shipTypeId" that require more data
                             $lookupShipTypeId = 0;
-                            if( !empty($shipData['ship']['typeId']) ){
+                            if(!empty($shipData['ship']['typeId'])){
                                 if(
                                     empty($logData['ship']['typeName']) ||
                                     $logData['ship']['typeId'] !== $shipData['ship']['typeId']
@@ -980,7 +988,7 @@ class CharacterModel extends AbstractPathfinderModel {
                                 $invalidResponse = true;
                             }
 
-                            // get "more" data for shipTypeId  ----------------------------------------------------
+                            // get "more" data for shipTypeId
                             if($lookupShipTypeId > 0){
                                 /**
                                  * @var $typeModel Universe\TypeModel
@@ -997,7 +1005,7 @@ class CharacterModel extends AbstractPathfinderModel {
                             }
                         }
 
-                        if( !$deleteLog ){
+                        if(!$deleteLog){
                             // mark log as "updated" even if no changes were made
                             if($additionalOptions['markUpdated'] === true){
                                 $characterLog->touch('updated');
@@ -1086,7 +1094,7 @@ class CharacterModel extends AbstractPathfinderModel {
         ){
             $task = 'add';
             $mapIds = [];
-            $historyLog = $characterLog->getDataAsArray();
+            $historyLog = $characterLog::toArray($characterLog->getData());
 
             if($logHistoryData = $this->getLogsHistory()){
                 // skip logging if no relevant fields changed

@@ -1,7 +1,10 @@
 <p>Shows status information for external used APIs. Provides a general health indicator per route and method.</p>
 
-<h4 class="pf-dynamic-area">{{ apiData.name }}
-    <span class="pull-right" title="{{#statusTitle}}{{ apiData.statusColor }}{{/statusTitle}}"><i class="fas fa-fw fa-circle txt-color txt-color-{{ apiData.statusColor }}"></i></span>
+<h4 class="pf-dynamic-area">
+    <span class="pf-help-default" title="{{#statusTitle}}{{ apiData.statusColor }}{{/statusTitle}}">
+        <i class="fas fa-fw fa-circle txt-color txt-color-{{ apiData.statusColor }}"></i>
+    </span>&nbsp;&nbsp;{{ apiData.name }}
+    <span class="pull-right pf-help-default" title="{{#apiData.cacheExpire}}{{ apiData.cacheExpire }}{{/apiData.cacheExpire}}">{{ apiData.cache }}</span>
 </h4>
 
 <dl class="dl-horizontal" style="float: left;">
@@ -42,7 +45,7 @@
     <tbody>
     {{#apiData.routes}}
         <tr>
-            <td class="text-center txt-color txt-color-grayLight txt-color-{{ status }}" title="{{#statusTitle}}{{status}}{{/statusTitle}}">
+            <td class="text-center pf-help-default txt-color txt-color-grayLight txt-color-{{ status }}" title="{{#statusTitle}}{{status}}{{/statusTitle}}">
                 <i class="fas fa-fw fa-circle initialism"></i>
             </td>
             <td class="text-center">

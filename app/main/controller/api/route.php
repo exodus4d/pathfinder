@@ -91,14 +91,16 @@ class Route extends Controller\AccessController {
      * -> this data is equal for EACH route search (does not depend on map data)
      */
     private function setStaticJumpData(){
-        $query = "SELECT * FROM system_neighbour";
-        $rows = $this->getDB()->exec($query, null, $this->staticJumpDataCacheTime);
+        if($universeDB = $this->getDB('UNIVERSE')){
+            $query = "SELECT * FROM system_neighbour";
+            $rows = $universeDB->exec($query, null, $this->staticJumpDataCacheTime);
 
-        if(count($rows) > 0){
-            array_walk($rows, function(&$row){
-                $row['jumpNodes'] = array_map('intval', explode(':', $row['jumpNodes']));
-            });
-            $this->updateJumpData($rows);
+            if(count($rows) > 0){
+                array_walk($rows, function(&$row){
+                    $row['jumpNodes'] = array_map('intval', explode(':', $row['jumpNodes']));
+                });
+                $this->updateJumpData($rows);
+            }
         }
     }
 

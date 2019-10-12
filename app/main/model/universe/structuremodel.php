@@ -13,8 +13,14 @@ use DB\SQL\Schema;
 
 class StructureModel extends AbstractUniverseModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'structure';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,
@@ -23,9 +29,15 @@ class StructureModel extends AbstractUniverseModel {
         ],
         'systemId' => [
             'type' => Schema::DT_INT,
-            'nullable' => false,
-            'default' => 0,
-            'index' => true
+            'index' => true,
+            'belongs-to-one' => 'Model\Universe\SystemModel',
+            'constraint' => [
+                [
+                    'table' => 'system',
+                    'on-delete' => 'CASCADE'
+                ]
+            ],
+            'validate' => 'notDry'
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
@@ -63,9 +75,10 @@ class StructureModel extends AbstractUniverseModel {
      */
     public function getData(): \stdClass {
         $data = (object) [];
-        if(!$this->dry()){
-            $data->id = $this->_id;
+        if($this->valid()){
+            $data->id   = $this->_id;
             $data->name = $this->name;
+            $data->type = $this->typeId->getData();
         }
         return $data;
     }
@@ -78,7 +91,7 @@ class StructureModel extends AbstractUniverseModel {
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient()->getUniverseStructureData($id, $accessToken);
-        if(!empty($data)){
+        if(!empty($data) && !isset($data['error'])){
             /**
              * @var $type TypeModel
              */

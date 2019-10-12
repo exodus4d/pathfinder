@@ -44,8 +44,8 @@
                     <td class="text-right" data-order="{{massIndividual}}">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
                     <td class="text-right" data-order="{{massRegeneration}}">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
                     <td class="text-right txt-color {{^maxStableTime}}txt-color-grayLight{{/maxStableTime}}" data-order="{{maxStableTime}}">{{#formatTime}}{{maxStableTime}}{{/formatTime}}</td>
-                    <td class="text-right txt-color {{^signatureStrength}}txt-color-grayLight{{/signatureStrength}}" data-order="{{signatureStrength}}">
-                        {{#sigStrengthValue}}{{signatureStrength}}{{/sigStrengthValue}}
+                    <td class="text-right txt-color {{^scanWormholeStrength}}txt-color-grayLight{{/scanWormholeStrength}}" data-order="{{scanWormholeStrength}}">
+                        {{#sigStrengthValue}}{{scanWormholeStrength}}{{/sigStrengthValue}}
                     </td>
                 </tr>
                 {{/wormholes}}
@@ -56,33 +56,46 @@
 
     {{! "Statics" tab ---------------------------------------------------------------------------------------------- }}
     <div role="tabpanel" class="tab-pane fade" id="{{config.wormholeInfoDialogStaticId}}">
+        {{#staticsTablesData}}
+
+        {{#headline}}
+        <h4>{{.}}</h4>
+        {{/headline}}
+
         <div class="pf-dynamic-area">
             <table class="compact stripe order-column row-border {{config.wormholeInfoStaticTableClass}}">
                 <thead>
-                {{#staticsMatrixHead}}
+                {{#headGroup}}
                 <tr>
                     {{#.}}
-                    <th class="text-center {{#securityClass}}{{.}}{{/securityClass}}">{{.}}</th>
+                    <th class="text-center {{#class}}{{.}}{{/class}}" {{#colspan}}colspan="{{.}}"{{/colspan}} {{#style}}style="{{.}}"{{/style}}>{{{label}}}</th>
                     {{/.}}
                 </tr>
-                {{/staticsMatrixHead}}
+                {{/headGroup}}
+                {{#head}}
+                <tr>
+                    {{#.}}
+                    <th class="text-center {{#securityClass}}{{.}}{{/securityClass}}">{{{.}}}</th>
+                    {{/.}}
+                </tr>
+                {{/head}}
                 </thead>
                 <tbody>
-                {{#staticsMatrixBody}}
+                {{#body}}
                 <tr>
                     {{#.}}
                     <td class="text-center">
                         {{#label}}
                         <div class="{{class}} {{#hasPopover}}pf-help-default {{popoverTriggerClass}}{{/hasPopover}}" data-name="{{.}}">{{.}}</div>
-
                         {{/label}}
                     </td>
                     {{/.}}
                 </tr>
-                {{/staticsMatrixBody}}
+                {{/body}}
                 </tbody>
             </table>
         </div>
+        {{/staticsTablesData}}
     </div>
 
     {{! "Jump distance" tab ---------------------------------------------------------------------------------------- }}

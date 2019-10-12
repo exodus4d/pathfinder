@@ -163,7 +163,7 @@ define([
                 {icon: 'fa-route', action: 'find_route', text: 'find route'},
                 {icon: 'fa-object-group', action: 'select_connections', text: 'select connections'},
                 {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
-                        {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
+                        {subIcon: 'fa-flag', subAction: 'set_destination', subText: 'set destination'},
                         {subDivider: true, action: ''},
                         {subIcon: 'fa-step-backward', subAction: 'add_first_waypoint', subText: 'add new [start]'},
                         {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}

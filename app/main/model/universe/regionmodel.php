@@ -32,6 +32,9 @@ class RegionModel extends AbstractUniverseModel {
         ],
         'constellations' => [
             'has-many' => ['Model\Universe\ConstellationModel', 'regionId']
+        ],
+        'systemNeighbours' => [
+            'has-many' => ['Model\Universe\SystemNeighbourModel', 'regionId']
         ]
     ];
 

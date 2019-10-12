@@ -77,11 +77,9 @@ define([
 
                     // show "discard" changes confirmation
                     let confirmationSettings = {
-                        container: 'body',
                         placement: 'top',
-                        btnCancelClass: 'btn btn-sm btn-default',
-                        btnCancelLabel: 'cancel',
                         title: 'discard changes',
+                        btnCancelIcon: '',
                         btnOkClass: 'btn btn-sm btn-warning',
                         btnOkLabel: 'discard',
                         btnOkIcon: 'fas fa-fw fa-ban',

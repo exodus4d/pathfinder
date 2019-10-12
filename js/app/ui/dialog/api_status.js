@@ -38,7 +38,8 @@ define([
                     switch(render(val)){
                         case 'green':   return 'ok';
                         case 'yellow':  return 'degraded: Slow or potentially dropping requests';
-                        case 'red':     return 'bad: Most requests are not succeeding and/or are very slow (5s+) on average';
+                        case 'orange':  return 'bad: Most requests are not succeeding and/or are very slow (5s+) on average';
+                        case 'red':     return 'error: Status data not available. Either offline or any other fatal error';
                         default:        return 'unknown';
                     }
                 };

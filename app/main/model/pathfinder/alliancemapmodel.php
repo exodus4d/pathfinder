@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class AllianceMapModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'alliance_map';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,

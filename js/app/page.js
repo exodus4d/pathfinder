@@ -11,7 +11,6 @@ define([
     'app/map/util',
     'app/map/contextmenu',
     'slidebars',
-    'text!img/logo.svg!strip',
     'text!templates/layout/header_map.html',
     'text!templates/layout/footer_map.html',
     'dialog/notification',
@@ -27,7 +26,7 @@ define([
     'dialog/credit',
     'xEditable',
     'app/module_map'
-], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplLogo, TplHead, TplFooter) => {
+], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -152,6 +151,7 @@ define([
                 loadFooter(pageElement),
                 loadLeftMenu(pageMenuLeftElement),
                 loadRightMenu(pageMenuRightElement),
+                loadSVGs()
             ]).then(payload => Promise.all([
                 setMenuObserver(payload[2].data),
                 setMenuObserver(payload[3].data),
@@ -414,6 +414,35 @@ define([
     };
 
     /**
+     * load standalone <svg>´s into DOM
+     * -> SVGs can be used by referencing its ID e.g.:
+     *    <svg width="12px" height="12px"><use xlink:href="#pf-svg-swords"/></svg>
+     * @returns {Promise<any>}
+     */
+    let loadSVGs = () => {
+
+        let executor = resolve => {
+            let parentElement = $('body');
+
+            let svgPaths = [
+                'img/svg/logo.svg',
+                'img/svg/swords.svg'
+            ].map(path => 'text!' + path + '!strip');
+
+            requirejs(svgPaths, (...SVGs) => {
+                parentElement.append.apply(parentElement, SVGs);
+
+                resolve({
+                    action: 'loadSVGs',
+                    data: {}
+                });
+            });
+        };
+
+        return new Promise(executor);
+    };
+
+    /**
      * load page header
      * @param pageElement
      * @returns {Promise<any>}
@@ -423,7 +452,6 @@ define([
         let executor = resolve => {
             let moduleData = {
                 id:                         config.pageHeaderId,
-                logo:                       () => Mustache.render(TplLogo, {}),
                 brandLogo:                  config.menuHeadMenuLogoClass,
                 popoverTriggerClass:        Util.config.popoverTriggerClass,
                 userCharacterClass:         config.headUserCharacterClass,
@@ -853,6 +881,10 @@ define([
                 let modalElement = $(e.target);
                 modalElement.destroyTimestampCounter(true);
 
+                // destroy all form validators
+                // -> does not work properly. validation functions still used (js error) after 'destroy'
+                //modalElement.find('form').filter((i, form) => $(form).data('bs.validator')).validator('destroy');
+
                 // destroy all popovers
                 modalElement.find('.' + Util.config.popoverTriggerClass).popover('destroy');
 
@@ -980,7 +1012,13 @@ define([
         if(changes.charactersIds){
             updateTasks.push(updateHeaderCharacterSwitch(userData, changes.characterId));
         }
-        if(changes.characterSystemId || changes.characterShipType || changes.characterLogHistory){
+        if(
+            changes.characterSystemId ||
+            changes.characterShipType ||
+            changes.characterStationId ||
+            changes.characterStructureId ||
+            changes.characterLogHistory
+        ){
             updateTasks.push(updateHeaderCharacterLocation(userData, changes.characterShipType));
         }
 
@@ -1022,7 +1060,7 @@ define([
                 if(changedCharacter){
                     // current character changed
                     userInfoElement.find('span').text(Util.getObjVal(userData, 'character.name'));
-                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + Util.getObjVal(userData, 'character.id') + '_32.jpg');
+                    userInfoElement.find('img').attr('src', Util.eveImageUrl('character', Util.getObjVal(userData, 'character.id')));
                 }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
@@ -1055,6 +1093,16 @@ define([
                 let shipTypeId = Util.getObjVal(shipData, 'typeId') || 0;
                 let shipTypeName = Util.getObjVal(shipData, 'typeName') || '';
 
+                let stationData = Util.getObjVal(userData, 'character.log.station');
+                let stationId = Util.getObjVal(stationData, 'id') || 0;
+                let stationName = Util.getObjVal(stationData, 'name') || '';
+
+                let structureData = Util.getObjVal(userData, 'character.log.structure');
+                let structureTypeId = Util.getObjVal(structureData, 'type.id') || 0;
+                let structureTypeName = Util.getObjVal(structureData, 'type.name') || '';
+                let structureId = Util.getObjVal(structureData, 'id') || 0;
+                let structureName = Util.getObjVal(structureData, 'name') || '';
+
                 logDataAll.push(logData);
 
                 // check for log history data as well
@@ -1084,15 +1132,20 @@ define([
 
                     if(isCurrentLocation){
                         breadcrumbHtml += '<i class="fas fa-fw fa-map-marker-alt" title="current location"></i>';
+
+                        if(stationId > 0){
+                            breadcrumbHtml += '<i class="fas fa-home" title="' + stationName + '"></i>';
+                        }else if(structureId > 0){
+                            breadcrumbHtml += '<i class="fas fa-industry" title="' + structureTypeName + ' &quot;' + structureName + '&quot;"></i>';
+                        }
                     }
 
                     breadcrumbHtml += systemName;
 
                     if(isCurrentLocation && shipTypeId){
                         // show ship image
-                        let shipSrc = Init.url.ccpImageServer + '/Render/' + shipTypeId + '_32.png';
                         breadcrumbHtml += '<img class="pf-head-image --right" ';
-                        breadcrumbHtml += 'src="' + shipSrc + '" ';
+                        breadcrumbHtml += 'src="' + Util.eveImageUrl('render', shipTypeId) + '" ';
                         breadcrumbHtml += 'title="' + shipTypeName + '" ';
                         breadcrumbHtml += '>';
                     }

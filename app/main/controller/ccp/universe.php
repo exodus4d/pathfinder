@@ -54,6 +54,25 @@ class Universe extends Controller {
     }*/
 
     /**
+     * setup categories + all dependencies (e.g. groups, types)
+     * id 2 -> Celestial (>100 groups -> >1000 types)
+     * id 6 -> Ship (46 groups -> 4xx types)
+     * id 65 -> Structure (10 groups -> 33 types)
+     * @param array $categoriesWhitelist
+     * @return array
+     * @throws \Exception
+     */
+    protected function setupCategories(array $categoriesWhitelist = []) : array {
+        $info = [];
+        $categoryIds = Model\Universe\CategoryModel::getUniverseCategories();
+        $categoryIds = array_intersect($categoriesWhitelist, $categoryIds);
+        foreach($categoryIds as $categoryId){
+            $info[$categoryId] = $this->setupCategory($categoryId);
+        }
+        return $info;
+    }
+
+    /**
      * setup category + all dependencies (e.g. groups, types)
      * -> $length = 0 -> setup all groups
      * @param int $categoryId
@@ -63,41 +82,18 @@ class Universe extends Controller {
      * @throws \Exception
      */
     public function setupCategory(int $categoryId, int $offset = 0, int $length = 0) : array {
-        $return = [];
+        $info = ['countAll' => 0, 'countChunk' => 0, 'count' => 0, 'offset' => $offset, 'groupTypes' => []];
+
         if($categoryId){
             /**
              * @var $category Model\Universe\CategoryModel
              */
             $category = Model\Universe\AbstractUniverseModel::getNew('CategoryModel');
             $category->loadById($categoryId);
-            $groupIds =  $category->loadGroupsData($offset, $length);
-            foreach((array)$category->groups as $group){
-                // only load types for changed groups (not all)
-                if(in_array($group->_id, $groupIds)){
-                    $return[$group->_id] = $group->loadTypesData();
-                }
-            }
+            $info = $category->loadGroupsData($offset, $length);
         }
-        return $return;
-    }
 
-    /**
-     * setup categories + all dependencies (e.g. groups, types)
-     * id 2 -> Celestial (>100 groups -> >1000 types)
-     * id 6 -> Ship (45 groups -> 490 types)
-     * id 65 -> Structure (10 groups -> 33 types)
-     * @param array $categoriesWhitelist
-     * @return array
-     * @throws \Exception
-     */
-    protected function setupCategories(array $categoriesWhitelist = []) : array {
-        $return = [];
-        $categoryIds = $this->getF3()->ccpClient()->getUniverseCategories();
-        $categoryIds = array_intersect($categoriesWhitelist, $categoryIds);
-        foreach($categoryIds as $categoryId){
-            $return[$categoryId] = $this->setupCategory($categoryId);
-        }
-        return $return;
+        return $info;
     }
 
     /**
@@ -111,19 +107,38 @@ class Universe extends Controller {
      * @throws \Exception
      */
     protected function setupGroups(array $groupsWhitelist = []) : array {
-        $return = [];
-        $groupIds = $this->getF3()->ccpClient()->getUniverseGroups();
+        $info = [];
+        $groupIds = Model\Universe\GroupModel::getUniverseGroups();
         $groupIds = array_intersect($groupsWhitelist, $groupIds);
-        /**
-         * @var $group Model\Universe\GroupModel
-         */
-        $group = Model\Universe\AbstractUniverseModel::getNew('GroupModel');
         foreach($groupIds as $groupId){
-            $group->loadById($groupId);
-            $return[$group->_id] = $group->loadTypesData();
-            $group->reset();
+            $info[$groupId] = $this->setupGroup($groupId);
         }
-        return $return;
+        return $info;
+    }
+
+    /**
+     * setup group + all dependencies (e.g. types)
+     * @param int $groupId
+     * @param int $offset
+     * @param int $length
+     * @param bool $storeDogmaAttributes
+     * @return array
+     * @throws \Exception
+     */
+    public function setupGroup(int $groupId, int $offset = 0, int $length = 0, bool $storeDogmaAttributes = false) : array {
+        $info = ['countAll' => 0, 'countChunk' => 0, 'count' => 0, 'offset' => $offset];
+
+        if($groupId){
+            /**
+             * @var $group Model\Universe\GroupModel
+             */
+            $group = Model\Universe\AbstractUniverseModel::getNew('GroupModel');
+            $group->storeDogmaAttributes = $storeDogmaAttributes;
+            $group->loadById($groupId);
+            $info = $group->loadTypesData($offset, $length);
+        }
+
+        return $info;
     }
 
     // system search index methods ====================================================================================
@@ -146,10 +161,11 @@ class Universe extends Controller {
         $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
         $indexData = [];
         foreach($systemIds as $systemId){
-            $system->getById($systemId);
+            $system->getById($systemId, 0);
             if($hashKeyId = $system->getHashKey()){
                 $indexData[$hashKeyId] = $system->getData();
             }
+            $system->reset();
             // offset must increase otherwise we get a endless loop
             // -> see /setup ajax build loop function
             $offset++;
@@ -165,12 +181,14 @@ class Universe extends Controller {
 
     /**
      * get systemIds for all systems
+     * @param bool $ignoreCache
      * @return array
      * @throws \Exception
      */
-    public function getSystemIds() : array {
+    public function getSystemIds(bool $ignoreCache = false) : array {
         $f3 = $this->getF3();
-        if( !$f3->exists(self::SESSION_KEY_SYSTEM_IDS, $systemIds) ){
+        $systemIds = [];
+        if($ignoreCache || !$f3->exists(self::SESSION_KEY_SYSTEM_IDS, $systemIds)){
             /**
              * @var $system Model\Universe\SystemModel
              */
@@ -184,7 +202,7 @@ class Universe extends Controller {
             }
         }
 
-        return (array)$systemIds;
+        return $systemIds ? : [];
     }
 
     /**
@@ -225,20 +243,20 @@ class Universe extends Controller {
      * @return null|\stdClass
      * @throws \Exception
      */
-    public function getSystemData(int $systemId){
+    public function getSystemData(int $systemId) : ?\stdClass {
         $data = null;
         if($systemId){
             // ...check index for data
             $cacheKeyRow = Model\Universe\AbstractUniverseModel::generateHashKeyRow('system', $systemId);
-            $data = $this->get($cacheKeyRow);
-            if(!$data){
+            if(!$data = $this->get($cacheKeyRow)){
                 // .. try to build index
                 /**
                  * @var $system Model\Universe\SystemModel
                  */
                 $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
-                $system->getById($systemId);
-                $data = $system->buildIndex();
+                if($system->getById($systemId)){
+                    $data = $system->buildIndex();
+                }
             }
         }
         return $data;
@@ -249,7 +267,7 @@ class Universe extends Controller {
      * @param string $cacheKey
      * @return null|\stdClass
      */
-    private function get(string $cacheKey){
+    private function get(string $cacheKey) : ?\stdClass {
         $data = null;
         if($this->getF3()->exists($cacheKey,$value)) {
             if(is_string($value) && strpos($value, Model\Universe\AbstractUniverseModel::CACHE_KEY_PREFIX) === 0) {

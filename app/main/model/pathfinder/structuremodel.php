@@ -20,11 +20,6 @@ class StructureModel extends AbstractPathfinderModel {
     protected $table = 'structure';
 
     /**
-     * categoryId (from ESI) that holds all "groups" with structure "types"
-     */
-    const CATEGORY_STRUCTURE_ID = 65;
-
-    /**
      * @var array
      */
     protected $fieldConf = [
@@ -130,15 +125,15 @@ class StructureModel extends AbstractPathfinderModel {
     /**
      * set corporationId (owner) for this structure
      * -> if corporation does not exists in DB -> load from API
-     * @param int $corporationId
+     * @param int|null $corporationId
      * @return int|null
      */
-    public function set_corporationId(int $corporationId) : ?int {
+    public function set_corporationId(?int $corporationId) : ?int {
         $oldCorporationId = $this->get('corporationId', true) ? : 0;
 
         if($corporationId){
             if($corporationId !== $oldCorporationId){
-                // make sure there is already corporation data stored for new corporationId
+                // make sure there is already corporation data available for new corporationId
                 /**
                  * @var CorporationModel $corporation
                  */
@@ -156,26 +151,20 @@ class StructureModel extends AbstractPathfinderModel {
     }
     /**
      * validates systemId
+     * -> a structure always belongs to the same system
      * @param string $key
      * @param string $val
      * @return bool
      */
-    protected function validate_systemId(string $key, string $val): bool {
-        $valid = true;
-
-        if( !$this->dry() && $this->systemId !== (int)$val ){
-            // structure always belongs to the same system
-            $valid = false;
-        }
-
-        return $valid;
+    protected function validate_systemId(string $key, string $val) : bool {
+        return !($this->valid() && $this->systemId !== (int)$val);
     }
 
     /**
      * check whether this model is valid or not
      * @return bool
      */
-    public function isValid(): bool {
+    public function isValid() : bool {
         if($valid = parent::isValid()){
             // structure always belongs to a systemId
             if(!(int)$this->systemId){
@@ -244,7 +233,7 @@ class StructureModel extends AbstractPathfinderModel {
      * @param string $name
      * @param int $systemId
      */
-    public function getByName(CorporationModel $corporation, string $name, int $systemId) {
+    public function getByName(CorporationModel $corporation, string $name, int $systemId){
         if( !$corporation->dry() && $name){
             $this->has('structureCorporations', ['corporationId = :corporationId', ':corporationId' => $corporation->_id]);
             $this->load(['name = :name AND systemId = :systemId AND active = :active',

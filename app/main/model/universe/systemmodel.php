@@ -18,11 +18,6 @@ class SystemModel extends AbstractUniverseModel {
     protected $table = 'system';
 
     /**
-     *
-     */
-    const ERROR_INVALID_WORMHOLE = 'Invalid wormhole name "%s" for system: "%s"';
-
-    /**
      * @var array
      */
     protected $fieldConf = [
@@ -55,18 +50,6 @@ class SystemModel extends AbstractUniverseModel {
             ],
             'validate' => 'notDry'
         ],
-        'factionId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\Universe\FactionModel',
-            'constraint' => [
-                [
-                    'table' => 'faction',
-                    'on-delete' => 'CASCADE'
-                ]
-            ],
-            'validate' => 'notDry'
-        ],
         'security' => [
             'type' => Schema::DT_VARCHAR128
         ],
@@ -85,11 +68,6 @@ class SystemModel extends AbstractUniverseModel {
         ],
         'effect' => [
             'type' => Schema::DT_VARCHAR128
-        ],
-        'shattered' => [
-            'type' => Schema::DT_BOOL,
-            'nullable' => false,
-            'default' => 0
         ],
         'x' => [
             'type' => Schema::DT_BIGINT,
@@ -114,6 +92,21 @@ class SystemModel extends AbstractUniverseModel {
         ],
         'stargates' => [
             'has-many' => ['Model\Universe\StargateModel', 'systemId']
+        ],
+        'stations' => [
+            'has-many' => ['Model\Universe\StationModel', 'systemId']
+        ],
+        'structures' => [
+            'has-many' => ['Model\Universe\StructureModel', 'systemId']
+        ],
+        'neighbour' => [
+            'has-one' => ['Model\Universe\SystemNeighbourModel', 'systemId']
+        ],
+        'sovereignty' => [
+            'has-one' => ['Model\Universe\SovereigntyMapModel', 'systemId']
+        ],
+        'factionWar' => [
+            'has-one' => ['Model\Universe\FactionWarSystemModel', 'systemId']
         ]
     ];
 
@@ -123,37 +116,52 @@ class SystemModel extends AbstractUniverseModel {
      * @return \stdClass
      */
     public function getData(){
-
-        $systemData                 = (object) [];
-        $systemData->id             = $this->_id;
-        $systemData->name           = $this->name;
-        $systemData->constellation  = $this->constellationId->getData();
-        $systemData->security       = $this->security;
-        $systemData->trueSec        = (float)$this->trueSec;
-        $systemData->effect         = $this->effect;
-        $systemData->shattered      = (bool)$this->shattered;
+        $data                       = (object) [];
+        $data->id                   = $this->_id;
+        $data->name                 = $this->name;
+        $data->constellation        = $this->constellationId->getData();
+        $data->security             = $this->security;
+        $data->trueSec              = (float)$this->trueSec;
+        $data->effect               = $this->effect;
+        $data->shattered            = false;
 
         if($this->starId){
-            $systemData->star       = $this->starId->getData();
+            $data->star             = $this->starId->getData();
         }
 
-        if($this->factionId){
-            $systemData->faction    = $this->factionId->getData();
+        if($this->sovereignty){
+            $data->sovereignty      = $this->sovereignty->getData();
+        }
+
+        if($this->factionWar){
+            $data->factionWar       = $this->factionWar->getData();
         }
 
         if( !empty($planetsData = $this->getPlanetsData()) ){
-            $systemData->planets    = $planetsData;
+            $data->planets          = $planetsData;
+
+            // 'Shattered' systems have ONLY planets named with '(shattered)'
+            // -> system 'Thera' has '(shattered)' AND other planets -> not shattered.
+            // -> system 'J164104, 'J115422' - the only non-shattered wormholes which have a shattered planet -> not shattered.
+            $data->shattered        = count(array_filter($planetsData, function(object $planetData){
+                return property_exists($planetData, 'type') &&
+                    (strpos(strtolower($planetData->type->name), '(shattered)') !== false);
+            })) == count($planetsData);
         }
 
         if( !empty($staticsData = $this->getStaticsData()) ){
-            $systemData->statics    = $staticsData;
+            $data->statics          = $staticsData;
         }
 
         if( !empty($stargatesData = $this->getStargatesData()) ){
-            $systemData->stargates  = $stargatesData;
+            $data->stargates        = $stargatesData;
         }
 
-        return $systemData;
+        if( !empty($stationsData = $this->getStationsData()) ){
+            $data->stations         = $stationsData;
+        }
+
+        return $data;
     }
 
     /**
@@ -185,11 +193,18 @@ class SystemModel extends AbstractUniverseModel {
         }
         $this->trueSec = $trueSec;
         // set 'security' for NON wormhole systems! -> those get updated from csv import
-        if(!preg_match('/^j\d+$/i', $this->name)){
-            // check for "Abyssal" system
-            if(
-                $this->get('constellationId', true) >= 22000001 &&
-                $this->get('constellationId', true) <= 22000025
+        // 'J1226-0' is also a wormhole with a '-' in the name! (single system)
+        if(
+            !preg_match('/^j(\d{6}|\d{4}-\d)$/i', $this->name) &&
+            $this->name != 'Thera'
+        ){
+            $constellationId = (int)$this->get('constellationId', true);
+            if($constellationId == 23000001){
+                // "Pocket" system
+                $security = 'P';
+            }elseif(
+                $constellationId >= 22000001 &&
+                $constellationId <= 22000025
             ){
                 // "Abyssal" system
                 $security = 'A';
@@ -220,30 +235,141 @@ class SystemModel extends AbstractUniverseModel {
     }
 
     /**
-     * setter for positions array (x/y/z)
-     * @param $position
-     * @return null
+     * @param array $sovData
+     * @return bool true if sovereignty data changed
      */
-    public function set_position($position){
-        $position = (array)$position;
-        if(count($position) === 3){
-            $this->x = $position['x'];
-            $this->y = $position['y'];
-            $this->z = $position['z'];
+    public function updateSovereigntyData(array $sovData = []) : bool {
+        $hasChanged     = false;
+        $systemId       = (int)$sovData['systemId'];
+        $factionId      = (int)$sovData['factionId'];
+        $allianceId     = (int)$sovData['allianceId'];
+        $corporationId  = (int)$sovData['corporationId'];
+
+        if($this->valid()){
+            if($systemId === $this->_id){
+                // sov data belongs to this system
+                $validSovData = (bool)max($factionId, $allianceId, $corporationId);
+                if($validSovData){
+                    // at least one of these Ids must exist for a sovereignty relation
+                    /**
+                     * @var $sovereignty SovereigntyMapModel
+                     */
+                    if(!$sovereignty = $this->sovereignty){
+                        // insert new sovereignty data
+                        $sovereignty = $this->rel('sovereignty');
+                    }
+
+                    $sovData['systemId'] = $this;
+
+                    if($factionId){
+                        // HS, L - systems have "faction war"
+                        $sovData['allianceId'] = null;
+                        $sovData['corporationId'] = null;
+
+                        /**
+                         * @var $faction FactionModel
+                         */
+                        $faction = $sovereignty->rel('factionId');
+                        $faction->loadById($factionId);
+                        $sovData['factionId'] = $faction;
+                    }else{
+                        // 0.0 - systems have sovereignty data by corp and/or ally
+                        $sovData['factionId'] = null;
+
+                        /**
+                         * @var $alliance AllianceModel|null
+                         */
+                        $alliance = null;
+                        if($allianceId){
+                            $alliance = $sovereignty->rel('allianceId');
+                            $alliance->loadById($allianceId);
+                        }
+
+                        /**
+                         * @var $corporation CorporationModel|null
+                         */
+                        $corporation = null;
+                        if($corporationId){
+                            $corporation = $sovereignty->rel('corporationId');
+                            $corporation->loadById($corporationId);
+                        }
+
+                        $sovData['allianceId'] = $alliance;
+                        $sovData['corporationId'] = $corporation;
+                    }
+
+                    $sovereignty->copyfrom($sovData, ['systemId', 'factionId', 'allianceId', 'corporationId']);
+
+                    // must be called before save(). Changed fields get reset after save() is called!
+                    if($sovereignty->changed()){
+                        $hasChanged = true;
+                    }
+
+                    $sovereignty->save();
+                }elseif($this->sovereignty){
+                    // delete existing sov data
+                    // -> hint: WH - systems never have sovereignty data
+                    $this->sovereignty->erase();
+                    $hasChanged = true;
+                }
+            }
         }
-        return null;
+
+        return $hasChanged;
     }
 
     /**
-     * setter for static systems (wormholes)
-     * -> comma separated string or array
-     * @param $staticNames
-     * @return null
+     * @param array $fwData
+     * @return bool true if faction warfare data changed
      */
-    public function set_staticNames($staticNames){
-        $staticNames = array_unique(is_string($staticNames) ? explode(',', $staticNames) : (array)$staticNames);
-        $this->virtual('staticNames', array_map('strtoupper', $staticNames));
-        return null;
+    public function updateFactionWarData(array $fwData = []) : bool {
+        $hasChanged         = false;
+        $systemId           = (int)$fwData['systemId'];
+        $ownerFactionId     = (int)$fwData['ownerFactionId'];
+        $occupierFactionId  = (int)$fwData['occupierFactionId'];
+
+        if($this->valid()){
+            if($systemId === $this->_id){
+                /**
+                 * @var $factionWar FactionWarSystemModel
+                 */
+                if(!$factionWar = $this->factionWar){
+                    // insert new faction war data
+                    $factionWar = $this->rel('factionWar');
+                }
+
+                $fwData['systemId'] = $this;
+
+                if($ownerFactionId){
+                    /**
+                     * @var $ownerFaction FactionModel
+                     */
+                    $ownerFaction = $factionWar->rel('ownerFactionId');
+                    $ownerFaction->loadById($ownerFactionId);
+                    $fwData['ownerFactionId'] = $ownerFaction;
+                }
+
+                if($occupierFactionId){
+                    /**
+                     * @var $occupierFaction FactionModel
+                     */
+                    $occupierFaction = $factionWar->rel('occupierFactionId');
+                    $occupierFaction->loadById($occupierFactionId);
+                    $fwData['occupierFactionId'] = $occupierFaction;
+                }
+
+                $factionWar->copyfrom($fwData, ['systemId', 'ownerFactionId', 'occupierFactionId', 'contested', 'victoryPoints', 'victoryPointsThreshold']);
+
+                // must be called before save(). Changed fields get reset after save() is called!
+                if($factionWar->changed()){
+                    $hasChanged = true;
+                }
+
+                $factionWar->save();
+            }
+        }
+
+        return $hasChanged;
     }
 
     /**
@@ -253,38 +379,8 @@ class SystemModel extends AbstractUniverseModel {
      * @param $pkeys
      */
     public function afterUpdateEvent($self, $pkeys){
-        $staticNames = (array)$self->staticNames;
-
-        if(
-            count($staticNames) > 0 &&                      // make sure statics are set. In case a wh system get updated without statics are set
-            preg_match('/^c\d+$/i', $self->security) // make sure it is a wormhole
-        ){
-            foreach((array)$self->statics as $static){
-                if(in_array($static->wormholeId->name, $staticNames)){
-                    unset($staticNames[array_search($static->wormholeId->name, $staticNames)]);
-                }else{
-                    $static->erase();
-                }
-            }
-
-            // add new statics
-            foreach($staticNames as $staticName){
-                $static = $self->rel('statics');
-                /**
-                 * @var $wormhole WormholeModel
-                 */
-                $wormhole = $static->rel('wormholeId')->getByForeignKey('name', $staticName, ['limit' => 1]);
-                if( !$wormhole->dry() ){
-                    $static->systemId = $self;
-                    $static->wormholeId = $wormhole;
-                    $static->save();
-                }
-            }
-        }
-
         // build search index
         $self->buildIndex();
-
         return parent::afterUpdateEvent($self, $pkeys);
     }
 
@@ -292,14 +388,14 @@ class SystemModel extends AbstractUniverseModel {
      * get data from all planets
      * @return array
      */
-    protected function getPlanetsData(){
+    protected function getPlanetsData() : array {
         $planetsData = [];
 
         if($this->planets){
+            /**
+             * @var $planet PlanetModel
+             */
             foreach($this->planets as &$planet){
-                /**
-                 * @var $planet PlanetModel
-                 */
                 $planetsData[] = $planet->getData();
             }
         }
@@ -310,14 +406,14 @@ class SystemModel extends AbstractUniverseModel {
      * get data from all static wormholes
      * @return array
      */
-    protected function getStaticsData(){
+    protected function getStaticsData() : array {
         $staticsData = [];
 
         if($this->statics){
+            /**
+             * @var $static SystemStaticModel
+             */
             foreach($this->statics as &$static){
-                /**
-                 * @var $static SystemStaticModel
-                 */
                 $staticsData[] = $static->getData();
             }
         }
@@ -328,14 +424,14 @@ class SystemModel extends AbstractUniverseModel {
      * get data from all stargates
      * @return array
      */
-    protected function getStargatesData(){
+    protected function getStargatesData() : array {
         $stargatesData = [];
 
         if($this->stargates){
+            /**
+             * @var $stargate StargateModel
+             */
             foreach($this->stargates as &$stargate){
-                /**
-                 * @var $stargate StargateModel
-                 */
                 $stargatesData[] = $stargate->getData();
             }
         }
@@ -343,10 +439,47 @@ class SystemModel extends AbstractUniverseModel {
     }
 
     /**
+     * get data from all stations
+     * @return array
+     */
+    protected function getStationsData() : array {
+        $stationsData = [];
+
+        if($this->stations){
+            /**
+             * @var $station StationModel
+             */
+            foreach($this->stations as &$station){
+                $data = $station->getData();
+                if(!$data->race){
+                    // should never happen NPC stations always have a owning race
+                    $data->race = (object) [];
+                    $data->race->id = 0;
+                    $data->race->name = 'unknown';
+                    $data->race->faction = (object) [];
+                    $data->race->faction->id = 0;
+                    $data->race->faction->name = 'unknown';
+                }
+
+                if(!array_key_exists($data->race->faction->id, $stationsData)){
+                    $stationsData[$data->race->faction->id] = [
+                        'id' => $data->race->faction->id,
+                        'name' => $data->race->name,
+                        'stations' => []
+                    ];
+                }
+
+                $stationsData[$data->race->faction->id]['stations'][] = $data;
+            }
+        }
+        return $stationsData;
+    }
+
+    /**
      * update system from ESI
      */
     public function updateModel(){
-        if( !$this->dry() ){
+        if($this->valid()){
             $this->loadData($this->_id);
             $this->loadPlanetsData();
         }
@@ -387,7 +520,7 @@ class SystemModel extends AbstractUniverseModel {
      * load planets data for this system
      */
     public function loadPlanetsData(){
-        if( !$this->dry() ){
+        if($this->valid()){
             $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
             if($data['planets']){
                 // planets are optional since ESI v4 (e.g. Abyssal systems)
@@ -408,9 +541,9 @@ class SystemModel extends AbstractUniverseModel {
      * -> stargates to destination system which is not in DB get ignored
      */
     public function loadStargatesData(){
-        if( !$this->dry() ){
+        if($this->valid()){
             $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
-            if(!empty($data)){
+            if($data['stargates']){
                 foreach((array)$data['stargates'] as $stargateId){
                     /**
                      * @var $stargate StargateModel
@@ -418,6 +551,25 @@ class SystemModel extends AbstractUniverseModel {
                     $stargate = $this->rel('stargates');
                     $stargate->loadById($stargateId);
                     $stargate->reset();
+                }
+            }
+        }
+    }
+
+    /**
+     * load NPC owned stations for this system
+     */
+    public function loadStationsData(){
+        if($this->valid()){
+            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
+            if($data['stations']){
+                foreach((array)$data['stations'] as $stationId){
+                    /**
+                     * @var $station SystemModel
+                     */
+                    $station = $this->rel('stations');
+                    $station->loadById($stationId);
+                    $station->reset();
                 }
             }
         }

@@ -213,7 +213,7 @@ class Cortex extends Cursor {
         } else
             $this->whitelist=$fields;
         $id=$this->dbsType=='sql'?$this->primary:'_id';
-        if (!in_array($id,$this->whitelist))
+        if (!in_array($id,$this->whitelist) && !($exclude && in_array($id,$fields)))
             $this->whitelist[]=$id;
         $this->applyWhitelist();
         return $this->whitelist;
@@ -595,7 +595,7 @@ class Cortex extends Cursor {
      * @param array|null $filter
      * @param array|null $options
      * @param int        $ttl
-     * @return CortexCollection
+     * @return CortexCollection|false
      */
     public function find($filter = NULL, array $options = NULL, $ttl = 0) {
         $sort=false;
@@ -731,12 +731,12 @@ class Cortex extends Cursor {
                                 $addToFilter = array($id.' IN ?', $result);
                         }
                         // *-to-one
-                        elseif ($this->dbsType == 'sql') {
+                        elseif (!$deep && $this->dbsType == 'sql') {
                             // use sub-query inclusion
                             $has_filter=$this->mergeFilter([$has_filter,
                                 [$this->rel($key)->getTable().'.'.$fromConf[1].'='.$this->getTable().'.'.$id]]);
                             $result = $this->_refSubQuery($key,$has_filter,$has_options);
-                            $addToFilter = ['exists('.$result[0].')']+$result[1];
+                            $addToFilter = array_merge(['exists('.$result[0].')'],$result[1]);
                         }
                         elseif ($result = $this->_hasRefsIn($key,$has_filter,$has_options,$ttl))
                             $addToFilter = array($id.' IN ?', $result);
@@ -781,11 +781,11 @@ class Cortex extends Cursor {
                 $options['order'] = preg_replace('/\h+DESC(?=\s*(?:$|,))/i',' DESC NULLS LAST',$options['order']);
             // assemble full sql query for joined queries
             if ($hasJoin) {
+                $adhoc=[];
                 // when in count-mode and grouping is active, wrap the query later
                 // otherwise add a an adhoc counter field here
                 if (!($subquery_mode=($options && !empty($options['group']))) && $count)
-                    $this->adhoc['_rows']=['expr'=>'COUNT(*)','value'=>NULL];
-                $adhoc=[];
+                    $adhoc[]='(COUNT(*)) as _rows';
                 if (!$count)
                     // add bind parameters for filters in adhoc fields
                     if ($this->preBinds) {
@@ -1224,7 +1224,7 @@ class Cortex extends Cursor {
         // m:m save cascade
         if (!empty($this->saveCsd)) {
             foreach($this->saveCsd as $key => $val) {
-                if($fields[$key]['relType'] == 'has-many') {
+                if ($fields[$key]['relType'] == 'has-many') {
                     $relConf = $fields[$key]['has-many'];
                     if ($relConf['hasRel'] == 'has-many') {
                         $mmTable = $this->mmTable($relConf,$key);
@@ -1236,12 +1236,12 @@ class Cortex extends Cursor {
                             $filter[] = $id;
                         }
                         // delete all refs
-                        if (is_null($val))
+                        if (empty($val))
                             $mm->erase($filter);
                         // update refs
                         elseif (is_array($val)) {
                             $mm->erase($filter);
-                            foreach($val as $v) {
+                            foreach(array_unique($val) as $v) {
                                 if ($relConf['isSelf'] && $v==$id)
                                     continue;
                                 $mm->set($key,$v);
@@ -1256,7 +1256,7 @@ class Cortex extends Cursor {
                         $rel = $this->getRelInstance($relConf[0],$relConf,$key);
                         // find existing relations
                         $refs = $rel->find([$relConf[1].' = ?',$this->getRaw($relConf['relField'])]);
-                        if (is_null($val)) {
+                        if (empty($val)) {
                             foreach ($refs?:[] as $model) {
                                 $model->set($relConf[1],NULL);
                                 $model->save();
@@ -1470,7 +1470,7 @@ class Cortex extends Cursor {
             // handle relations
             if (isset($fields[$key]['belongs-to-one'])) {
                 // one-to-many, one-to-one
-                if (is_null($val))
+                if (empty($val))
                     $val = NULL;
                 elseif (is_object($val) &&
                     !($this->dbsType=='mongo' && (
@@ -1489,7 +1489,7 @@ class Cortex extends Cursor {
                     $val = $this->db->legacy() ? new \MongoId($val) : new \MongoDB\BSON\ObjectId($val);
             } elseif (isset($fields[$key]['has-one'])){
                 $relConf = $fields[$key]['has-one'];
-                if (is_null($val)) {
+                if (empty($val)) {
                     $val = $this->get($key);
                     $val->set($relConf[1],NULL);
                 } else {
@@ -2554,7 +2554,7 @@ class CortexQueryParser extends \Prefab {
             function($match) use($db) {
                 if (!isset($match[1]))
                     return $match[0];
-                if (preg_match('/\b(AND|OR|IN|LIKE|NOT)\b/i',$match[1]))
+                if (preg_match('/\b(AND|OR|IN|LIKE|NOT|HAVING|SELECT|FROM|WHERE)\b/i',$match[1]))
                     return $match[1];
                 return $db->quotekey($match[1]);
             }, $cond);
@@ -2576,7 +2576,7 @@ class CortexQueryParser extends \Prefab {
             function($match) use($table) {
                 if (!isset($match[3]))
                     return $match[1];
-                if (preg_match('/\b(AND|OR|IN|LIKE|NOT)\b/i',$match[3]))
+                if (preg_match('/\b(AND|OR|IN|LIKE|NOT|HAVING|SELECT|FROM|WHERE)\b/i',$match[3]))
                     return $match[0];
                 return $match[2].$table.'.'.$match[3];
             }, $cond);

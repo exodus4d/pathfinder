@@ -14,8 +14,14 @@ use lib\logging;
 
 class ConnectionModel extends AbstractMapTrackingModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'connection';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,

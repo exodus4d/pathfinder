@@ -111,7 +111,7 @@ class System extends Controller\AccessController {
     }
 
     /**
-     * set destination for specific systemIds
+     * set destination for system, station or structure
      * @param \Base $f3
      * @throws \Exception
      */
@@ -120,25 +120,25 @@ class System extends Controller\AccessController {
 
         $return = (object) [];
         $return->error = [];
-        $return->systemData = [];
+        $return->destData = [];
 
-        if( !empty($postData['systemData'] )){
+        if(!empty($destData = (array)$postData['destData'])){
             $activeCharacter = $this->getCharacter();
 
             $return->clearOtherWaypoints = (bool)$postData['clearOtherWaypoints'];
             $return->first = (bool)$postData['first'];
 
-            if( $accessToken = $activeCharacter->getAccessToken() ){
+            if($accessToken = $activeCharacter->getAccessToken()){
                 $options = [
                     'clearOtherWaypoints' => $return->clearOtherWaypoints,
                     'addToBeginning' => $return->first,
                 ];
 
-                foreach($postData['systemData'] as $systemData){
-                    $response =  $f3->ccpClient()->setWaypoint($systemData['systemId'], $accessToken, $options);
+                foreach($destData as $data){
+                    $response =  $f3->ccpClient()->setWaypoint((int)$data['id'], $accessToken, $options);
 
                     if(empty($response)){
-                        $return->systemData[] = $systemData;
+                        $return->destData[] = $data;
                     }else{
                         $error = (object) [];
                         $error->type = 'error';

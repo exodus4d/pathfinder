@@ -66,28 +66,13 @@ class PlanetModel extends AbstractUniverseModel {
      * @return \stdClass
      */
     public function getData(){
-        $planetData                 = (object) [];
-        $planetData->name           = $this->name;
+        $data               = (object) [];
+        $data->name         = $this->name;
 
-        $planetData->type           = (object) [];
-        $planetData->type->name     = $this->typeId->name;
+        $data->type         = (object) [];
+        $data->type->name   = $this->typeId->name;
 
-        return $planetData;
-    }
-
-    /**
-     * setter for positions array (x/y/z)
-     * @param $position
-     * @return null
-     */
-    public function set_position($position){
-        $position = (array)$position;
-        if(count($position) === 3){
-            $this->x = $position['x'];
-            $this->y = $position['y'];
-            $this->z = $position['z'];
-        }
-        return null;
+        return $data;
     }
 
     /**

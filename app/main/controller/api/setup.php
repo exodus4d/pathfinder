@@ -9,6 +9,7 @@
 namespace Controller\Api;
 
 use Controller;
+use lib\Config;
 use Model;
 
 class Setup extends Controller\Controller {
@@ -23,6 +24,7 @@ class Setup extends Controller\Controller {
     public function buildIndex(\Base $f3){
         $postData = (array)$f3->get('POST');
         $type = (string)$postData['type'];
+        $countAll = (int)$postData['countAll'];
         $count = (int)$postData['count'];
         $offset = (int)$postData['offset'];
 
@@ -31,7 +33,7 @@ class Setup extends Controller\Controller {
         $return->type = $type;
         $return->count = $count;
         $return->offset = $offset;
-        $return->countAll = 0;
+        $return->countAll = $countAll;
         $return->countBuild = 0;
         $return->countBuildAll = 0;
         $return->progress = 0;
@@ -42,7 +44,7 @@ class Setup extends Controller\Controller {
          * @param int $value
          * @return int
          */
-        $sum = function(int $carry, int $value){
+        $sum = function(int $carry, int $value) : int {
             $carry += $value;
             return $carry;
         };
@@ -62,48 +64,71 @@ class Setup extends Controller\Controller {
             case 'Systems':
                 $length = 100;
                 $buildInfo = $controller->buildSystemsIndex($offset, $length);
+
                 $return->offset = $buildInfo['offset'];
                 $return->countAll = $buildInfo['countAll'];
                 $return->countBuild = $buildInfo['countBuild'];
-                $return->countBuildAll = $offset;
-                $return->progress = $percent($return->countAll, $offset);
+                $return->countBuildAll = $return->offset;
+                break;
+            case 'Wormholes':
+                $groupId = Config::ESI_GROUP_WORMHOLE_ID;
+                $length = 10;
+                $buildInfo = $controller->setupGroup($groupId, $offset, $length, true);
+
+                $return->offset = $buildInfo['offset'];
+                $return->countAll = $buildInfo['countAll'];
+                $return->countBuild = $buildInfo['count'];
+                $return->countBuildAll = $return->offset;
                 break;
             case 'Structures':
-                $categoryId = 65;
-                $length = 2;
-                $offset = $count * $length;
+                $categoryId = Config::ESI_CATEGORY_STRUCTURE_ID;
+                $length = 1;
                 $buildInfo = $controller->setupCategory($categoryId, $offset, $length);
-
                 $categoryUniverseModel =  Model\Universe\AbstractUniverseModel::getNew('CategoryModel');
                 $categoryUniverseModel->getById($categoryId, 0);
-                $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES');
-                $return->countBuild = array_reduce($buildInfo, $sum, 0);
-                $return->countBuildAll = $categoryUniverseModel->getTypesCount(false);
-                $return->progress = $percent($return->countAll, $return->countBuildAll);
+
+                $return->offset = $buildInfo['offset'];
+                $return->countBuild = $buildInfo['count'];
+                $return->countBuildAll = $return->offset;
+                $return->subCount = [
+                    'countBuildAll' => $categoryUniverseModel->getTypesCount(false)
+                ];
                 break;
             case 'Ships':
-                $categoryId = 6;
+                $categoryId = Config::ESI_CATEGORY_SHIP_ID;
                 $length = 2;
-                $offset = $count * $length;
                 $buildInfo = $controller->setupCategory($categoryId, $offset, $length);
-
                 $categoryUniverseModel =  Model\Universe\AbstractUniverseModel::getNew('CategoryModel');
                 $categoryUniverseModel->getById($categoryId, 0);
-                $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.SHIPS');
-                $return->countBuild = array_reduce($buildInfo, $sum, 0);
-                $return->countBuildAll = $categoryUniverseModel->getTypesCount(false);
-                $return->progress = $percent($return->countAll, $return->countBuildAll);
+
+                $return->offset = $buildInfo['offset'];
+                $return->countBuild = $buildInfo['count'];
+                $return->countBuildAll = $return->offset;
+                $return->subCount = [
+                    'countBuildAll' => $categoryUniverseModel->getTypesCount(false)
+                ];
+                break;
+            case 'SystemStatic':
+                $length = 300;
+                $buildInfo = $this->setupSystemStaticTable($offset, $length);
+
+                $return->offset = $buildInfo['offset'];
+                $return->countAll = $buildInfo['countAll'];
+                $return->countBuild = $buildInfo['count'];
+                $return->countBuildAll = $return->offset;
                 break;
             case 'SystemNeighbour':
-                // Becomes deprecated with new Universe DB!!!
-                $this->setupSystemJumpTable();
+                $length = 1500;
+                $buildInfo = $this->setupSystemJumpTable($offset, $length);
 
-                $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.NEIGHBOURS');
-                $return->countBuild = $f3->DB->getDB('PF')->getRowCount('system_neighbour');
-                $return->countBuildAll = $return->countBuild;
-                $return->progress = $percent($return->countAll, $return->countBuildAll);
+                $return->offset = $buildInfo['offset'];
+                $return->countAll = $buildInfo['countAll'];
+                $return->countBuild = $buildInfo['count'];
+                $return->countBuildAll = $return->offset;
                 break;
         }
+
+        $return->progress = $percent($return->countAll, $return->countBuildAll);
 
         if($return->countBuildAll < $return->countAll){
             $return->count++;
@@ -135,7 +160,12 @@ class Setup extends Controller\Controller {
             case 'Systems':
                 $controller->clearSystemsIndex();
                 $systemUniverseModel =  Model\Universe\AbstractUniverseModel::getNew('SystemModel');
-                $return->countAll = $f3->DB->getDB('UNIVERSE')->getRowCount($systemUniverseModel->getTable());
+                $return->countAll = $systemUniverseModel->getRowCount();
+                break;
+            case 'SystemNeighbour':
+                $systemNeighbourModel =  Model\Universe\AbstractUniverseModel::getNew('SystemNeighbourModel');
+                $systemNeighbourModel->truncate();
+                $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.NEIGHBOURS');
                 break;
         }
 
@@ -143,13 +173,74 @@ class Setup extends Controller\Controller {
     }
 
     /**
+     * import static 'system_static` table data from *.csv
+     * @param int $offset
+     * @param int $length
+     * @return array
+     * @throws \Exception
+     */
+    protected function setupSystemStaticTable(int $offset = 0, int $length = 0) : array {
+        $info = ['countAll' => 0, 'countChunk' => 0, 'count' => 0, 'offset' => $offset];
+
+        /**
+         * @var $systemStaticModel Model\Universe\SystemStaticModel
+         */
+        $systemStaticModel = Model\Universe\AbstractUniverseModel::getNew('SystemStaticModel');
+        if(!empty($csvData = $systemStaticModel::getCSVData($systemStaticModel->getTable()))){
+            $info['countAll'] = count($csvData);
+            if($length){
+                $csvData = array_slice($csvData, $offset, $length);
+            }
+            $info['countChunk'] = count($csvData);
+            $cols = ['typeId' => [], 'systemId' => []];
+            foreach($csvData as $data){
+                $validColCount = 0;
+                $systemStaticModel->getById((int)$data['id'], 0);
+                $systemStaticModel->id = (int)$data['id'];
+                foreach($cols as $col => &$invalidIds){
+                    if($systemStaticModel->exists($col)){
+                        $colVal = (int)$data[$col];
+                        if(!in_array($colVal, $invalidIds)){
+                            $relModel = $systemStaticModel->rel($col);
+                            $relModel->getById($colVal, 0);
+                            if($relModel->valid()){
+                                $systemStaticModel->$col = $relModel;
+                                $validColCount++;
+                            }else{
+                                $invalidIds[] = $colVal;
+                                break;
+                            }
+                        }else{
+                            break;
+                        }
+                    }
+                }
+
+                if($validColCount == count($cols)){
+                    $systemStaticModel->save();
+                }
+                $systemStaticModel->reset();
+
+                $info['count']++;
+                $info['offset']++;
+            }
+        }
+
+        return $info;
+    }
+
+    /**
      * This function is just for setting up the cache table 'system_neighbour' which is used
      * for system jump calculation. Call this function manually when CCP adds Systems/Stargates
+     * @param int $offset
+     * @param int $length
+     * @return array
      */
-    protected function setupSystemJumpTable(){
-        $universeDB =  $this->getDB('UNIVERSE');
+    protected function setupSystemJumpTable(int $offset = 0, int $length = 0) : array {
+        $info = ['countAll' => 0, 'countChunk' => 0, 'count' => 0, 'offset' => $offset];
+        $universeDB = $this->getDB('UNIVERSE');
 
-        $query = "SELECT
+        $query = "SELECT SQL_CALC_FOUND_ROWS
                       `system`.`id` `systemId`,
                       `system`.`name` `systemName`,
                       `system`.`constellationId` `constellationId`,
@@ -178,58 +269,73 @@ class Setup extends Controller\Controller {
                           `system`.`security` = :ls OR 
                           `system`.`security` = :hs
                       )
+                    HAVING 
+                        `jumpNodes` IS NOT NULL
                     ";
 
-        $rows = $universeDB->exec($query, [
+        $args = [
             ':regionIdJove1' => 10000017,
             ':regionIdJove2' => 10000019,
             ':regionIdJove3' => 10000004,
             ':ns' => '0.0',
             ':ls' => 'L',
             ':hs' => 'H'
-        ]);
+        ];
 
-        if(count($rows)){
-            $pfDB = $this->getDB('PF');
+        if($length){
+            $query .= ' LIMIT :limit';
+            $args[':limit'] = $length;
 
-            // clear cache table
-            $pfDB->exec("TRUNCATE system_neighbour");
+            if($offset){
+                $query .= ' OFFSET :offset';
+                $args[':offset'] = $offset;
+            }
+        }
 
+        $rows = $universeDB->exec($query, $args);
+
+        if(!empty($countRes = $universeDB->exec("SELECT FOUND_ROWS() `count`")) && isset($countRes[0]['count'])){
+            $info['countAll'] = (int)$countRes[0]['count'];
+        }
+
+        if($info['countChunk'] = count($rows)){
+            $placeholderStr = function(string $str) : string {
+                return ':' . $str;
+            };
+
+            $updateRule = function(string $str) : string {
+                return $str . " = VALUES(" . $str . ")";
+            };
+
+            $universeDB->begin();
             foreach($rows as $row){
+                $info['count']++;
+                $info['offset']++;
+
                 if(!$row['jumpNodes']){
                     // should never happen!
                     continue;
                 }
 
-                $pfDB->exec("
-                      INSERT INTO
-                        system_neighbour(
-                          regionId,
-                          constellationId,
-                          systemName,
-                          systemId,
-                          jumpNodes,
-                          trueSec
-                          )
-                      VALUES(
-                        :regionId,
-                        :constellationId,
-                        :systemName,
-                        :systemId,
-                        :jumpNodes,
-                        :trueSec
-                    )",
-                    [
-                        ':regionId' => $row['regionId'],
-                        ':constellationId' => $row['constellationId'],
-                        ':systemName' => $row['systemName'],
-                        ':systemId' => $row['systemId'],
-                        ':jumpNodes' => $row['jumpNodes'],
-                        ':trueSec' => $row['trueSec']
-                    ]
-                );
+                $columns = array_keys($row);
+                $columnsQuoted = array_map($universeDB->quotekey, $columns);
+                $placeholder = array_map($placeholderStr, $columns);
+                $args = array_combine($placeholder, $row);
+
+                $updateSql = array_map($updateRule, $columns);
+
+                $sql = "INSERT INTO
+                            system_neighbour(" . implode(', ', $columnsQuoted) . ")
+                                VALUES(" . implode(', ', $placeholder) . ")
+                          ON DUPLICATE KEY UPDATE
+                            " . implode(', ', $updateSql);
+
+                $universeDB->exec($sql, $args);
             }
+            $universeDB->commit();
         }
+
+        return $info;
     }
 
 }

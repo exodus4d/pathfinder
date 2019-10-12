@@ -7,8 +7,9 @@ define([
     'app/init',
     'app/util',
     'bootbox',
-    'app/counter'
-], ($, Init, Util, bootbox, Counter) => {
+    'app/counter',
+    'app/map/util',
+], ($, Init, Util, bootbox, Counter, MapUtil) => {
     'use strict';
 
     let config = {
@@ -18,7 +19,7 @@ define([
         moduleHeadClass: 'pf-module-head',                                      // class for module header
         moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
 
-        // system info module
+        // system intel module
         moduleTypeClass: 'pf-system-intel-module',                              // class for this module
 
         // headline toolbar
@@ -28,10 +29,14 @@ define([
         moduleHeadlineIconRefreshClass: 'pf-module-icon-button-refresh',        // class for "refresh" icon
 
         // system intel module
-        systemStructuresTableClass: 'pf-system-structure-table',                // class for route tables
+        intelTableId: 'pf-intel-table-',                                        // id prefix for all tables in module
+        intelTableRowIdPrefix: 'pf-intel-row-',                                 // id prefix for table rows
+        systemStationsTableClass: 'pf-system-station-table',                    // class for NPC owned stations table
+        systemStructuresTableClass: 'pf-system-structure-table',                // class for player owned structures table
 
         // structure dialog
         structureDialogId: 'pf-structure-dialog',                               // id for "structure" dialog
+        nameInputId: 'pf-structure-dialog-name-input',                          // id for "name" input
         statusSelectId: 'pf-structure-dialog-status-select',                    // id for "status" select
         typeSelectId: 'pf-structure-dialog-type-select',                        // id for "type" select
         corporationSelectId: 'pf-structure-dialog-corporation-select',          // id for "corporation" select
@@ -39,11 +44,12 @@ define([
         descriptionTextareaCharCounter: 'pf-form-field-char-count',             // class for "character counter" element for form field
 
         // dataTable
-        tableRowIdPrefix: 'pf-structure-row_',                                  // id prefix for table rows
         tableCellImageClass: 'pf-table-image-smaller-cell',                     // class for table "image" cells
         tableCellCounterClass: 'pf-table-counter-cell',                         // class for table "counter" cells
         tableCellEllipsisClass: 'pf-table-cell-ellipses-auto',                  // class for table "ellipsis" cells
-        dataTableActionCellClass: 'pf-table-action-cell'                        // class for "action" cells
+        tableCellActionClass: 'pf-table-action-cell',                           // class for "action" cells
+        tableCellActionIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
+        tableCellServicesClass: 'pf-table-services-cell'                        // class for table station "services" cells
     };
 
     let maxDescriptionLength = 512;
@@ -53,9 +59,34 @@ define([
      * @param statusData
      * @returns {string}
      */
-    let getStatusData = statusData => {
+    let getIconForStatusData = statusData => {
         return '<i class="fas fa-fw fa-circle ' + statusData.class + '" title="' + statusData.label + '"></i>';
     };
+
+    /**
+     * get icon that marks a table cell as clickable
+     * @returns {string}
+     */
+    let getIconForInformationWindow = () => {
+        return '<i class="fas fa-fw fa-id-card ' + config.tableCellActionIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
+    };
+
+    /**
+     * get dataTable id
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {string}
+     */
+    let getTableId = (tableType, mapId, systemId) => Util.getTableId(config.intelTableId, tableType, mapId, systemId);
+
+    /**
+     * get dataTable row id
+     * @param tableType
+     * @param id
+     * @returns {string}
+     */
+    let getRowId = (tableType, id) => Util.getTableRowId(config.intelTableRowIdPrefix, tableType, id);
 
     /**
      * get <tr> DOM id by id
@@ -63,16 +94,67 @@ define([
      * @param id
      * @returns {*}
      */
-    let getRowId = (tableApi, id) => {
-        return tableApi.rows().ids().toArray().find(rowId => rowId === config.tableRowIdPrefix + id);
+    let getRowById = (tableApi, id) => {
+        return tableApi.rows().ids().toArray().find(rowId => rowId === getRowId(Util.getObjVal(getTableMetaData(tableApi), 'type'), id));
     };
 
     /**
-     * callback -> add structure rows from systemData
-     * @param context
-     * @param systemData
+     * get custom "metaData" from dataTables API
+     * @param tableApi
+     * @returns {*}
      */
-    let callbackUpdateStructureRows = (context, systemData) => {
+    let getTableMetaData = tableApi => {
+        let data = null;
+        if(tableApi){
+            data = tableApi.init().pfMeta;
+        }
+        return data;
+    };
+
+    /**
+     * vormat roman numeric string to int
+     * -> e.g. 'VII' => 7
+     * @param str
+     * @returns {number}
+     */
+    let romanToInt = str => {
+        let charToTnt = char => {
+            switch (char) {
+                case 'I': return 1;
+                case 'V': return 5;
+                case 'X': return 10;
+                case 'L': return 50;
+                case 'C': return 100;
+                case 'D': return 500;
+                case 'M': return 1000;
+                default: return -1;
+            }
+        };
+
+        if(str == null) return -1;
+        let num = charToTnt(str.charAt(0));
+        let pre, curr;
+
+        for(let i = 1; i < str.length; i++){
+            curr = charToTnt(str.charAt(i));
+            pre = charToTnt(str.charAt(i - 1));
+            if(curr <= pre){
+                num += curr;
+            }else{
+                num = num - pre * 2 + curr;
+            }
+        }
+
+        return num;
+    };
+
+    /**
+     * callback -> add table rows from grouped tableData
+     * @param context
+     * @param tableData
+     * @param groupedDataKey
+     */
+    let callbackUpdateTableRows = (context, tableData, groupedDataKey = 'structures') => {
         let touchedRows = [];
         let hadData = context.tableApi.rows().any();
         let notificationCounter = {
@@ -81,41 +163,39 @@ define([
             deleted: 0
         };
 
-        if(systemData){
-            let corporations = Util.getObjVal(systemData, 'structures');
-            if(corporations){
-                for(let [corporationId, corporationData] of Object.entries(corporations)){
-                    if(corporationData.structures && corporationData.structures.length){
-                        for(let structureData of corporationData.structures){
-                            let rowId = getRowId(context.tableApi, structureData.id);
+        if(tableData){
+            for(let [rowGroupId, rowGroupData] of Object.entries(tableData)){
+                if(rowGroupData[groupedDataKey] && rowGroupData[groupedDataKey].length){
+                    for(let rowData of rowGroupData[groupedDataKey]){
+                        let rowId = getRowById(context.tableApi, rowData.id);
 
-                            // add corporation data
-                            structureData.corporation = {
-                                id: corporationData.id,
-                                name: corporationData.name
-                            };
+                        // add rowGroupData as well to each rowData
+                        rowData.rowGroupData = {
+                            id: rowGroupData.id,
+                            name: rowGroupData.name,
+                            groupedDataKey: groupedDataKey
+                        };
 
-                            if(rowId){
-                                // update row
-                                let api = context.tableApi.row('#' + rowId);
-                                let rowData = api.data();
+                        if(rowId){
+                            // update row
+                            let api = context.tableApi.row('#' + rowId);
+                            let rowDataCurrent = api.data();
 
-                                // check for update
-                                if(rowData.updated.updated !== structureData.updated.updated){
-                                    // row data changed -> update
-                                    api.data(structureData);
-                                    notificationCounter.changed++;
-                                }
-
-                                touchedRows.push(api.id());
-                            }else{
-                                // insert new row
-                                let api = context.tableApi.row.add(structureData);
-                                api.nodes().to$().data('animationStatus', 'added');
-                                notificationCounter.added++;
-
-                                touchedRows.push(api.id());
+                            // check for update
+                            if(rowDataCurrent.updated.updated !== rowData.updated.updated){
+                                // row data changed -> update
+                                api.data(rowData);
+                                notificationCounter.changed++;
                             }
+
+                            touchedRows.push(api.id());
+                        }else{
+                            // insert new row
+                            let api = context.tableApi.row.add(rowData);
+                            api.nodes().to$().data('animationStatus', 'added');
+                            notificationCounter.added++;
+
+                            touchedRows.push(api.id());
                         }
                     }
                 }
@@ -156,7 +236,7 @@ define([
         let deletedCounter = 0;
         if(structureIds && structureIds.length){
             for(let structureId of structureIds){
-                let rowId = getRowId(context.tableApi, structureId);
+                let rowId = getRowById(context.tableApi, structureId);
                 if(rowId){
                     context.tableApi.row('#' + rowId).remove();
                     deletedCounter++;
@@ -214,10 +294,36 @@ define([
             return data;
         });
 
+        // if current user is currently docked at a structure (not station)
+        // -> add a modal button for pre-fill modal with it
+        // -> systemId must match systemId from current character log
+        let currentUserData = Util.getCurrentUserData();
+        let isCurrentLocation = false;
+        let characterStructureId = Util.getObjVal(currentUserData, 'character.log.structure.id') || 0;
+        let characterStructureName = Util.getObjVal(currentUserData, 'character.log.structure.name') || '';
+        let characterStructureTypeId = Util.getObjVal(currentUserData, 'character.log.structure.type.id') || 0;
+        let characterStructureTypeName = Util.getObjVal(currentUserData, 'character.log.structure.type.name') || '';
+
+        if(systemId === Util.getObjVal(currentUserData, 'character.log.system.id')){
+            isCurrentLocation = true;
+        }
+
+        let disableButtonAutoFill = true;
+        let buttonLabelAutoFill = '<i class="fas fa-fw fa-map-marker-alt"></i>&nbsp;';
+        if(characterStructureId){
+            buttonLabelAutoFill += characterStructureTypeName + ' "' + characterStructureName + '"';
+            if(isCurrentLocation){
+                disableButtonAutoFill = false;
+            }
+        }else{
+            buttonLabelAutoFill += 'unknown structure';
+        }
+
         let data = {
             id: config.structureDialogId,
             structureData: structureData,
             structureStatus: statusData,
+            nameInputId: config.nameInputId,
             statusSelectId: config.statusSelectId,
             typeSelectId: config.typeSelectId,
             corporationSelectId: config.corporationSelectId,
@@ -236,7 +342,18 @@ define([
                 buttons: {
                     close: {
                         label: 'cancel',
-                        className: 'btn-default'
+                        className: 'btn-default pull-left'
+                    },
+                    autoFill: {
+                        label: buttonLabelAutoFill,
+                        className: 'btn-primary' + (disableButtonAutoFill ? ' pf-font-italic disabled' : ''),
+                        callback: function(){
+                            let form = this.find('form');
+                            form.find('#' + config.nameInputId).val(characterStructureName);
+                            form.find('#' + config.statusSelectId).val(2).trigger('change');
+                            form.find('#' + config.typeSelectId).val(characterStructureTypeId).trigger('change');
+                            return false;
+                        }
                     },
                     success: {
                         label: '<i class="fas fa-fw fa-check"></i>&nbsp;save',
@@ -268,7 +385,7 @@ define([
                                     },
                                     context => context.moduleElement.hideLoadingAnimation()
                                 ).then(
-                                    payload => callbackUpdateStructureRows(payload.context, {structures: payload.data}),
+                                    payload => callbackUpdateTableRows(payload.context, payload.data),
                                     Util.handleAjaxErrorResponse
                                 );
                             }else{
@@ -362,6 +479,83 @@ define([
     };
 
     /**
+     * init station services tooltips
+     * @param element
+     * @param tableApi
+     */
+    let initStationServiceTooltip = (element, tableApi) => {
+        element.hoverIntent({
+            over: function(e){
+                let cellElement = $(this);
+                let rowData = tableApi.row(cellElement.parents('tr')).data();
+                cellElement.addStationServiceTooltip(Util.getObjVal(rowData, 'services'), {
+                    placement: 'left',
+                    trigger: 'manual',
+                    show: true
+                });
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: 'td.' + config.tableCellServicesClass
+        });
+    };
+
+    /**
+     * get dataTables default options for intel tables
+     * @returns {*}
+     */
+    let getDataTableDefaults = () => {
+        return {
+            paging: false,
+            lengthChange: false,
+            ordering: true,
+            info: false,
+            searching: false,
+            hover: false,
+            autoWidth: false,
+            drawCallback: function (settings) {
+                let tableApi = this.api();
+                let columnCount = tableApi.columns(':visible').count();
+                let rows = tableApi.rows({page: 'current'}).nodes();
+                let last = null;
+
+                tableApi.column('rowGroupData:name', {page: 'current'}).data().each(function (group, i) {
+                    if (!last || last.id !== group.id) {
+                        // "stations" are grouped by "raceId" with its "factionId"
+                        // "structures" are grouped by "corporationId" that ADDED it (not the ingame "owner" of it)
+                        let imgType = 'stations' === group.groupedDataKey ? 'alliance' : 'corporation';
+
+                        $(rows).eq(i).before(
+                            '<tr class="group">' +
+                            '<td></td>' +
+                            '<td class="text-right ' + config.tableCellImageClass + '">' +
+                            '<img src="' + Util.eveImageUrl(imgType, group.id, 64) + '"/>' +
+                            '</td>' +
+                            '<td colspan="' + Math.max((columnCount - 2), 1) + '">' + group.name + '</td>' +
+                            '</tr>'
+                        );
+                        last = group;
+                    }
+                });
+
+                let animationRows = rows.to$().filter(function () {
+                    return (
+                        $(this).data('animationStatus') ||
+                        $(this).data('animationTimer')
+                    );
+                });
+
+                for (let i = 0; i < animationRows.length; i++) {
+                    let animationRow = $(animationRows[i]);
+                    animationRow.pulseBackgroundColor(animationRow.data('animationStatus'));
+                    animationRow.removeData('animationStatus');
+                }
+            }
+        };
+    };
+
+    /**
      * get module element
      * @param parentElement
      * @param mapId
@@ -369,6 +563,7 @@ define([
      * @returns {jQuery}
      */
     let getModule = (parentElement, mapId, systemData) => {
+        let showStationTable = ['H', 'L', '0.0', 'C12'].includes(Util.getObjVal(systemData, 'security'));
         let corporationId = Util.getCurrentUserInfo('corporationId');
 
         let moduleElement = $('<div>').append(
@@ -395,34 +590,28 @@ define([
                     }).attr('data-html', 'true').attr('data-toggle', 'tooltip')
                 ),
                 $('<h5>', {
-                    text: 'Intel'
+                    text: 'Structures'
                 })
             )
         );
 
-        let table = $('<table>', {
+        // "Structures" table -----------------------------------------------------------------------------------------
+        let structureTable = $('<table>', {
+            id: getTableId('structure', mapId, systemData.id),
             class: ['compact', 'stripe', 'order-column', 'row-border', 'pf-table-fixed', config.systemStructuresTableClass].join(' ')
         });
-        moduleElement.append(table);
+        moduleElement.append(structureTable);
 
-        let tableApi = table.DataTable({
-            paging: false,
-            lengthChange: false,
-            ordering: true,
-            order: [[ 10, 'desc' ], [ 0, 'asc' ]],
-            info: false,
-            searching: false,
-            hover: false,
-            autoWidth: false,
-            rowId: rowData => config.tableRowIdPrefix + rowData.id,
+        let structureDataTableOptions = {
+            pfMeta: {
+                type: 'structures'
+            },
+            order: [[10, 'desc' ], [0, 'asc' ]],
+            rowId: rowData => getRowId('structures', rowData.id),
             language: {
                 emptyTable:  'No structures recorded',
                 info: '_START_ to _END_ of _MAX_',
                 infoEmpty: ''
-            },
-            rowGroup: {
-                enable: true,
-                dataSrc: 'systemId'
             },
             columnDefs: [
                 {
@@ -433,17 +622,17 @@ define([
                     className: ['text-center', 'all'].join(' '),
                     data: 'status',
                     render: {
-                        display: data => getStatusData(data),
+                        display: data => getIconForStatusData(data),
                         sort: data => data.id
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                         $(cell).find('i').tooltip();
+                        $(cell).find('i').tooltip();
                     }
                 },{
                     targets: 1,
                     name: 'structureImage',
                     title: '',
-                    width: 26,
+                    width: 24,
                     orderable: false,
                     className: [config.tableCellImageClass, 'text-center', 'all'].join(' '),
                     data: 'structure.id',
@@ -452,7 +641,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display' && value){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Type/' + value + '_32.png" />';
+                                value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
                             }
                             return value;
                         }
@@ -476,7 +665,7 @@ define([
                     targets: 4,
                     name: 'ownerImage',
                     title: '',
-                    width: 26,
+                    width: 24,
                     orderable: false,
                     className: [config.tableCellImageClass, 'text-center', 'all'].join(' '),
                     data: 'owner.id',
@@ -486,7 +675,7 @@ define([
                             let value = data;
                             if(type === 'display' && value){
                                 value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                value += '<img src="' + Init.url.ccpImageServer + '/Corporation/' + data + '_32.png" />';
+                                value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
                                 value += '</a>';
                             }
                             return value;
@@ -519,12 +708,12 @@ define([
                     title: '',
                     orderable: false,
                     width: 10,
-                    className: ['text-center', config.dataTableActionCellClass, config.moduleHeadlineIconClass, 'all'].join(' '),
+                    className: ['text-center', config.tableCellActionClass, config.moduleHeadlineIconClass, 'all'].join(' '),
                     data: null,
                     render: {
                         display: data => {
                             let icon = '<i class="fas fa-pen"></i>';
-                            if(data.corporation.id !== corporationId){
+                            if(data.rowGroupData.id !== corporationId){
                                 icon = '';
                             }
                             return icon;
@@ -534,7 +723,7 @@ define([
                         let tableApi = this.api();
 
                         if($(cell).is(':empty')){
-                            $(cell).removeClass(config.dataTableActionCellClass + ' ' + config.moduleHeadlineIconClass);
+                            $(cell).removeClass(config.tableCellActionClass + ' ' + config.moduleHeadlineIconClass);
                         }else{
                             $(cell).on('click', function(e){
                                 // get current row data (important!)
@@ -550,12 +739,12 @@ define([
                     title: '',
                     orderable: false,
                     width: 10,
-                    className: ['text-center', config.dataTableActionCellClass, 'all'].join(' '),
+                    className: ['text-center', config.tableCellActionClass, 'all'].join(' '),
                     data: null,
                     render: {
                         display: data => {
                             let icon = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
-                            if(data.corporation.id !== corporationId){
+                            if(data.rowGroupData.id !== corporationId){
                                 icon = '<i class="fas fa-ban txt-color txt-color-grayLight" title="restricted" data-placement="left"></i>';
                             }
                             return icon;
@@ -565,19 +754,15 @@ define([
                         let tableApi = this.api();
 
                         if($(cell).find('.fa-ban').length){
-                            $(cell).removeClass(config.dataTableActionCellClass + ' ' + config.moduleHeadlineIconClass);
+                            $(cell).removeClass(config.tableCellActionClass + ' ' + config.moduleHeadlineIconClass);
                             $(cell).find('i').tooltip();
                         }else{
                             let confirmationSettings = {
-                                container: 'body',
-                                placement: 'left',
-                                btnCancelClass: 'btn btn-sm btn-default',
-                                btnCancelLabel: 'cancel',
-                                btnCancelIcon: 'fas fa-fw fa-ban',
                                 title: 'delete structure',
-                                btnOkClass: 'btn btn-sm btn-danger',
-                                btnOkLabel: 'delete',
-                                btnOkIcon: 'fas fa-fw fa-times',
+                                template: Util.getConfirmationTemplate(null, {
+                                    size: 'small',
+                                    noTitle: true
+                                }),
                                 onConfirm : function(e, target){
                                     // get current row data (important!)
                                     // -> "rowData" param is not current state, values are "on createCell()" state
@@ -606,9 +791,9 @@ define([
                     }
                 },{
                     targets: 10,
-                    name: 'corporation',
+                    name: 'rowGroupData',
                     className: 'never',     // never show this column. see: https://datatables.net/extensions/responsive/classes
-                    data: 'corporation',
+                    data: 'rowGroupData',
                     visible: false,
                     render: {
                         sort: function(data){
@@ -617,40 +802,6 @@ define([
                     }
                 }
             ],
-            drawCallback: function(settings){
-                let tableApi = this.api();
-                let columnCount = tableApi.columns(':visible').count();
-                let rows = tableApi.rows( {page:'current'} ).nodes();
-                let last= null;
-
-                tableApi.column('corporation:name', {page:'current'} ).data().each( function(group, i ){
-                    if( !last || last.id !== group.id ){
-                        $(rows).eq(i).before(
-                            '<tr class="group">' +
-                                '<td></td>' +
-                                '<td class="' + config.tableCellImageClass + '">' +
-                                    '<img src="' + Init.url.ccpImageServer + '/Corporation/' + group.id + '_32.png" />' +
-                                '</td>' +
-                                '<td colspan="' + (columnCount - 2 ) + '">' + group.name + '</td>' +
-                            '</tr>'
-                        );
-                        last = group;
-                    }
-                });
-
-                let animationRows = rows.to$().filter(function(){
-                    return (
-                        $(this).data('animationStatus') ||
-                        $(this).data('animationTimer')
-                    );
-                });
-
-                for(let i = 0; i < animationRows.length; i++){
-                    let animationRow = $(animationRows[i]);
-                    animationRow.pulseBackgroundColor(animationRow.data('animationStatus'));
-                    animationRow.removeData('animationStatus');
-                }
-            },
             initComplete: function(settings){
                 // table data is load in updateModule() method
                 // -> no need to trigger additional ajax call here for data
@@ -659,14 +810,263 @@ define([
 
                 Counter.initTableCounter(this, ['updated:name'], 'd');
             }
-        });
+        };
 
-        new $.fn.dataTable.Responsive(tableApi);
+        $.extend(true, structureDataTableOptions, getDataTableDefaults());
+        let tableApiStructure = structureTable.DataTable(structureDataTableOptions);
 
-        tableApi.on('responsive-resize', function(e, tableApi, columns){
+        new $.fn.dataTable.Responsive(tableApiStructure);
+
+        tableApiStructure.on('responsive-resize', function(e, tableApi, columns){
             // rowGroup length changes as well -> trigger draw() updates rowGroup length (see drawCallback())
             tableApi.draw();
         });
+
+        if(showStationTable){
+            // "Stations" table ---------------------------------------------------------------------------------------
+
+            moduleElement.append(
+                $('<div>', {
+                    class: config.moduleHeadClass
+                }).append(
+                    $('<h5>', {
+                        class: config.moduleHandlerClass
+                    }),
+                    $('<h5>', {
+                        text: 'Stations'
+                    })
+                )
+            );
+
+            let stationTable = $('<table>', {
+                id: getTableId('station', mapId, systemData.id),
+                class: ['compact', 'stripe', 'order-column', 'row-border', 'pf-table-fixed', config.systemStationsTableClass].join(' ')
+            });
+            moduleElement.append(stationTable);
+
+            let stationDataTableOptions = {
+                pfMeta: {
+                    type: 'stations'
+                },
+                order: [[1, 'asc' ], [8, 'asc' ]],
+                rowId: rowData => getRowId('stations', rowData.id),
+                language: {
+                    emptyTable: 'No stations found',
+                    info: '_START_ to _END_ of _MAX_',
+                    infoEmpty: ''
+                },
+                columnDefs: [
+                    {
+                        targets: 0,
+                        name: 'stationImage',
+                        title: '',
+                        width: 24,
+                        orderable: false,
+                        className: [config.tableCellImageClass, 'text-center', 'all'].join(' '),
+                        data: 'type.id',
+                        defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data;
+                                if(type === 'display' && value){
+                                    value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
+                                }
+                                return value;
+                            }
+                        }
+                    },{
+                        targets: 1,
+                        name: 'count',
+                        title: '',
+                        width: 5,
+                        className: ['text-center', 'all'].join(' '),
+                        data: 'name',
+                        render: {
+                            _: function(cellData, type, rowData, meta){
+                                let value = '';
+                                if(cellData){
+                                    // "grouped" regex not supported by FF
+                                    // let matches = /^(?<system>[a-z0-9\s\-]+) (?<count>[MDCLXVI]+) .*$/i.exec(cellData);
+                                    // let count = Util.getObjVal(matches, 'groups.count');
+                                    let matches = /^([a-z0-9\s\-]+) ([MDCLXVI]+) .*$/i.exec(cellData);
+                                    let count = Util.getObjVal(matches, '2');
+
+                                    if(type === 'display'){
+                                        value = count || 0;
+                                    }else{
+                                        value = romanToInt(count) || '';
+                                    }
+                                }
+
+                                return value;
+                            }
+                        }
+                    },{
+                        targets: 2,
+                        name: 'name',
+                        title: 'station',
+                        className: [config.tableCellEllipsisClass, 'all'].join(' '),
+                        data: 'name',
+                        render: {
+                            _: function(cellData, type, rowData, meta){
+                                let value = cellData;
+                                if(cellData){
+                                    // "grouped" regex not supported by FF
+                                    // let matches = /^(?<system>[a-z0-9\s\-]+) (?<count>[MDCLXVI]+) (?<label>\(\w+\)\s)?\- (?<moon>moon (?<moonCount>\d)+)?.*$/i.exec(cellData);
+                                    let matches = /^([a-z0-9\s\-]+) ([MDCLXVI]+) (\(\w+\)\s)?\- (moon (\d)+)?.*$/i.exec(cellData);
+                                    let systemName = Util.getObjVal(matches, '1');
+                                    let count = Util.getObjVal(matches, '2');
+                                    let moon = Util.getObjVal(matches, '4');
+                                    if(systemName === (Util.getObjVal(systemData, 'name') || '')){
+                                        value = value.slice(systemName.length).trim();
+                                        if(count){
+                                            value = value.slice(count.length).trimLeftChars(' \-');
+                                        }
+                                        if(moon){
+                                            let moonCount = Util.getObjVal(matches, '5');
+                                            value = value.replace(moon, 'M' + moonCount);
+                                        }
+                                    }
+                                }
+                                return value;
+                            }
+                        }
+                    },{
+                        targets: 3,
+                        name: 'stationType',
+                        title: 'type',
+                        width: 100,
+                        className: [config.tableCellEllipsisClass, 'not-screen-l'].join(' '),
+                        data: 'type.name',
+                        defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
+                        render: {
+                            display: (cellData, type, rowData, meta) => {
+                                let value = cellData;
+                                if(value){
+                                    let rowGroupDataName = Util.getObjVal(rowData, 'rowGroupData.name') || '';
+                                    if(value.indexOf(rowGroupDataName) === 0){
+                                        value = value.slice(rowGroupDataName.length).trim();
+                                    }
+                                }
+                                return value;
+                            }
+                        }
+                    },{
+                        targets: 4,
+                        name: 'ownerImage',
+                        title: '',
+                        width: 24,
+                        orderable: false,
+                        className: [config.tableCellImageClass, 'text-center', 'all'].join(' '),
+                        data: 'corporation.id',
+                        defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data;
+                                if(type === 'display' && value){
+                                    value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
+                                    value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
+                                    value += '</a>';
+                                }
+                                return value;
+                            }
+                        }
+                    },{
+                        targets: 5,
+                        name: 'ownerName',
+                        title: 'owner',
+                        width: 80,
+                        className: [config.tableCellActionClass, config.tableCellEllipsisClass, 'all'].join(' '),
+                        data: 'corporation',
+                        defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data.name;
+                                if(type === 'display'){
+                                    value += '&nbsp;' + getIconForInformationWindow();
+                                }
+                                return value;
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            // open corporation information window (ingame)
+                            $(cell).on('click', { tableApi: this.api() }, function(e){
+                                let cellData = e.data.tableApi.cell(this).data();
+                                Util.openIngameWindow(cellData.id);
+                            });
+                        }
+                    },{
+                        targets: 6,
+                        title: '<i title="set&nbsp;destination" data-toggle="tooltip" class="fas fa-flag text-right"></i>',
+                        orderable: false,
+                        searchable: false,
+                        width: 10,
+                        class: [config.tableCellActionClass, config.moduleHeadlineIconClass, 'text-center', 'all'].join(' '),
+                        data: 'id',
+                        render: {
+                            display: (cellData, type, rowData, meta) => {
+                                if(cellData){
+                                    return '<i class="fas fa-flag"></i>';
+                                }
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            $(cell).on('click', function(e){
+                                Util.setDestination('set_destination', 'station', {id: cellData, name: rowData.name});
+                            });
+                        }
+                    },{
+                        targets: 7,
+                        title: '<i title="services" data-toggle="tooltip" class="fas fa-tools text-right"></i>',
+                        orderable: false,
+                        searchable: false,
+                        width: 10,
+                        class: [config.tableCellActionClass, config.moduleHeadlineIconClass, config.tableCellServicesClass, Util.config.popoverTriggerClass, 'text-center', 'all'].join(' '),
+                        data: 'services',
+                        defaultContent: '<i class="fas fa-ban txt-color txt-color-grayLight"></i>',
+                        render: {
+                            display: (cellData, type, rowData, meta) => {
+                                if(cellData && cellData.length){
+                                    return '<i class="fas fa-tools"></i>';
+                                }
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            let cellElement = $(cell);
+                            if(cellElement.find('.fa-ban').length){
+                                cellElement.removeClass(config.tableCellActionClass + ' ' + config.moduleHeadlineIconClass);
+                            }
+                        }
+                    },{
+                        targets: 8,
+                        name: 'rowGroupData',
+                        className: 'never',     // never show this column. see: https://datatables.net/extensions/responsive/classes
+                        data: 'rowGroupData',
+                        visible: false,
+                        render: {
+                            sort: function(data){
+                                return data.name;
+                            }
+                        }
+                    }
+                ],
+                initComplete: function(settings, json){
+                    let tableApi = this.api();
+
+                    initStationServiceTooltip(this, tableApi);
+                }
+            };
+
+            $.extend(true, stationDataTableOptions, getDataTableDefaults());
+            let tableApiStation = stationTable.DataTable(stationDataTableOptions);
+
+            new $.fn.dataTable.Responsive(tableApiStation);
+
+            tableApiStation.on('responsive-resize', function(e, tableApi, columns){
+                // rowGroup length changes as well -> trigger draw() updates rowGroup length (see drawCallback())
+                tableApi.draw();
+            });
+        }
 
         // init tooltips for this module
         let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
@@ -747,7 +1147,7 @@ define([
 
             Util.request('POST', 'structure', [], structureData, context, context => context.moduleElement.hideLoadingAnimation())
                 .then(
-                    payload => callbackUpdateStructureRows(payload.context, {structures: payload.data}),
+                    payload => callbackUpdateTableRows(payload.context, payload.data),
                     Util.handleAjaxErrorResponse
                 );
         };
@@ -786,16 +1186,27 @@ define([
      */
     let updateModule = (moduleElement, systemData) => {
 
-        // update structure table data
-        let structureTableElement = moduleElement.find('.' + config.systemStructuresTableClass);
-        let tableApi = structureTableElement.DataTable();
+        // update structure table data --------------------------------------------------------------------------------
+        let structureTable = moduleElement.find('.' + config.systemStructuresTableClass);
+        let tableApiStructure = structureTable.DataTable();
 
-        let context = {
-            tableApi: tableApi,
+        let structureContext = {
+            tableApi: tableApiStructure,
             removeMissing: true
         };
 
-        callbackUpdateStructureRows(context, systemData);
+        callbackUpdateTableRows(structureContext, Util.getObjVal(systemData, 'structures'));
+
+        // update station table data ----------------------------------------------------------------------------------
+        let stationTable = moduleElement.find('.' + config.systemStationsTableClass);
+        let tableApiStation = stationTable.DataTable();
+
+        let stationContext = {
+            tableApi: tableApiStation,
+            removeMissing: false
+        };
+
+        callbackUpdateTableRows(stationContext, Util.getObjVal(systemData, 'stations'), 'stations');
 
         moduleElement.hideLoadingAnimation();
     };
@@ -807,7 +1218,6 @@ define([
      * @param systemData
      */
     let initModule = (moduleElement, mapId, systemData) => {
-
         let structureTableElement =  moduleElement.find('.' + config.systemStructuresTableClass);
         let tableApi = structureTableElement.DataTable();
 
@@ -832,7 +1242,7 @@ define([
                         removeMissing: true
                     },
                     context => context.moduleElement.hideLoadingAnimation()
-                ).then(payload => callbackUpdateStructureRows(payload.context, payload.data));
+                ).then(payload => callbackUpdateTableRows(payload.context, Util.getObjVal(payload.data, 'structures')));
         });
 
         // init listener for global "past" dScan into this page -------------------------------------------------------
@@ -849,9 +1259,12 @@ define([
      * @param moduleElement
      */
     let beforeDestroy = moduleElement => {
-        let structureTableElement = moduleElement.find('.' + config.systemStructuresTableClass);
-        let tableApi = structureTableElement.DataTable();
-        tableApi.destroy();
+        let structureTable = moduleElement.find('.' + config.systemStructuresTableClass);
+        let stationTable = moduleElement.find('.' + config.systemStationsTableClass);
+        let tableApiStructure = structureTable.DataTable();
+        let tableApiStation = stationTable.DataTable();
+        tableApiStructure.destroy();
+        tableApiStation.destroy();
     };
 
     return {

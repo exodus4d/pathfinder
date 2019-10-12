@@ -45,6 +45,7 @@ define([
             table.destroyTimestampCounter(true);
         });
 
+        // Status Plugin ==============================================================================================
         let StatusTable = function(settings){
             let me = this;
             me.statusContainer = $('<div>', {

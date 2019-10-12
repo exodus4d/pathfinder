@@ -20,7 +20,7 @@ abstract class AbstractUniverseModel extends AbstractModel {
     /**
      *
      */
-    const CACHE_KEY_PREFIX                  = 'index_universe_';
+    const CACHE_KEY_PREFIX                  = parent::CACHE_KEY_PREFIX . '_' . self::DB_ALIAS;
 
     /**
      * cache key for model data -> should "never" expire
@@ -37,6 +37,21 @@ abstract class AbstractUniverseModel extends AbstractModel {
     }
 
     /**
+     * setter for positions array (x/y/z)
+     * @param $position
+     * @return null
+     */
+    public function set_position($position){
+        $position = (array)$position;
+        if(count($position) === 3){
+            $this->x = $position['x'];
+            $this->y = $position['y'];
+            $this->z = $position['z'];
+        }
+        return null;
+    }
+
+    /**
      * Event "Hook" function
      * return false will stop any further action
      * @param self $self
@@ -46,7 +61,7 @@ abstract class AbstractUniverseModel extends AbstractModel {
     public function beforeUpdateEvent($self, $pkeys) : bool {
         // if model changed, 'update' col needs to be updated as well
         // -> data no longer "outdated"
-        $this->touch('updated');
+        $self->touch('updated');
 
         return parent::beforeUpdateEvent($self, $pkeys);
     }
@@ -59,7 +74,7 @@ abstract class AbstractUniverseModel extends AbstractModel {
      */
     public function getHashKey(string $column = '_id'){
         $key = false;
-        if( !$this->dry() && $this->exists($column) ){
+        if($this->valid() && $this->exists($column)){
             $key = self::generateHashKeyRow($this->getTable(), $this->$column);
         }
         return $key;
@@ -111,21 +126,6 @@ abstract class AbstractUniverseModel extends AbstractModel {
     }
 
     /**
-     * add $rowKeys (hashKeys) to a search index that holds all rowKeys of a table
-     * @param AbstractUniverseModel $model
-     * @param array $rowKeys
-     */
-    public static function buildTableIndex(AbstractUniverseModel $model, array $rowKeys = []){
-        $hashKeyTable = self::generateHashKeyTable($model->getTable());
-        if( !self::getF3()->exists($hashKeyTable, $cachedData) ){
-            $cachedData = [];
-        }
-        $cachedData = array_unique(array_merge($cachedData, $rowKeys));
-
-        self::getF3()->set($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
-    }
-
-    /**
      * get data from "search" index for this model
      * -> if data not found -> try to build up index for this model
      * @return null|\stdClass
@@ -167,22 +167,62 @@ abstract class AbstractUniverseModel extends AbstractModel {
     abstract protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []);
 
     /**
+     * convert CCPs ids for system security into Pathfinder security label
+     * -> used e.g. in "Dogma Attributes" (wormholeTargetSystemClass) for wormhole types
+     * @param int $id
+     * @return string|null
+     */
+    public static function getSystemSecurityFromId(int $id) : ?string {
+        $security = null;
+        if(
+            ($id >= 1 && $id <= 6) ||
+            ($id >= 12 && $id <= 18)
+        ){
+            $security = 'C' . $id;
+        }elseif($id == 7){
+            $security = 'H';
+        }elseif($id == 8){
+            $security = 'L';
+        }elseif($id == 9){
+            $security = '0.0';
+        }
+
+        return $security;
+    }
+
+    /**
+     * add $rowKeys (hashKeys) to a search index that holds all rowKeys of a table
+     * @param AbstractUniverseModel $model
+     * @param array $rowKeys
+     */
+    public static function buildTableIndex(AbstractUniverseModel $model, array $rowKeys = []){
+        $hashKeyTable = static::generateHashKeyTable($model->getTable());
+        if( !self::getF3()->exists($hashKeyTable, $cachedData) ){
+            $cachedData = [];
+        }
+        $cachedData = array_unique(array_merge($cachedData, $rowKeys));
+
+        self::getF3()->set($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
+    }
+
+    /**
      * generate hashKey for a table row data for search index build
      * @param string $table
      * @param $value
      * @return string
      */
     public static function generateHashKeyRow(string $table, $value) : string {
-        return self::generateHashKeyTable($table) . '_' .  md5(strtolower((string)$value));
+        return static::generateHashKeyTable($table) . '_' .  md5(strtolower((string)$value));
     }
 
     /**
      * generate hashKey for a complete table
      * -> should hold hashKeys for multiple rows
      * @param string $table
+     * @param string $prefix
      * @return string
      */
-    public static function generateHashKeyTable(string $table) : string {
-        return self::CACHE_KEY_PREFIX . strtolower($table);
+    public static function generateHashKeyTable(string $table, string $prefix = self::CACHE_KEY_PREFIX) : string {
+        return parent::generateHashKeyTable($table, $prefix);
     }
 }

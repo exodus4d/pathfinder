@@ -130,7 +130,7 @@ define([
                     data: 'character',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg" />';
+                            return '<img src="' + Util.eveImageUrl('character', parseInt(data.id)) + '"/>';
                         }
                     }
                 },{

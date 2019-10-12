@@ -9,9 +9,8 @@ define([
     'app/util',
     'bootbox',
     'app/map/util',
-    'app/map/layout',
     'app/map/magnetizing'
-], ($, Init, Util, bootbox, MapUtil, Layout, Magnetizer) => {
+], ($, Init, Util, bootbox, MapUtil, Magnetizer) => {
     'use strict';
 
     let config = {
@@ -245,7 +244,7 @@ define([
                                 sourceSystem = options.sourceSystem;
 
                                 // get new position
-                                newPosition = calculateNewSystemPosition(sourceSystem);
+                                newPosition = newSystemPositionBySystem(sourceSystem);
                             }else if(options.position){
                                 // check mouse cursor position (add system to map)
                                 newPosition = {
@@ -730,25 +729,16 @@ define([
     };
 
     /**
-     * calculate the x/y coordinates for a new system - relativ to a source system
+     * calculate the x/y coordinates for a new system - relative to a source system
+     * -> in case no coordinates found -> return default calculated coordinates
      * @param sourceSystem
      * @returns {{x: *, y: *}}
      */
-    let calculateNewSystemPosition = sourceSystem => {
-        let mapContainer = sourceSystem.parent();
-        let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
+    let newSystemPositionBySystem = sourceSystem => {
         let x = 0;
         let y = 0;
 
-        let positionFinder = new Layout.Position({
-            container: mapContainer[0],
-            center: sourceSystem[0],
-            loops: 4,
-            grid: mapContainer.hasClass(MapUtil.config.mapGridClass) ? grid : false,
-            debug: false
-        });
-
-        let dimensions = positionFinder.findNonOverlappingDimensions(1, 16);
+        let dimensions = MapUtil.newSystemPositionBySystem(sourceSystem);
         if(dimensions.length){
             //... empty map space found
             x = dimensions[0].left;
@@ -780,8 +770,12 @@ define([
         let headInfoLeft = [];
         let headInfoRight = [];
 
+        if(data.drifter){
+            headInfoLeft.push('<i class="fas fa-fw fa-wave-square ' + Util.getSecurityClassForSystem(data.security) + '" title="drifter"></i>');
+        }
+
         if(data.shattered){
-            headInfoLeft.push('<i class="fas fa-fw fa-skull ' + Util.getSecurityClassForSystem('SH') + '" title="shattered"></i>');
+            headInfoLeft.push('<i class="fas fa-fw fa-chart-pie ' + Util.getSecurityClassForSystem('SH') + '" title="shattered"></i>');
         }
 
         // check systemData if headInfo element is needed

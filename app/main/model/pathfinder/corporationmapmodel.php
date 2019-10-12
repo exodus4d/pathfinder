@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class CorporationMapModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'corporation_map';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,

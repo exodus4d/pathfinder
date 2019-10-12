@@ -4,9 +4,9 @@
         <div class="row">
             <div class="col-xs-6 ">
                 <div class="form-group">
-                    <label for="form_name" class="col-sm-2 control-label">Name</label>
+                    <label for="{{nameInputId}}" class="col-sm-2 control-label">Name</label>
                     <div class="col-sm-10">
-                        <input name="name" type="text" class="form-control" id="form_name" value="{{structureData.name}}" data-error="Name required" data-minlength="3" data-minlength-error="Min. of 3 characters" required>
+                        <input name="name" type="text" class="form-control" id="{{nameInputId}}" value="{{structureData.name}}" data-error="Name required" data-minlength="3" data-minlength-error="Min. of 3 characters" required>
                         <span class="note help-block with-errors"></span>
                     </div>
                 </div>

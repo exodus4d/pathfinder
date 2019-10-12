@@ -94,86 +94,77 @@
 }
 
 // pulse-out ======================================================================================
-.pf-animation-pulse-success{
-  @include animation( pulseBackgroundSuccess 1s 1 );
-  @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+@mixin pf-pulse-keyframes($name, $color, $backgroundColor, $keepVisible: false){
+  @include keyframes($name){
+    0% {
+      @if $keepVisible {
+        color: inherit;
+      }
+    }
+    10% {
+      background-color: $backgroundColor;
+      color: $color;
+    }
+    100% {
+      @if $keepVisible {
+        background-color: rgba($backgroundColor, 0.3);
+      }
+    }
+  };
+}
 
-  .sorting_1{
-    @include animation( pulseBackgroundSuccessActive 1s 1 );
-    @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+@mixin pf-pulse-Background($status, $keepVisible: false){
+  $statusMap: (
+    success: (
+      color: $gray-dark,
+      backgroundColor: $green-dark
+    ),
+    warning: (
+      color: $gray-darker,
+      backgroundColor: $orange
+    ),
+    danger: (
+      color: $gray-darker,
+      backgroundColor: $red
+    )
+  );
+
+  $map: map-get($statusMap, $status);
+
+  $name: pulseBackground + capitalize($status);
+  $nameActive: $name + 'Active';
+
+  $className: 'pf-animation-pulse-' + $status;
+  @if $keepVisible {
+    $className: str-insert($className, '-keep', -1);
+    $name: str-insert($name, 'Keep', -1);
+    $nameActive: str-insert($nameActive, 'Keep', -1);
+  }
+
+  @include pf-pulse-keyframes($name, map-get($map, 'color'), map-get($map, 'backgroundColor'), $keepVisible);
+  @include pf-pulse-keyframes($nameActive, map-get($map, 'color'), darken(map-get($map, 'backgroundColor'), 5%), $keepVisible);
+
+  .#{$className}{
+    @include animation($name 1s 1);
+    @include animation-timing-function(cubic-bezier(0.53, -0.03, 0.68, 0.38));
+    will-change: color, background-color;
+    animation-fill-mode: forwards;
+
+    .sorting_1{
+      @include animation($nameActive 1s 1);
+      @include animation-timing-function(cubic-bezier(0.53, -0.03, 0.68, 0.38));
+      will-change: color, background-color;
+      animation-fill-mode: forwards;
+    }
   }
 }
 
-.pf-animation-pulse-warning{
-  @include animation( pulseBackgroundWarning 1s 1 );
-  @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
-
-  .sorting_1{
-    @include animation( pulseBackgroundWarningActive 1s 1 );
-    @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
-  }
-}
-
-.pf-animation-pulse-danger{
-  @include animation( pulseBackgroundDanger 1s 1 );
-  @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
-
-  .sorting_1{
-    @include animation( pulseBackgroundDangerActive 1s 1 );
-    @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
-  }
-}
-
-@include keyframes(pulseBackgroundSuccess){
-  0%   {}
-  10%  {
-    background-color: $green-dark;
-    color: $gray-dark;
-  }
-  100% {}
-};
-@include keyframes(pulseBackgroundSuccessActive){
-  0%   {}
-  10%  {
-    background-color: darken($green-dark, 5%);
-    color: $gray-dark;
-  }
-  100% {}
-};
-
-@include keyframes(pulseBackgroundWarning){
-  0%   {}
-  10%  {
-    background-color: $orange;
-    color: $gray-darker;
-  }
-  100% {}
-};
-@include keyframes(pulseBackgroundWarningActive){
-  0%   {}
-  10%  {
-    background-color: darken($orange, 5%);
-    color: $gray-darker;
-  }
-  100% {}
-};
-
-@include keyframes(pulseBackgroundDanger){
-  0%   {}
-  10%  {
-    background-color: $red;
-    color: $gray-darker;
-  }
-  100% {}
-};
-@include keyframes(pulseBackgroundDangerActive){
-  0%   {}
-  10%  {
-    background-color: darken($red, 5%);
-    color: $gray-darker;
-  }
-  100% {}
-};
+@include pf-pulse-Background('success');
+@include pf-pulse-Background('success', true);
+@include pf-pulse-Background('warning');
+@include pf-pulse-Background('warning', true);
+@include pf-pulse-Background('danger');
+@include pf-pulse-Background('danger', true);
 
 // rotate =========================================================================================
 .pf-animate-rotate{
@@ -205,11 +196,36 @@
 }
 
 // navigation link active/hover indicator =========================================================
-@mixin navigation-active-indicator($position) {
-  content: '';
-  position: absolute;
-  background-color: $green;
-  opacity: 0;
-  will-change: opacity, $position ;
-  @include transition( $position 0.15s ease-out, opacity 0.15s ease-out );
+@mixin pf-navigation-indicator($position){
+  &:not(.disabled){
+    position: relative; // otherwise :before indicator gets to height
+
+    &:before {
+      content: '';
+      position: absolute;
+      #{$position}: 0;
+      background-color: $green;
+      opacity: 0;
+      @include transition( $position 0.15s ease-out, opacity 0.15s ease-out );
+      will-change: opacity, $position;
+
+      @if $position == 'left' {
+        width: 2px;
+        height: 100%;
+      } @else if $position == 'top' {
+        width: 100%;
+        height: 2px;
+      } @else if $position == 'bottom' {
+        width: 100%;
+        height: 2px;
+      }
+    }
+
+    &:hover, &.active {
+      &:before {
+        #{$position}: -4px;
+        opacity: 1;
+      }
+    }
+  }
 }

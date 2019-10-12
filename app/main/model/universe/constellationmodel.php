@@ -55,6 +55,9 @@ class ConstellationModel extends AbstractUniverseModel {
         ],
         'systems' => [
             'has-many' => ['Model\Universe\SystemModel', 'constellationId']
+        ],
+        'systemNeighbours' => [
+            'has-many' => ['Model\Universe\SystemNeighbourModel', 'constellationId']
         ]
     ];
 
@@ -69,21 +72,6 @@ class ConstellationModel extends AbstractUniverseModel {
         $constellationData->region  = $this->regionId->getData();
 
         return $constellationData;
-    }
-
-    /**
-     * setter for positions array (x/y/z)
-     * @param $position
-     * @return null
-     */
-    public function set_position($position){
-        $position = (array)$position;
-        if(count($position) === 3){
-            $this->x = $position['x'];
-            $this->y = $position['y'];
-            $this->z = $position['z'];
-        }
-        return null;
     }
 
     /**

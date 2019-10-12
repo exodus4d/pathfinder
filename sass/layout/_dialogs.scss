@@ -246,6 +246,49 @@
   }
 }
 
+// signature reader dialog ====================================================
+.pf-sig-reader-dialog{
+  h4 {
+    margin-top: 8px;
+
+    .pf-system-progress-scanned{
+      display: inline-block;
+      margin-left: 20px;
+      width: calc(100% - 255px);
+
+      .progress{
+        margin-bottom: 2px;
+      }
+    }
+
+    .progress-label-right{
+      margin-left: 8px;
+      vertical-align: middle;
+      font-size: 11px;
+      opacity: 0.65;
+    }
+  }
+
+  .fa-tree-child + .checkbox{
+    margin-left: 5px;  // "delete connections" checkbox
+    display: inline-block;
+  }
+
+  #pf-sig-info{
+    margin-bottom: 10px;
+  }
+
+  .pf-sig-table-info{
+    tbody{
+      pointer-events: none; // disables "hover" effect for rows/cells
+    }
+    // disabled xEditable table cells should have the "enabled" color
+    .editable-click.editable-disabled{
+      color: inherit;
+    }
+  }
+}
+
 // jump info dialog ===========================================================
 .pf-jump-info-dialog{
   blockquote{

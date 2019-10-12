@@ -22,6 +22,19 @@
 
   .popover-content {
     font-family: $font-family-readable;
+
+    > .hidden + .popover-footer,      // first content child is .hidden -> border radius to footer
+    > .popover-footer:first-child {   // no content -> border radius to footer
+      @include border-top-radius(($border-radius-large - 1));
+    }
+  }
+
+  .popover-footer{
+    margin: 0;                            // reset heading margin
+    padding: 8px 14px;                    // same as popover-title
+    background-color: $popover-title-bg;
+    border-top: 1px solid darken($popover-bg, 5%);
+    @include border-bottom-radius(($border-radius-large - 1));
   }
 
   // image in popover
@@ -53,13 +66,22 @@
 }
 
 // smaller variant ----------------------------------------------------------------------------------------------------
-.pf-popover-small{
+.popover-small{
   .popover-title {
-    padding: 3px 6px;
+    padding: 4px 6px;
   }
 
   .popover-content {
-    padding: 6px 1px 3px;
+    padding: 4px 2px 4px;
+  }
+
+  // "special" content wrapper for popups with "footer" (.popover-footer) element
+  .popover-content-inner{
+    padding: 7px 6px 0;
+  }
+
+  .popover-footer{
+    padding: 6px 6px;
   }
 }
 
@@ -109,6 +131,19 @@
       }
     }
   }
+
+  .pf-popover-list-icon{
+    width: 28px;
+    margin: 5px 0;
+
+    &:first-child{
+      margin-left: 8px;
+    }
+
+    &:last-child{
+      margin-right: 8px;
+    }
+  }
 }
 
 // character popover --------------------------------------------------------------------------------------------------
@@ -125,5 +160,6 @@
 
   .well{
     margin-bottom: 0; // overwrite default
+    line-height: 13px;
   }
 }

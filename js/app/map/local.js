@@ -422,7 +422,7 @@ define([
                                 _: (data, type, row, meta) => {
                                     let value = data.typeName;
                                     if(type === 'display'){
-                                        value = '<img src="' + Init.url.ccpImageServer + '/Render/' + data.typeId + '_32.png"/>';
+                                        value = '<img src="' + Util.eveImageUrl('render', data.typeId) + '"/>';
                                     }
                                     return value;
                                 }

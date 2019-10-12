@@ -6,9 +6,10 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/map/layout',
     'app/map/scrollbar',
     'app/map/overlay/util'
-], ($, Init, Util, Scrollbar, MapOverlayUtil) => {
+], ($, Init, Util, Layout, Scrollbar, MapOverlayUtil) => {
     'use strict';
 
     let config = {
@@ -806,10 +807,9 @@ define([
 
         // collect all required data from map module to update the info element
         // store them global and assessable for each module
-        Util.setCurrentSystemData({
-            systemData: system.getSystemData(),
-            mapId: parseInt( system.attr('data-mapid') )
-        });
+        let systemData = system.getSystemData();
+        systemData.mapId = parseInt(system.attr('data-mapid')) || 0;
+        Util.setCurrentSystemData(systemData);
     };
 
     /**
@@ -1765,6 +1765,91 @@ define([
     };
 
     /**
+     * add station services tooltip
+     * @param services
+     * @param options
+     * @returns {*}
+     */
+    $.fn.addStationServiceTooltip = function(services, options){
+        let getServiceIcon = service => {
+            switch(service){
+                case 'bounty-missions':         return false;
+                case 'assasination-missions':   return false;
+                case 'courier-missions':        return false;
+                case 'interbus':                return false;
+                case 'reprocessing-plant':      return 'reprocess';
+                case 'refinery':                return false;
+                case 'market':                  return 'market';
+                case 'black-market':            return false;
+                case 'stock-exchange':          return false;
+                case 'cloning':                 return 'clonebay';
+                case 'surgery':                 return false;
+                case 'dna-therapy':             return false;
+                case 'repair-facilities':       return 'repairshop';
+                case 'factory':                 return 'industry';
+                case 'labratory':               return 'research';
+                case 'gambling':                return false;
+                case 'fitting':                 return 'fitting';
+                case 'paintshop':               return 'skins';
+                case 'news':                    return false;
+                case 'storage':                 return false;
+                case 'insurance':               return 'insurance';
+                case 'docking':                 return 'docking';
+                case 'office-rental':           return false;
+                case 'jump-clone-facility':     return 'jumpclones';
+                case 'loyalty-point-store':     return 'lpstore';
+                case 'navy-offices':            return 'factionalwarfare';
+                case 'security-offices':        return 'concord';
+                default:                        return false;
+            }
+        };
+
+        let getStationServicesTable = services => {
+            let content = '';
+            for(let i = 0; i < services.length; i++){
+                let icon = getServiceIcon(services[i]);
+                if(icon){
+                    content += '<img class="' + Util.config.popoverListIconClass + '" src="/public/img/icons/client/ui/window/' + icon + '.png" alt="' + services[i] + '">';
+                }
+            }
+            return content;
+        };
+
+        let content = getStationServicesTable(services);
+
+        let title = '<i class="fas fa-tools fa-fw"></i>&nbsp;Services';
+
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: title,
+            content: '',
+            delay: {
+                show: 150,
+                hide: 0
+            },
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            let element = $(this);
+            element.popover(options);
+
+            // set new popover content
+            let popover = element.data('bs.popover');
+            popover.options.content = content;
+            popover.tip().addClass(Util.config.popoverClass);
+
+            if(options.show){
+                element.popover('show');
+            }
+        });
+    };
+
+    /**
      * add system effect tooltip
      * @param security
      * @param effect
@@ -1774,9 +1859,11 @@ define([
     $.fn.addSystemEffectTooltip = function(security, effect, options){
         let effectClass = getEffectInfoForSystem(effect, 'class');
         let systemEffectData = Util.getSystemEffectData(security, effect);
+        let areaId = Util.getAreaIdBySecurity(security);
 
         let title = '<i class="fas fa-square fa-fw ' + effectClass + '"></i>&nbsp;' +
-            getEffectInfoForSystem(effect, 'name') +
+            getEffectInfoForSystem(effect, 'name') + '&nbsp;&nbsp;' +
+            '<kbd>' + Util.getSystemEffectMultiplierByAreaId(parseInt(areaId)) + 'x' + '</kbd>' +
             '<span class="pull-right ' + Util.getSecurityClassForSystem(security) + '">' + security + '</span>';
 
         let content = Util.getSystemEffectTable(systemEffectData);
@@ -1808,7 +1895,6 @@ define([
      * @returns {*}
      */
     $.fn.addSystemPlanetsTooltip = function(planets, options){
-
         let content = Util.getSystemPlanetsTable(planets);
 
         let defaultOptions = {
@@ -1869,10 +1955,10 @@ define([
                 if(tooltipData.maxStableTime){
                     data.maxStableTime = tooltipData.maxStableTime + ' h';
                 }
-                if(tooltipData.signatureStrength){
-                    data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString() + '&nbsp;&#37;';
+                if(tooltipData.scanWormholeStrength){
+                    data.scanWormholeStrength = parseFloat(tooltipData.scanWormholeStrength).toLocaleString() + '&nbsp;&#37;';
                 }else{
-                    data.signatureStrength = '<span class="txt-color txt-color-grayLight">unknown</span>';
+                    data.scanWormholeStrength = '<span class="txt-color txt-color-grayLight">unknown</span>';
                 }
 
                 let title = tooltipData.name;
@@ -2030,6 +2116,132 @@ define([
     };
 
     /**
+     *
+     * @param options
+     * @param maxResults
+     * @param findChain
+     * @returns {Array}
+     */
+    let findNonOverlappingDimensions = (options = {}, maxResults = 1, findChain = false) => {
+        let defaultOptions = {
+            center: [0, 30],
+            loops: 4,
+            debug: false
+        };
+
+        options = Object.assign({}, defaultOptions, options);
+        let positionFinder = new Layout.Position(Object.assign({}, defaultOptions, options));
+
+        return positionFinder.findNonOverlappingDimensions(maxResults, findChain);
+    };
+
+    /**
+     * calculate the x/y coordinates for a new system - relative to a source system
+     * @param sourceSystem
+     * @returns {Array}
+     */
+    let newSystemPositionBySystem = sourceSystem => {
+        let mapContainer = sourceSystem.parent();
+        let grid = [config.mapSnapToGridDimension, config.mapSnapToGridDimension];
+
+        let options = {
+            container: mapContainer[0],
+            center: sourceSystem[0],
+            grid: mapContainer.hasClass(config.mapGridClass) ? grid : false
+        };
+
+        return findNonOverlappingDimensions(options);
+    };
+
+    /**
+     * calculate the x/y coordinates for a new system - relative to x/y position
+     * @param mapContainer
+     * @param options
+     * @param maxResults
+     * @param findChain
+     * @returns {Array}
+     */
+    let newSystemPositionByCoordinates = (mapContainer, options = {}, maxResults = 1, findChain = false) => {
+        let grid = [config.mapSnapToGridDimension, config.mapSnapToGridDimension];
+
+        let defaultOptions = {
+            container: mapContainer[0],
+            center: [0, 0],
+            grid: mapContainer.hasClass(config.mapGridClass) ? grid : false,
+            loops: 10,
+            defaultGapX: 10,
+            defaultGapY: 10,
+            //debugOk: true,
+            //debug: true
+        };
+
+        options = Object.assign({}, defaultOptions, options);
+
+        return findNonOverlappingDimensions(options, maxResults, findChain);
+    };
+
+    /**
+     *
+     * @param mapContainer
+     */
+    let newSystemPositionsByMap = mapContainer => {
+        let positions = {};
+
+        if(mapContainer){
+            let mapId = mapContainer.data('id');
+            let scrollPosition = {
+                x: Math.abs(parseInt(mapContainer.attr('data-scroll-left')) || 0),
+                y: Math.abs(parseInt(mapContainer.attr('data-scroll-top')) || 0)
+            };
+
+            // space new positions from map top (e.g. used for tooltips)
+            scrollPosition.y = Math.max(scrollPosition.y, 30);
+
+            // default position -> current map section top/left -------------------------------------------------------
+            positions.defaults = [scrollPosition];
+
+            // check default position for overlapping -----------------------------------------------------------------
+            let dimensions = newSystemPositionByCoordinates(mapContainer, {
+                center: [scrollPosition.x, scrollPosition.y],
+                minX: scrollPosition.x,
+                minY: scrollPosition.y
+            }, 2, true);
+
+            if(dimensions.length){
+                positions.defaults = dimensions.map(dim => ({
+                    x: parseInt(dim.left) || 0,
+                    y: parseInt(dim.top) || 0
+                }));
+            }
+
+            // -> calc possible coordinates for new system that should be used based on current user location ---------
+            let currentLocationData = Util.getCurrentLocationData();
+            if(currentLocationData.id){
+                // ... we need to the PF systemId for 'SelectSystem' trigger
+                let systemData = getSystemData(mapId, currentLocationData.id, 'systemId');
+                if(systemData){
+                    let currentSystem = $('#' + getSystemId(mapId, systemData.id));
+                    if(currentSystem.length){
+                        let dimensions = newSystemPositionBySystem(currentSystem);
+                        if(dimensions.length){
+                            //... empty map space found
+                            positions.location = {
+                                systemId: currentLocationData.id,
+                                position: {
+                                    x: dimensions[0].left,
+                                    y: dimensions[0].top
+                                }
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        return Object.keys(positions).length ? positions : null;
+    };
+
+    /**
      * get a unique map url for deeplinking
      * @param mapId
      * @param systemId
@@ -2108,6 +2320,9 @@ define([
         initWormholeInfoTooltip: initWormholeInfoTooltip,
         getSystemId: getSystemId,
         checkRight: checkRight,
+        newSystemPositionBySystem: newSystemPositionBySystem,
+        newSystemPositionByCoordinates: newSystemPositionByCoordinates,
+        newSystemPositionsByMap: newSystemPositionsByMap,
         getMapDeeplinkUrl: getMapDeeplinkUrl
     };
 });

@@ -38,7 +38,7 @@
     "react/socket": "1.2.*",
     "react/promise-stream": "1.1.*",
     "clue/ndjson-react": "1.0.*",
-    "exodus4d/pathfinder_esi": "v1.3.1"
+    "exodus4d/pathfinder_esi": "v1.3.2"
   },
   "suggest": {
     "ext-redis": "Redis can be used as cache backend."

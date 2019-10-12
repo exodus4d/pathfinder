@@ -189,7 +189,7 @@ define([
                             html: '<i class="fas fa-fw fa-question-circle"></i>'
                         }),
                         $('<td>', {
-                            text: scopeLabel.charAt(0).toUpperCase() + scopeLabel.slice(1)
+                            text: scopeLabel.capitalize()
                         }),
                         $('<td>', {
                             class: ['text-right', config.connectionInfoTableCellConnectionClass].join(' ')
@@ -774,7 +774,7 @@ define([
                             _: function(data, type, row){
                                 let value = data.typeId;
                                 if(type === 'display'){
-                                    value = '<img src="' + Init.url.ccpImageServer + '/Render/' + value + '_32.png" title="' + data.typeName + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Util.eveImageUrl('render', value) + '" title="' + data.typeName + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }
@@ -794,7 +794,7 @@ define([
                             _: (cellData, type, rowData, meta) => {
                                 let value = cellData.name;
                                 if(type === 'display'){
-                                    value = '<img src="' + Init.url.ccpImageServer + '/Character/' + cellData.id + '_32.jpg" title="' + value + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Util.eveImageUrl('character', cellData.id) + '" title="' + value + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }
@@ -883,15 +883,11 @@ define([
 
                             if(rowData.active){
                                 let confirmationSettings = {
-                                    container: 'body',
-                                    placement: 'left',
-                                    btnCancelClass: 'btn btn-sm btn-default',
-                                    btnCancelLabel: 'cancel',
-                                    btnCancelIcon: 'fas fa-fw fa-ban',
                                     title: 'delete jump log',
-                                    btnOkClass: 'btn btn-sm btn-danger',
-                                    btnOkLabel: 'delete',
-                                    btnOkIcon: 'fas fa-fw fa-times',
+                                    template: Util.getConfirmationTemplate(null, {
+                                        size: 'small',
+                                        noTitle: true
+                                    }),
                                     onConfirm : function(e, target){
                                         // get current row data (important!)
                                         // -> "rowData" param is not current state, values are "on createCell()" state

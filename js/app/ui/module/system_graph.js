@@ -265,7 +265,7 @@ define([
             for(let [graphKey, graphConfig] of Object.entries(config.systemGraphs)){
                 rowElement.append(
                     $('<div>', {
-                        class: ['col-xs-12', 'col-sm-6', 'col-md-4'].join(' ')
+                        class: ['col-xs-12', 'col-sm-4'].join(' ')
                     }).append(
                         $('<div>', {
                             class: config.moduleHeadClass

@@ -13,6 +13,10 @@ define([
 
     let config = {
         splashOverlayClass: 'pf-splash',                                // class for "splash" overlay
+
+        // navigation
+        navigationElementId: 'pf-navbar',                               // id for navbar element
+
         webSocketStatsId: 'pf-setup-webSocket-stats',                   // id for webSocket "stats" panel
         webSocketRefreshStatsId: 'pf-setup-webSocket-stats-refresh'     // class for "reload stats" button
     };
@@ -64,7 +68,9 @@ define([
         let body = $('body');
 
         // navigation (scroll) ----------------------------------------------------------------------------------------
-        Util.initPageScroll(body);
+        Util.initScrollSpy(document.getElementById(config.navigationElementId), window, {
+            offset: 300
+        });
 
         // collapse ---------------------------------------------------------------------------------------------------
         setCollapseObserver(body, '[data-toggle="collapse"]');
@@ -87,6 +93,7 @@ define([
             let url = '/api/setup/' + element.attr('data-action');
             sendRequest(url, {
                 type: element.attr('data-type'),
+                countAll: element.attr('data-countall'),
                 count: 0,
                 offset: 0
             }, {
@@ -110,15 +117,21 @@ define([
      * @param responseData
      */
     let updateIndexCount = (context, responseData) => {
-        let countElement = context.target.closest('.row').children().eq(1).find('kbd');
+        let countElement = context.target.closest('tr').children().eq(1).find('kbd');
         countElement.text(responseData.countBuildAll + '/' + responseData.countAll);
         countElement.removeClass('txt-color-success txt-color-danger txt-color-warning');
-        if(responseData.countBuildAll >=responseData.countAll){
+        if(responseData.countBuildAll >= responseData.countAll){
             countElement.addClass('txt-color-success');
         }else if(responseData.countBuildAll > 0){
             countElement.addClass('txt-color-warning');
         }else{
             countElement.addClass('txt-color-danger');
+        }
+
+        // update 'subCount' element (shows e.g. invType count)
+        if(responseData.subCount){
+            let subCountElement = context.target.closest('tr').children().eq(2).find('kbd');
+            subCountElement.text(responseData.subCount.countBuildAll + '/' + subCountElement.attr('data-countall'));
         }
 
         context.target.find('.btn-progress').html('&nbsp;&nbsp;' + responseData.progress + '%').css('width', responseData.progress + '%');
@@ -130,6 +143,7 @@ define([
         ){
             sendRequest(context.url, {
                 type: responseData.type,
+                countAll: responseData.countAll,
                 count: responseData.count,
                 offset: responseData.offset
             }, {
@@ -188,8 +202,8 @@ define([
          * @param data
          */
         let updateWebSocketPanel = (data) => {
-            let badgeSocketWarning = $('.navbar a[data-anchor="#pf-setup-socket"] .txt-color-warning');
-            let badgeSocketDanger = $('.navbar a[data-anchor="#pf-setup-socket"] .txt-color-danger');
+            let badgeSocketWarning = $('.navbar a[data-target="pf-setup-socket"] .txt-color-warning');
+            let badgeSocketDanger = $('.navbar a[data-target="pf-setup-socket"] .txt-color-danger');
             let socketWarningCount = parseInt(badgeSocketWarning.text()) || 0;
             let socketDangerCount = parseInt(badgeSocketDanger.text()) || 0;
 

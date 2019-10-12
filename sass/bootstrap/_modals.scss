@@ -53,8 +53,9 @@
 .modal-content {
   position: relative;
   background-color: $modal-content-bg;
-  border: 1px solid $modal-content-fallback-border-color; //old browsers fallback (ie8 etc)
-  border: 1px solid $modal-content-border-color;
+  //border: 1px solid $modal-content-fallback-border-color; //old browsers fallback (ie8 etc)
+  //border: 1px solid $modal-content-border-color;
+  border: none;
   //border-radius: $border-radius-large;
   @include box-shadow(0 3px 9px rgba(0,0,0,.5));
   background-clip: padding-box;
@@ -106,6 +107,9 @@
   position: relative;
   padding: $modal-inner-padding;
   color: $gray-lighter;
+  //border-left: 1px solid $modal-content-bg;
+  //border-right: 1px solid $modal-content-bg;
+  border: none;
 }
 
 // Footer (for actions)

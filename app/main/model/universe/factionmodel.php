@@ -46,8 +46,23 @@ class FactionModel extends AbstractUniverseModel {
             'nullable' => false,
             'default' => 0
         ],
-        'systems' => [
-            'has-many' => ['Model\Universe\SystemModel', 'factionId']
+        'race' => [ // faction API endpoint dont have "raceId" data, but race API endpoint has
+            'has-one' => ['Model\Universe\RaceModel', 'factionId']
+        ],
+        'alliances' => [
+            'has-many' => ['Model\Universe\AllianceModel', 'factionId']
+        ],
+        'corporations' => [
+            'has-many' => ['Model\Universe\CorporationModel', 'factionId']
+        ],
+        'sovereigntySystems' => [
+            'has-many' => ['Model\Universe\SovereigntyMapModel', 'factionId']
+        ],
+        'factionWarSystemOwners' => [
+            'has-many' => ['Model\Universe\FactionWarSystemModel', 'ownerFactionId']
+        ],
+        'factionWarSystemOccupiers' => [
+            'has-many' => ['Model\Universe\FactionWarSystemModel', 'occupierFactionId']
         ]
     ];
 
@@ -70,7 +85,7 @@ class FactionModel extends AbstractUniverseModel {
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient()->getUniverseFactionData($id);
-        if(!empty($data)){
+        if(!empty($data) && !isset($data['error'])){
             $this->copyfrom($data, ['id', 'name', 'description', 'sizeFactor', 'stationCount', 'stationSystemCount']);
             $this->save();
         }

@@ -38,19 +38,19 @@ define([
 
             switch(data.categoryType){
                 case 'character':
-                    imagePath = Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg';
+                    imagePath = Util.eveImageUrl('character', data.id);
                     break;
                 case 'corporation':
-                    imagePath = Init.url.ccpImageServer + '/Corporation/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('corporation', data.id);
                     break;
                 case 'alliance':
-                    imagePath = Init.url.ccpImageServer + '/Alliance/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('alliance', data.id);
                     break;
                 case 'inventoryType':
-                    imagePath = Init.url.ccpImageServer + '/Type/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('type', data.id);
                     break;
                 case 'render':
-                    imagePath = Init.url.ccpImageServer + '/Render/' + data.id + '_32.png';
+                    imagePath = Util.eveImageUrl('render', data.id);
                     break;
                 case 'station':
                     iconName = 'fa-home';
@@ -86,10 +86,19 @@ define([
         if(parts.length === 2){
             // wormhole data -> 2 columns
             let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
+            // some labels have a "suffix" label that should not have the securityClass
+            let labelParts = parts[1].split(/\s(.+)/);
+            let label = labelParts[0];
+            let suffix = labelParts[1] ? labelParts[1] : '';
+
+            let classes = [securityClass, Util.config.popoverTriggerClass, Util.config.helpDefaultClass];
+
             markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
             markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
-            markup += '<span class="' + securityClass + ' ' + Util.config.popoverTriggerClass + ' ' + Util.config.helpDefaultClass +
-                '" data-name="' + parts[0] + '">&nbsp;&nbsp;' + parts[1] + '&nbsp;</span>';
+            markup += '<span class="' + classes.join(' ') + '" data-name="' + parts[0] + '">&nbsp;&nbsp;' + label + '</span>';
+            if(suffix.length){
+                markup += '&nbsp;<span>' + suffix + '</span>';
+            }
         }else{
             markup += '<span>' + state.text + '</span>';
         }
@@ -122,9 +131,16 @@ define([
 
                 switch(formatType){
                     case 'wormhole':
+                        // some labels have a "suffix" label that should not have the securityClass
+                        let labelParts = parts[1].split(/\s(.+)/);
+                        let label = labelParts[0];
+                        let suffix = labelParts[1] ? labelParts[1] : '';
+
+
                         markup += '<div class="col-xs-3">' + parts[0] + '</div>';
                         markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right"></i></div>';
-                        markup += '<div class="col-xs-7 ' + securityClass + '">' + parts[1] + '</div>';
+                        markup += '<div class="col-xs-3 ' + securityClass + '">' + label + '</div>';
+                        markup += '<div class="col-xs-4 text-right">' + suffix + '</div>';
                         break;
                     case 'system':
                         markup += '<div class="col-xs-10">' + parts[0] + '</div>';
@@ -333,7 +349,7 @@ define([
             markup += '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.secClass + '">' + data.security + '</div>';
             markup += '<div class="col-sm-2 text-right ' + shatteredClass + '">';
-            markup += '<i class="fas fa-fw fa-skull ' + hideShatteredClass + '"></i>';
+            markup += '<i class="fas fa-fw fa-chart-pie ' + hideShatteredClass + '"></i>';
             markup += '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
 

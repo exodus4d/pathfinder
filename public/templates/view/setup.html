@@ -1,7 +1,7 @@
 {* splash page *}
 <include href="templates/layout/splash.html"/>
 
-<include href="img/logo.svg"/>
+<include href="img/svg/logo.svg"/>
 
 {* counter for DB warnings (all databases) *}
 {{ @tplCounter('reset', 'database_warning_all') }}
@@ -1163,51 +1163,93 @@
 
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">
-                            <i class="fas fa-search"></i>&nbsp;&nbsp;Index data
-                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="
-                            Indexed data is required for some queries (e.g. route finder module, static wormholes,…).
-                            Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts." data-container="body"></i>
+                            <i class="fas fa-cloud-download-alt"></i>&nbsp;&nbsp;Import static data
+                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light"
+                               title="Re-importing/update static data from either ESI API and/or /export/*.csv files. Increase 'max_execution_time' if you run into PHP timeouts."
+                               data-container="body"
+                            ></i>
                         </h3>
                     </div>
 
                     <div class="panel-body no-padding text-left">
-                        <repeat group="{{ @indexInformation }}" key="{{ @type }}" value="{{ @indexData }}">
-                            <div class="row">
-                                <div class="col-xs-4">
-                                    <span class="btn disabled btn-fake">{{ @indexData.label }}</span>
-                                </div>
-                                <div class="col-xs-3 text-right">
-                                    <check if="{{ isset(@indexData.countAll) }}">
-                                        <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild  >= @indexData.countAll }}">
-                                            <kbd class="txt-color txt-color-success">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
-                                        </check>
-                                        <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
-                                            <kbd class="txt-color txt-color-warning">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
-                                            {{ @tplCounter('increment', 'administration_warning') }}
-                                        </check>
-                                        <check if="{{ @indexData.countBuild <= 0 }}">
-                                            <kbd class="txt-color txt-color-danger">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
-                                            {{ @tplCounter('increment', 'administration_danger') }}
-                                        </check>
-                                        <check if="{{ @indexData.tooltip }}">
-                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}" data-container="body"></i>
-                                        </check>
-                                    </check>
-                                </div>
-                                <div class="col-xs-5">
-                                    <div class="btn-group btn-group-justified">
-                                        <repeat group="{{ @indexData.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
-                                            <a href="?action={{ @taskData.action }}&model={{ @type }}#pf-setup-administration"
-                                               data-type="{{ @type }}" data-action="{{ @taskData.action }}"
-                                               data-loading-text="<i class='fas fa-sync fa-spin'></i>&nbsp;&nbsp;wait&hellip;<div class='btn-progress'></div>" autocomplete="off"
-                                               class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.countBuild ?'disabled':'' }} {{ @tplCounter('get', 'database_warning_all') ?'disabled':'' }}" role="button">
-                                                <i class="fas {{ @taskData.icon }}"></i>&nbsp;&nbsp;{{ @taskData.label }}
-                                            </a>
-                                        </repeat>
-                                    </div>
-                                </div>
-                            </div>
-                        </repeat>
+                        <table class="table">
+                            <thead>
+                                <check if="{{ count( @indexInformation ) > 1 }}">
+                                    {* hide table head row if there is just one (error!) table row *}
+                                    <tr>
+                                        <td></td>
+                                        <td class="col-xs-2 col-md-2 text-right">count</td>
+                                        <td class="col-xs-2 col-md-2 text-right">sub count</td>
+                                        <td class="col-xs-4 col-md-4"></td>
+                                    </tr>
+                                </check>
+                            </thead>
+                            <tbody>
+                            <repeat group="{{ @indexInformation }}" key="{{ @type }}" value="{{ @indexData }}">
+                                <check if="{{ is_numeric( @type ) }}">
+                                    <true>
+                                        </tbody>
+                                            </table>
+                                            <div class="panel-footer txt-color {{ @indexData.class }}">
+                                                <h3 class="panel-title">
+                                                    <check if="{{ @indexData.icon }}">
+                                                        <i class="fas {{ @indexData.icon }}"></i>&nbsp;&nbsp;
+                                                    </check>
+                                                    {{@indexData.label}}
+                                                    <check if="{{ @indexData.tooltip }}">
+                                                        <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}" data-container="body"></i>
+                                                    </check>
+                                                </h3>
+                                            </div>
+                                            <table class="table">
+                                        <tbody>
+                                    </true>
+                                    <false>
+                                        <tr>
+                                            <td>{{ @indexData.label }}
+                                                <check if="{{ @indexData.tooltip }}">
+                                                    <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}" data-container="body"></i>
+                                                </check>
+                                            </td>
+                                            <td class="col-xs-2 col-md-2 text-right">
+                                                <check if="{{ isset(@indexData.countAll) }}">
+                                                    <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild  >= @indexData.countAll }}">
+                                                        <kbd class="txt-color txt-color-success">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                                    </check>
+                                                    <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
+                                                        <kbd class="txt-color txt-color-warning">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                                        {{ @tplCounter('increment', 'administration_warning') }}
+                                                    </check>
+                                                    <check if="{{ @indexData.countBuild <= 0 }}">
+                                                        <kbd class="txt-color txt-color-danger">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                                        {{ @tplCounter('increment', 'administration_danger') }}
+                                                    </check>
+                                                </check>
+                                            </td>
+                                            <td class="col-xs-2 col-md-2 text-right">
+                                                <check if="{{ @indexData.subCount }}">
+                                                    <kbd data-countAll="{{ @indexData.subCount.countAll }}">{{ @indexData.subCount.countBuild }}/{{ @indexData.subCount.countAll }}</kbd>
+                                                </check>
+                                            </td>
+                                            <td class="col-xs-4 col-md-4 no-padding">
+                                                <div class="btn-group btn-group-justified">
+                                                    <repeat group="{{ @indexData.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
+                                                        <a
+                                                            data-type="{{ @type }}" data-action="{{ @taskData.action }}" data-countall="{{ @indexData.countAll }}"
+                                                            data-loading-text="<i class='fas fa-sync fa-spin'></i>&nbsp;&nbsp;wait&hellip;<div class='btn-progress'></div>" autocomplete="off"
+                                                            class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.countBuild ?'disabled':'' }} {{ @tplCounter('get', 'database_warning_all') ?'disabled':'' }}" role="button"
+                                                        >
+                                                            <i class="fas fa-fw {{ @taskData.icon }}"></i>&nbsp;{{ @taskData.label }}
+                                                        </a>
+                                                    </repeat>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </false>
+                                </check>
+                            </repeat>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -1289,7 +1331,7 @@
         <div id="pf-head" class="navbar-header">
             <span class="navbar-brand pf-head-menu">
                 <svg class="pf-head-menu-logo" width="24px" height="24px">
-                    <use xlink:href="#pf-logo"/>
+                    <use xlink:href="#pf-svg-logo"/>
                 </svg>
                 &nbsp;&nbsp;Setup
             </span>
@@ -1297,8 +1339,8 @@
         <div class="navbar-collapse">
             <ul class="nav navbar-nav navbar-right" role="tablist">
                 <repeat group="{{ @tplNavigation }}" key="{{ @navKey }}" value="{{ @navConfig }}">
-                    <li class="hide-before">
-                        <a class="page-scroll" data-anchor="#pf-setup-{{ @navKey }}" href="#"><i class="fas fa-fw {{ @navConfig.icon }}"></i>&nbsp;{{ lcfirst(@navKey) }}
+                    <li>
+                        <a class="page-scroll" data-target="pf-setup-{{ @navKey }}" href="#pf-setup-{{ @navKey }}"><i class="fas fa-fw {{ @navConfig.icon }}"></i>&nbsp;{{ lcfirst(@navKey) }}
                             <span class="badge txt-color txt-color-warning" title="warning" data-placement="bottom">{{ @tplCounter('get', @navKey . '_warning') }}</span>
                             <span class="badge txt-color txt-color-danger" title="error" data-placement="bottom">{{ @tplCounter('get', @navKey . '_danger') }}</span>
                         </a>

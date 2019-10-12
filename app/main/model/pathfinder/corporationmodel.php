@@ -13,6 +13,9 @@ use lib\Config;
 
 class CorporationModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'corporation';
 
     /**
@@ -91,6 +94,9 @@ class CorporationModel extends AbstractPathfinderModel {
         'map_export'
     ];
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -181,17 +187,19 @@ class CorporationModel extends AbstractPathfinderModel {
 
     /**
      * get all maps for this corporation
-     * @param array $mapIds
+     * @param int|null $mapId
      * @param array $options
      * @return array
      */
-    public function getMaps($mapIds = [], $options = []) : array {
+    public function getMaps(?int $mapId = null, $options = []) : array {
         $maps = [];
         $this->filterRel();
 
-        if(!empty($mapIds)){
-            $filters = [];
-            $filters[] = ['mapId IN (:mapId)', ':mapId' => $mapIds];
+        if($mapId){
+            $filters = [
+                self::getFilter('mapId', $mapId)
+            ];
+
             $this->filter('mapCorporations', $this->mergeWithRelFilter('mapCorporations', $this->mergeFilter($filters)), $this->getRelFilterOption('mapCorporations'));
         }
 
@@ -217,7 +225,7 @@ class CorporationModel extends AbstractPathfinderModel {
      * @param array $options
      * @return CharacterModel[]
      */
-    public function getCharacters($characterIds = [], $options = []){
+    public function getCharacters($characterIds = [], $options = []) : array {
         $characters = [];
         $filter = ['active = ?', 1];
 
@@ -244,30 +252,28 @@ class CorporationModel extends AbstractPathfinderModel {
 
     /**
      * get all structure data for this corporation
-     * @param array $systemIds
+     * @param int $systemId
      * @return array
      */
-    public function getStructuresData(array $systemIds = []) : array {
+    public function getStructuresData(int $systemId) : array {
         $structuresData = [];
+        $structure = $this->rel('structures');
 
-        $this->filter('corporationStructures', ['active = ?', 1]);
-        $this->has('corporationStructures.structureId', ['active = ?', 1]);
+        $filters = [
+            self::getFilter('corporationId', $this->id),
+            self::getFilter('active', true)
+        ];
 
-        if($systemIds){
-            if(count($systemIds) == 1){
-                $filterSystems = 'systemId = ?';
-                $filterSystemIds = reset($systemIds);
-            }else{
-                $filterSystems = 'systemId IN (?)';
-                $filterSystemIds = $systemIds;
-            }
+        $structure->has('structureCorporations', $this->mergeFilter($filters));
 
-            $this->has('corporationStructures.structureId', [$filterSystems, $filterSystemIds]);
-        }
+        $filters = [
+            self::getFilter('systemId', $systemId),
+            self::getFilter('active', true)
+        ];
 
-        if($this->corporationStructures) {
-            foreach($this->corporationStructures as $corporationStructure){
-                $structuresData[] = $corporationStructure->structureId->getData();
+        if($structures = $structure->find($this->mergeFilter($filters))){
+            foreach($structures as $structure){
+                $structuresData[] = $structure->getData();
             }
         }
 
@@ -351,7 +357,7 @@ class CorporationModel extends AbstractPathfinderModel {
         if($this->isOutdated()){
             // request corporation data
             $corporationData = self::getF3()->ccpClient()->getCorporationData($id);
-            if( !empty($corporationData) ){
+            if(!empty($corporationData) && !isset($corporationData['error'])){
                 // check for NPC corporation
                 $corporationData['isNPC'] = self::getF3()->ccpClient()->isNpcCorporation($id);
 

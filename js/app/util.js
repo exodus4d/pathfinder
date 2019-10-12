@@ -75,14 +75,14 @@ define([
         select2ImageLazyLoadClass: 'pf-select2-image-lazyLoad',
 
         // animation
-        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
-        animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
-        animationPulseDangerClass: 'pf-animation-pulse-danger',                 // animation class
+        animationPulseClassPrefix: 'pf-animation-pulse-',                       // class prefix for "pulse" background animation
 
         // popover
+        popoverClass: 'pf-popover',                                             // class for "popover" - custom modifier
         popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
-        popoverSmallClass: 'pf-popover-small',                                  // class for small "popover"
+        popoverSmallClass: 'popover-small',                                     // class for small "popover"
         popoverCharacterClass: 'pf-popover-character',                          // class for character "popover"
+        popoverListIconClass: 'pf-popover-list-icon',                           // class for list "icon"s in "
 
         // Summernote
         summernoteClass: 'pf-summernote',                                       // class for Summernote "WYSIWYG" elements
@@ -399,40 +399,6 @@ define([
     };
 
     /**
-     * check multiple element if they are currently visible in viewport
-     * @returns {Array}
-     */
-    $.fn.isInViewport = function(){
-        let visibleElement = [];
-
-        this.each(function(){
-            let element = $(this)[0];
-
-            let top = element.offsetTop;
-            let left = element.offsetLeft;
-            let width = element.offsetWidth;
-            let height = element.offsetHeight;
-
-            while(element.offsetParent){
-                element = element.offsetParent;
-                top += element.offsetTop;
-                left += element.offsetLeft;
-            }
-
-            if(
-                top < (window.pageYOffset + window.innerHeight) &&
-                left < (window.pageXOffset + window.innerWidth) &&
-                (top + height) > window.pageYOffset &&
-                (left + width) > window.pageXOffset
-            ){
-                visibleElement.push(this);
-            }
-        });
-
-        return visibleElement;
-    };
-
-    /**
      * init the map-update-counter as "easy-pie-chart"
      */
     $.fn.initMapUpdateCounter = function(){
@@ -588,7 +554,7 @@ define([
                 userData: userData,
                 otherCharacters: () => {
                     return userData.characters.filter((character, i) => {
-                        let characterImage = Init.url.ccpImageServer + '/Character/' + character.id + '_32.jpg';
+                        let characterImage = eveImageUrl('character', character.id);
                         // preload image (prevent UI flicker
                         let img= new Image();
                         img.src = characterImage;
@@ -642,7 +608,7 @@ define([
                             container: 'body',
                             content: content,
                             animation: false
-                        }).data('bs.popover').tip().addClass('pf-popover');
+                        }).data('bs.popover').tip().addClass(config.popoverClass);
 
                         button.popover('show');
 
@@ -799,28 +765,30 @@ define([
     /**
      * highlight jquery elements
      * add/remove css class for keyframe animation
-     * @returns {any|JQuery|*}
+     * @param status
+     * @param keepVisible
+     * @param clear
+     * @returns {void|*|undefined}
      */
-    $.fn.pulseBackgroundColor = function(status, clear){
-
-        let animationClass = '';
+    $.fn.pulseBackgroundColor = function(status, keepVisible = false, clear = false){
+        let animationClass = config.animationPulseClassPrefix;
         switch(status){
-            case 'added':
-                animationClass = config.animationPulseSuccessClass;
-                break;
-            case 'changed':
-                animationClass = config.animationPulseWarningClass;
-                break;
-            case 'deleted':
-                animationClass = config.animationPulseDangerClass;
-                break;
+            case 'added': animationClass += 'success'; break;
+            case 'changed': animationClass += 'warning'; break;
+            case 'deleted': animationClass += 'danger'; break;
+            default: console.warn('Invalid status: %s', status);
+        }
+
+        // if keepVisible -> background color animation class will not be deleted
+        if(keepVisible){
+            animationClass += '-keep';
         }
 
         let clearTimer = element => {
-            element.removeClass( animationClass );
+            element.removeClass(animationClass);
             let currentTimer = element.data('animationTimer');
 
-            if( animationTimerCache.hasOwnProperty(currentTimer) ){
+            if(animationTimerCache.hasOwnProperty(currentTimer)){
                 clearTimeout( currentTimer );
                 delete animationTimerCache[currentTimer];
                 element.removeData('animationTimer');
@@ -830,18 +798,20 @@ define([
         return this.each(function(){
             let element = $(this);
 
-            if( element.hasClass(animationClass) ){
+            if(element.hasClass(animationClass)){
                 // clear timer -> set new timer
                 clearTimer(element);
             }
 
-            if(clear !== true){
+            if(!clear){
                 element.addClass(animationClass);
-                let timer = setTimeout(clearTimer, 1500, element);
-                element.data('animationTimer', timer);
-                animationTimerCache[timer] = true;
+                // remove class after animation finish, if not 'keepVisible'
+                if(!keepVisible){
+                    let timer = setTimeout(clearTimer, 1500, element);
+                    element.data('animationTimer', timer);
+                    animationTimerCache[timer] = true;
+                }
             }
-
         });
     };
 
@@ -883,6 +853,23 @@ define([
      * show current program version information in browser console
      */
     let showVersionInfo = () => Con.showVersionInfo(getVersion());
+
+    /**
+     * get CCP image URLs for
+     * @param type 'alliance'|'corporation'|'character'|'type'|'render'
+     * @param id
+     * @param size
+     * @returns {boolean}
+     */
+    let eveImageUrl = (type, id, size = 32) => {
+        let url = false;
+        if(typeof type === 'string' && typeof id === 'number' && typeof size === 'number'){
+            type = type.capitalize();
+            let format = type === 'Character' ? 'jpg' : 'png';
+            url = Init.url.ccpImageServer + '/' + type + '/' + id + '_' + size + '.' + format;
+        }
+        return url;
+    };
 
     /**
      * polyfill for "passive" events
@@ -1006,6 +993,14 @@ define([
         };
 
         /**
+         * capitalize first letter
+         * @returns {string}
+         */
+        String.prototype.capitalize = function(){
+            return this.charAt(0).toUpperCase() + this.slice(1);
+        };
+
+        /**
          * get hash from string
          * @returns {number}
          */
@@ -1020,21 +1015,238 @@ define([
             return hash;
         };
 
+        String.prototype.trimLeftChars = function(charList){
+            if(charList === undefined)
+                charList = '\\s';
+            return this.replace(new RegExp('^[' + charList + ']+'), '');
+        };
+
+        String.prototype.trimRightChars = function(charList){
+            if(charList === undefined)
+                charList = '\\s';
+            return this.replace(new RegExp('[' + charList + ']+$'), '');
+        };
+
+        String.prototype.trimChars = function(charList){
+            return this.trimLeftChars(charList).trimRightChars(charList);
+        };
+
         initPassiveEvents();
     };
 
     /**
-     *
-     * @param element
+     * filter elements from elements array that are not within viewport
+     * @param elements
+     * @returns {[]}
      */
-    let initPageScroll = (element) => {
-        $(element).on('click', '.page-scroll', function(){
-            // scroll to ancor element
-            $($(this).attr('data-anchor')).velocity('scroll', {
-                duration: 300,
-                easing: 'swing'
-            });
-        });
+    let findInViewport = elements => {
+        let visibleElement = [];
+
+        for(let element of elements){
+            if(!(element instanceof HTMLElement)){
+                console.warn('findInViewport() expects Array() of %O; %o given', HTMLElement, element);
+                continue;
+            }
+
+            let top = element.offsetTop;
+            let left = element.offsetLeft;
+            let width = element.offsetWidth;
+            let height = element.offsetHeight;
+            let origElement = element;
+
+            while(element.offsetParent){
+                element = element.offsetParent;
+                top += element.offsetTop;
+                left += element.offsetLeft;
+            }
+
+            if(
+                top < (window.pageYOffset + window.innerHeight) &&
+                left < (window.pageXOffset + window.innerWidth) &&
+                (top + height) > window.pageYOffset &&
+                (left + width) > window.pageXOffset
+            ){
+                visibleElement.push(origElement);
+            }
+        }
+
+        return visibleElement;
+    };
+
+    /**
+     * "Scroll Spy" implementation
+     * @see https://github.com/cferdinandi/gumshoe/blob/master/src/js/gumshoe/gumshoe.js
+     * @param navElement
+     * @param scrollElement
+     * @param settings
+     */
+    let initScrollSpy = (navElement, scrollElement = window, settings = {}) => {
+        let timeout, current;
+
+        let contents = Array.from(navElement.querySelectorAll('.page-scroll')).map(link => ({
+            link: link,
+            content: document.getElementById(link.getAttribute('data-target'))
+        }));
+
+        let getOffset = settings => {
+            if(typeof settings.offset === 'function'){
+                return parseFloat(settings.offset());
+            }
+            // Otherwise, return it as-is
+            return parseFloat(settings.offset);
+        };
+
+        let getDocumentHeight = () => {
+            return Math.max(
+                document.body.scrollHeight, document.documentElement.scrollHeight,
+                document.body.offsetHeight, document.documentElement.offsetHeight,
+                document.body.clientHeight, document.documentElement.clientHeight
+            );
+        };
+
+        let activate = item => {
+            if(!item) return;
+
+            // Get the parent list item
+            let li = item.link.closest('li');
+            if(!li) return;
+
+            // Add the active class to li
+            li.classList.add('active');
+        };
+
+        let deactivate = item => {
+            if(!item) return;
+
+            // remove focus
+            if(document.activeElement === item.link){
+                document.activeElement.blur();
+            }
+
+            // Get the parent list item
+            let li = item.link.closest('li');
+            if(!li) return;
+
+            // Remove the active class from li
+            li.classList.remove('active');
+        };
+
+        let isInView = (elem, settings, bottom) => {
+            let bounds = elem.getBoundingClientRect();
+            let offset = getOffset(settings);
+            if(bottom){
+                return parseInt(bounds.bottom, 10) < (window.innerHeight || document.documentElement.clientHeight);
+            }
+            return parseInt(bounds.top, 10) <= offset;
+        };
+
+        let isAtBottom = () => {
+            return window.innerHeight + window.pageYOffset >= getDocumentHeight();
+        };
+
+        let useLastItem = (item, settings) => {
+            return !!(isAtBottom() && isInView(item.content, settings, true));
+        };
+
+        let getActive = (contents, settings) => {
+            let last = contents[contents.length - 1];
+            if(useLastItem(last, settings)) return last;
+            for(let i = contents.length - 1; i >= 0; i--){
+                if(isInView(contents[i].content, settings)) return contents[i];
+            }
+        };
+
+        let detect = () => {
+            let active = getActive(contents, settings);
+
+            // if there's no active content, deactivate and bail
+            if(!active){
+                if(current){
+                    deactivate(current);
+                    current = null;
+                }
+                return;
+            }
+
+            // If the active content is the one currently active, do nothing
+            if (current && active.content === current.content) return;
+
+            // Deactivate the current content and activate the new content
+            deactivate(current);
+            activate(active);
+
+            // Update the currently active content
+            current = active;
+        };
+
+        let scrollHandler = () => {
+            // If there's a timer, cancel it
+            if(timeout){
+                window.cancelAnimationFrame(timeout);
+            }
+            timeout = window.requestAnimationFrame(detect);
+        };
+
+        // Find the currently active content
+        detect();
+
+        scrollElement.addEventListener('scroll', scrollHandler, false);
+
+        // set click observer for links
+        let clickHandler = function(e){
+            e.preventDefault();
+            this.content.scrollIntoView({behavior: 'smooth'});
+        };
+
+        for(let item of contents){
+            $(item.link).on('click', clickHandler.bind(item));
+        }
+    };
+
+    /**
+     * get template for Bootstrap "Confirmation" popover plugin
+     * -> if HTML 'content' not set, we expect the default template
+     *    https://www.npmjs.com/package/bs-confirmation
+     * -> options.size for "small" popover layout
+     * -> options.noTitle for hide title element
+     * @param content
+     * @param options
+     * @returns {string}
+     */
+    let getConfirmationTemplate = (content, options) => {
+        let getButtons = () => {
+            let buttonHtml = '<div class="btn-group">';
+            buttonHtml += '<a data-apply="confirmation">Yes</a>';
+            buttonHtml += '<a data-dismiss="confirmation">No</a>';
+            buttonHtml += '</div>';
+            return buttonHtml;
+        };
+
+        let getContent = content => {
+            let contentHtml = content ? content : '';
+            contentHtml += '<div class="popover-footer">';
+            contentHtml += getButtons();
+            contentHtml += '</div>';
+            return contentHtml;
+        };
+
+        let popoverClass = ['popover'];
+        if('small' === getObjVal(options, 'size')){
+            popoverClass.push('popover-small');
+        }
+
+        let contentClass = ['popover-content', 'no-padding'];
+
+        let html = '<div class="' + popoverClass.join(' ') + '">';
+        html += '<div class="arrow"></div>';
+        if(true !== getObjVal(options, 'noTitle')){
+            html += '<h3 class="popover-title"></h3>';
+        }
+        html += '<div class="' + contentClass.join(' ') + '">';
+        html += getContent(content);
+        html += '</div>';
+        html += '</div>';
+        return html;
     };
 
     /**
@@ -1118,7 +1330,7 @@ define([
     };
 
     /**
-     * set default configuration for "Bootbox"
+     * set default configuration for "Bootbox" plugin
      */
     let initDefaultBootboxConfig = () => {
         bootbox.setDefaults({
@@ -1127,7 +1339,22 @@ define([
     };
 
     /**
-     * set default configuration for "Select2"
+     * set default configuration for "Confirmation" popover plugin
+     */
+    let initDefaultConfirmationConfig = () => {
+        $.fn.confirmation.Constructor.DEFAULTS.placement = 'left';
+        $.fn.confirmation.Constructor.DEFAULTS.container = 'body';
+        $.fn.confirmation.Constructor.DEFAULTS.btnCancelClass = 'btn btn-sm btn-default';
+        $.fn.confirmation.Constructor.DEFAULTS.btnCancelLabel = 'cancel';
+        $.fn.confirmation.Constructor.DEFAULTS.btnCancelIcon = 'fas fa-fw fa-ban';
+        $.fn.confirmation.Constructor.DEFAULTS.btnOkClass = 'btn btn-sm btn-danger';
+        $.fn.confirmation.Constructor.DEFAULTS.btnOkLabel = 'delete';
+        $.fn.confirmation.Constructor.DEFAULTS.btnOkIcon = 'fas fa-fw fa-times';
+        $.fn.confirmation.Constructor.DEFAULTS.template = getConfirmationTemplate();
+    };
+
+    /**
+     * set default configuration for "Select2" plugin
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
@@ -1251,7 +1478,7 @@ define([
     };
 
     /**
-     * set default configuration for "xEditable"
+     * set default configuration for "xEditable" plugin
      */
     let initDefaultEditableConfig = () => {
         // use fontAwesome buttons template
@@ -1341,7 +1568,7 @@ define([
         // Server is running with GMT/UTC (EVE Time)
         let localDate = new Date();
 
-        let serverDate= new Date(
+        let serverDate = new Date(
             localDate.getUTCFullYear(),
             localDate.getUTCMonth(),
             localDate.getUTCDate(),
@@ -1577,6 +1804,8 @@ define([
             characterLogLocation: valueChanged('character.logLocation'),
             characterSystemId: valueChanged('character.log.system.id'),
             characterShipType: valueChanged('character.log.ship.typeId'),
+            characterStationId: valueChanged('character.log.station.id'),
+            characterStructureId: valueChanged('character.log.structure.id'),
             charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString(),
             characterLogHistory: oldHistoryLogStamps.toString() !== newHistoryLogStamps.toString()
         };
@@ -1645,8 +1874,8 @@ define([
      * Request data from Server
      * -> This function should be used (in future) for all Ajax and REST API calls
      * -> works as a "wrapper" for jQueries ajax() method
-     * @param action
-     * @param entity
+     * @param {String} action
+     * @param {String} entity
      * @param ids
      * @param data
      * @param context
@@ -1658,7 +1887,7 @@ define([
         let requestExecutor = (resolve, reject) => {
             let payload = {
                 action: 'request',
-                name: action.toLowerCase() + entity.charAt(0).toUpperCase() + entity.slice(1)
+                name: action.toLowerCase() + entity.capitalize()
             };
 
             // build request url --------------------------------------------------------------------------------------
@@ -1918,6 +2147,13 @@ define([
     };
 
     /**
+     *
+     * @param ariaId
+     * @returns {number}
+     */
+    let getSystemEffectMultiplierByAreaId = ariaId => SystemEffect.getMultiplierByAreaId(ariaId);
+
+    /**
      * get areaId by security string
      * areaId is required as a key for signature names
      * if areaId is 0, no signature data is available for this system
@@ -1935,9 +2171,6 @@ define([
                 break;
             case '0.0':
                 areaId = 32;
-                break;
-            case 'SH':
-                areaId = 13;
                 break;
             default:
                 // w-space
@@ -2085,7 +2318,7 @@ define([
                 let typeClass = '';
                 let matches = regex.exec(typeName.toLowerCase());
                 if(matches && matches[1]){
-                    typeName = matches[1].charAt(0).toUpperCase() + matches[1].slice(1);
+                    typeName = matches[1].capitalize();
                     typeClass = getPlanetInfo(matches[1]);
                 }
 
@@ -2111,26 +2344,28 @@ define([
      * get a HTML table with universe region information
      * e.g. for popover
      * @param regionName
-     * @param faction
+     * @param sovereignty
      * @returns {string}
      */
-    let getSystemRegionTable = (regionName, faction) => {
+    let getSystemRegionTable = (regionName, sovereignty) => {
+        let data = [{label: 'Region', value: regionName}];
+        if(sovereignty){
+            if(sovereignty.faction){
+                data.push({label: 'Sov. Faction', value: sovereignty.faction.name});
+            }
+            if(sovereignty.alliance){
+                data.push({label: 'Sov. Ally', value: sovereignty.alliance.name});
+            }
+        }
+
         let table = '<table>';
-        table += '<tr>';
-        table += '<td>';
-        table += 'Region';
-        table += '</td>';
-        table += '<td class="text-right">';
-        table += regionName;
-        table += '</td>';
-        table += '</tr>';
-        table += '<tr>';
-        if(faction){
+        for(let rowData of data){
+            table += '<tr>';
             table += '<td>';
-            table += 'Faction';
+            table += rowData.label;
             table += '</td>';
             table += '<td class="text-right">';
-            table += faction.name;
+            table += rowData.value;
             table += '</td>';
             table += '</tr>';
         }
@@ -2675,11 +2910,12 @@ define([
     };
 
     /**
-     * set new destination for a system
-     * @param systemData
+     * set new destination for a system/station/structure
      * @param type
+     * @param destType
+     * @param destData
      */
-    let setDestination = (systemData, type) => {
+    let setDestination = (type, destType, destData) => {
         let description = '';
         switch(type){
             case 'set_destination':
@@ -2699,22 +2935,20 @@ define([
             data: {
                 clearOtherWaypoints: (type === 'set_destination') ? 1 : 0,
                 first: (type === 'add_last_waypoint') ? 0 : 1,
-                systemData: [{
-                    systemId: systemData.systemId,
-                    name: systemData.name
-                }]
+                destData: [destData]
             },
             context: {
+                destType: destType,
                 description: description
             },
             dataType: 'json'
         }).done(function(responseData){
             if(
-                responseData.systemData &&
-                responseData.systemData.length > 0
+                responseData.destData &&
+                responseData.destData.length > 0
             ){
-                for(let j = 0; j < responseData.systemData.length; j++){
-                    showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
+                for(let j = 0; j < responseData.destData.length; j++){
+                    showNotify({title: this.description, text: this.destType + ': ' + responseData.destData[j].name, type: 'success'});
                 }
             }
 
@@ -2723,7 +2957,7 @@ define([
                 responseData.error.length > 0
             ){
                 for(let i = 0; i < responseData.error.length; i++){
-                    showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
+                    showNotify({title: this.description + ' error', text: this.destType + ': ' + responseData.error[i].message, type: 'error'});
                 }
             }
 
@@ -3043,7 +3277,16 @@ define([
      * @param tableType
      * @returns {string}
      */
-    let getTableId = (prefix, mapId, systemId, tableType) => prefix + [mapId, systemId, tableType].join('-');
+    let getTableId = (prefix, tableType, mapId, systemId) => prefix + [tableType, mapId, systemId].join('-');
+
+    /**
+     * get dataTable row id
+     * @param prefix
+     * @param tableType
+     * @param rowId
+     * @returns {string}
+     */
+    let getTableRowId = (prefix, tableType, rowId) => prefix + [tableType, rowId].join('-');
 
     /**
      * get a dataTableApi instance from global cache
@@ -3055,7 +3298,7 @@ define([
      */
     let getDataTableInstance = (prefix, mapId, systemId, tableType) => {
         let instance = null;
-        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(prefix, mapId, systemId, tableType));
+        let table = $.fn.dataTable.tables({ visible: false, api: true }).table('#' + getTableId(prefix, tableType, mapId, systemId));
         if(table.node()){
             instance = table;
         }
@@ -3233,8 +3476,10 @@ define([
         config: config,
         getVersion: getVersion,
         showVersionInfo: showVersionInfo,
+        eveImageUrl: eveImageUrl,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
+        initDefaultConfirmationConfig: initDefaultConfirmationConfig,
         initDefaultSelect2Config: initDefaultSelect2Config,
         initDefaultEditableConfig: initDefaultEditableConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
@@ -3258,6 +3503,7 @@ define([
         getLabelByRole: getLabelByRole,
         getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
+        getSystemEffectMultiplierByAreaId: getSystemEffectMultiplierByAreaId,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
         getSystemPlanetsTable: getSystemPlanetsTable,
@@ -3287,7 +3533,9 @@ define([
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
-        initPageScroll: initPageScroll,
+        findInViewport: findInViewport,
+        initScrollSpy: initScrollSpy,
+        getConfirmationTemplate: getConfirmationTemplate,
         convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,
@@ -3307,6 +3555,7 @@ define([
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,
         getTableId: getTableId,
+        getTableRowId: getTableRowId,
         getDataTableInstance: getDataTableInstance,
         htmlEncode: htmlEncode,
         htmlDecode: htmlDecode,

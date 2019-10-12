@@ -11,6 +11,7 @@ namespace Model;
 use DB\Cortex;
 use DB\CortexCollection;
 use DB\SQL\Schema;
+use lib\Util;
 use lib\logging;
 use Controller;
 use Exception\ValidationException;
@@ -43,6 +44,14 @@ abstract class AbstractModel extends Cortex {
      * @var bool
      */
     protected $addStaticFields              = true;
+
+    /**
+     * enables table truncate
+     * -> see truncate();
+     * -> CAUTION! if set to true truncate() will clear ALL rows!
+     * @var bool
+     */
+    protected $allowTruncate                = false;
 
     /**
      * enables change for "active" column
@@ -88,6 +97,23 @@ abstract class AbstractModel extends Cortex {
      * default TTL for getData(); cache - seconds
      */
     const DEFAULT_CACHE_TTL                 = 120;
+
+    /**
+     * default TTL or temp table data read from *.csv file
+     * -> used during data import
+     */
+    const DEFAULT_CACHE_CSV_TTL             = 120;
+
+    /**
+     * cache key prefix name for "full table" indexing
+     * -> used e.g. for a "search" index; or "import" index for *.csv imports
+     */
+    const CACHE_KEY_PREFIX                  = 'INDEX';
+
+    /**
+     * cache key name for temp data import from *.csv files per table
+     */
+    const CACHE_KEY_CSV_PREFIX              = 'CSV';
 
     /**
      * default TTL for SQL query cache
@@ -495,7 +521,7 @@ abstract class AbstractModel extends Cortex {
      * @return bool
      */
     public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true) : bool {
-        return $this->getByForeignKey('id', $id, ['limit' => 1], $ttl, $isActive);
+        return $this->getByForeignKey($this->primary, $id, ['limit' => 1], $ttl, $isActive);
     }
 
     /**
@@ -508,10 +534,7 @@ abstract class AbstractModel extends Cortex {
      * @return bool
      */
     public function getByForeignKey(string $key, $value, array $options = [], int $ttl = 0, bool $isActive = true) : bool {
-        $filters = [];
-        if($this->exists($key)){
-            $filters[] = [$key . ' = :' . $key, ':' . $key => $value];
-        }
+        $filters = [self::getFilter($key, $value)];
 
         if($isActive && $this->exists('active')){
             $filters[] = self::getFilter('active', true);
@@ -659,6 +682,24 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
+     * get row count in this table
+     * @return int
+     */
+    public function getRowCount() : int {
+        return is_object($this->db) ? $this->db->getRowCount($this->getTable()) : 0;
+    }
+
+    /**
+     * truncate all table rows
+     * -> Use with Caution!!!
+     */
+    public function truncate(){
+        if($this->allowTruncate && is_object($this->db)){
+            $this->db->exec("TRUNCATE " . $this->getTable());
+        }
+    }
+
+    /**
      * format dateTime column
      * @param $column
      * @param string $format
@@ -716,41 +757,76 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
-     * import table data from a *.csv file
-     * @return array|bool
+     * read *.csv file for a $table name
+     * -> 'group' by $getByKey column name and return array
+     * @param string $table
+     * @param string $getByKey
+     * @return array
      */
-    public function importData(){
-        $status = false;
+    public static function getCSVData(string $table, string $getByKey = 'id') : array {
+        $hashKeyTableCSV = static::generateHashKeyTable($table, static::CACHE_KEY_PREFIX . '_' . self::CACHE_KEY_CSV_PREFIX);
+
+        if(
+            !self::getF3()->exists($hashKeyTableCSV, $tableData) &&
+            !empty($tableData = Util::arrayGetBy(self::loadCSV($table), $getByKey, false))
+        ){
+            self::getF3()->set($hashKeyTableCSV, $tableData, self::DEFAULT_CACHE_CSV_TTL);
+        }
+
+        return $tableData;
+    }
+
+    /**
+     * load data from *.csv file
+     * @param string $fileName
+     * @return array
+     */
+    protected static function loadCSV(string $fileName) : array {
+        $tableData = [];
 
         // rtrim(); for arrays (removes empty values) from the end
-        $rtrim = function($array = [], $lengthMin = false){
+        $rtrim = function($array = [], $lengthMin = false) : array {
             $length = key(array_reverse(array_diff($array, ['']), 1))+1;
             $length = $length < $lengthMin ? $lengthMin : $length;
             return array_slice($array, 0, $length);
         };
 
-        if(static::$enableDataImport){
-            $filePath = $this->getF3()->get('EXPORT') . 'csv/' . $this->getTable() . '.csv';
-
+        if($fileName){
+            $filePath = self::getF3()->get('EXPORT') . 'csv/' . $fileName . '.csv';
             if(is_file($filePath)){
                 $handle = @fopen($filePath, 'r');
                 $keys = array_map('lcfirst', fgetcsv($handle, 0, ';'));
                 $keys = $rtrim($keys);
 
                 if(count($keys) > 0){
-                    $tableData = [];
                     while (!feof($handle)) {
                         $tableData[] = array_combine($keys, $rtrim(fgetcsv($handle, 0, ';'), count($keys)));
                     }
-                    // import row data
-                    $status = $this->importStaticData($tableData);
-                    $this->getF3()->status(202);
                 }else{
-                    $this->getF3()->error(500, 'File could not be read');
+                    self::getF3()->error(500, 'File could not be read');
                 }
             }else{
-                $this->getF3()->error(404, 'File not found: ' . $filePath);
+                self::getF3()->error(404, 'File not found: ' . $filePath);
             }
+        }
+
+        return $tableData;
+    }
+
+    /**
+     * import table data from a *.csv file
+     * @return array|bool
+     */
+    public function importData(){
+        $status = false;
+
+        if(
+            static::$enableDataImport &&
+            !empty($tableData = self::loadCSV($this->getTable()))
+        ){
+            // import row data
+            $status = $this->importStaticData($tableData);
+            $this->getF3()->status(202);
         }
 
         return $status;
@@ -897,6 +973,15 @@ abstract class AbstractModel extends Cortex {
     }
 
     /**
+     * get model data as array
+     * @param $data
+     * @return array
+     */
+    public static function toArray($data) : array {
+        return json_decode(json_encode($data), true);
+    }
+
+    /**
      * get new filter array representation
      * -> $suffix can be used fore unique placeholder,
      *    in case the same $key is used with different $values in the same query
@@ -1017,6 +1102,17 @@ abstract class AbstractModel extends Cortex {
             throw new \Exception(sprintf(self::ERROR_INVALID_MODEL_CLASS, $className));
         }
         return $model;
+    }
+
+    /**
+     * generate hashKey for a complete table
+     * -> should hold hashKeys for multiple rows
+     * @param string $table
+     * @param string $prefix
+     * @return string
+     */
+    public static function generateHashKeyTable(string $table, string $prefix = self::CACHE_KEY_PREFIX ) : string {
+        return $prefix . '_' . strtolower($table);
     }
 
     /**

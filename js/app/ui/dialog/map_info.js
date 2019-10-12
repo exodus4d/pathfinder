@@ -56,18 +56,6 @@ define([
         }
     };
 
-    // confirmation dialog settings (e.g. delete row)
-    let confirmationSettings = {
-        container: 'body',
-        placement: 'left',
-        btnCancelClass: 'btn btn-sm btn-default',
-        btnCancelLabel: 'cancel',
-        btnCancelIcon: 'fas fa-fw fa-ban',
-        btnOkClass: 'btn btn-sm btn-danger',
-        btnOkLabel: 'delete',
-        btnOkIcon: 'fas fa-fw fa-times'
-    };
-
     /**
      * get icon that marks a table cell as clickable
      * @returns {string}
@@ -217,7 +205,7 @@ define([
         let systemsElement = $(this).empty();
 
         let systemTable = $('<table>', {
-            id: Util.getTableId(config.tableId, mapData.config.id, '', 'systems'),
+            id: Util.getTableId(config.tableId, 'systems', mapData.config.id, ''),
             class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
         systemsElement.append(systemTable);
@@ -237,7 +225,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [14, 'desc'],
+            order: [15, 'desc'],
             hover: false,
             data: mapData.data.systems,
             columnDefs: [],
@@ -285,7 +273,7 @@ define([
                     }
                 },{
                     name: 'shattered',
-                    title: '<i class="fas fa-skull" title="shattered" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-chart-pie" title="shattered" data-toggle="tooltip"></i>',
                     width: 10,
                     className: ['text-center', 'min-screen-l'].join(' '),
                     searchable: false,
@@ -294,7 +282,7 @@ define([
                         display: (cellData, type, rowData, meta) => {
                             let value = '';
                             if(cellData){
-                                value = '<i class="fas fa-skull fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>';
+                                value = '<i class="fas fa-chart-pie fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>';
                             }
                             return value;
                         }
@@ -324,6 +312,22 @@ define([
                     title: 'region',
                     data: 'region.name',
                     className: 'min-screen-l',
+                },{
+                    name: 'sovereignty',
+                    title: 'sov.',
+                    width: 30,
+                    className: 'text-center',
+                    data: 'sovereignty.alliance.ticker',
+                    defaultContent: '',
+                    render: {
+                        display: (cellData, type, rowData, meta) => {
+                            let value = '';
+                            if(cellData){
+                                value = '&lt;' + cellData + '&gt;';
+                            }
+                            return value;
+                        }
+                    }
                 },{
                     name: 'planets',
                     title: '<i class="fas fa-circle" title="planets" data-toggle="tooltip"></i>',
@@ -456,44 +460,49 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
-                        let tempConfirmationSettings = confirmationSettings;
-                        tempConfirmationSettings.title = 'Delete system';
-                        tempConfirmationSettings.onConfirm = function(e, target){
-                            let deleteRowElement = $(target).parents('tr');
+                        let confirmationSettings = {
+                            placement: 'left',
+                            title: 'Delete system',
+                            template: Util.getConfirmationTemplate(null, {
+                                size: 'small',
+                                noTitle: true
+                            }),
+                            onConfirm: function(e, target){
+                                let deleteRowElement = $(target).parents('tr');
 
-                            let activeMap = Util.getMapModule().getActiveMap();
-                            let systemElement = $('#' + MapUtil.getSystemId(mapData.config.id, rowData.id) );
+                                let activeMap = Util.getMapModule().getActiveMap();
+                                let systemElement = $('#' + MapUtil.getSystemId(mapData.config.id, rowData.id) );
 
-                            if(systemElement.length){
-                                // trigger system delete event
-                                activeMap.trigger('pf:deleteSystems', [{
-                                    systems: [systemElement[0]],
-                                    callback: function(deletedSystems){
-                                        // callback function after ajax "delete" success
-                                        // check if system was deleted
-                                        if(deletedSystems.length === 1){
-                                            // remove table row
-                                            tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                if(systemElement.length){
+                                    // trigger system delete event
+                                    activeMap.trigger('pf:deleteSystems', [{
+                                        systems: [systemElement[0]],
+                                        callback: function(deletedSystems){
+                                            // callback function after ajax "delete" success
+                                            // check if system was deleted
+                                            if(deletedSystems.length === 1){
+                                                // remove table row
+                                                tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
 
-                                            Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
+                                                Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
-                                            // refresh connection table (connections might have changed) --------------
-                                            let connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                            let mapDataNew = activeMap.getMapDataFromClient(['hasId']);
+                                                // refresh connection table (connections might have changed) --------------
+                                                let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                                let mapDataNew = activeMap.getMapDataFromClient(['hasId']);
 
-                                            connectionsElement.initConnectionInfoTable(mapDataNew);
-                                        }else{
-                                            // error
-                                            Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
+                                                connectionsElement.initConnectionInfoTable(mapDataNew);
+                                            }else{
+                                                // error
+                                                Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
+                                            }
                                         }
-                                    }
-                                }]);
+                                    }]);
+                                }
                             }
                         };
 
                         // init confirmation dialog
-                        $(cell).confirmation(tempConfirmationSettings);
-
+                        $(cell).confirmation(confirmationSettings);
                     }
                 }
             ],
@@ -652,23 +661,29 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
-                        let tempConfirmationSettings = confirmationSettings;
-                        tempConfirmationSettings.title = 'Delete connection';
-                        tempConfirmationSettings.onConfirm = function(e, target){
-                            let deleteRowElement = $(target).parents('tr');
+                        let confirmationSettings = {
+                            placement: 'left',
+                            title: 'Delete connection',
+                            template: Util.getConfirmationTemplate(null, {
+                                size: 'small',
+                                noTitle: true
+                            }),
+                            onConfirm: function(e, target){
+                                let deleteRowElement = $(target).parents('tr');
 
-                            // deleteSignatures(row);
-                            let connection = $().getConnectionById(mapData.config.id, rowData.id);
+                                // deleteSignatures(row);
+                                let connection = $().getConnectionById(mapData.config.id, rowData.id);
 
-                            MapUtil.deleteConnections([connection], () => {
-                                // callback function after ajax "delete" success
-                                // remove table row
-                                tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
-                            });
+                                MapUtil.deleteConnections([connection], () => {
+                                    // callback function after ajax "delete" success
+                                    // remove table row
+                                    tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                });
+                            }
                         };
 
                         // init confirmation dialog
-                        $(cell).confirmation(tempConfirmationSettings);
+                        $(cell).confirmation(confirmationSettings);
                     }
                 }
             ],
@@ -749,7 +764,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(data && type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
+                                value = '<img src="' + Util.eveImageUrl('render', value.typeId) + '" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
                         }
@@ -787,7 +802,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Character/' + value + '_32.jpg" />';
+                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
                             }
                             return value;
                         }
@@ -827,7 +842,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Corporation/' + value.id + '_32.png" />';
+                                value = '<img src="' + Util.eveImageUrl('corporation', value.id) + '"/>';
                             }
                             return value;
                         }
@@ -849,7 +864,7 @@ define([
                         }
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        // open character information window (ingame)
+                        // open corporation information window (ingame)
                         $(cell).on('click', { tableApi: this.api() }, function(e){
                             let cellData = e.data.tableApi.cell(this).data();
                             Util.openIngameWindow(cellData.id);
@@ -1110,7 +1125,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Character/' + value + '_32.jpg" />';
+                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
                             }
                             return value;
                         }

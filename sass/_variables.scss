@@ -173,7 +173,7 @@ $btn-default-border:             darken($gray-light, 5%);
 
 $btn-primary-color:              $gray-lightest;
 $btn-primary-bg:                 $brand-primary;
-$btn-primary-border:             darken($btn-primary-bg, 5%);
+$btn-primary-border:             darken($btn-primary-bg, 2%);
 
 $btn-success-color:              $gray-lightest;
 $btn-success-bg:                 $brand-success;
@@ -546,7 +546,7 @@ $modal-title-padding:         14px;
 $modal-title-line-height:     $line-height-base;
 
 $modal-content-bg:                             $gray;
-$modal-content-border-color:                   rgba(0,0,0,.2);
+$modal-content-border-color:                   transparent;
 $modal-content-fallback-border-color:          #999;
 
 $modal-backdrop-bg:           #000;

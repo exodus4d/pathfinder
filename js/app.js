@@ -27,7 +27,7 @@ requirejs.config({
         admin: './app/admin',                                           // initial start "admin page" view
         notification: './app/notification',                             // "notification" view
 
-        jquery: 'lib/jquery-3.3.1.min',                                 // v3.3.1   jQuery
+        jquery: 'lib/jquery-3.4.1.min',                                 // v3.4.1   jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0   Bootstrap js code - http://getbootstrap.com/javascript
         text: 'lib/requirejs/text',                                     // v2.0.12  A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v3.0.1   Javascript template engine - http://mustache.github.io
@@ -42,11 +42,11 @@ requirejs.config({
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1   X-editable - in placed editing
         morris: 'lib/morris.min',                                       // v0.5.1   Morris.js - graphs and charts
         raphael: 'lib/raphael.min',                                     // v2.2.8   Raphaël - required for morris - https://dmitrybaranovskiy.github.io/raphael
-        bootbox: 'lib/bootbox.min',                                     // v4.4.0   Bootbox.js - custom dialogs - http://bootboxjs.com
+        bootbox: 'lib/bootbox.min',                                     // v5.2.0   Bootbox.js - custom dialogs - http://bootboxjs.com
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1   Inline Chart - http://benpickles.github.io/peity/
         dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1     Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
-        hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.9.0   Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
+        hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.10.0  Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         select2: 'lib/select2.min',                                     // v4.0.3   Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1   SVG line animation plugin - http://lazylinepainter.info

@@ -1,4 +1,6 @@
 // system info module ======================================================
+$pfSystemSectionMinHeight: 123px;
+
 .pf-system-info-module{
 
   // breadcrumb
@@ -6,18 +8,51 @@
     text-transform: capitalize;
   }
 
-  // system "name" cell should truncate on long names
+  > .row {
+    > div:not(:first-child){
+      padding-left: 0;
+    }
+  }
+
+  .pf-system-sov-section{
+    .pf-dynamic-area{
+      min-height: $pfSystemSectionMinHeight;
+    }
+  }
+
+  .pf-system-description-section{
+    @media (max-width: $screen-xs-max) {
+      padding-left: 10px !important;
+      margin-top: 10px;
+    }
+  }
+
   .pf-system-info-name-cell{
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     user-select: all;
+  }
+
+  .pf-system-info-svg{
+    position: absolute;
+    margin: 2px 0;
+  }
+
+  .pf-system-sov-fw-percentage{
+    border-top-color: transparent;
+  }
+
+  .pf-system-sov-fw-status-icon{
+    margin-left: 20px;
+    color: var(--color);
+  }
+
+  .pf-system-sov-fw-contested-row,
+  .pf-system-sov-fw-occupation-row{
+    display: none ;
   }
 
   // dynamic area specific for the description field
   .pf-system-info-description-area{
-    min-height: 124px;
+    min-height: $pfSystemSectionMinHeight;
     padding: 0; // overwrite default "pf-dynamic-area"
 
     .pf-system-info-description-button{
@@ -145,10 +180,6 @@
   .pf-sig-table{
     font-size: 10px;
 
-    .pf-sig-table-edit-name-input{
-      text-transform: uppercase;
-    }
-
     // textarea field
     // overwrite some styles in order to make <textarea> 100% width
     .editable-container.editable-inline {
@@ -261,8 +292,13 @@
 // intel module ============================================================
 .pf-system-intel-module{
 
+  .pf-system-station-table,
   .pf-system-structure-table{
     font-size: 10px;
+  }
+
+   .pf-module-head:not(:first-child){
+     margin-top: 15px;
   }
 }
 

@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class RightModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'right';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -24,7 +30,9 @@ class RightModel extends AbstractPathfinderModel {
         'name' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'index' => true,
+            'unique' => true
         ],
         'label' => [
             'type' => Schema::DT_VARCHAR128,
@@ -41,6 +49,9 @@ class RightModel extends AbstractPathfinderModel {
         ]
     ];
 
+    /**
+     * @var array
+     */
     protected static $tableData = [
         [
             'id' => 1,

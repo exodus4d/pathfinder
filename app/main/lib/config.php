@@ -82,6 +82,30 @@ class Config extends \Prefab {
      */
     const DOWNTIME_BUFFER                           = 1;
 
+    // ================================================================================================================
+    // ESI API id´s
+    // ================================================================================================================
+
+    /**
+     * ESI categoryId or 'Structure's
+     */
+    const ESI_CATEGORY_STRUCTURE_ID                 = 65;
+
+    /**
+     * ESI categoryId or 'Ship's
+     */
+    const ESI_CATEGORY_SHIP_ID                      = 6;
+
+    /**
+     * ESI groupId or 'Wormhole's
+     */
+    const ESI_GROUP_WORMHOLE_ID                     = 988;
+
+    /**
+     * ESI dogmaAttributeId for 'scanWormholeStrength's
+     */
+    const ESI_DOGMA_ATTRIBUTE_SCANWHSTRENGTH_ID     = 1908;
+
     /**
      * error message for missing Composer dependency class
      */
@@ -166,7 +190,7 @@ class Config extends \Prefab {
      * @return array|null
      */
     protected function getAllEnvironmentData(\Base $f3){
-        if( !$f3->exists(self::HIVE_KEY_ENVIRONMENT, $environmentData) ){
+        if(!$f3->exists(self::HIVE_KEY_ENVIRONMENT, $environmentData)){
             $environmentData =  $this->setAllEnvironmentData($f3);
         }
 
@@ -320,7 +344,7 @@ class Config extends \Prefab {
         if($config['SCHEME'] == 'mysql'){
             $options[\PDO::MYSQL_ATTR_COMPRESS]     = true;
             $options[\PDO::MYSQL_ATTR_INIT_COMMAND] = implode(',', [
-                "SET NAMES " . strtolower(str_replace('-','', $f3->ENCODING)),
+                "SET NAMES " . self::getRequiredDbVars($f3, $config['SCHEME'])['CHARACTER_SET_CONNECTION'] . " COLLATE " . self::getRequiredDbVars($f3, $config['SCHEME'])['COLLATION_CONNECTION'],
                 "@@session.time_zone = '+00:00'",
                 "@@session.default_storage_engine = " . self::getRequiredDbVars($f3, $config['SCHEME'])['DEFAULT_STORAGE_ENGINE']
             ]);
@@ -616,4 +640,18 @@ class Config extends \Prefab {
         return $format;
     }
 
+    static function ttlLeft($fromExists, int $ttlMax) : int {
+        $ttlMax = max($ttlMax, 0);
+        if($fromExists){
+            // == true || array
+            if(is_array($fromExists)){
+                return max(min((int)ceil(round(array_sum($fromExists) - microtime(true), 4)), $ttlMax), 0);
+            }else{
+                return 0;
+            }
+        }else{
+            // == false
+            return $ttlMax;
+        }
+    }
 }

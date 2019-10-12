@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class SystemStaticModel extends AbstractUniverseModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_static';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'systemId' => [
             'type' => Schema::DT_INT,
@@ -27,13 +33,13 @@ class SystemStaticModel extends AbstractUniverseModel {
             ],
             'validate' => 'notDry'
         ],
-        'wormholeId' => [
+        'typeId' => [
             'type' => Schema::DT_INT,
             'index' => true,
-            'belongs-to-one' => 'Model\Universe\WormholeModel',
+            'belongs-to-one' => 'Model\Universe\TypeModel',
             'constraint' => [
                 [
-                    'table' => 'wormhole',
+                    'table' => 'type',
                     'on-delete' => 'CASCADE'
                 ]
             ],
@@ -52,8 +58,14 @@ class SystemStaticModel extends AbstractUniverseModel {
      * @return null|string
      */
     public function getData(){
-        return $this->wormholeId ? $this->wormholeId->name : null;
+        return $this->typeId ? $this->typeId->getWormholeName() : null;
     }
+
+    /**
+     * @param int $id
+     * @param string $accessToken
+     * @param array $additionalOptions
+     */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){}
 
     /**
@@ -66,7 +78,7 @@ class SystemStaticModel extends AbstractUniverseModel {
      */
     public static function setup($db = null, $table = null, $fields = null){
         if($status = parent::setup($db, $table, $fields)){
-            $status = parent::setMultiColumnIndex(['systemId', 'wormholeId'], true);
+            $status = parent::setMultiColumnIndex(['systemId', 'typeId'], true);
         }
         return $status;
     }

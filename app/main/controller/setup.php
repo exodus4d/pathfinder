@@ -67,7 +67,6 @@ class Setup extends Controller {
                 'Model\Pathfinder\MapTypeModel',
                 'Model\Pathfinder\SystemTypeModel',
                 'Model\Pathfinder\SystemStatusModel',
-                'Model\Pathfinder\SystemNeighbourModel',
                 'Model\Pathfinder\RightModel',
                 'Model\Pathfinder\RoleModel',
                 'Model\Pathfinder\StructureModel',
@@ -105,19 +104,27 @@ class Setup extends Controller {
         'UNIVERSE' => [
             'info' => [],
             'models' => [
+                'Model\Universe\DogmaAttributeModel',
+                'Model\Universe\TypeAttributeModel',
                 'Model\Universe\TypeModel',
                 'Model\Universe\GroupModel',
                 'Model\Universe\CategoryModel',
                 'Model\Universe\FactionModel',
+                'Model\Universe\AllianceModel',
+                'Model\Universe\CorporationModel',
+                'Model\Universe\RaceModel',
+                'Model\Universe\StationModel',
                 'Model\Universe\StructureModel',
-                'Model\Universe\WormholeModel',
                 'Model\Universe\StargateModel',
                 'Model\Universe\StarModel',
                 'Model\Universe\PlanetModel',
                 'Model\Universe\SystemModel',
                 'Model\Universe\ConstellationModel',
                 'Model\Universe\RegionModel',
-                'Model\Universe\SystemStaticModel'
+                'Model\Universe\SystemNeighbourModel',
+                'Model\Universe\SystemStaticModel',
+                'Model\Universe\SovereigntyMapModel',
+                'Model\Universe\FactionWarSystemModel'
             ]
         ]
     ];
@@ -1665,18 +1672,111 @@ class Setup extends Controller {
              * @var $categoryUniverseModel Universe\CategoryModel
              */
             $categoryUniverseModel = Universe\AbstractUniverseModel::getNew('CategoryModel');
-            $categoryUniverseModel->getById(65, 0);
-            $structureCount = $categoryUniverseModel->getTypesCount(false);
+            $categoryUniverseModel->getById(Config::ESI_CATEGORY_STRUCTURE_ID, 0);
+            $groupsCountStructure = $categoryUniverseModel->getGroupsCount(false);
+            $typesCountStructure = $categoryUniverseModel->getTypesCount(false);
 
-            $categoryUniverseModel->getById(6, 0);
-            $shipCount = $categoryUniverseModel->getTypesCount(false);
+            $categoryUniverseModel->getById(Config::ESI_CATEGORY_SHIP_ID, 0);
+            $groupsCountShip = $categoryUniverseModel->getGroupsCount(false);
+            $typesCountShip = $categoryUniverseModel->getTypesCount(false);
 
             /**
-             * @var $systemNeighbourModel Pathfinder\SystemNeighbourModel
+             * @var $groupUniverseModel Universe\GroupModel
              */
-            $systemNeighbourModel = Pathfinder\AbstractPathfinderModel::getNew('SystemNeighbourModel');
+
+            $groupUniverseModel = Universe\AbstractUniverseModel::getNew('GroupModel');
+            $groupUniverseModel->getById(Config::ESI_GROUP_WORMHOLE_ID, 0);
+            $wormholeCount = $groupUniverseModel->getTypesCount(false);
+
+            /**
+             * @var $systemNeighbourModel Universe\SystemNeighbourModel
+             */
+            $systemNeighbourModel = Universe\AbstractUniverseModel::getNew('SystemNeighbourModel');
+
+            /**
+             * @var $systemStaticModel Universe\SystemStaticModel
+             */
+            $systemStaticModel = Universe\AbstractUniverseModel::getNew('SystemStaticModel');
+
+            if(empty($systemCountAll = count(($universeController = new UniverseController())->getSystemIds(true)))){
+                // no systems found in 'universe' DB. Clear potential existing system cache
+                $universeController->clearSystemsIndex();
+            }
+
+            $sum = function(int $carry, int $value) : int {
+                return $carry + $value;
+            };
 
             $indexInfo = [
+                'Wormholes' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Import',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'Wormholes data',
+                    'countBuild' => $wormholeCount,
+                    'countAll' => count(Universe\GroupModel::getUniverseGroupTypes(Config::ESI_GROUP_WORMHOLE_ID)),
+                    'tooltip' => 'import all wormhole types (e.g. L031) from ESI. Runtime: ~25s'
+                ],
+                'Structures' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Import',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'Structures data',
+                    'countBuild' => $groupsCountStructure,
+                    'countAll' => count(Universe\CategoryModel::getUniverseCategoryGroups(Config::ESI_CATEGORY_STRUCTURE_ID)),
+                    'tooltip' => 'import all structure types (e.g. Citadels) from ESI. Runtime: ~15s',
+                    'subCount' => [
+                        'countBuild' => $typesCountStructure,
+                        'countAll' => array_reduce(array_map('count', Universe\CategoryModel::getUniverseCategoryTypes(Config::ESI_CATEGORY_STRUCTURE_ID)), $sum, 0),
+                    ]
+                ],
+                'Ships' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Import',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'Ships data',
+                    'countBuild' => $groupsCountShip,
+                    'countAll' => count(Universe\CategoryModel::getUniverseCategoryGroups(Config::ESI_CATEGORY_SHIP_ID)),
+                    'tooltip' => 'import all ships from ESI. Runtime: ~2min',
+                    'subCount' => [
+                        'countBuild' => $typesCountShip,
+                        'countAll' => array_reduce(array_map('count', Universe\CategoryModel::getUniverseCategoryTypes(Config::ESI_CATEGORY_SHIP_ID)), $sum, 0),
+                    ]
+                ],
+                'SystemStatic' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Import',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'Wormhole statics data',
+                    'countBuild' => $systemStaticModel->getRowCount(),
+                    'countAll' => 3772,
+                    'tooltip' => 'import all static wormholes for systems. Runtime: ~25s'
+                ],
+                [
+                    'label' => 'Build search index',
+                    'icon' => 'fa-search',
+                    'tooltip' => 'Search indexes are build from static EVE universe data (e.g. systems, stargate connections,…). Re-build if underlying data was updated.'
+                ],
                 'Systems' => [
                     'task' => [
                         [
@@ -1691,81 +1791,36 @@ class Setup extends Controller {
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'label' => 'build systems index',
-                    'countBuild' => count((new UniverseController())->getSystemsIndex()),
-                    'countAll' => count((new UniverseController())->getSystemIds()),
-                    'tooltip' => 'build up a static search index over all systems found on DB. Do not refresh page until import is complete (check progress)! Runtime: ~5min'
-                ],
-                'Structures' => [
-                    'task' => [
-                        [
-                            'action' => 'buildIndex',
-                            'label' => 'Import',
-                            'icon' => 'fa-sync',
-                            'btn' => 'btn-primary'
-                        ]
-                    ],
-                    'label' => 'import structures data',
-                    'countBuild' => $structureCount,
-                    'countAll' => (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES'),
-                    'tooltip' => 'import all structure types (e.g. Citadels) from ESI. Runtime: ~15s'
-                ],
-                'Ships' => [
-                    'task' => [
-                        [
-                            'action' => 'buildIndex',
-                            'label' => 'Import',
-                            'icon' => 'fa-sync',
-                            'btn' => 'btn-primary'
-                        ]
-                    ],
-                    'label' => 'import ships data',
-                    'countBuild' => $shipCount,
-                    'countAll' => (int)$f3->get('REQUIREMENTS.DATA.SHIPS'),
-                    'tooltip' => 'import all ships types from ESI. Runtime: ~2min'
+                    'label' => 'Systems data index',
+                    'countBuild' => count($universeController->getSystemsIndex()),
+                    'countAll' => $systemCountAll,
+                    'tooltip' => 'Build up a static search index over all systems, found on DB. Runtime: ~5min'
                 ],
                 'SystemNeighbour' => [
                     'task' => [
                         [
+                            'action' => 'clearIndex',
+                            'label' => 'Clear',
+                            'icon' => 'fa-trash',
+                            'btn' => 'btn-danger'
+                        ],[
                             'action' => 'buildIndex',
                             'label' => 'Build',
                             'icon' => 'fa-sync',
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'label' => 'build neighbour index',
-                    'countBuild' => $f3->DB->getDB('PF')->getRowCount($systemNeighbourModel->getTable()),
+                    'label' => 'Systems neighbour index',
+                    'countBuild' => $systemNeighbourModel->getRowCount(),
                     'countAll' =>  (int)$f3->get('REQUIREMENTS.DATA.NEIGHBOURS'),
-                    'tooltip' => 'build up a static search index for route search. This is used as fallback in case ESI is down. Runtime: ~30s'
-
-                ],
-                // All following rows become deprecated
-                /*
-                'WormholeModel' => [
-                    'task' => [
-                        [
-                            'action' => 'exportTable',
-                            'label' => 'Export',
-                            'icon' => 'fa-download',
-                            'btn' => 'btn-default'
-                        ],[
-                            'action' => 'importTable',
-                            'label' => 'Import',
-                            'icon' => 'fa-upload',
-                            'btn' => 'btn-primary'
-                        ]
-                    ],
-                    'label' => 'wormhole',
-                    'countBuild' => $f3->DB->getDB('PF')->getRowCount($wormholeModel->getTable()),
-                    'countAll' => 89
+                    'tooltip' => 'Build up a static search index for route search. This is used as fallback in case ESI is down. Runtime: ~10s'
                 ]
-                */
             ];
         }else{
             $indexInfo = [
-                'SystemNeighbour' => [
-                    'task' => [],
-                    'label' => 'Fix database errors first!'
+                [
+                    'label' => 'Fix database errors first!',
+                    'class' => 'txt-color-danger text-center'
                 ]
             ];
         }

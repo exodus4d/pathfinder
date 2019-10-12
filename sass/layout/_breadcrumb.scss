@@ -95,7 +95,7 @@ $breadcrumb-arrow-size: 15px;
       margin-right: 5px;
     }
 
-    &>.fas{
+    &>.fas:last-of-type{
       margin-right: 5px !important;
     }
   }

@@ -17,6 +17,9 @@ use lib\logging;
 
 class MapModel extends AbstractMapTrackingModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'map';
 
     /**
@@ -27,6 +30,9 @@ class MapModel extends AbstractMapTrackingModel {
     const ERROR_SLACK_CHANNEL                       = 'Invalid #Slack channel column [%s]';
     const ERROR_DISCORD_CHANNEL                     = 'Invalid #Discord channel column [%s]';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -93,6 +99,12 @@ class MapModel extends AbstractMapTrackingModel {
             'activity-log' => true
         ],
         'persistentSignatures' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1,
+            'activity-log' => true
+        ],
+        'trackAbyssalJumps' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => 1,
@@ -223,6 +235,7 @@ class MapModel extends AbstractMapTrackingModel {
             $mapData->deleteEolConnections                  = $this->deleteEolConnections;
             $mapData->persistentAliases                     = $this->persistentAliases;
             $mapData->persistentSignatures                  = $this->persistentSignatures;
+            $mapData->trackAbyssalJumps                     = $this->trackAbyssalJumps;
 
             // map scope
             $mapData->scope                                 = (object) [];
@@ -563,41 +576,37 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get either all system models in this map
-     * @return SystemModel[]
+     * get systems in this map
+     * @return CortexCollection|array
      */
     protected function getSystems(){
-        $systems = [];
+        $filters = [
+            self::getFilter('active', true)
+        ];
 
-        // orderBy x-Coordinate for smoother frontend animation (left to right)
-        $this->filter('systems', ['active = 1'],
-            ['order' => 'posX']
-        );
-
-        if($this->systems){
-            $systems = $this->systems;
-        }
-
-        return $systems;
+        return $this->relFind('systems', $this->mergeFilter($filters)) ? : [];
     }
 
     /**
      * get all system data for all systems in this map
      * @return \stdClass[]
-     * @throws \Exception
      */
-    public function getSystemsData() : array{
-        $systemData = [];
-        $systems  = $this->getSystems();
+    public function getSystemsData() : array {
+        $systemsData = [];
 
-        foreach($systems as $system){
+        foreach($this->getSystems() as $system){
             /**
              * @var $system SystemModel
              */
-            $systemData[] = $system->getData();
+            $systemsData[] = $system->getData();
         }
 
-        return $systemData;
+        // orderBy x-Coordinate for smoother frontend animation (left to right)
+        usort($systemsData, function($sysDataA, $sysDataB){
+            return $sysDataA->position->x <=> $sysDataB->position->x;
+        });
+
+        return $systemsData;
     }
 
     /**
@@ -650,25 +659,24 @@ class MapModel extends AbstractMapTrackingModel {
      * @return \stdClass[]
      */
     public function getConnectionsData() : array {
-        $connectionData = [];
-        $connections  = $this->getConnections();
+        $connectionsData = [];
 
-        foreach($connections as $connection){
+        foreach($this->getConnections() as $connection){
             /**
              * @var $connection ConnectionModel
              */
-            $connectionData[] = $connection->getData(true);
+            $connectionsData[] = $connection->getData(true);
         }
 
-        return $connectionData;
+        return $connectionsData;
     }
 
     /**
      * get all structures data for this map
-     * @param array $systemIds
+     * @param int $systemId
      * @return array
      */
-    public function getStructuresData(array $systemIds = []) : array {
+    public function getStructuresData(int $systemId) : array {
         $structuresData = [];
         $corporations = $this->getAllCorporations();
 
@@ -676,7 +684,7 @@ class MapModel extends AbstractMapTrackingModel {
             // corporations should be unique
             if( !isset($structuresData[$corporation->_id]) ){
                 // get all structures for current corporation
-                $corporationStructuresData = $corporation->getStructuresData($systemIds);
+                $corporationStructuresData = $corporation->getStructuresData($systemId);
                 if( !empty($corporationStructuresData) ){
                     // corporation has structures
                     $structuresData[$corporation->_id] = [
@@ -819,11 +827,6 @@ class MapModel extends AbstractMapTrackingModel {
         $characters = [];
         $filter = ['active = ?', 1];
 
-        if( !empty($characterIds) ){
-            $filter[0] .= ' AND id IN (?)';
-            $filter[] =  $characterIds;
-        }
-
         $this->filter('mapCharacters', $filter);
 
         if($this->mapCharacters){
@@ -839,7 +842,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get corporations that have access to this map
      * @return CorporationModel[]
      */
-    public function getCorporations() : array {
+    private function getCorporations() : array {
         $corporations = [];
 
         if($this->isCorporation()){
@@ -847,7 +850,7 @@ class MapModel extends AbstractMapTrackingModel {
 
             if($this->mapCorporations){
                 foreach($this->mapCorporations as $mapCorporation){
-                    $corporations[] = $mapCorporation->corporationId;
+                    $corporations[$mapCorporation->corporationId->_id] = $mapCorporation->corporationId;
                 }
             }
         }

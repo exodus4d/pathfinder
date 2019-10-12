@@ -508,13 +508,13 @@
   &:active,
   &.active:not(.toggle-on):not(.toggle-off) {
     color: $color;
-    background-color: lighten($background, 8%);
-        border-color: lighten($border, 12%);
+    background-color: lighten($background, 6%);
+        border-color: lighten($border, 10%);
   }
   .open & { &.dropdown-toggle {
     color: $color;
-    background-color: lighten($background, 8%);
-        border-color: lighten($border, 12%);
+    background-color: lighten($background, 6%);
+        border-color: lighten($border, 10%);
   } }
   &:active,
   &.active {

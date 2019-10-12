@@ -44,10 +44,10 @@
                     <form role="form" class="form-horizontal">
 
                         <div class="row">
-                            <div class="col-xs-12 col-sm-6">
+                            <div class="col-xs-12 col-sm-12 col-md-8">
                                 <h4 class="pf-dynamic-area">Map options</h4>
 
-                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-6 col-md-4">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 checkbox">
                                             <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
@@ -58,7 +58,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-6 col-md-4">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 checkbox" >
                                             <input id="{{deleteEolConnectionsId}}" name="deleteEolConnections" value="1" type="checkbox" {{#deleteEolConnections}}checked{{/deleteEolConnections}}>
@@ -69,7 +69,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-6 col-md-4">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 checkbox">
                                             <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
@@ -80,7 +80,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-6 col-md-4">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 checkbox">
                                             <input id="{{persistentSignaturesId}}" name="persistentSignatures" value="1" type="checkbox" {{#persistentSignatures}}checked{{/persistentSignatures}}>
@@ -90,14 +90,25 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="col-xs-6 col-sm-6 col-md-4">
+                                    <div class="form-group">
+                                        <div class="col-xs-12 col-sm-12 checkbox">
+                                            <input id="{{trackAbyssalJumpsId}}" name="trackAbyssalJumps" value="1" type="checkbox" {{#trackAbyssalJumps}}checked{{/trackAbyssalJumps}}>
+                                            <label for="{{trackAbyssalJumpsId}}">Track "Abyssal" connections
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Jumps into 'Abyssal' sites are tracked on map"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
 
 
-                            <div class="col-xs-12 col-sm-6">
+                            <div class="col-xs-12 col-sm-12 col-md-4">
                                 <h4 class="pf-dynamic-area">Map logging</h4>
 
-                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-6 col-md-12">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 col-xs-6 checkbox">
                                             <input id="{{logHistoryId}}" name="logHistory" value="1" type="checkbox" {{#logHistory}}checked{{/logHistory}}>
@@ -108,7 +119,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-xs-6 col-sm-12 col-md-6">
+                                <div class="col-xs-6 col-sm-6 col-md-12">
                                     <div class="form-group">
                                         <div class="col-xs-12 col-sm-12 col-xs-6 checkbox">
                                             <input id="{{logActivityId}}" name="logActivity" value="1" type="checkbox" {{#logActivity}}checked{{/logActivity}}>

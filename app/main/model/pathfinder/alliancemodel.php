@@ -13,8 +13,14 @@ use lib\Config;
 
 class AllianceModel extends AbstractPathfinderModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'alliance';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -145,7 +151,7 @@ class AllianceModel extends AbstractPathfinderModel {
         if($this->isOutdated()){
             // request alliance data
             $allianceData = self::getF3()->ccpClient()->getAllianceData($id);
-            if( !empty($allianceData) ){
+            if(!empty($allianceData) && !isset($allianceData['error'])){
                 $this->copyfrom($allianceData, ['id', 'name', 'ticker']);
                 $this->save();
             }

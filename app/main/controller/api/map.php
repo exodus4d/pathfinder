@@ -52,13 +52,10 @@ class Map extends Controller\AccessController {
      * @throws Exception
      */
     public function initData(\Base $f3){
-        // expire time in seconds
-        $expireTimeCache = 60 * 60;
+        $validInitData = true;
+        $ttl = 60 * 60;
 
-        if(!$f3->exists(self::CACHE_KEY_INIT, $return)){
-            // response should not be cached if invalid -> e.g. missing static data
-            $validInitData = true;
-
+        if(!$exists = $f3->exists(self::CACHE_KEY_INIT, $return)){
             $return = (object) [];
             $return->error = [];
 
@@ -179,7 +176,10 @@ class Map extends Controller\AccessController {
             // get third party APIs -----------------------------------------------------------------------------------
             $return->url = [
                 'ccpImageServer'        => Config::getPathfinderData('api.ccp_image_server'),
-                'zKillboard'            => Config::getPathfinderData('api.z_killboard')
+                'zKillboard'            => Config::getPathfinderData('api.z_killboard'),
+                'eveeye'                => Config::getPathfinderData('api.eveeye'),
+                'dotlan'                => Config::getPathfinderData('api.dotlan'),
+                'anoik'                 => Config::getPathfinderData('api.anoik')
             ];
 
             // Character default config -------------------------------------------------------------------------------
@@ -199,29 +199,33 @@ class Map extends Controller\AccessController {
 
             // structure status ---------------------------------------------------------------------------------------
             $structureStatus = Pathfinder\StructureStatusModel::getAll();
-            $structureData = [];
+            $structureStatusData = [];
             foreach($structureStatus as $status){
-                $structureData[$status->_id] = $status->getData();
+                $structureStatusData[$status->_id] = $status->getData();
             }
-            $return->structureStatus = $structureData;
+            $return->structureStatus = $structureStatusData;
 
-            $validInitData = $validInitData ? !empty($structureData) : $validInitData;
+            $validInitData = $validInitData ? !empty($structureStatusData) : $validInitData;
 
             // get available wormhole types ---------------------------------------------------------------------------
             /**
-             * @var $wormhole Universe\WormholeModel
+             * @var $groupUniverseModel Universe\GroupModel
              */
-            $wormhole = Universe\AbstractUniverseModel::getNew('WormholeModel');
+            $groupUniverseModel = Universe\AbstractUniverseModel::getNew('GroupModel');
+            $groupUniverseModel->getById(Config::ESI_GROUP_WORMHOLE_ID);
             $wormholesData = [];
-            if($rows = $wormhole->find(null, ['order' => 'name asc'])){
-                foreach($rows as $rowData){
-                    $wormholesData[$rowData->name] = $rowData->getData();
+            /**
+             * @var $typeModel Universe\TypeModel
+             */
+            foreach($types = $groupUniverseModel->getTypes(false) as $typeModel){
+                if(
+                    ($wormholeData = $typeModel->getWormholeData()) &&
+                    mb_strlen((string)$wormholeData->name) === 4
+                ){
+                    $wormholesData[$wormholeData->name] = $wormholeData;
                 }
-
-                $wormhole->reset();
-                $wormhole->name = 'K162';
-                $wormholesData[$wormhole->name] = $wormhole->getData();
             }
+            ksort($wormholesData);
             $return->wormholes = $wormholesData;
 
             $validInitData = $validInitData ? !empty($wormholesData) : $validInitData;
@@ -231,20 +235,20 @@ class Map extends Controller\AccessController {
              * @var $categoryUniverseModel Universe\CategoryModel
              */
             $categoryUniverseModel = Universe\AbstractUniverseModel::getNew('CategoryModel');
-            $categoryUniverseModel->getById(6);
-            $shipData = $categoryUniverseModel->getData(['mass']);
-            $categoryUniverseModel->getById(65);
-            $structureData = $categoryUniverseModel->getData();
-
             $return->universeCategories = [
-                6  => $shipData,
-                65 => $structureData
+                Config::ESI_CATEGORY_SHIP_ID  =>
+                    ($categoryUniverseModel->getById(Config::ESI_CATEGORY_SHIP_ID) && $categoryUniverseModel->valid()) ? $categoryUniverseModel->getData(['mass']) : null,
+                Config::ESI_CATEGORY_STRUCTURE_ID =>
+                    ($categoryUniverseModel->getById(Config::ESI_CATEGORY_STRUCTURE_ID) && $categoryUniverseModel->valid()) ? $categoryUniverseModel->getData() : null,
             ];
 
-            $validInitData = $validInitData ? !empty($return->universeCategories[65]) : $validInitData;
+            $validInitData = $validInitData ? !count(array_filter($return->universeCategories, function($v){
+                return empty(array_filter((array)$v->groups));
+            })) : $validInitData;
 
+            // response should not be cached if invalid -> e.g. missing static data
             if($validInitData){
-                $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
+                $f3->set(self::CACHE_KEY_INIT, $return, $ttl);
             }
         }
 
@@ -257,6 +261,9 @@ class Map extends Controller\AccessController {
             $ssoError->message = $message;
             $return->error[] = $ssoError;
             $f3->clear(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
+        }elseif($validInitData){
+            // no errors and valid data -> send Cache header
+            $f3->expire(Config::ttlLeft($exists, $ttl));
         }
 
         echo json_encode($return);
@@ -871,6 +878,7 @@ class Map extends Controller\AccessController {
         $getMapUserData = (bool)$postData['getMapUserData'];
         $mapTracking = (bool)$postData['mapTracking'];
         $systemData = (array)$postData['systemData'];
+        $newSystemPositions = (array)$postData['newSystemPositions'];
         $activeCharacter = $this->getCharacter();
 
         $return = (object)[];
@@ -886,7 +894,7 @@ class Map extends Controller\AccessController {
             if( !is_null($map = $activeCharacter->getMap($mapId)) ){
                 // check character log (current system) and manipulate map (e.g. add new system)
                 if($mapTracking){
-                    $map = $this->updateMapByCharacter($map, $activeCharacter);
+                    $map = $this->updateMapByCharacter($map, $activeCharacter, $newSystemPositions);
                 }
 
                 // mapUserData ----------------------------------------------------------------------------------------
@@ -906,14 +914,13 @@ class Map extends Controller\AccessController {
                 // systemData -----------------------------------------------------------------------------------------
                 if(
                     $mapId === (int)$systemData['mapId'] &&
-                    !is_null($system = $map->getSystemById((int)$systemData['systemData']['id']))
+                    !is_null($system = $map->getSystemById((int)$systemData['id']))
                 ){
                     // data for currently selected system
                     $return->system = $system->getData();
                     $return->system->signatures = $system->getSignaturesData();
                     $return->system->sigHistory = $system->getSignaturesHistory();
                     $return->system->structures = $system->getStructuresData();
-
                 }
             }
         }
@@ -932,10 +939,11 @@ class Map extends Controller\AccessController {
      * update map connections/systems based on $character´s location logs
      * @param Pathfinder\MapModel $map
      * @param Pathfinder\CharacterModel $character
+     * @param array $newSystemPositions
      * @return Pathfinder\MapModel
      * @throws Exception
      */
-    protected function updateMapByCharacter(Pathfinder\MapModel $map, Pathfinder\CharacterModel $character) : Pathfinder\MapModel {
+    protected function updateMapByCharacter(Pathfinder\MapModel $map, Pathfinder\CharacterModel $character, array $newSystemPositions = []) : Pathfinder\MapModel {
         // map changed. update cache (system/connection) changed
         $mapDataChanged = false;
 
@@ -952,6 +960,9 @@ class Map extends Controller\AccessController {
             $sourceSystemId = (int)$sourceLog->systemId;
 
             if($sourceSystemId){
+                $defaultPositions = (array)$newSystemPositions['defaults'];
+                $currentPosition = (array)$newSystemPositions['location'];
+
                 $sourceSystem = null;
                 $targetSystem = null;
 
@@ -963,8 +974,8 @@ class Map extends Controller\AccessController {
                 // system coordinates for system tha might be added next
                 $systemOffsetX = 130;
                 $systemOffsetY = 0;
-                $systemPosX = 0;
-                $systemPosY = 30;
+                $systemPosX = ((int)$defaultPositions[0]['x']) ? : 0;
+                $systemPosY = ((int)$defaultPositions[0]['y']) ? : 30;
 
                 // check if previous (solo) system is already on the map ----------------------------------------------
                 $sourceSystem = $map->getSystemByCCPId($sourceSystemId, [AbstractModel::getFilter('active', true)]);
@@ -972,12 +983,10 @@ class Map extends Controller\AccessController {
                 // if systems don´t already exists on map -> get "blank" system
                 // -> required for system type check (e.g. wormhole, k-space)
                 if($sourceSystem){
+                    // system exists
                     $sourceExists = true;
-
-                    // system exists -> add target to the "right"
-                    $systemPosX = $sourceSystem->posX + $systemOffsetX;
-                    $systemPosY = $sourceSystem->posY + $systemOffsetY;
                 }else{
+                    // system not exists -> get"blank" system
                     $sourceSystem = $map->getNewSystem($sourceSystemId);
                 }
 
@@ -992,6 +1001,11 @@ class Map extends Controller\AccessController {
 
                     if($targetSystem){
                         $targetExists = true;
+
+                        if($targetSystemId === (int)$currentPosition['systemId']){
+                            $systemPosX = (int)$currentPosition['position']['x'];
+                            $systemPosY = (int)$currentPosition['position']['y'];
+                        }
                     }else{
                         $targetSystem = $map->getNewSystem($targetSystemId);
                     }
@@ -1062,6 +1076,24 @@ class Map extends Controller\AccessController {
                             break;
                     }
 
+                    // check for "abyss" systems =====================================================================
+                    if(!$map->trackAbyssalJumps){
+                        if(
+                            $sourceSystem->isAbyss() ||
+                            $targetSystem->isAbyss()
+                        ){
+                            $addConnection = false;
+
+                            if($sourceSystem->isAbyss()){
+                                $addSourceSystem = false;
+                            }
+
+                            if($targetSystem->isAbyss()){
+                                $addTargetSystem = false;
+                            }
+                        }
+                    }
+
                     // save source system =============================================================================
                     if(
                         $addSourceSystem &&
@@ -1074,9 +1106,15 @@ class Map extends Controller\AccessController {
                             $map = $sourceSystem->mapId;
                             $sourceExists = true;
                             $mapDataChanged = true;
-                            // increase system position (prevent overlapping)
-                            $systemPosX = $sourceSystem->posX + $systemOffsetX;
-                            $systemPosY = $sourceSystem->posY + $systemOffsetY;
+
+                            if(!empty($defaultPositions[1])){
+                                $systemPosX = (int)$defaultPositions[1]['x'];
+                                $systemPosY = (int)$defaultPositions[1]['y'];
+                            }else{
+                                // increase system position (prevent overlapping)
+                                $systemPosX = $sourceSystem->posX + $systemOffsetX;
+                                $systemPosY = $sourceSystem->posY + $systemOffsetY;
+                            }
                         }
                     }
 

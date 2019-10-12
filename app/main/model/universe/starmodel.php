@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class StarModel extends AbstractUniverseModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'star';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,
