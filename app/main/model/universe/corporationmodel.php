@@ -83,6 +83,22 @@ class CorporationModel extends AbstractUniverseModel {
     }
 
     /**
+     * @param $date
+     * @return string|null
+     */
+    public function set_dateFounded($date){
+        if(is_string($date) && !empty($date)){
+            try{
+                $dateTime  = new \DateTime($date);
+                $date = $dateTime->format('Y-m-d H:i:s');
+            }catch(\Exception $e){
+                $date = null;
+            }
+        }
+        return $date;
+    }
+
+    /**
      * load corporation by Id either from DB or load data from API
      * @param int $id
      * @param string $accessToken
