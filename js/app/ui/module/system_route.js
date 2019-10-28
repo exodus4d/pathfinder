@@ -1243,7 +1243,7 @@ define([
                         systemId: $(this).data('systemid'),
                         name: $(this).data('name')
                     };
-                    Util.setDestination(systemData, 'set_destination');
+                    Util.setDestination('set_destination', 'system', systemData);
 
                     // close popover
                     popoverRoot.popover('hide');

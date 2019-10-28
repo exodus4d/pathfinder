@@ -117,7 +117,6 @@ class System extends Controller\AccessController {
      */
     public function setDestination(\Base $f3){
         $postData = (array)$f3->get('POST');
-
         $return = (object) [];
         $return->error = [];
         $return->destData = [];
@@ -135,7 +134,7 @@ class System extends Controller\AccessController {
                 ];
 
                 foreach($destData as $data){
-                    $response =  $f3->ccpClient()->setWaypoint((int)$data['id'], $accessToken, $options);
+                    $response =  $f3->ccpClient()->setWaypoint((int)$data['systemId'], $accessToken, $options);
 
                     if(empty($response)){
                         $return->destData[] = $data;
@@ -187,4 +186,3 @@ class System extends Controller\AccessController {
     }
 
 }
-
