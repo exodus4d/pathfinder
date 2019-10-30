@@ -1240,10 +1240,10 @@ define([
                 popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
                     // hint: "data" attributes should be in lower case!
                     let systemData = {
-                        systemId: $(this).data('systemid'),
+                        id: $(this).data('systemid'),
                         name: $(this).data('name')
                     };
-                    Util.setDestination(systemData, 'set_destination');
+                    Util.setDestination('set_destination', 'system', systemData);
 
                     // close popover
                     popoverRoot.popover('hide');

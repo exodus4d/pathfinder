@@ -644,7 +644,7 @@ define([
             case 'add_first_waypoint':
             case 'add_last_waypoint':
                 systemData = system.getSystemData();
-                Util.setDestination(systemData, action);
+                Util.setDestination(action, 'system', {id: systemData.systemId, name: systemData.name});
                 break;
         }
     };
