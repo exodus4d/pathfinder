@@ -743,7 +743,7 @@ define([
                     data: null,
                     render: {
                         display: data => {
-                            let icon = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                            let icon = '<i class="fas fa-times txt-color txt-color-redDark"></i>';
                             if(data.rowGroupData.id !== corporationId){
                                 icon = '<i class="fas fa-ban txt-color txt-color-grayLight" title="restricted" data-placement="left"></i>';
                             }

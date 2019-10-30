@@ -761,7 +761,7 @@ define([
         let flagButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', flagButtonClass].join(' ') + '"></i>';
         let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
         let searchButton = '<i class="fas ' + ['fa-search'].join(' ') + '"></i>';
-        let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
+        let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDark'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
         let tableRowData = {

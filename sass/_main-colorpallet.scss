@@ -16,6 +16,7 @@
   &.txt-color-greenDark     { color: $green-dark  !important; }
   &.txt-color-redLight      { color: $redLight !important; }
   &.txt-color-red           { color: $red !important; }
+  &.txt-color-redDark       { color: $red-dark !important; }
   &.txt-color-redDarker     { color: $red-darker !important; }
   &.txt-color-yellow        { color: $yellow !important; }
   &.txt-color-yellowDark    { color: $yellow-dark !important; }
@@ -45,6 +46,7 @@
   &.txt-color-info          { color: $brand-info !important; }
   &.txt-color-warning       { color: $brand-warning !important; }
   &.txt-color-danger        { color: $brand-danger !important; }
+  &.txt-color-hint          { color: $brand-hint !important; }
 }
 /*
  * BACKGROUNDS

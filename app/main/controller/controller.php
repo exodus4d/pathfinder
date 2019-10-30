@@ -806,6 +806,26 @@ class Controller {
     }
 
     /**
+     * simple counter with "static" store
+     * -> called within tpl render
+     * @return \Closure
+     */
+    protected function counter() : \Closure {
+        $store = [];
+
+        return function(string $action = 'increment', string $type = 'default', $val = 0) use (&$store){
+            $return = null;
+            switch($action){
+                case 'increment': $store[$type]++; break;
+                case 'add': $store[$type] += (int)$val; break;
+                case 'get': $return = $store[$type] ? : null; break;
+                case 'reset': unset($store[$type]); break;
+            }
+            return $return;
+        };
+    }
+
+    /**
      * get controller by class name
      * -> controller class is searched within all controller directories
      * @param $className

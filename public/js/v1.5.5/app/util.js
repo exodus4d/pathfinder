@@ -448,7 +448,7 @@ define([
      * @param recursive
      * @returns {*}
      */
-    $.fn.destroyTooltip = function(recursive){
+    $.fn.destroyTooltips = function(recursive){
         return this.each(function(){
             let element = $(this);
             let tooltipSelector = '[title]';
@@ -1620,6 +1620,21 @@ define([
         parts.min = Math.floor(leftSec/(60));
         parts.sec = leftSec - parts.min * 60;
         return parts;
+    };
+
+    /**
+     * format json object with "time parts" into string
+     * @param parts
+     * @returns {string}
+     */
+    let formatTimeParts = parts => {
+        let label = '';
+        if(parts.days){
+            label += parts.days + 'd ';
+        }
+        label += ('00' + parts.hours).slice(-2);
+        label += ':' + ('00' + parts.min).slice(-2);
+        return label;
     };
 
     /**
@@ -3486,6 +3501,7 @@ define([
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,
         getTimeDiffParts: getTimeDiffParts,
+        formatTimeParts: formatTimeParts,
         timeStart: timeStart,
         timeStop: timeStop,
         updateCounter: updateCounter,

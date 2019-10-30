@@ -55,3 +55,14 @@ a.list-group-item.active > .badge,
 .nav-pills > li > a > .badge {
   margin-left: 3px;
 }
+
+// Colors
+// Contextual variations
+
+.badge-warning {
+  @include badge-variant($badge-warning-bg);
+}
+
+.badge-danger {
+  @include badge-variant($badge-danger-bg);
+}

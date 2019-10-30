@@ -9,6 +9,7 @@
 namespace Controller\Api;
 
 use Controller;
+use lib\Config;
 use Model\Pathfinder;
 
 class System extends Controller\AccessController {
@@ -39,7 +40,7 @@ class System extends Controller\AccessController {
         $cacheResponse = false;
 
         // number of log entries in each table per system (24 = 24h)
-        $logEntryCount = 24;
+        $logEntryCount = Pathfinder\AbstractSystemApiBasicModel::DATA_COLUMN_COUNT;
 
         $ttl = 60 * 10;
 
@@ -51,47 +52,47 @@ class System extends Controller\AccessController {
             'factionKills' => 'SystemFactionKillModel'
         ];
 
+        $exists = false;
+
         foreach($systemIds as $systemId){
             $cacheKey = $this->getSystemGraphCacheKey($systemId);
-            if( !$f3->exists($cacheKey, $graphData )){
+            if(!$exists = $f3->exists($cacheKey, $graphData)){
                 $graphData = [];
                 $cacheSystem = false;
 
-                foreach($logTables as $label => $ModelClass){
-                    $systemLogModel = Pathfinder\AbstractPathfinderModel::getNew($ModelClass);
+                foreach($logTables as $label => $className){
+                    $systemLogModel = Pathfinder\AbstractSystemApiBasicModel::getNew($className);
                     $systemLogExists = false;
 
                     // 10min cache (could be up to 1h cache time)
                     $systemLogModel->getByForeignKey('systemId', $systemId);
-                    if( !$systemLogModel->dry() ){
+                    if($systemLogModel->valid()){
                         $systemLogExists = true;
                         $cacheSystem = true;
                         $cacheResponse = true;
                     }
 
+                    $systemLogData = $systemLogModel->getData();
+
                     // podKills share graph with shipKills -> skip
                     if($label != 'podKills'){
                         $graphData[$label]['logExists'] = $systemLogExists;
+                        $graphData[$label]['updated'] = $systemLogData->updated;
                     }
 
-                    $counter = 0;
-                    for( $i = $logEntryCount; $i >= 1; $i--){
-                        $column = 'value' . $i;
-                        $value = $systemLogExists ? $systemLogModel->$column : 0;
-
-                        // ship and pod kills should be merged into one table
+                    $logValueCount = range(0, $logEntryCount - 1);
+                    foreach($logValueCount as $i){
                         if($label == 'podKills'){
-                            $graphData['shipKills']['data'][$counter]['z'] = $value;
+                            $graphData['shipKills']['data'][$i]['z'] = $systemLogData->values[$i];
                         }else{
-                            $dataSet = [
-                                'x' => ($i - 1) . 'h',
-                                'y' => $value
+                            $graphData[$label]['data'][] = [
+                                'x' => ($logEntryCount - $i - 1) . 'h',
+                                'y' => $systemLogData->values[$i]
                             ];
-                            $graphData[$label]['data'][] = $dataSet;
                         }
-                        $counter++;
                     }
                 }
+
                 if($cacheSystem){
                     $f3->set($cacheKey, $graphData, $ttl);
                 }
@@ -104,7 +105,7 @@ class System extends Controller\AccessController {
 
         if($cacheResponse){
             // send client cache header
-            $f3->expire($ttl);
+            $f3->expire(Config::ttlLeft($exists, $ttl));
         }
 
         echo json_encode($graphsData);

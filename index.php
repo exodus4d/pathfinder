@@ -15,6 +15,6 @@ $f3->config('app/config.ini', true);
 lib\Config::instance($f3);
 
 // initiate cron-jobs
-Cron::instance();
+lib\Cron::instance();
 
 $f3->run();

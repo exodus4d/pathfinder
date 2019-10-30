@@ -10,7 +10,10 @@ namespace cron;
 
 class StatisticsUpdate extends AbstractCron {
 
-    const LOG_TEXT_STATISTICS = '%s (%d rows)';
+    /**
+     * log text
+     */
+    const LOG_TEXT_STATISTICS = ', %5s rows deleted';
 
     /**
      * delete old statistics
@@ -19,7 +22,7 @@ class StatisticsUpdate extends AbstractCron {
      * @param \Base $f3
      */
     function deleteStatisticsData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__);
 
         $currentYear = (int)date('o');
         $currentWeek = (int)date('W');
@@ -40,8 +43,10 @@ class StatisticsUpdate extends AbstractCron {
 
         $deletedLogsCount = $pfDB->count();
 
-        // Log ------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write( sprintf(self::LOG_TEXT_STATISTICS, __FUNCTION__, $deletedLogsCount) );
+        // Log --------------------------------------------------------------------------------------------------------
+        $total = $count = $importCount = $deletedLogsCount;
+
+        $text = sprintf(self::LOG_TEXT_STATISTICS, $deletedLogsCount);
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount, 0, $text);
     }
 }

@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class SystemPodKillModel extends AbstractSystemApiBasicModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_kills_pods';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,

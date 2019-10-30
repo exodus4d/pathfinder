@@ -873,7 +873,7 @@ define([
                 let popoverElement = $(e.target).data('bs.popover').tip();
 
                 // destroy all active tooltips inside this popover
-                popoverElement.destroyTooltip(true);
+                popoverElement.destroyTooltips(true);
             });
 
             // global "modal" callback --------------------------------------------------------------------------------

@@ -14,9 +14,14 @@ use Model\Pathfinder;
 
 class MapUpdate extends AbstractCron {
 
-    const LOG_TEXT_MAPS = '%s (%d maps)';
+    /**
+     * log text
+     */
+    const LOG_TEXT_MAPS_DELETED = ', %3s maps deleted';
 
-    // disabled maps will be fully deleted after (x) days
+    /**
+     * disabled maps will be fully deleted after (x) days
+     */
     const DAYS_UNTIL_MAP_DELETION = 30;
 
     /**
@@ -25,7 +30,7 @@ class MapUpdate extends AbstractCron {
      * @param \Base $f3
      */
     function deactivateMapData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
         $privateMapLifetime = (int)Config::getMapsDefaultConfig('private.lifetime');
 
         if($privateMapLifetime > 0){
@@ -40,6 +45,8 @@ class MapUpdate extends AbstractCron {
                 $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
             }
         }
+
+        $this->logEnd(__FUNCTION__);
     }
 
     /**
@@ -49,8 +56,8 @@ class MapUpdate extends AbstractCron {
      * @throws \Exception
      */
     function deleteMapData(\Base $f3){
-        $this->setMaxExecutionTime();
-        $deletedMapsCount = 0;
+        $this->logStart(__FUNCTION__);
+        $total = 0;
 
         if($pfDB = $f3->DB->getDB('PF')){
             $sqlDeleteDisabledMaps = "SELECT
@@ -63,11 +70,11 @@ class MapUpdate extends AbstractCron {
 
             $disabledMaps = $pfDB->exec($sqlDeleteDisabledMaps, ['deletion_time' => self::DAYS_UNTIL_MAP_DELETION]);
 
-            if($deletedMapsCount = $pfDB->count()){
+            if($total = $pfDB->count()){
                 $mapModel =  Pathfinder\AbstractPathfinderModel::getNew('MapModel');
                 foreach($disabledMaps as $data){
                     $mapModel->getById( (int)$data['id'], 3, false );
-                    if( !$mapModel->dry() ){
+                    if($mapModel->valid()){
                          $mapModel->erase();
                     }
                     $mapModel->reset();
@@ -75,9 +82,11 @@ class MapUpdate extends AbstractCron {
             }
         }
 
-        // Log ------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deletedMapsCount) );
+        $count = $importCount = $total;
+
+        // Log --------------------------------------------------------------------------------------------------------
+        $text = sprintf(self::LOG_TEXT_MAPS_DELETED, $total);
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount, 0, $text);
     }
 
     /**
@@ -87,9 +96,11 @@ class MapUpdate extends AbstractCron {
      * @throws \Exception
      */
     function deleteEolConnections(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
         $eolExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_EOL');
 
+        $total = 0;
+        $count = 0;
         if($eolExpire > 0){
             if($pfDB = $f3->DB->getDB('PF')){
                 $sql = "SELECT
@@ -109,19 +120,25 @@ class MapUpdate extends AbstractCron {
                 ]);
 
                 if($connectionsData){
+                    $total = count($connectionsData);
                     /**
                      * @var $connection Pathfinder\ConnectionModel
                      */
                     $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
                     foreach($connectionsData as $data){
                         $connection->getById( (int)$data['id'] );
-                        if( !$connection->dry() ){
+                        if($connection->valid()){
                             $connection->erase();
+                            $count++;
                         }
                     }
                 }
             }
         }
+
+        $importCount = $total;
+
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount);
     }
 
     /**
@@ -131,7 +148,11 @@ class MapUpdate extends AbstractCron {
      * @throws \Exception
      */
     function deleteExpiredConnections(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
+
+        $total = 0;
+        $count = 0;
+
         $whExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_WH');
 
         if($whExpire > 0){
@@ -155,19 +176,25 @@ class MapUpdate extends AbstractCron {
                 ]);
 
                 if($connectionsData){
+                    $total = count($connectionsData);
                     /**
                      * @var $connection Pathfinder\ConnectionModel
                      */
                     $connection = Pathfinder\AbstractPathfinderModel::getNew('ConnectionModel');
                     foreach($connectionsData as $data){
                         $connection->getById( (int)$data['id'] );
-                        if( !$connection->dry() ){
+                        if($connection->valid()){
                             $connection->erase();
+                            $count++;
                         }
                     }
                 }
             }
         }
+
+        $importCount = $total;
+
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount);
     }
 
     /**
@@ -176,9 +203,10 @@ class MapUpdate extends AbstractCron {
      * @param \Base $f3
      */
     function deleteSignatures(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
         $signatureExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_SIGNATURES');
 
+        $count = 0;
         if($signatureExpire > 0){
             if($pfDB = $f3->DB->getDB('PF')){
                 $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
@@ -190,9 +218,13 @@ class MapUpdate extends AbstractCron {
                     TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
                 ";
 
-                $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
+                $count = $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
             }
         }
+
+        $importCount = $total = $count;
+
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount);
     }
 
 }

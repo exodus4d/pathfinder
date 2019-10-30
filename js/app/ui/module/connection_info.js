@@ -873,7 +873,7 @@ define([
                             display: data => {
                                 let val = '<i class="fas fa-plus"></i>';
                                 if(data){
-                                    val = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                                    val = '<i class="fas fa-times txt-color txt-color-redDark"></i>';
                                 }
                                 return val;
                             }

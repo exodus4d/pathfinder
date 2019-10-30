@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class SystemShipKillModel extends AbstractSystemApiBasicModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_kills_ships';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,

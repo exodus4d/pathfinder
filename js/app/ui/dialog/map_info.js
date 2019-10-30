@@ -456,7 +456,7 @@ define([
                     width: 10,
                     className: ['text-center', config.tableCellActionClass].join(' '),
                     data: null,
-                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDarker"></i>',
+                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDark"></i>',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
@@ -657,7 +657,7 @@ define([
                     width: 10,
                     className: ['text-center', config.tableCellActionClass].join(' '),
                     data: null,
-                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDarker"></i>',
+                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDark"></i>',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
@@ -1167,7 +1167,6 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                               // txt-color-redDarker
                                 value = '<i class="fas fa-code ' + config.tableCellActionIconClass + '"></i>';
                             }
                             return value;

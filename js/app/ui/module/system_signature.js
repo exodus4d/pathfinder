@@ -1957,7 +1957,7 @@ define([
                         display: (cellData, type, rowData, meta) => {
                             let val = '<i class="fas fa-plus"></i>';
                             if(rowData.id){
-                                val = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                                val = '<i class="fas fa-times txt-color txt-color-redDark"></i>';
                             }
                             return val;
                         }
@@ -2359,7 +2359,7 @@ define([
         let getIconByAction = action => {
           switch(action){
               case 'add':       return 'fa-plus txt-color-green';
-              case 'delete':    return 'fa-times txt-color-redDarker';
+              case 'delete':    return 'fa-times txt-color-redDark';
               case 'edit':      return 'fa-pen txt-color-orangeDark';
               case 'undo':      return 'fa-undo txt-color-grayLight';
               case 'sync':      return 'fa-exchange-alt txt-color-orangeDark';

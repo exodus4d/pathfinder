@@ -98,7 +98,7 @@ define([
                 {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'mass status', subitems: [
                         {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-gray', subAction: 'status_fresh', subText: 'stage 1 (fresh)'},
                         {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-orange', subAction: 'status_reduced', subText: 'stage 2 (reduced)'},
-                        {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-redDarker', subAction: 'status_critical', subText: 'stage 3 (critical)'}
+                        {subIcon: 'fa-circle', subIconClass: 'txt-color txt-color-redDark', subAction: 'status_critical', subText: 'stage 3 (critical)'}
 
                     ]},
                 {icon: 'fa-reply fa-rotate-180', action: 'wh_jump_mass_change', text: 'ship size', subitems: [

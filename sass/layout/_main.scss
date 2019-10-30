@@ -82,6 +82,35 @@ em,
   margin: 0;
 }
 
+// show/hide by [data-attr] value =================================================================
+.pf-hidden-by-attr{
+  &[data-attr='']{
+    display: none;
+  }
+
+  &:not([data-attr='']){
+    display: initial;
+  }
+
+  &:before{
+    content: attr(data-attr) ' ' attr(data-attr-label);
+  }
+}
+
+.pf-shown-by-attr{
+  &[data-attr='']{
+    display: initial;
+  }
+
+  &:not([data-attr='']){
+    display: none;
+  }
+
+  &:before{
+    content: attr(data-attr) ' ' attr(data-attr-label);
+  }
+}
+
 // scroll bar (webkit only) =======================================================================
 ::-webkit-scrollbar {
   display: none;  // hides the scrollbar but is still scrollable
@@ -128,6 +157,20 @@ em,
   color: $gray-darkest;
 }
 
+.row{
+  // swap render order
+  &-reverse{
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+// Flex layout ====================================================================================
+.pf-container-flex-end{
+  display: flex;
+  justify-content: flex-end;
+}
+
 // .well variants =================================================================================
 .well{
   &.well-text-number{
@@ -138,6 +181,11 @@ em,
     line-height: 16px;
     text-rendering: geometricPrecision;
   }
+}
+
+// .collapse ======================================================================================
+.collapse{
+  will-change: height;
 }
 
 // help elements ==================================================================================
@@ -623,6 +671,10 @@ table{
   }
 
   td, th{
+    &.separator-right{
+      border-right: 1px solid $gray-dark;
+    }
+
     &.pf-table-cell-10{
       width: 10px;
     }
@@ -665,6 +717,43 @@ table{
         &.smaller{
           height: 30px;
         }
+      }
+    }
+
+    &.pf-table-cell-chart{
+      position: relative;
+
+      svg.peity{
+        display: block;
+        position: absolute;
+        margin-top: -2px; // ugly fix
+      }
+    }
+
+    &.pf-table-cell-progress{
+      position: relative;
+
+      &:before{
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0; // default if no --width var set
+        width: calc(var(--width) * 1%);
+        height: 1px;
+        border-top: 1px solid $blue;
+      }
+
+      &:after{
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        border-width: 0 2px;
+        border-style: solid;
+        border-color: $gray-lighter;
       }
     }
   }
@@ -1007,7 +1096,7 @@ table{
 
 // User status ====================================================================================
 .pf-user-status{
-  color: $red-darker;
+  color: $red-dark;
 }
 
 .pf-user-status-corp{
@@ -1373,7 +1462,7 @@ table{
   }
 
   &.pf-map-connection-wh-critical{
-    background-color: $red-darker;
+    background-color: $red-dark;
   }
 
   &.pf-map-connection-wh-size-s,
@@ -1433,7 +1522,7 @@ table{
 
     &:after{
       content: 'save mass';
-      background-color: $red-darker;
+      background-color: $red-dark;
       color: $gray-lightest;
       left: calc(50% - 28px);
     }
@@ -1459,7 +1548,7 @@ table{
   }
 
   &.pf-wh-critical{
-    background-color: $red-darker;
+    background-color: $red-dark;
     color: $black;
   }
 
@@ -1479,7 +1568,7 @@ table{
 }
 
 .pf-structure-status-offline{
-  color: $red-darker;
+  color: $red-dark;
 }
 
 // global tooltip settings ========================================================================

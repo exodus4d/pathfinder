@@ -12,9 +12,15 @@ use Model;
 
 class Universe extends AbstractCron {
 
+    /**
+     * log text
+     */
     const LOG_TEXT = '%s type: %s  %s/%s peak: %s  total: %s  msg: %s';
-    const LOG_TEXT_SOV_FW = '%s %4s/%-4s checked, %s peak, %s total, %4s updated [%4s sovChanges, %4s fwChanges], msg: %s';
 
+    /**
+     * log text
+     */
+    const LOG_TEXT_SOV_FW = ', %4s changes → [%4s sovChanges, %4s fwChanges], msg: %s';
 
     /**
      * format counter for output (min length)
@@ -292,7 +298,9 @@ class Universe extends AbstractCron {
      * @throws \Exception
      */
     function updateSovereigntyData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__);
+        $params = $this->getParams(__FUNCTION__);
+
         $timeTotalStart = microtime(true);
         $msg = '';
 
@@ -306,13 +314,15 @@ class Universe extends AbstractCron {
         $fwSystems = $fwSystems['systems'];
         $ids = !empty($sovData = $sovData['map']) ? array_keys($sovData): [];
         sort($ids, SORT_NUMERIC);
+
+        $total = count($ids);
+        $offset = ($params['offset'] > 0 && $params['offset'] < $total) ? $params['offset'] : 0;
+        $ids = array_slice($ids, $offset, $params['length']);
         $importCount = count($ids);
         $count = 0;
 
         $changes = [];
         foreach($ids as $id){
-            $count++;
-
             // skip wormhole systems -> can not have sov data
             // -> even though they are returned from sovereignty/map endpoint?!
             if(
@@ -336,11 +346,12 @@ class Universe extends AbstractCron {
             }
             $system->reset();
 
+            $count++;
+
             // stop loop if runtime gets close to "max_execution_time"
             // -> we need some time for writing *.log file
             if(!$this->isExecutionTimeLeft($timeTotalStart)){
                 $msg = 'Script execution stopped due to "max_execution_time" limit reached';
-                // TODO  store current loop index and use it as new "offset" for next call
                 break;
             }
         }
@@ -349,13 +360,12 @@ class Universe extends AbstractCron {
             return array_unique(array_merge($reducedIds, $changedIds));
         }, []);
 
-        // Log ------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write(sprintf(self::LOG_TEXT_SOV_FW, __FUNCTION__,
-            $count, $importCount, $this->formatMemoryValue(memory_get_peak_usage ()),
-            $this->formatSeconds(microtime(true) - $timeTotalStart),
+        // Log --------------------------------------------------------------------------------------------------------
+        $text = sprintf(self::LOG_TEXT_SOV_FW,
             count($changedIds), count($changes['sovereignty'] ? : []), count($changes['factionWarfare'] ? : []),
-            $msg));
+            $msg);
+
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount, $offset, $text);
     }
 
     /**
@@ -366,7 +376,7 @@ class Universe extends AbstractCron {
      * @throws \Exception
      */
     function updateUniverseSystems(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__);
         /**
          * @var $systemModel Model\Universe\SystemModel
          * @var $system Model\Universe\SystemModel
@@ -378,6 +388,8 @@ class Universe extends AbstractCron {
                 $system->updateModel();
             }
         }
+
+        $this->logEnd(__FUNCTION__);
     }
 
 }

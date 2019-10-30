@@ -502,10 +502,10 @@ $mapBubbleWidth:        30px;
 
   // selected system
   .pf-system-selected:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
-    @include box-shadow($red-darkest 0px 0px 8px 0px);
-    background-color: $red-darkest;
+    @include box-shadow($red-darker 0px 0px 8px 0px);
+    background-color: $red-darker;
     .pf-system-head, .pf-system-body{
-      background-color: $red-darkest;
+      background-color: $red-darker;
     }
   }
 
@@ -623,8 +623,8 @@ $mapBubbleWidth:        30px;
 
   .jtk-endpoint-drop-forbidden{
     circle {
-      stroke: $red-darker !important;
-      fill: $red-darker !important;
+      stroke: $red-dark !important;
+      fill: $red-dark !important;
     }
   }
 
@@ -735,7 +735,7 @@ $mapBubbleWidth:        30px;
   .pf-map-connection-wh-critical {
 
     path:nth-child(2){
-      stroke: $red-darker;
+      stroke: $red-dark;
     }
   }
 
@@ -829,7 +829,7 @@ $mapBubbleWidth:        30px;
   }
 
   .mass{
-    background-color: $red-darker;
+    background-color: $red-dark;
     color: $gray-lightest;
   }
 

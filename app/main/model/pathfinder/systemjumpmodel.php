@@ -12,8 +12,14 @@ use DB\SQL\Schema;
 
 class SystemJumpModel extends AbstractSystemApiBasicModel {
 
+    /**
+     * @var string
+     */
     protected $table = 'system_jumps';
 
+    /**
+     * @var array
+     */
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
