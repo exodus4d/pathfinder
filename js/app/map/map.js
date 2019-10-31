@@ -1109,6 +1109,8 @@ define([
             width = parseInt(width.substring(0, width.length - 2)) || 0;
             height = parseInt(height.substring(0, height.length - 2)) || 0;
 
+            mapWrapper.trigger('pf:mapResize');
+
             let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
             promiseStore.then((data) => {
                 let storeData = true;
