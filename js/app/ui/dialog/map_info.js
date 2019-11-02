@@ -1249,7 +1249,7 @@ define([
             class: config.tableToolsClass
         }));
 
-        let buttons = new $.fn.dataTable.Buttons( logDataTable, {
+        let buttons = new $.fn.dataTable.Buttons(logDataTable, {
             buttons: [
                 {
                     className: 'btn btn-sm btn-default',

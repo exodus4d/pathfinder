@@ -53,7 +53,7 @@ requirejs.config({
         blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3  Image Gallery - https://github.com/blueimp/Gallery
         blueImpGalleryHelper: 'lib/blueimp-helper',                     //          helper function for Blue Imp Gallery
         blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.4.2   Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
-        bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.5   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
+        bootstrapConfirmation: 'lib/bootstrap-confirmation.min',        // v1.0.7   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
         bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0   Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
         lazyload: 'lib/jquery.lazyload.min',                            // v1.9.7   LazyLoader images - https://appelsiini.net/projects/lazyload/
         sortable: 'lib/sortable.min',                                   // v1.6.0   Sortable - drag&drop reorder - https://github.com/rubaxa/Sortable

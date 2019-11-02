@@ -134,11 +134,12 @@ class StructureModel extends AbstractPathfinderModel {
         if($corporationId){
             if($corporationId !== $oldCorporationId){
                 // make sure there is already corporation data available for new corporationId
+                // -> $ttl = 0 is important! Otherwise "bulk" update for structures could fail
                 /**
                  * @var CorporationModel $corporation
                  */
                 $corporation = $this->rel('corporationId');
-                $corporation->getById($corporationId);
+                $corporation->getById($corporationId, 0);
                 if($corporation->dry()){
                     $corporationId = null;
                 }
@@ -234,7 +235,7 @@ class StructureModel extends AbstractPathfinderModel {
      * @param int $systemId
      */
     public function getByName(CorporationModel $corporation, string $name, int $systemId){
-        if( !$corporation->dry() && $name){
+        if($corporation->valid() && $name){
             $this->has('structureCorporations', ['corporationId = :corporationId', ':corporationId' => $corporation->_id]);
             $this->load(['name = :name AND systemId = :systemId AND active = :active',
                 ':name' => $name,

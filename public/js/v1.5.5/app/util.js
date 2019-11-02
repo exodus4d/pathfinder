@@ -1684,23 +1684,25 @@ define([
      * @param maxCharLength
      */
     let updateCounter = (field, charCounterElement, maxCharLength) => {
-        let value = field.val();
-        let inputLength = value.length;
+        if(field.length){
+            let value = field.val();
+            let inputLength = value.length;
 
-        // line breaks are 2 characters!
-        let newLines = value.match(/(\r\n|\n|\r)/g);
-        let addition = 0;
-        if(newLines != null){
-            addition = newLines.length;
-        }
-        inputLength += addition;
+            // line breaks are 2 characters!
+            let newLines = value.match(/(\r\n|\n|\r)/g);
+            let addition = 0;
+            if(newLines != null){
+                addition = newLines.length;
+            }
+            inputLength += addition;
 
-        charCounterElement.text(maxCharLength - inputLength);
+            charCounterElement.text(maxCharLength - inputLength);
 
-        if(maxCharLength <= inputLength){
-            charCounterElement.toggleClass('txt-color-red', true);
-        }else{
-            charCounterElement.toggleClass('txt-color-red', false);
+            if(maxCharLength <= inputLength){
+                charCounterElement.toggleClass('txt-color-red', true);
+            }else{
+                charCounterElement.toggleClass('txt-color-red', false);
+            }
         }
     };
 

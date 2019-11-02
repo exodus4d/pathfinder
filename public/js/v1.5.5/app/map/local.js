@@ -362,7 +362,7 @@ define([
 
                     // mapWrapper should always exist
                     if(mapWrapper && mapWrapper.length) {
-                        // check available maxHeight for offset based on current map height (resizable)
+                        // check available maxHeight for "locale" table based on current map height (resizable)
                         let mapHeight = mapWrapper[0].offsetHeight;
                         let localOverlay = MapOverlayUtil.getMapOverlay(table, 'local');
                         let paginationElement = localOverlay.find('.dataTables_paginate');
@@ -415,8 +415,8 @@ define([
                     });
                 });
 
-                let localTable = table.DataTable( {
-                    pageLength: 5, // hint: if pagination visible => we need space to show it
+                let localTable = table.DataTable({
+                    pageLength: 5,
                     paging: true,
                     pagingType: 'simple',
                     lengthChange: false,
