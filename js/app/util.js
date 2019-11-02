@@ -554,7 +554,7 @@ define([
                 userData: userData,
                 otherCharacters: () => {
                     return userData.characters.filter((character, i) => {
-                        let characterImage = eveImageUrl('character', character.id);
+                        let characterImage = eveImageUrl('characters', character.id);
                         // preload image (prevent UI flicker
                         let img= new Image();
                         img.src = characterImage;
@@ -856,17 +856,37 @@ define([
 
     /**
      * get CCP image URLs for
-     * @param type 'alliance'|'corporation'|'character'|'type'|'render'
-     * @param id
+     * @param resourceType 'alliances'|'corporations'|'characters'|'types'
+     * @param $resourceId
      * @param size
+     * @param resourceVariant
      * @returns {boolean}
      */
-    let eveImageUrl = (type, id, size = 32) => {
+    let eveImageUrl = (resourceType, $resourceId, size = 32, resourceVariant = undefined) => {
         let url = false;
-        if(typeof type === 'string' && typeof id === 'number' && typeof size === 'number'){
-            type = type.capitalize();
-            let format = type === 'Character' ? 'jpg' : 'png';
-            url = Init.url.ccpImageServer + '/' + type + '/' + id + '_' + size + '.' + format;
+        if(
+            typeof resourceType === 'string' &&
+            typeof $resourceId === 'number' &&
+            typeof size === 'number'
+        ){
+            resourceType = resourceType.toLowerCase();
+
+            if(!resourceVariant){
+                switch(resourceType){
+                    case 'alliances':
+                    case 'corporations': resourceVariant = 'logo'; break;
+                    case 'characters': resourceVariant = 'portrait'; break;
+                    case 'types': resourceVariant = 'icon'; break;
+                    default:
+                        console.warn('Invalid resourceType: %o for in eveImageUrl()', resourceType);
+                }
+            }
+
+            url = [Init.url.ccpImageServer, resourceType, $resourceId, resourceVariant].join('/');
+
+            let params = {size: size};
+            let searchParams = new URLSearchParams(params); // jshint ignore:line
+            url += '?' + searchParams.toString();
         }
         return url;
     };

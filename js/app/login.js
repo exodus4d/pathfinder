@@ -689,6 +689,7 @@ define([
                             link: this.characterElement.data('href'),
                             cookieName: this.cookieName,
                             browserTabId: this.browserTabId,
+                            ccpImageServer: responseData.ccpImageServer,
                             character: responseData.character,
                             isManager: Util.getObjVal(responseData, 'character.role.name') === 'CORPORATION',
                             isAdmin: Util.getObjVal(responseData, 'character.role.name') === 'SUPER',

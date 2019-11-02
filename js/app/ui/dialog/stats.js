@@ -130,7 +130,7 @@ define([
                     data: 'character',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Util.eveImageUrl('character', parseInt(data.id)) + '"/>';
+                            return '<img src="' + Util.eveImageUrl('characters', parseInt(data.id)) + '"/>';
                         }
                     }
                 },{

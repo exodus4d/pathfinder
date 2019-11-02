@@ -470,7 +470,7 @@ define([
                                 _: (data, type, row, meta) => {
                                     let value = data.typeName;
                                     if(type === 'display'){
-                                        value = '<img src="' + Util.eveImageUrl('render', data.typeId) + '"/>';
+                                        value = '<img src="' + Util.eveImageUrl('types', data.typeId) + '"/>';
                                     }
                                     return value;
                                 }

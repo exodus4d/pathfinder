@@ -1060,7 +1060,7 @@ define([
                 if(changedCharacter){
                     // current character changed
                     userInfoElement.find('span').text(Util.getObjVal(userData, 'character.name'));
-                    userInfoElement.find('img').attr('src', Util.eveImageUrl('character', Util.getObjVal(userData, 'character.id')));
+                    userInfoElement.find('img').attr('src', Util.eveImageUrl('characters', Util.getObjVal(userData, 'character.id')));
                 }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
@@ -1145,7 +1145,7 @@ define([
                     if(isCurrentLocation && shipTypeId){
                         // show ship image
                         breadcrumbHtml += '<img class="pf-head-image --right" ';
-                        breadcrumbHtml += 'src="' + Util.eveImageUrl('render', shipTypeId) + '" ';
+                        breadcrumbHtml += 'src="' + Util.eveImageUrl('types', shipTypeId) + '" ';
                         breadcrumbHtml += 'title="' + shipTypeName + '" ';
                         breadcrumbHtml += '>';
                     }

@@ -166,7 +166,7 @@ define([
                 fwContestedRow.find('.' + config.systemSovFwPercentageClass).text(percentage);
                 fwContestedRow.show();
 
-                let occupierFactionImage = Util.eveImageUrl('alliance', (occupierFaction ? occupierFaction.id : 0), 64);
+                let occupierFactionImage = Util.eveImageUrl('alliances', (occupierFaction ? occupierFaction.id : 0), 64);
                 let occupierFactionName = occupierFaction ? occupierFaction.name : '';
 
                 fwOccupationRow.find('.' + config.systemSovFwOccupationImageClass)[0].style.setProperty('--bg-image', 'url(\'' + occupierFactionImage + '\')');
@@ -280,7 +280,7 @@ define([
             if(sovDataFact){
                 sovereigntyPrimary = {
                     row1Val: 'Faction',
-                    row1Img: Util.eveImageUrl('alliance', sovDataFact.id, 64),
+                    row1Img: Util.eveImageUrl('alliances', sovDataFact.id, 64),
                     row1ImgTitle: sovDataFact.name,
                     row2Val: sovDataFact.name
                 };
@@ -288,7 +288,7 @@ define([
                 if(sovDataAlly){
                     sovereigntyPrimary = {
                         row1Val: 'Alliance',
-                        row1Img: Util.eveImageUrl('alliance', sovDataAlly.id, 64),
+                        row1Img: Util.eveImageUrl('alliances', sovDataAlly.id, 64),
                         row1ImgTitle: sovDataAlly.name,
                         row2Val: '<' + sovDataAlly.ticker + '>',
                         row3Label: 'Ally',
@@ -299,7 +299,7 @@ define([
                     sovereigntySecondary = {
                         row1Label: 'Corp',
                         row1Val: sovDataCorp.name,
-                        row1Img: Util.eveImageUrl('corporation', sovDataCorp.id, 64)
+                        row1Img: Util.eveImageUrl('corporations', sovDataCorp.id, 64)
                     };
                 }
             }

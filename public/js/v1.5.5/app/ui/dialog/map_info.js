@@ -764,7 +764,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(data && type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('render', value.typeId) + '" title="' + value.typeName + '" data-toggle="tooltip" />';
+                                value = '<img src="' + Util.eveImageUrl('types', value.typeId) + '" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
                         }
@@ -802,7 +802,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
+                                value = '<img src="' + Util.eveImageUrl('characters', value) + '"/>';
                             }
                             return value;
                         }
@@ -842,7 +842,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('corporation', value.id) + '"/>';
+                                value = '<img src="' + Util.eveImageUrl('corporations', value.id) + '"/>';
                             }
                             return value;
                         }
@@ -1125,7 +1125,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
+                                value = '<img src="' + Util.eveImageUrl('characters', value) + '"/>';
                             }
                             return value;
                         }

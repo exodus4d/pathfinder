@@ -399,7 +399,11 @@
           background: rgba($gray, 0.80);
           overflow: hidden;
           will-change: width, transition;
-          padding: 10px 0;
+          padding: 5px 0;
+
+          .pf-character-info-img{
+            width: 36px;
+          }
 
           .pf-character-info-text{
             line-height: 25px;

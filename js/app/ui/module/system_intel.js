@@ -552,7 +552,7 @@ define([
                     if (!last || last.id !== group.id) {
                         // "stations" are grouped by "raceId" with its "factionId"
                         // "structures" are grouped by "corporationId" that ADDED it (not the ingame "owner" of it)
-                        let imgType = 'stations' === group.groupedDataKey ? 'alliance' : 'corporation';
+                        let imgType = 'stations' === group.groupedDataKey ? 'alliances' : 'corporations';
 
                         $(rows).eq(i).before(
                             '<tr class="group">' +
@@ -657,7 +657,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display' && value){
-                                value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
+                                value = '<img src="' + Util.eveImageUrl('types', value, 64) +'"/>';
                             }
                             return value;
                         }
@@ -691,7 +691,7 @@ define([
                             let value = data;
                             if(type === 'display' && value){
                                 value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
+                                value += '<img src="' + Util.eveImageUrl('corporations', data, 64) + '"/>';
                                 value += '</a>';
                             }
                             return value;
@@ -995,7 +995,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data;
                                 if(type === 'display' && value){
-                                    value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
+                                    value = '<img src="' + Util.eveImageUrl('types', value, 64) +'"/>';
                                 }
                                 return value;
                             }
@@ -1091,7 +1091,7 @@ define([
                                 let value = data;
                                 if(type === 'display' && value){
                                     value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                    value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
+                                    value += '<img src="' + Util.eveImageUrl('corporations', data, 64) + '"/>';
                                     value += '</a>';
                                 }
                                 return value;

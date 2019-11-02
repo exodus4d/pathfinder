@@ -93,7 +93,10 @@ class Controller {
         }else{
             $this->initResource($f3);
 
-            $this->setTemplate( Config::getPathfinderData('view.index') );
+            $this->setTemplate(Config::getPathfinderData('view.index'));
+
+
+            $f3->set('tplImage', \lib\format\Image::instance());
         }
 
         return true;
@@ -165,7 +168,7 @@ class Controller {
             'font'      => $f3->get('BASE') . '/public/fonts',
             'document'  => $f3->get('BASE') . '/public/templates',
             'image'     => $f3->get('BASE') . '/public/img'
-        ]);
+        ], true);
 
         $resource->register('style', 'pathfinder');
 
@@ -177,6 +180,10 @@ class Controller {
         $resource->register('font', 'fa-regular-400');
         $resource->register('font', 'fa-solid-900');
         $resource->register('font', 'fa-brands-400');
+
+        $resource->register('url', self::getEnvironmentData('CCP_SSO_URL'), 'prerender');
+        $resource->register('url', Config::getPathfinderData('api.ccp_image_server'), 'dns-prefetch');
+        $resource->register('url', '//i.ytimg.com', 'dns-prefetch'); // YouTube tiny embed domain
 
         $f3->set('tplResource', $resource);
     }
