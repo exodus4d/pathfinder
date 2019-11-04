@@ -1196,12 +1196,16 @@ define([
      */
     let activateCell = (cell) => {
         let cellElement = cell.nodes().to$();
-        // NO xEditable
-        cellElement.focus();
+        // check if cell is visible and not e.g. immediately filtered out by a search filter
+        // -> https://github.com/exodus4d/pathfinder/issues/865
+        if(cellElement.is(':visible')){
+            // NO xEditable
+            cellElement.focus();
 
-        if( cellElement.data('editable') ){
-            // cell is xEditable field -> show xEditable form
-            cellElement.editable('show');
+            if( cellElement.data('editable') ){
+                // cell is xEditable field -> show xEditable form
+                cellElement.editable('show');
+            }
         }
     };
 
