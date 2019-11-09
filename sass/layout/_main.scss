@@ -15,6 +15,7 @@ body{
   cursor: default;
 }
 
+// links ==========================================================================================
 a, .pf-link{
   color: $teal;
   will-change: color;
@@ -29,6 +30,12 @@ a, .pf-link{
 
   &:focus{
     color: $teal;
+  }
+
+  &.disabled{
+    color: $navbar-default-link-color;
+    pointer-events: none;
+    cursor: default;
   }
 }
 
@@ -159,7 +166,7 @@ em,
 
 .row{
   // swap render order
-  &-reverse{
+  &--reverse{
     display: flex;
     flex-direction: column-reverse;
   }
@@ -242,15 +249,30 @@ em,
   user-select: text;
 }
 
-// links ==========================================================================================
-a{
-  &.disabled{
-    color: $navbar-default-link-color;
-    pointer-events: none;
-    cursor: default;
-  }
+%pf-bg-image-wrapper{
+  background-size: contain;
+  background-origin: content-box;
+  background-repeat: no-repeat;
+  background-image: var(--bg-image);
+  background-position: bottom 0 right 0;
+  image-rendering: -webkit-optimize-contrast;
 }
 
+.pf-bg-icon-inline{
+  @extend %pf-bg-image-wrapper;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: -5px 5px;
+  outline: 1px solid;
+  outline-color: transparent;
+  outline-offset: 2px;
+  @include transition(outline-color 0.15s ease-out);
+
+  &:hover{
+    outline-color: $teal;
+  }
+}
 // alert messages =================================================================================
 .alert{
   will-change: opacity, transform;
@@ -703,13 +725,8 @@ table{
       border-top-color: transparent !important;
 
       .pf-table-cell-bg-image-wrapper{
+        @extend %pf-bg-image-wrapper;
         display: block;
-        background-size: contain;
-        background-origin: content-box;
-        background-repeat: no-repeat;
-        background-image: var(--bg-image);
-        background-position: bottom 0 right 0;
-        image-rendering: -webkit-optimize-contrast;
         width: auto;
         height: 40px;
         padding: 2px 0;

@@ -18,6 +18,9 @@ define([
         // navigation
         navigationElementId: 'pf-navbar',                               // id for navbar element
 
+        // sticky panel
+        stickyPanelClass: 'pf-landing-sticky-panel',                    // class for sticky panels
+
         hiddenByAttributeClass: 'pf-hidden-by-attr',                    // class for elements that are hidden/shown by [data-attr] value
         shownByAttributeClass: 'pf-shown-by-attr',                      // class for elements that are hidden/shown by [data-attr] value
 
@@ -85,10 +88,17 @@ define([
         // collapse ---------------------------------------------------------------------------------------------------
         setCollapseObserver(body, '[data-toggle="collapse"]');
 
+        // panel actions ----------------------------------------------------------------------------------------------
+        let collapsedState = false;
+        $('.' + config.stickyPanelClass + ' a[data-panel-action="collapse-all"]').on('click', function(e){
+           e.preventDefault();
+            $('.row.collapse').collapse(collapsedState ? 'show' : 'hide');
+            collapsedState = !collapsedState;
+        });
+
         // buttons ----------------------------------------------------------------------------------------------------
         // exclude "download" && "navigation" buttons
         body.find('.btn')
-            .not('.navbar-fixed-bottom .btn')
             .not('[data-action]')
             .not('[href^="?export"]')
             .on('click', function(){

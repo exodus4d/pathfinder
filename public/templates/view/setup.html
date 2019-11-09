@@ -31,7 +31,7 @@
 </section>
 
 <section id="pf-setup-server">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-server collapse in">
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -184,7 +184,7 @@
 </section>
 
 <section id="pf-setup-environment">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-environment collapse in">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                 {* Framework requirements (PHP) *}
@@ -249,7 +249,7 @@
 </section>
 
 <section id="pf-setup-settings">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-settings collapse in">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                 <div class="panel panel-default pricing-big">
@@ -404,7 +404,7 @@
 </section>
 
 <section id="pf-setup-database">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-database collapse in">
 
             <repeat group="{{ @checkDatabase }}" key="{{ @dbKey }}" value="{{ @dbInformation }}">
@@ -916,7 +916,7 @@
 </section>
 
 <section id="pf-setup-cache">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-cache collapse in">
             <check if="{{ @checkRedisInformation }}">
                 <true>
@@ -1045,7 +1045,7 @@
 </section>
 
 <section id="pf-setup-socket">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-socket collapse in">
 
             <repeat group="{{ @socketInformation }}" key="{{ @socketType }}" value="{{ @socketData }}">
@@ -1185,7 +1185,7 @@
 </section>
 
 <section id="pf-setup-cronjob">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-cronjob collapse in">
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -1285,7 +1285,7 @@
 </section>
 
 <section id="pf-setup-administration">
-    <div class="container row-reverse">
+    <div class="container row--reverse">
         <div class="row text-center pf-setup-body-administration collapse in">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
 
@@ -1407,28 +1407,36 @@
                     </div>
 
                     <div class="panel-body no-padding">
-                        <repeat group="{{ @checkDirSize.dirAll }}" key="{{ @key }}" value="{{ @dirData }}">
-                            <div class="btn-group btn-group-justified">
-                                <span class="btn btn-default disabled btn-fake">
-                                    {{ @dirData.label }}
-                                    <kbd class="pull-right">{{ @dirData.path }}&nbsp;→
-                                        <check if="{{ @dirData.size }}">
-                                            <true>
-                                                {{ @dirData.size }}
-                                            </true>
-                                            <false>
-                                                0KB
-                                            </false>
-                                        </check>
-                                    </kbd>
-                                </span>
-                                <repeat group="{{ @dirData.task }}"  value="{{ @taskData }}">
-                                    <a href="?{{ @taskData.action }}#pf-setup-administration" class="btn {{ @taskData.btn }}" role="button">
-                                        <i class="fas fa-fw {{ @taskData.icon }}"></i> {{ @taskData.label }}
-                                    </a>
-                                </repeat>
-                            </div>
-                        </repeat>
+                        <table class="table">
+                            <thead>
+                            <repeat group="{{ @checkDirSize.dirAll }}" key="{{ @key }}" value="{{ @dirData }}">
+                                <tr>
+                                    <td>{{ @dirData.label }}</td>
+                                    <td class="col-xs-3 text-right">
+                                        <kbd>{{ @dirData.path }}&nbsp;→
+                                            <check if="{{ @dirData.size }}">
+                                                <true>
+                                                    {{ @dirData.size }}
+                                                </true>
+                                                <false>
+                                                    0KB
+                                                </false>
+                                            </check>
+                                        </kbd>
+                                    </td>
+                                    <td class="col-xs-6 no-padding">
+                                        <div class="btn-group btn-group-justified">
+                                            <repeat group="{{ @dirData.task }}"  value="{{ @taskData }}">
+                                                <a href="?{{ @taskData.action }}#pf-setup-administration" class="btn {{ @taskData.btn }}" role="button">
+                                                    <i class="fas fa-fw {{ @taskData.icon }}"></i>&nbsp;{{ @taskData.label }}
+                                                </a>
+                                            </repeat>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </repeat>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -1443,12 +1451,23 @@
                     </div>
 
                     <div class="panel-body no-padding">
-                        <div class="btn-group btn-group-justified">
-                            <span class="btn btn-default disabled btn-fake">Invalidate all Cookie data</span>
-                            <a href="?action=invalidateCookies#pf-setup-administration" class="btn btn-danger" role="button">
-                                <i class="fas fa-fw fa-trash"></i> Clear authentication data
-                            </a>
-                        </div>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <td>Invalidate all Cookie data</td>
+                                <td class="col-xs-6 no-padding">
+                                    <div class="btn-group btn-group-justified">
+                                        <a class="btn btn-danger" href="?action=invalidateCookies#pf-setup-administration" role="button" >
+                                            <i class="fas fa-fw fa-trash"></i>&nbsp;Clear authentication data
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -1491,4 +1510,5 @@
 </nav>
 
 {* footer *}
-<include href="templates/layout/footer_simple.html"/>
+<set panel2="{{ [['icon' => 'far fa-window-maximize', 'label' => 'toggle', 'action' => 'collapse-all']] }}" />
+<include href="templates/layout/footer_simple.html" with="p2={{ @panel2 }}"/>
