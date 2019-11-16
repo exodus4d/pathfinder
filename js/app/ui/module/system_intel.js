@@ -552,7 +552,7 @@ define([
                     if (!last || last.id !== group.id) {
                         // "stations" are grouped by "raceId" with its "factionId"
                         // "structures" are grouped by "corporationId" that ADDED it (not the ingame "owner" of it)
-                        let imgType = 'stations' === group.groupedDataKey ? 'alliances' : 'corporations';
+                        let imgType = 'stations' === group.groupedDataKey ? 'factions' : 'corporations';
 
                         $(rows).eq(i).before(
                             '<tr class="group">' +

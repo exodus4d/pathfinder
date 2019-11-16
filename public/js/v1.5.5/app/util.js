@@ -873,6 +873,7 @@ define([
 
             if(!resourceVariant){
                 switch(resourceType){
+                    case 'factions': resourceType = 'corporations'; // faction icons are on 'corporations' endpoint.. CCP fail?!
                     case 'alliances':
                     case 'corporations': resourceVariant = 'logo'; break;
                     case 'characters': resourceVariant = 'portrait'; break;
