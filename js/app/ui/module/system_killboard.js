@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/cache',
     'morris'
-], ($, Init, Util, Morris) => {
+], ($, Init, Util, Cache, Morris) => {
     'use strict';
 
     let config = {
@@ -39,7 +40,12 @@ define([
         maxCountKills: 43
     };
 
-    let cache = {};
+    let cache = new Cache({
+        name: 'killboardModule',
+        ttl: 60 * 60,
+        maxSize: 600,
+        debug: false
+    });
 
     /**
      *
@@ -59,9 +65,10 @@ define([
      */
     let loadKillmailData = (requestData, context, callback) => {
         let cacheKey = 'killmail_' + requestData.killId;
-        if(cache[cacheKey]){
+        let responseData = cache.get(cacheKey);
+        if(responseData){
             // ... already cached -> return from cache
-            callback(context, cache[cacheKey])
+            callback(context, responseData)
                 .then(payload => showKills(payload.data.killboardElement, payload.data.systemId, payload.data.chunkSize));
         }else{
             // ...not cached -> request data
@@ -73,7 +80,7 @@ define([
                 dataType: 'json',
                 context: context
             }).done(function(responseData){
-                cache[cacheKey] = responseData;
+                cache.set(cacheKey, responseData);
 
                 callback(this, responseData)
                     .then(payload => showKills(payload.data.killboardElement, payload.data.systemId, payload.data.chunkSize));
@@ -93,12 +100,14 @@ define([
      */
     let showKills = (killboardElement, systemId, chunkSize) => {
         if(chunkSize){
+            let cacheKey = 'zkb_' + systemId;
+            let data = cache.getOrDefault(cacheKey, []);
             if(
                 killboardElement.children().length < config.maxCountKills &&
-                cache['zkb_' + systemId].length
+                data.length
             ){
                 // next killmail to load
-                let nextZkb = cache['zkb_' + systemId].shift();
+                let nextZkb = data.shift();
 
                 loadKillmailData({
                     killId: parseInt(nextZkb.killmail_id) || 0,
@@ -219,7 +228,7 @@ define([
         }).done(function(result){
             // zkb result needs to be cached and becomes reduced on "load more"
             let cacheKey = 'zkb_' + systemData.systemId;
-            cache[cacheKey] = result;
+            cache.set(cacheKey, result);
 
             if(result.length){
                 // kills found -> insert hidden warning for recent kills

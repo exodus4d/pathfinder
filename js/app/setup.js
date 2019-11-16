@@ -9,7 +9,7 @@ define([
     'app/render',
     'app/map/worker',
     'peityInlineChart',
-], function($, Init, Util, Render, MapWorker){
+], ($, Init, Util, Render, MapWorker) => {
     'use strict';
 
     let config = {

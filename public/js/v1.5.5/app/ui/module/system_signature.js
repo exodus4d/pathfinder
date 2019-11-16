@@ -6,12 +6,13 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/cache',
     'bootbox',
     'app/counter',
     'app/map/map',
     'app/map/util',
     'app/ui/form_element'
-], ($, Init, Util, bootbox, Counter, Map, MapUtil, FormElement) => {
+], ($, Init, Util, Cache, bootbox, Counter, Map, MapUtil, FormElement) => {
     'use strict';
 
     let config = {
@@ -51,6 +52,7 @@ define([
 
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (sig name)
 
+        tableCellTypeClass: 'pf-table-type-cell',                               // class for "type" cells
         tableCellConnectionClass: 'pf-table-connection-cell',                   // class for "connection" cells
         tableCellFocusClass: 'pf-table-focus-cell',                             // class for "tab-able" cells. enable focus()
         tableCellCounterClass: 'pf-table-counter-cell',                         // class for "counter" cells
@@ -76,7 +78,12 @@ define([
         sigInfoCountConDeleteId: 'pf-sig-info-count-con-delete'                 // id for "connection delete" counter
     };
 
-    let sigNameCache = {};                                                      // cache signature names
+    let sigTypeOptionsCache = new Cache({                                       // cache signature names
+        name: 'sigTypeOptions',
+        ttl: 60 * 5,
+        maxSize: 100,
+        debug: false
+    });
 
     let validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
@@ -244,7 +251,7 @@ define([
      * @param groupId
      * @returns {Array}
      */
-    let getAllSignatureNames = (systemData, systemTypeId, areaId, groupId) => {
+    let getSignatureTypeOptions = (systemData, systemTypeId, areaId, groupId) => {
         systemTypeId    = parseInt(systemTypeId || 0);
         areaId          = parseInt(areaId || 0);
         groupId         = parseInt(groupId || 0);
@@ -257,16 +264,18 @@ define([
 
         let cacheKey = [systemTypeId, areaId, groupId].join('_');
 
+        newSelectOptions = sigTypeOptionsCache.getOrDefault(cacheKey, []);
+
         // check for cached signature names
-        if(sigNameCache.hasOwnProperty( cacheKey )){
+        if(newSelectOptions.length){
             // cached signatures do not include static WHs!
             // -> ".slice(0)" creates copy
-            newSelectOptions =  sigNameCache[cacheKey].slice(0);
+            newSelectOptions = newSelectOptions.slice(0);
             newSelectOptionsCount = getOptionsCount('children', newSelectOptions);
         }else{
             // get new Options ----------
             // get all possible "static" signature names by the selected groupId
-            let tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
+            let tempSelectOptions = Util.getSignatureTypeNames(systemTypeId, areaId, groupId);
 
             // format options into array with objects advantages: keep order, add more options (whs), use optgroup
             if(tempSelectOptions){
@@ -351,7 +360,7 @@ define([
             }
 
             // update cache (clone array) -> further manipulation to this array, should not be cached
-            sigNameCache[cacheKey] = newSelectOptions.slice(0);
+            sigTypeOptionsCache.set(cacheKey, newSelectOptions.slice(0));
         }
 
         // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics,...
@@ -382,11 +391,11 @@ define([
      * @param groupId
      * @returns {Array}
      */
-    let getAllSignatureNamesBySystem = (systemElement, groupId) => {
+    let getSignatureTypeOptionsBySystem = (systemElement, groupId) => {
         let systemTypeId = systemElement.data('typeId');
         let areaId = Util.getAreaIdBySecurity(systemElement.data('security'));
         let systemData = {statics: systemElement.data('statics')};
-        return getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
+        return getSignatureTypeOptions(systemData, systemTypeId, areaId, groupId);
     };
 
     /**
@@ -882,7 +891,7 @@ define([
                             // try to get "typeId" from description string
                             let sigDescriptionLowerCase = sigDescription.toLowerCase();
 
-                            let typeOptions = getAllSignatureNames(
+                            let typeOptions = getSignatureTypeOptions(
                                 systemData,
                                 systemData.type.id,
                                 Util.getAreaIdBySecurity(systemData.security),
@@ -1721,7 +1730,7 @@ define([
                     title: 'type',
                     type: 'string',     // required for sort/filter because initial data type is numeric
                     width: 180,
-                    class: [config.tableCellFocusClass].join(' '),
+                    class: [config.tableCellFocusClass, config.tableCellTypeClass].join(' '),
                     data: 'typeId',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tableApi = this.api();
@@ -1749,7 +1758,7 @@ define([
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 let rowData = tableApi.row($(cell).parents('tr')).data();
 
-                                let typeOptions = getAllSignatureNames(
+                                let typeOptions = getSignatureTypeOptions(
                                     systemData,
                                     systemData.type.id,
                                     Util.getAreaIdBySecurity(systemData.security),
@@ -1760,7 +1769,7 @@ define([
                             display: function(value, sourceData){
                                 let selected = $.fn.editableutils.itemsByValue(value, sourceData);
                                 if(selected.length && selected[0].value > 0){
-                                    $(this).html(FormElement.formatSignatureTypeSelectionData({text: selected[0].text}));
+                                    $(this).html(FormElement.formatSignatureTypeSelectionData({text: selected[0].text}, undefined, {showWhSizeLabel: true}));
                                 }else{
                                     $(this).empty();
                                 }
@@ -3307,6 +3316,6 @@ define([
         updateModule: updateModule,
         beforeHide: beforeHide,
         beforeDestroy: beforeDestroy,
-        getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
+        getSignatureTypeOptionsBySystem: getSignatureTypeOptionsBySystem
     };
 });

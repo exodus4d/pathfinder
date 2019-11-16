@@ -2586,7 +2586,7 @@ define([
      * @param sigGroupId
      * @returns {{}}
      */
-    let getAllSignatureNames = (systemTypeId, areaId, sigGroupId) => {
+    let getSignatureTypeNames = (systemTypeId, areaId, sigGroupId) => {
         let signatureNames = {};
         if(
             SignatureType[systemTypeId] &&
@@ -3553,7 +3553,7 @@ define([
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
         getSignatureGroupOptions: getSignatureGroupOptions,
-        getAllSignatureNames: getAllSignatureNames,
+        getSignatureTypeNames: getSignatureTypeNames,
         getAreaIdBySecurity: getAreaIdBySecurity,
         setCurrentMapUserData: setCurrentMapUserData,
         getCurrentMapUserData: getCurrentMapUserData,

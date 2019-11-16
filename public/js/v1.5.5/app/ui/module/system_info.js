@@ -604,7 +604,7 @@ define([
                         break;
                     }
                 }
-            })
+            });
 
             // init tooltips ------------------------------------------------------------------------------------------
             let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');

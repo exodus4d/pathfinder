@@ -530,7 +530,7 @@ define([
                     // ... get endpoint label for source || target system
                     if(tmpSystem && tmpSystem){
                         // ... get all  available signature type (wormholes) names
-                        let availableSigTypeNames = SystemSignatures.getAllSignatureNamesBySystem(tmpSystem, 5);
+                        let availableSigTypeNames = SystemSignatures.getSignatureTypeOptionsBySystem(tmpSystem, 5);
                         let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
 
                         if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){

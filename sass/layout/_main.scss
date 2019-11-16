@@ -187,6 +187,9 @@ em,
     letter-spacing: .02em;
     line-height: 16px;
     text-rendering: geometricPrecision;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 }
 
@@ -535,6 +538,25 @@ select:active, select:hover {
       &:hover{
         > .pf-table-action-icon-cell{
           @extend .txt-color-orange;
+        }
+      }
+    }
+
+    &.pf-table-type-cell{
+      > span {
+        &:first-child{
+          display: inline-block;
+          width: 28px;
+        }
+        &:nth-child(2){
+          display: inline-block;
+          width: 22px;
+
+          kbd{
+            &:empty{
+              display: none;
+            }
+          }
         }
       }
     }
