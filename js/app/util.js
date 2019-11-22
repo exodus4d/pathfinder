@@ -742,7 +742,7 @@ define([
 
             let defaultOptions = {
                 dismissible: true,
-                messageId: 'pf-alert-' + Math.random().toString(36).substring(7),
+                messageId: getRandomString('pf-alert-'),
                 messageTypeClass: messageTypeClass,
                 messageTextClass: messageTextClass,
                 insertElement: 'replace'
@@ -873,7 +873,8 @@ define([
 
             if(!resourceVariant){
                 switch(resourceType){
-                    case 'factions': resourceType = 'corporations'; // faction icons are on 'corporations' endpoint.. CCP fail?!
+                    // faction icons are on 'corporations' endpoint.. CCP fail?!
+                    case 'factions': resourceType = 'corporations'; // jshint ignore:line
                     case 'alliances':
                     case 'corporations': resourceVariant = 'logo'; break;
                     case 'characters': resourceVariant = 'portrait'; break;
@@ -1581,6 +1582,14 @@ define([
     };
 
     /**
+     * get a random string
+     * -> e.g. as for Ids
+     * @param prefix
+     * @returns {string}
+     */
+    let getRandomString = (prefix = 'id_') => prefix + Math.random().toString(36).substring(2,10);
+
+    /**
      * get date obj with current EVE Server Time.
      * @returns {Date}
      */
@@ -1857,7 +1866,7 @@ define([
         let key = 'tabId';
         let tabId = sessionStorage.getItem(key);
         if(tabId === null){
-            tabId = Math.random().toString(36).substr(2, 5);
+            tabId = getRandomString();
             sessionStorage.setItem(key, tabId);
         }
         return tabId;
@@ -3521,6 +3530,7 @@ define([
         initDefaultSelect2Config: initDefaultSelect2Config,
         initDefaultEditableConfig: initDefaultEditableConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
+        getRandomString: getRandomString,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,
         getTimeDiffParts: getTimeDiffParts,

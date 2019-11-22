@@ -6,6 +6,7 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/counter',
     'app/logging',
     'mustache',
     'app/map/util',
@@ -26,7 +27,7 @@ define([
     'dialog/credit',
     'xEditable',
     'app/module_map'
-], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplHead, TplFooter) => {
+], ($, Init, Util, Counter, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -879,7 +880,6 @@ define([
             // global "modal" callback --------------------------------------------------------------------------------
             bodyElement.on('hide.bs.modal', '> .modal', e => {
                 let modalElement = $(e.target);
-                modalElement.destroyTimestampCounter(true);
 
                 // destroy all form validators
                 // -> does not work properly. validation functions still used (js error) after 'destroy'
@@ -892,6 +892,14 @@ define([
                 modalElement.find('.' + Util.config.select2Class)
                     .filter((i, element) => $(element).data('select2'))
                     .select2('destroy');
+
+                // destroy DataTable instances
+                for(let table of modalElement.find('table.dataTable')){
+                    $(table).DataTable().destroy(true);
+                }
+
+                // destroy counter
+                Counter.destroyTimestampCounter(modalElement, true);
             });
 
             // global "close" trigger for context menus ---------------------------------------------------------------

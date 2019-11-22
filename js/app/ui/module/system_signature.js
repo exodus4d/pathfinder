@@ -6,13 +6,13 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/cache',
     'bootbox',
     'app/counter',
     'app/map/map',
     'app/map/util',
+    'app/lib/cache',
     'app/ui/form_element'
-], ($, Init, Util, Cache, bootbox, Counter, Map, MapUtil, FormElement) => {
+], ($, Init, Util, bootbox, Counter, Map, MapUtil, Cache, FormElement) => {
     'use strict';
 
     let config = {
@@ -482,7 +482,7 @@ define([
                 // hide row
 
                 // stop sig counter by adding a stopClass to each <td>, remove padding
-                cellElements.addClass('stopCounter')
+                cellElements.addClass(Counter.config.counterStopClass)
                     .velocity({
                         paddingTop: [0, '4px'],
                         paddingBottom: [0, '4px'],

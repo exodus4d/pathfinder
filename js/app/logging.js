@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/counter',
     'bootbox'
-], ($, Init, Util, bootbox) => {
+], ($, Init, Util, Counter, bootbox) => {
 
     'use strict';
 
@@ -31,11 +32,11 @@ define([
      * updated "sync status" dynamic dialog area
      */
     let updateSyncStatus = () => {
-
         // check if task manager dialog is open
         let logDialog = $('#' + config.taskDialogId);
         if(logDialog.length){
             // dialog is open
+            let statusArea = logDialog.find('.' + config.taskDialogStatusAreaClass);
             requirejs(['text!templates/modules/sync_status.html', 'mustache'], (templateSyncStatus, Mustache) => {
                 let data = {
                     timestampCounterClass: config.timestampCounterClass,
@@ -49,10 +50,12 @@ define([
                 };
 
                 let syncStatusElement = $(Mustache.render(templateSyncStatus, data ));
+                Counter.destroyTimestampCounter(statusArea, true);
 
-                logDialog.find('.' + config.taskDialogStatusAreaClass).html( syncStatusElement );
+                statusArea.html(syncStatusElement);
 
-                logDialog.find('.' + config.timestampCounterClass).initTimestampCounter();
+                let counterElements = syncStatusElement.find('.' + config.timestampCounterClass);
+                Counter.initTimestampCounter(counterElements);
 
                 syncStatusElement.initTooltips({
                     placement: 'right'

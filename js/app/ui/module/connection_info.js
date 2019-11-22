@@ -7,8 +7,9 @@ define([
     'app/init',
     'app/util',
     'bootbox',
+    'app/counter',
     'app/map/util'
-], ($, Init, Util, bootbox, MapUtil) => {
+], ($, Init, Util, bootbox, Counter, MapUtil) => {
     'use strict';
 
     let config = {
@@ -827,10 +828,7 @@ define([
                         title: 'log',
                         width: 55,
                         className: ['text-right', config.tableCellCounterClass].join(' '),
-                        data: 'created.created',
-                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                            $(cell).initTimestampCounter('d');
-                        }
+                        data: 'created.created'
                     },{
                         targets: 5,
                         name: 'edit',
@@ -931,6 +929,9 @@ define([
                         }
                     }
                 ],
+                initComplete: function(settings, json){
+                    Counter.initTableCounter(this, ['created:name']);
+                },
                 drawCallback: function(settings){
                     let animationRows = this.api().rows().nodes().to$().filter(function(a,b ){
                         return (

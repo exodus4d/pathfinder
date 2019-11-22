@@ -7,10 +7,10 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
     'app/counter',
+    'bootbox',
     'app/map/util'
-], ($, Init, Util, Render, bootbox, Counter, MapUtil) => {
+], ($, Init, Util, Render, Counter, bootbox, MapUtil) => {
 
     'use strict';
 
@@ -182,7 +182,7 @@ define([
         mapElement.append(dlElementRight);
 
         // init map lifetime counter
-        $('.' + config.mapInfoLifetimeCounterClass).initTimestampCounter();
+        Counter.initTimestampCounter($('.' + config.mapInfoLifetimeCounterClass));
 
         mapElement.find('.' + config.textActionIconCopyClass).on('click', function(){
            let mapUrl = $(this).find('span').text().trim();

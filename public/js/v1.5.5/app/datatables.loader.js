@@ -1,6 +1,7 @@
 define([
     'jquery',
     'app/init',
+    'app/counter',
     'app/promises/promise.deferred',
     'app/promises/promise.timeout',
     'datatables.net',
@@ -8,7 +9,7 @@ define([
     'datatables.net-buttons-html',
     'datatables.net-responsive',
     'datatables.net-select'
-], ($, Init, DeferredPromise, TimeoutPromise) => {
+], ($, Init, Counter, DeferredPromise, TimeoutPromise) => {
     'use strict';
 
     // all Datatables stuff is available...
@@ -42,7 +43,7 @@ define([
             }
 
             // remove all active counters in table
-            table.destroyTimestampCounter(true);
+            Counter.destroyTimestampCounter(table, true);
         });
 
         // Status Plugin ==============================================================================================

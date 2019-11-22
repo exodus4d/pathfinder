@@ -6,9 +6,8 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/cache',
-    'morris'
-], ($, Init, Util, Cache, Morris) => {
+    'app/lib/cache'
+], ($, Init, Util, Cache) => {
     'use strict';
 
     let config = {

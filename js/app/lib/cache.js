@@ -126,13 +126,13 @@ define([], () => {
     let Cache = class Cache {
 
         constructor(config){
-            this.config = Object.assign({
+            this.config = Object.assign({},{
                 name:       'Default',          // custom name for identification
-                ttl:        3600,
-                maxSize:    600,
-                bufferSize: 10,                 // in percent
-                strategy:   'FIFO',
-                debug:      false
+                ttl:        3600,               // default ttl for cache entries
+                maxSize:    600,                // max cache entries
+                bufferSize: 10,                 // cache entry count in percent to be removed if maxSize reached
+                strategy:   'FIFO',             // cache strategy policy
+                debug:      false               // debug output in console
             }, config);
 
             this.store      = new Map();
