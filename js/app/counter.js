@@ -1,9 +1,8 @@
 define([
     'jquery',
-    'app/init',
     'app/util',
     'app/lib/cron'
-], ($, Init, Util, Cron) => {
+], ($, Util, Cron) => {
     'use strict';
 
     let config = {

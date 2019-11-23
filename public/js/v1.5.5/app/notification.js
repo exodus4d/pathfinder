@@ -8,8 +8,7 @@ define([
     'pnotify.desktop',
     //'pnotify.history',
     'pnotify.callbacks'
-], function($, Init, PNotify){
-
+], ($, Init, PNotify) => {
     'use strict';
 
     let config = {
@@ -76,7 +75,7 @@ define([
      * @param customConfig
      * @param settings
      */
-    let showNotify = function(customConfig, settings){
+    let showNotify = (customConfig, settings) => {
         customConfig = $.extend(true, {}, config, customConfig );
 
         // desktop notification
@@ -149,7 +148,7 @@ define([
      * change document.title and make the browsers tab blink
      * @param blinkTitle
      */
-    let startTabBlink = function(blinkTitle){
+    let startTabBlink = blinkTitle => {
         let initBlink = (function(blinkTitle){
 
             // count blinks if tab is currently active
@@ -174,7 +173,7 @@ define([
                     blinkTimer = setInterval(blink, 1000);
                 }
             };
-        }( blinkTitle ));
+        }(blinkTitle));
 
         initBlink();
     };
@@ -182,7 +181,7 @@ define([
     /**
      * stop blinking document.title
      */
-    let stopTabBlink = function(){
+    let stopTabBlink = () => {
         if(blinkTimer){
             clearInterval(blinkTimer);
             document.title = initialPageTitle;

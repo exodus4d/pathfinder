@@ -68,12 +68,16 @@ define([
             return this._name;
         }
 
-        get precision(){
-            return this._config.precision;
-        }
-
         get task(){
             return this._task;
+        }
+
+        get runCount(){
+            return this._runCount;
+        }
+
+        get precision(){
+            return this._config.precision;
         }
 
         set task(task){

@@ -4,7 +4,7 @@
 define([
     'jquery',
     'app/init',
-    'app/console',
+    'app/lib/console',
     'conf/system_effect',
     'conf/signature_type',
     'bootbox',

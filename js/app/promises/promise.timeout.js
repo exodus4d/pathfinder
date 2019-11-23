@@ -43,7 +43,6 @@ define([], () => {
         constructor(callback, timeout = 6000){
             let timer;
             let promise = callback[Symbol.toStringTag] === 'Promise' ? callback : new Promise(callback);
-            //let promise = new Promise(callback);
 
             let wrapperPromise = Promise.race([
                 promise,
@@ -63,7 +62,6 @@ define([], () => {
                     reject(error);
                 });
             });
-
         }
     };
 });
