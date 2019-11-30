@@ -4,6 +4,7 @@
 define([
     'jquery',
     'app/init',
+    'app/lib/prototypes',
     'app/lib/console',
     'conf/system_effect',
     'conf/signature_type',
@@ -19,7 +20,7 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Con, SystemEffect, SignatureType, bootbox, localforage) => {
+], ($, Init, Proto, Con, SystemEffect, SignatureType, bootbox, localforage) => {
 
     'use strict';
 
@@ -973,85 +974,6 @@ define([
      */
     let initPrototypes = () => {
 
-        /**
-         * Array diff
-         * [1,2,3,4,5].diff([4,5,6]) => [1,2,3]
-         * @param a
-         * @returns {*[]}
-         */
-        Array.prototype.diff = function(a){
-            return this.filter(i => !a.includes(i));
-        };
-
-        /**
-         * Array intersect
-         * [1,2,3,4,5].intersect([4,5,6]) => [4,5]
-         * @param a
-         * @returns {*[]}
-         */
-        Array.prototype.intersect = function(a){
-            return this.filter(i => a.includes(i));
-        };
-
-        /**
-         * compares two arrays if all elements in a are also in b
-         * element order is ignored
-         * @param a
-         * @returns {boolean}
-         */
-        Array.prototype.equalValues = function(a){
-            return this.diff(a).concat(a.diff(this)).length === 0;
-        };
-
-        /**
-         * sort array of objects by property name
-         * @param p
-         * @returns {Array.<T>}
-         */
-        Array.prototype.sortBy = function(p){
-            return this.slice(0).sort((a,b) => {
-                return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-            });
-        };
-
-        /**
-         * capitalize first letter
-         * @returns {string}
-         */
-        String.prototype.capitalize = function(){
-            return this.charAt(0).toUpperCase() + this.slice(1);
-        };
-
-        /**
-         * get hash from string
-         * @returns {number}
-         */
-        String.prototype.hashCode = function(){
-            let hash = 0, i, chr;
-            if(this.length === 0) return hash;
-            for(i = 0; i < this.length; i++){
-                chr   = this.charCodeAt(i);
-                hash  = ((hash << 5) - hash) + chr;
-                hash |= 0; // Convert to 32bit integer
-            }
-            return hash;
-        };
-
-        String.prototype.trimLeftChars = function(charList){
-            if(charList === undefined)
-                charList = '\\s';
-            return this.replace(new RegExp('^[' + charList + ']+'), '');
-        };
-
-        String.prototype.trimRightChars = function(charList){
-            if(charList === undefined)
-                charList = '\\s';
-            return this.replace(new RegExp('[' + charList + ']+$'), '');
-        };
-
-        String.prototype.trimChars = function(charList){
-            return this.trimLeftChars(charList).trimRightChars(charList);
-        };
 
         initPassiveEvents();
     };
@@ -2590,23 +2512,16 @@ define([
     };
 
     /**
-     * get Signature names out of global
-     * @param systemTypeId
-     * @param areaId
-     * @param sigGroupId
+     * get signature 'type' options for a systemTypeId
+     * -> areaIds is array! This is used for "Shattered WHs" where e.g.:
+     *    Combat/Relic/.. sites from multiple areaIds (C1, C2, C3) can spawn in a C2,...
+     * @param systemTypeId  1 == w-space; 2 == k-space; 3 == a-space
+     * @param areaIds       1 == c1; 2 == c2; 12 == Thera; 13 == Shattered Frig;...
+     * @param sigGroupId    1 == Combat; 2 == Relic; 3 == Data; ...
      * @returns {{}}
      */
-    let getSignatureTypeNames = (systemTypeId, areaId, sigGroupId) => {
-        let signatureNames = {};
-        if(
-            SignatureType[systemTypeId] &&
-            SignatureType[systemTypeId][areaId] &&
-            SignatureType[systemTypeId][areaId][sigGroupId]
-        ){
-            signatureNames =  SignatureType[systemTypeId][areaId][sigGroupId];
-        }
-
-        return signatureNames;
+    let getSignatureTypeNames = (systemTypeId, areaIds, sigGroupId) => {
+        return objCombine(...areaIds.map(areaId => getObjVal(SignatureType, [systemTypeId, areaId, sigGroupId].join('.')) || {}));
     };
 
     /**
@@ -3395,6 +3310,21 @@ define([
             obj[item[keyField]] = item;
             return obj;
         }, {});
+
+    /**
+     * combines multiple objects into one object
+     * -> removes duplicate values
+     * -> properties are indexed 1, 2,..n
+     * @param objects
+     * @returns {{[p: string]: *}}
+     */
+    let objCombine = (...objects) => {
+        let combined = objects.reduce((acc, obj) => acc.concatFilter(Object.values(obj)), []);
+        combined.unshift('');  // properties should start at 1 (not 0)
+        combined = {...combined};
+        delete combined[0];
+        return combined;
+    };
 
     /**
      * get deep json object value if exists

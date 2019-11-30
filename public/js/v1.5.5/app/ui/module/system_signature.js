@@ -229,6 +229,30 @@ define([
     };
 
     /**
+     * Some signatures types can spawn in more than one 'areaId' for a 'groupId'
+     * -> e.g. a 'shattered' C3 WHs have Combat/Relic/.. sites from C2, C3, c4!
+     *    https://github.com/exodus4d/pathfinder/issues/875
+     * @param systemTypeId
+     * @param areaId
+     * @param groupId
+     * @param shattered
+     * @returns {[*]}
+     */
+    let getAreaIdsForSignatureTypeOptions = (systemTypeId, areaId, groupId, shattered = false) => {
+        let areaIds = [areaId];
+
+        if(
+            systemTypeId === 1 && shattered &&
+            [1, 2, 3, 4, 5, 6].includes(areaId) &&
+            [1, 2, 3, 4, 6].includes(groupId)
+        ){
+            areaIds = [areaId - 1, areaId, areaId + 1].filter(areaId => areaId >= 1 && areaId <= 6);
+        }
+
+        return areaIds;
+    };
+
+    /**
      * get possible frig holes that could spawn in a system
      * filtered by "systemTypeId"
      * @param systemTypeId
@@ -245,13 +269,14 @@ define([
     /**
      * get all signature types that can exist for a given system
      * -> result is partially cached
-     * @param systemData
      * @param systemTypeId
      * @param areaId
      * @param groupId
-     * @returns {Array}
+     * @param statics
+     * @param shattered
+     * @returns {[]|*}
      */
-    let getSignatureTypeOptions = (systemData, systemTypeId, areaId, groupId) => {
+    let getSignatureTypeOptions = (systemTypeId, areaId, groupId, {statics = null, shattered = false} = {}) => {
         systemTypeId    = parseInt(systemTypeId || 0);
         areaId          = parseInt(areaId || 0);
         groupId         = parseInt(groupId || 0);
@@ -262,7 +287,10 @@ define([
             return newSelectOptions;
         }
 
-        let cacheKey = [systemTypeId, areaId, groupId].join('_');
+        // check if sig types require more than one 'areaId' to be checked
+        let areaIds = getAreaIdsForSignatureTypeOptions(systemTypeId, areaId, groupId, shattered);
+
+        let cacheKey = [systemTypeId, ...areaIds, groupId].join('_');
 
         newSelectOptions = sigTypeOptionsCache.getOrDefault(cacheKey, []);
 
@@ -275,7 +303,7 @@ define([
         }else{
             // get new Options ----------
             // get all possible "static" signature names by the selected groupId
-            let tempSelectOptions = Util.getSignatureTypeNames(systemTypeId, areaId, groupId);
+            let tempSelectOptions = Util.getSignatureTypeNames(systemTypeId, areaIds, groupId);
 
             // format options into array with objects advantages: keep order, add more options (whs), use optgroup
             if(tempSelectOptions){
@@ -312,7 +340,7 @@ define([
                         frigateHoles.hasOwnProperty(frigKey)
                     ){
                         newSelectOptionsCount++;
-                        frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
+                        frigateWHData.push({value: newSelectOptionsCount, text: frigateHoles[frigKey]});
                     }
                 }
 
@@ -329,7 +357,7 @@ define([
                             Init.drifterWormholes.hasOwnProperty(drifterKey)
                         ){
                             newSelectOptionsCount++;
-                            drifterWHData.push( {value: newSelectOptionsCount, text: Init.drifterWormholes[drifterKey]} );
+                            drifterWHData.push({value: newSelectOptionsCount, text: Init.drifterWormholes[drifterKey]});
                         }
                     }
 
@@ -346,12 +374,12 @@ define([
                         Init.incomingWormholes.hasOwnProperty(incomingKey)
                     ){
                         newSelectOptionsCount++;
-                        incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
+                        incomingWHData.push({value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]});
                     }
                 }
 
                 if(incomingWHData.length > 0){
-                    newSelectOptions.push({ text: 'Incoming', children: incomingWHData});
+                    newSelectOptions.push({text: 'Incoming', children: incomingWHData});
                 }
             }else{
                 // groups without "children" (optgroup) should be sorted by "value"
@@ -363,17 +391,17 @@ define([
             sigTypeOptionsCache.set(cacheKey, newSelectOptions.slice(0));
         }
 
-        // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics,...
+        // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics..)
         if(groupId === 5){
             // add static WH(s) for this system
-            if(systemData.statics){
+            if(statics){
                 let staticWHData = [];
-                for(let wormholeName of systemData.statics){
+                for(let wormholeName of statics){
                     let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
                     let staticWHName = wormholeData.name + ' - ' + wormholeData.security;
 
                     newSelectOptionsCount++;
-                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
+                    staticWHData.push({value: newSelectOptionsCount, text: staticWHName});
                 }
 
                 if(staticWHData.length > 0){
@@ -395,7 +423,7 @@ define([
         let systemTypeId = systemElement.data('typeId');
         let areaId = Util.getAreaIdBySecurity(systemElement.data('security'));
         let systemData = {statics: systemElement.data('statics')};
-        return getSignatureTypeOptions(systemData, systemTypeId, areaId, groupId);
+        return getSignatureTypeOptions(systemTypeId, areaId, groupId, systemData);
     };
 
     /**
@@ -892,10 +920,10 @@ define([
                             let sigDescriptionLowerCase = sigDescription.toLowerCase();
 
                             let typeOptions = getSignatureTypeOptions(
-                                systemData,
                                 systemData.type.id,
                                 Util.getAreaIdBySecurity(systemData.security),
-                                sigGroupId
+                                sigGroupId,
+                                systemData
                             );
 
                             for(let [key, name] of Object.entries(Util.flattenXEditableSelectArray(typeOptions))){
@@ -1759,10 +1787,10 @@ define([
                                 let rowData = tableApi.row($(cell).parents('tr')).data();
 
                                 let typeOptions = getSignatureTypeOptions(
-                                    systemData,
                                     systemData.type.id,
                                     Util.getAreaIdBySecurity(systemData.security),
-                                    rowData.groupId
+                                    rowData.groupId,
+                                    systemData
                                 );
                                 return typeOptions;
                             },

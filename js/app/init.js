@@ -3,10 +3,20 @@
  */
 
 define([], () => {
-
     'use strict';
 
-    let Config = {
+    let frigWH = {
+        1: 'E004 - C1',
+        2: 'L005 - C2',
+        3: 'Z006 - C3',
+        4: 'M001 - C4',
+        5: 'C008 - C5',
+        6: 'G008 - C6',
+        7: 'Q003 - 0.0',
+        8: 'A009 - C13'
+    };
+
+    return {
         path: {
             img: '/public/img/',                                            // path for images
             api: '/api/rest',                                               //ajax URL - REST API
@@ -49,12 +59,12 @@ define([], () => {
             gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
         },
         breakpoints: [
-            { name: 'screen-xl', width: Infinity },
-            { name: 'screen-l', width: 1600 },
-            { name: 'screen-m', width: 1200 },
-            { name: 'screen-d', width: 1000 },
-            { name: 'screen-s', width: 780 },
-            { name: 'screen-xs', width: 480 }
+            {name: 'screen-xl', width: Infinity},
+            {name: 'screen-l', width: 1600},
+            {name: 'screen-m', width: 1200},
+            {name: 'screen-d', width: 1000},
+            {name: 'screen-s', width: 780},
+            {name: 'screen-xs', width: 480}
         ],
         animationSpeed: {
             splashOverlay: 300,                                             // "splash" loading overlay
@@ -95,63 +105,63 @@ define([], () => {
                 class: 'fa-desktop',
                 label: 'desktop',
                 unicode: '&#xf108;'
-            },{
+            }, {
                 class: 'fa-space-shuttle',
                 label: 'space shuttle',
                 unicode: '&#xf197;'
-            },{
+            }, {
                 class: 'fa-anchor',
                 label: 'anchor',
                 unicode: '&#xf13d;'
-            },{
+            }, {
                 class: 'fa-satellite',
                 label: 'satellite',
                 unicode: '&#xf7bf;'
-            },{
+            }, {
                 class: 'fa-skull-crossbones',
                 label: 'skull crossbones',
                 unicode: '&#xf714;'
-            },{
+            }, {
                 class: 'fa-fire',
                 label: 'fire',
                 unicode: '&#xf06d;'
-            },{
+            }, {
                 class: 'fa-bookmark',
                 label: 'bookmark',
                 unicode: '&#xf02e;'
-            },{
+            }, {
                 class: 'fa-cube',
                 label: 'cube',
                 unicode: '&#xf1b2;'
-            },{
+            }, {
                 class: 'fa-star',
                 label: 'star',
                 unicode: '&#xf005;'
-            },{
+            }, {
                 class: 'fa-hat-wizard',
                 label: 'hat wizard',
                 unicode: '&#xf6e8;'
-            },{
+            }, {
                 class: 'fa-plane',
                 label: 'plane',
                 unicode: '&#xf072;'
-            },{
+            }, {
                 class: 'fa-globe',
                 label: 'globe',
                 unicode: '&#xf0ac;'
-            },{
+            }, {
                 class: 'fa-rocket',
                 label: 'rocket',
                 unicode: '&#xf135;'
-            },{
+            }, {
                 class: 'fa-life-ring',
                 label: 'life ring',
                 unicode: '&#xf1cd;'
-            },{
+            }, {
                 class: 'fa-heart',
                 label: 'heart',
                 unicode: '&#xf004;'
-            },{
+            }, {
                 class: 'fa-poop',
                 label: 'poop',
                 unicode: '&#xf619;'
@@ -541,106 +551,16 @@ define([], () => {
         },
         // frigate wormholes
         frigateWormholes: {
-            1: {    // C1
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            2: {    // C2
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            3: {    // C3
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            4: {    // C4
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            5: {    // C5
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            6: {    // C6
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            13: {   // Shattered Wormholes (some of them are static)
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            30: {   // High Sec
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            31: {   // Low Sec
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            },
-            32: {   // 0.0
-                1: 'E004 - C1',
-                2: 'L005 - C2',
-                3: 'Z006 - C3',
-                4: 'M001 - C4',
-                5: 'C008 - C5',
-                6: 'G008 - C6',
-                7: 'Q003 - 0.0',
-                8: 'A009 - C13'
-            }
+            1: frigWH,  // C1
+            2: frigWH,  // C2
+            3: frigWH,  // C3
+            4: frigWH,  // C4
+            5: frigWH,  // C5
+            6: frigWH,  // C6
+            13: frigWH, // Shattered Wormholes (some of them are static)
+            30: frigWH, // High Sec
+            31: frigWH, // Low Sec
+            32: frigWH  // 0.0
         },
         // Drifter wormholes (can only appear in k-space)
         drifterWormholes: {
@@ -660,8 +580,5 @@ define([], () => {
             6: 'K162 - 0.0',
             7: 'K162 - C12 Thera'
         }
-
     };
-
-    return Config;
 });
