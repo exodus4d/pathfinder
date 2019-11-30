@@ -863,6 +863,25 @@ $mapBubbleWidth:        30px;
   }
 }
 
+// DratSelect =========================================================================================================
+.pf-map-drag-to-select {
+  background: $teal-dark !important;
+  display: block;
+  visibility: hidden; // triggered by js
+  opacity: 0; // triggered by js
+  z-index: 9000;
+  border: 1px dashed $gray-lighter;
+  pointer-events: none; // required for "mouseover" event which should be ignored
+  will-change: left, top, width, height, opacity;
+  @include border-radius(5px);
+  @include transition(opacity 0.15s linear);
+
+  &.active {
+    visibility: visible;
+    opacity: 0.3;
+  }
+}
+
 // dialogs ============================================================================================================
 .ui-dialog-content{
   label{

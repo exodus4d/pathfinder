@@ -29,6 +29,9 @@ define([], () => {
                     'line-height': '19px',
                     'font-family': '"Fira Code", "Lucida Console"',
                 },
+                'debug': {
+                    'color': '#d747d6'
+                },
                 'ok': {
                     'color': '#5cb85c'
                 },
@@ -113,8 +116,8 @@ define([], () => {
             let setLineStyleByLogType = (logType, args) => {
                 if(args.length){
                     let lineStyle = getStyleByLogType('global') + getStyleByLogType(logType);
-                    lineStyle += ['ok', 'log', 'info', 'pf'].includes(logType) ? getStyleByLogType('indentDefault') : '';
-                    let bullet = ['ok', 'log', 'info', 'pf'].includes(logType) ? '●' : '';
+                    lineStyle += ['debug', 'ok', 'log', 'info', 'pf'].includes(logType) ? getStyleByLogType('indentDefault') : '';
+                    let bullet = ['debug', 'ok', 'log', 'info', 'pf'].includes(logType) ? '●' : '';
 
                     if(typeof args[0] === 'string'){
                         // prepend placeholder to existing message
@@ -148,6 +151,12 @@ define([], () => {
                         placeholderIndex++;
                     }
                 }
+            };
+
+            origConsole.debug = (...args) => {
+                setMessageStyleByLogType('debug', args);
+                setLineStyleByLogType('debug', args);
+                info.apply(origConsole, args);
             };
 
             origConsole.ok = (...args) => {

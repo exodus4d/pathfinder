@@ -206,7 +206,7 @@ define([
             this.debug = (msg,...data) => {
                 if(this._config.debug){
                     data = (data || []);
-                    console.info(msg, ...data);
+                    console.debug(msg, ...data);
                 }
             };
         }

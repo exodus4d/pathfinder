@@ -14,7 +14,7 @@
   "node": true,
 
   // Allow ES8.
-  "esversion": 8,
+  "esversion": 9,
 
   /*
    * ENFORCING OPTIONS

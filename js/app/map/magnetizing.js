@@ -110,7 +110,7 @@ define([
              * @private
              */
             let _dragFilter = systemId => {
-                let filterClasses = ['jtk-drag', 'pf-system-locked'];
+                let filterClasses = ['jtk-drag', MapUtil.config.systemLockedClass];
                 return ![...document.getElementById(systemId).classList].some(className => filterClasses.indexOf(className) >= 0);
             };
 

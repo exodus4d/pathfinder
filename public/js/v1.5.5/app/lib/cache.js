@@ -143,7 +143,7 @@ define([], () => {
                 if(this.config.debug){
                     data = (data || []);
                     data.unshift(this.config.name);
-                    console.info('debug: CACHE %o | ' + msg, ...data);
+                    console.debug('debug: CACHE %o | ' + msg, ...data);
                 }
             };
 
