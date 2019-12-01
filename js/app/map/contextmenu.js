@@ -15,6 +15,9 @@ define([
         endpointContextMenuId: 'pf-map-endpoint-contextmenu',                       // id for "endpoints" context menu
         systemContextMenuId: 'pf-map-system-contextmenu',                           // id for "systems" context menu
 
+        contextMenuClass: 'dropdown-menu',                                          // class for all context menus
+        subMenuLeftClass: 'dropdown-submenu-left',                                  // class moves submenus to the left side
+
         animationInType: 'transition.flipXIn',
         animationInDuration: 150,
         animationOutType: 'transition.flipXOut',
@@ -29,14 +32,20 @@ define([
      */
     let getMenuLeftCoordinate = (e, menuWidth) => {
         let mouseWidth = e.pageX;
-        let pageWidth = $(window).width();
-
-        // opening menu would pass the side of the page
-        if(mouseWidth + menuWidth > pageWidth &&
-            menuWidth < mouseWidth){
-            return mouseWidth - menuWidth;
+        let openSubLeft = false;
+        if(mouseWidth + menuWidth > window.innerWidth && menuWidth < mouseWidth){
+            // opening menu would pass the side of the page
+            openSubLeft = true;
+            //return mouseWidth - menuWidth;
+            mouseWidth -= menuWidth;
+        }else if(mouseWidth + menuWidth * 2 > window.innerWidth && menuWidth * 2 < mouseWidth){
+            // opening submenu would pass the side of the page
+            openSubLeft = true;
         }
-        return mouseWidth;
+        return {
+            left: mouseWidth,
+            openSubLeft: openSubLeft
+        };
     };
 
     /**
@@ -47,14 +56,13 @@ define([
      */
     let getMenuTopCoordinate = (e, menuHeight) => {
         let mouseHeight = e.pageY;
-        let pageHeight = $(window).height();
-
-        // opening menu would pass the bottom of the page
-        if(mouseHeight + menuHeight > pageHeight &&
-            menuHeight < mouseHeight){
-            return mouseHeight - menuHeight;
+        if(mouseHeight + menuHeight > window.innerHeight && menuHeight < mouseHeight){
+            // opening menu would pass the bottom of the page
+            mouseHeight -= menuHeight;
         }
-        return mouseHeight;
+        return {
+            top: mouseHeight
+        };
     };
 
     /**
@@ -213,7 +221,7 @@ define([
      * @param excludeMenu
      */
     let closeMenus = excludeMenu => {
-        let allMenus = $('.dropdown-menu[role="menu"]');
+        let allMenus = $('.' + config.contextMenuClass + '[role="menu"]');
         if(excludeMenu){
             allMenus = allMenus.not(excludeMenu);
         }
@@ -243,10 +251,13 @@ define([
         // hide/activate/disable
         menuElement = prepareMenu(menuElement, menuConfig.hidden, menuConfig.active, menuConfig.disabled);
 
-        menuElement.css({
+        let {left, openSubLeft} = getMenuLeftCoordinate(e, menuElement.width());
+        let {top} = getMenuTopCoordinate(e, menuElement.height());
+
+        menuElement.toggleClass(config.subMenuLeftClass, openSubLeft).css({
             position: 'absolute',
-            left: getMenuLeftCoordinate(e, menuElement.width()),
-            top: getMenuTopCoordinate(e, menuElement.height())
+            left: left,
+            top: top
         }).velocity(config.animationInType, {
             duration: config.animationInDuration,
             complete: function(){

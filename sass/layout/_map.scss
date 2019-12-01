@@ -910,10 +910,12 @@ $mapBubbleWidth:        30px;
   }
 
   // nested (sub) menu
-  .dropdown-menu{
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    clip-path: inset(-12px -12px -12px 0px); // hide left box shadow
+  &:not(.dropdown-submenu-left){
+    .dropdown-menu{
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      clip-path: inset(-12px -12px -12px 0px); // hide left box shadow
+    }
   }
 
   // top menu
@@ -933,6 +935,14 @@ $mapBubbleWidth:        30px;
     }
   }
 
+  &.dropdown-submenu-left{
+    > .dropdown-submenu > .dropdown-menu {
+      left: -100%;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      clip-path: inset(-12px 0 -12px -12px); // hide right box shadow
+    }
+  }
 }
 
 // tooltip for a system with active user (they are not positioned within the system element)
