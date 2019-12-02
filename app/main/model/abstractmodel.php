@@ -930,7 +930,7 @@ abstract class AbstractModel extends Cortex {
      */
     protected function isOutdated() : bool {
         $outdated = true;
-        if(!$this->dry()){
+        if($this->valid()){
             try{
                 $timezone = $this->getF3()->get('getTimeZone')();
                 $currentTime = new \DateTime('now', $timezone);

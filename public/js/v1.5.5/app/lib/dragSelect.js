@@ -356,7 +356,14 @@ define(['app/lib/eventHandler'], (EventHandler) => {
         }
 
         filterDomRect(domRect, filteredKeys = ['left', 'top', 'width', 'height']){
-            return filteredKeys.reduce((obj, key) => ({ ...obj, [key]: domRect[key] }), {});
+            let obj = {};
+            filteredKeys.forEach(key => {
+                if(domRect[key] !== undefined){
+                    obj[key] = domRect[key];
+                }
+            });
+            return obj;
+            //return filteredKeys.reduce((obj, key) => ({ ...obj, [key]: domRect[key] }), {}); // same result but uses "object destruction" ES5
         }
 
         callback(callback, ...args){

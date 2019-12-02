@@ -3321,7 +3321,7 @@ define([
     let objCombine = (...objects) => {
         let combined = objects.reduce((acc, obj) => acc.concatFilter(Object.values(obj)), []);
         combined.unshift('');  // properties should start at 1 (not 0)
-        combined = {...combined};
+        combined = Object.assign({}, combined);
         delete combined[0];
         return combined;
     };
