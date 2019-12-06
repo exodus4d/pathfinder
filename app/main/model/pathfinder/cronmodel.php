@@ -157,6 +157,10 @@ class CronModel extends AbstractPathfinderModel {
         $this->lastExecMemPeak = null;
     }
 
+    /**
+     * @param bool $addLastIfFinished
+     * @return array
+     */
     protected function getHistory(bool $addLastIfFinished = false) : array {
         $history = $this->history ? : [];
 
@@ -214,6 +218,10 @@ class CronModel extends AbstractPathfinderModel {
         return $this->lastExecStart && !$this->lastExecEnd;
     }
 
+    /**
+     * @return bool
+     * @throws \Exception
+     */
     protected function isTimedOut() : bool {
         $timedOut = false;
         if($this->lastExecStart){

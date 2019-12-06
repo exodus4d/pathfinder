@@ -8,7 +8,7 @@ define([
     Example1 run task every second ------------------------------------------------------------------------------------
     let task1 = Cron.new('task1', {precision: 'seconds', interval: 1, timeout: 100});
     task1.task = (timer) => {
-        console.log('task1 function():', timer.getTotalTimeValues());
+        console.info('task1 function():', timer.getTotalTimeValues());
         return 'OK';
     };
     Cron.set(task1);
@@ -16,7 +16,7 @@ define([
     Example2 run task every 3 seconds ---------------------------------------------------------------------------------
     let task1 = Cron.new('task1', {precision: 'seconds', interval: 3, timeout: 100});
     task1.task = (timer) => {
-        console.log('task1 function():', timer.getTotalTimeValues());
+        console.info('task1 function():', timer.getTotalTimeValues());
         return 'OK';
     };
     Cron.set(task1);
@@ -25,12 +25,12 @@ define([
     let task1 = Cron.new('task1', {precision: 'seconds', interval: 1, timeout: 100});
     task1.task = (timer, task) => {
         return new Promise((resolve, reject) => {
-            console.log('task1 Promise1():', timer.getTotalTimeValues(), task.get('interval'));
+            console.info('task1 Promise1():', timer.getTotalTimeValues(), task.get('interval'));
             //task.set('interval', task.get('interval') + 1) // increase run interval every time by 1s
             resolve('OK1');
         }).then(payload => {
             return new Promise((resolve, reject) => {
-                console.log('task2 Promise2():', timer.getTotalTimeValues(), payload);
+                console.info('task2 Promise2():', timer.getTotalTimeValues(), payload);
                 resolve('OK2');
             });
         });
