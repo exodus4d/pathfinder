@@ -348,6 +348,11 @@ define([], () => {
         5: 'Rarified Core Deposit' //*
     };
 
+    let c13Ore = {
+        1: 'Shattered Debris Field',
+        2: 'Shattered Ice Field'
+    };
+
     // Wormholes ======================================================================================================
 
     // all k-space exits are static or K162
@@ -547,7 +552,8 @@ define([], () => {
                 1: c12Combat
             },
             13: {   // Shattered WH
-                5: c13WH
+                5: c13WH,
+                6: c13Ore
             },
             14: {   // Drifter Sentinel WH
                 1: c14Combat

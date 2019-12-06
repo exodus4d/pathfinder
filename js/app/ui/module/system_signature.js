@@ -252,7 +252,7 @@ define([
             [1, 2, 3, 4, 5, 6].includes(areaId) &&
             [4, 6].includes(groupId) // Gas, Ore
         ){
-            areaIds = [1, 2, 3, 4, 5, 6];
+            areaIds = [1, 2, 3, 4, 5, 6, 13];
         }
 
         return areaIds;
