@@ -76,6 +76,9 @@ class CharacterUpdate extends AbstractCron {
                         }else{
                             $characterLog->erase();
                         }
+                    }else{
+                        // no valid $accessToken. (e.g. ESI is down; or invalid `refresh_token` found
+                        $characterLog->erase();
                     }
                 }else{
                     // character_log does not have a character assigned -> delete
