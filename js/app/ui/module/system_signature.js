@@ -142,7 +142,7 @@ define([
                 reason = jqXHR.statusText;
             }else if(jqXHR.name){
                 // validation error new sig (new row data save function)
-                reason = jqXHR.name;
+                reason = jqXHR.name.msg;
                 // re-open "name" fields (its a collection of fields but we need "id" field)
                 jqXHR.name.field.$element.editable('show');
             }else{
@@ -1641,11 +1641,9 @@ define([
                             },
                             validate: function(value){
                                 let msg = false;
-                                let mbLength = [...$.trim(value)].length; // unicode beware
-                                if(mbLength < 3){
-                                    msg = 'Id is less than min of "3"';
-                                }else if(mbLength > 10){
-                                    msg = 'Id is more than max of "10"';
+                                //let mbLength = [...$.trim(value)].length; // unicode beware
+                                if(! value.trimChars().match(/^[a-zA-Z]{3}-\d{3}$/)){
+                                    msg = 'ID format invalid. E.g.: ABC-123';
                                 }
 
                                 if(msg){
