@@ -244,9 +244,15 @@ define([
         if(
             systemTypeId === 1 && shattered &&
             [1, 2, 3, 4, 5, 6].includes(areaId) &&
-            [1, 2, 3, 4, 6].includes(groupId)
+            [1, 2, 3].includes(groupId) // Combat, Relic, Data
         ){
             areaIds = [areaId - 1, areaId, areaId + 1].filter(areaId => areaId >= 1 && areaId <= 6);
+        }else if(
+            systemTypeId === 1 && shattered &&
+            [1, 2, 3, 4, 5, 6].includes(areaId) &&
+            [4, 6].includes(groupId) // Gas, Ore
+        ){
+            areaIds = [1, 2, 3, 4, 5, 6];
         }
 
         return areaIds;
@@ -1958,16 +1964,7 @@ define([
                     width: 80,
                     className: ['text-right', config.tableCellCounterClass, 'min-screen-d'].join(' '),
                     data: 'updated.updated',
-                    defaultContent: '',
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        // highlight cell
-                        let diff = Math.floor((new Date()).getTime()) - cellData * 1000;
-
-                        // age > 1 day
-                        if(diff > 86400000){
-                            $(cell).addClass('txt-color txt-color-warning');
-                        }
-                    }
+                    defaultContent: ''
                 },{
                     targets: 8,
                     name: 'info',
@@ -2136,6 +2133,20 @@ define([
                     if(e.which === 13){
                         $(this).trigger('click');
                     }
+                });
+            },
+            rowCallback: function(){
+                let tableApi = this.api();
+                let time = Math.floor((new Date()).getTime());
+
+                tableApi.cells(null, ['updated:name']).every(function(rowIndex, colIndex, tableLoopCount, cellLoopCount){
+                    let cell = this;
+                    let node = cell.node();
+                    let cellData = cell.data();
+                    let diff = time - cellData * 1000;
+
+                    // highlight cell: age > 1 day
+                    $(node).toggleClass('txt-color txt-color-warning', diff > 86400000);
                 });
             }
         };
@@ -2640,6 +2651,7 @@ define([
                 $(this).on('keyup', 'td', {tableApi: tableApi}, function(e){
                     keyNavigation(tableApi, e);
                 });
+
 
                 Counter.initTableCounter(this, ['created:name', 'updated:name']);
             }
