@@ -239,6 +239,7 @@ define([
             wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
             wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
+            wormholesThera: (rowData.hasOwnProperty('wormholesThera')) ? rowData.wormholesThera | 0 : 1,
             wormholesSizeMin: (rowData.hasOwnProperty('wormholesSizeMin')) ? rowData.wormholesSizeMin : '',
             excludeTypes: (rowData.hasOwnProperty('excludeTypes')) ? rowData.excludeTypes : [],
             endpointsBubble: (rowData.hasOwnProperty('endpointsBubble')) ? rowData.endpointsBubble | 0 : 1,
@@ -346,6 +347,7 @@ define([
                                         wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt(routeDialogData.wormholesReduced) : 0,
                                         wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt(routeDialogData.wormholesCritical) : 0,
                                         wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt(routeDialogData.wormholesEOL) : 0,
+                                        wormholesThera: routeDialogData.hasOwnProperty('wormholesThera') ? parseInt(routeDialogData.wormholesThera) : 0,
                                         wormholesSizeMin: routeDialogData.wormholesSizeMin || '',
                                         excludeTypes: getLowerSizeConnectionTypes(routeDialogData.wormholesSizeMin),
                                         endpointsBubble: routeDialogData.hasOwnProperty('endpointsBubble') ? parseInt(routeDialogData.endpointsBubble) : 0
@@ -558,6 +560,7 @@ define([
         let wormholeReducedCheckbox     = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
         let wormholeCriticalCheckbox    = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
         let wormholeEolCheckbox         = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
+        let wormholeTheraCheckbox       = routeDialog.find('input[type="checkbox"][name="wormholesThera"]');
         let wormholeSizeSelect          = routeDialog.find('#' + config.routeDialogSizeSelectId);
 
         // store current "checked" state for each box ---------------------------------------------
@@ -565,6 +568,7 @@ define([
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
             wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
+            wormholeTheraCheckbox.data('selectState', wormholeTheraCheckbox.prop('checked'));
         };
 
         // on wormhole checkbox change ------------------------------------------------------------
@@ -576,10 +580,12 @@ define([
                 wormholeReducedCheckbox.prop('disabled', false);
                 wormholeCriticalCheckbox.prop('disabled', false);
                 wormholeEolCheckbox.prop('disabled', false);
+                wormholeTheraCheckbox.prop('disabled', false);
 
                 wormholeReducedCheckbox.prop('checked', wormholeReducedCheckbox.data('selectState'));
                 wormholeCriticalCheckbox.prop('checked', wormholeCriticalCheckbox.data('selectState'));
                 wormholeEolCheckbox.prop('checked', wormholeEolCheckbox.data('selectState'));
+                wormholeTheraCheckbox.prop('checked', wormholeTheraCheckbox.data('selectState'));
             }else{
                 wormholeSizeSelect.prop('disabled', true);
 
@@ -591,6 +597,8 @@ define([
                 wormholeCriticalCheckbox.prop('disabled', true);
                 wormholeEolCheckbox.prop('checked', false);
                 wormholeEolCheckbox.prop('disabled', true);
+                wormholeTheraCheckbox.prop('checked', false);
+                wormholeTheraCheckbox.prop('disabled', true);
             }
         }.bind(wormholeCheckbox);
 
@@ -675,17 +683,18 @@ define([
     };
 
     /**
-     * get stargate connection data (default connection type in case connection was not found on a map)
+     * get fake connection data (default connection type in case connection was not found on a map)
      * @param sourceRouteNodeData
      * @param targetRouteNodeData
+     * @param scope
      * @returns {{connection: {id: number, type: string[], scope: string}, source: {id: number, name, alias}, target: {id: number, name, alias}}}
      */
-    let getStargateConnectionData = (sourceRouteNodeData, targetRouteNodeData) => {
+    let getFakeConnectionData = (sourceRouteNodeData, targetRouteNodeData, scope = 'stargate') => {
         return {
             connection: {
                 id: 0,
-                type: ['stargate'],
-                scope: 'stargate'
+                type: [MapUtil.getDefaultConnectionTypeByScope(scope)],
+                scope: scope
             },
             source: {
                 id: 0,
@@ -731,7 +740,7 @@ define([
          * @param status
          * @returns {string}
          */
-        let getStatusIcon= (status) => {
+        let getStatusIcon = status => {
             let color = 'txt-color-danger';
             let title = 'route not found';
             switch(status){
@@ -747,6 +756,13 @@ define([
 
             return '<i class="fas fa-fw fa-circle txt-color ' + color + '" title="' + title + '"></i>';
         };
+
+        /**
+         * check systemName if it "might" be a wormhole
+         * @param systemName
+         * @returns {boolean}
+         */
+        let isWormholeSystemName = systemName => /^J\d+$/.test(systemName) || systemName === 'Thera';
 
         // route status:
         // 0: not found
@@ -785,6 +801,7 @@ define([
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
             wormholesEOL: routeData.wormholesEOL,
+            wormholesThera: routeData.wormholesThera,
             wormholesSizeMin: routeData.wormholesSizeMin,
             excludeTypes: routeData.excludeTypes,
             endpointsBubble: routeData.endpointsBubble,
@@ -828,11 +845,11 @@ define([
                 if(prevRouteNodeData){
                     let connectionData = findConnectionsData(connectionsData, prevRouteNodeData.system, systemName);
                     if(!connectionData.hasOwnProperty('connection')){
-                        connectionData = getStargateConnectionData(prevRouteNodeData, routeNodeData);
+                        connectionData = getFakeConnectionData(prevRouteNodeData, routeNodeData, isWormholeSystemName(systemName) ? 'wh' : 'stargate');
                     }
                     let connectionElement = getFakeConnectionElement(connectionData);
 
-                    routeJumpElements.push( connectionElement );
+                    routeJumpElements.push(connectionElement);
                 }
 
                 // system elements ------------------------------------------------------------------------------------
@@ -847,7 +864,7 @@ define([
 
                 // check for wormhole
                 let icon = 'fas fa-square';
-                if( /^J\d+$/.test(systemName) ){
+                if(isWormholeSystemName(systemName)){
                     icon = 'fas fa-dot-circle';
                 }
 

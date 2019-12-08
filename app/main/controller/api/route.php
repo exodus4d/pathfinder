@@ -21,6 +21,11 @@ use Model\Pathfinder;
 class Route extends Controller\AccessController {
 
     /**
+     * cache key for current Thera connections from eve-scout.com
+     */
+    const CACHE_KEY_THERA_CONNECTIONS                = 'CACHED_THERA_CONNECTIONS';
+
+    /**
      * route search depth
      */
     const ROUTE_SEARCH_DEPTH_DEFAULT = 1;
@@ -42,6 +47,12 @@ class Route extends Controller\AccessController {
      * @var int
      */
     private $dynamicJumpDataCacheTime = 10;
+
+    /**
+     * cache time for Thera connections from eve-scout.com
+     * @var int
+     */
+    private $theraJumpDataCacheTime = 60;
 
     /**
      * array system information grouped by systemId
@@ -229,11 +240,11 @@ class Route extends Controller\AccessController {
                             !is_null($staticData = $universe->getSystemData($row[$systemSourceKey]))
                         ){
                             $jumpData[$row[$systemSourceKey]] = [
-                                'systemId' => (int)$row[$systemSourceKey],
-                                'systemName' => $staticData->name,
-                                'constellationId' => $staticData->constellation->id,
-                                'regionId' => $staticData->constellation->region->id,
-                                'trueSec' => $staticData->trueSec,
+                                'systemId'          => (int)$row[$systemSourceKey],
+                                'systemName'        => $staticData->name,
+                                'constellationId'   => $staticData->constellation->id,
+                                'regionId'          => $staticData->constellation->region->id,
+                                'trueSec'           => $staticData->trueSec,
                             ];
                         }
 
@@ -247,11 +258,62 @@ class Route extends Controller\AccessController {
                         $enrichJumpData($rows[$i],  'systemTargetId', 'systemSourceId');
                     }
 
-                    // update jump data for this instance
                     $this->updateJumpData($jumpData);
                 }
             }
         }
+    }
+
+    /**
+     * set current Thera connections jump data for this instance
+     * -> Connected wormholes pulled from eve-scout.com
+     */
+    private function setTheraJumpData(){
+        if(!$this->getF3()->exists(self::CACHE_KEY_THERA_CONNECTIONS, $jumpData)){
+            $jumpData = [];
+            $connectionsData = $this->getF3()->eveScoutClient()->getTheraConnections();
+
+            if(!empty($connectionsData) && !isset($connectionsData['error'])){
+                /**
+                 * map Thera jump data to Pathfinder format
+                 * @param array $row
+                 * @param string $systemSourceKey
+                 * @param string $systemTargetKey
+                 */
+                $enrichJumpData = function(array &$row, string $systemSourceKey, string $systemTargetKey) use (&$jumpData) {
+                    // check if response data is valid
+                    if(
+                        is_object($systemSource = $row[$systemSourceKey]) && !empty((array)$systemSource) &&
+                        is_object($systemTarget = $row[$systemTargetKey]) && !empty((array)$systemTarget)
+                    ){
+                        if(!array_key_exists($systemSource->id, $jumpData)){
+                            $jumpData[$systemSource->id] = [
+                                'systemId'          => (int)$systemSource->id,
+                                'systemName'        => $systemSource->name,
+                                'constellationId'   => (int)$systemSource->constellationID,
+                                'regionId'          => (int)$systemSource->regionId,
+                                'trueSec'           => $systemSource->security,
+                            ];
+                        }
+
+                        if( !in_array((int)$systemTarget->id, (array)$jumpData[$systemSource->id]['jumpNodes']) ){
+                            $jumpData[$systemSource->id]['jumpNodes'][] = (int)$systemTarget->id;
+                        }
+                    }
+                };
+
+                foreach((array)$connectionsData['connections'] as $connectionData){
+                    $enrichJumpData($connectionData,  'source', 'target');
+                    $enrichJumpData($connectionData,  'target', 'source');
+                }
+
+                if(!empty($jumpData)){
+                    $this->getF3()->set(self::CACHE_KEY_THERA_CONNECTIONS, $jumpData, $this->theraJumpDataCacheTime);
+                }
+            }
+        }
+
+        $this->updateJumpData($jumpData);
     }
 
     /**
@@ -260,7 +322,6 @@ class Route extends Controller\AccessController {
      * @param array $rows
      */
     private function updateJumpData(&$rows = []){
-
         foreach($rows as &$row){
             $regionId       = (int)$row['regionId'];
             $constId        = (int)$row['constellationId'];
@@ -448,7 +509,7 @@ class Route extends Controller\AccessController {
 
         // Endpoint return http:404 in case no route find (e.g. from inside a wh)
         // we thread that error "no route found" as a valid response! -> no fallback to custom search
-        if( !empty($routeData['error']) && strtolower($routeData['error']) !== 'no route found' ){
+        if(!empty($routeData['error']) && strtolower($routeData['error']) !== 'no route found'){
             // ESI route search has errors -> fallback to custom search implementation
             $routeData = $this->searchRouteCustom($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
         }
@@ -484,6 +545,11 @@ class Route extends Controller\AccessController {
             // add map specific data
             $this->setDynamicJumpData($mapIds, $filterData);
 
+            // add current Thera connections data
+            if($filterData['wormholesThera']){
+                $this->setTheraJumpData();
+            }
+
             // filter jump data (e.g. remove some systems (0.0, LS)
             // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
@@ -494,10 +560,10 @@ class Route extends Controller\AccessController {
             $jumpNum = 0;
             $depthSearched = 0;
 
-            if( isset($this->jumpArray[$systemFromId]) ){
+            if(isset($this->jumpArray[$systemFromId])){
                 // check if the system we are looking for is a direct neighbour
-                foreach( $this->jumpArray[$systemFromId] as $n ) {
-                    if ($n == $systemToId) {
+                foreach($this->jumpArray[$systemFromId] as $n){
+                    if($n == $systemToId){
                         $jumpNum = 2;
                         $routeData['route'][] = $this->getJumpNodeData($n);
                         break;
@@ -505,23 +571,23 @@ class Route extends Controller\AccessController {
                 }
 
                 // system is not a direct neighbour -> search recursive its neighbours
-                if ($jumpNum == 0) {
+                if($jumpNum == 0){
                     $searchResult = $this->graph_find_path( $this->jumpArray, $systemFromId, $systemToId, $searchDepth );
                     $depthSearched = $searchResult['depth'];
-                    foreach( $searchResult['path'] as $systemId ) {
-                        if ($jumpNum > 0) {
+                    foreach($searchResult['path'] as $systemId){
+                        if($jumpNum > 0){
                             $routeData['route'][] = $this->getJumpNodeData($systemId);
                         }
                         $jumpNum++;
                     }
                 }
 
-                if ($jumpNum > 0) {
+                if($jumpNum > 0){
                     // route found
                     $routeData['routePossible'] = true;
                     // insert "from" system on top
                     array_unshift($routeData['route'], $this->getJumpNodeData($systemFromId));
-                } else {
+                }else{
                     // route not found
                     $routeData['routePossible'] = false;
                 }
@@ -566,6 +632,11 @@ class Route extends Controller\AccessController {
             // add map specific data
             $this->setDynamicJumpData($mapIds, $filterData);
 
+            // add current Thera connections data
+            if($filterData['wormholesThera']){
+                $this->setTheraJumpData();
+            }
+
             // filter jump data (e.g. remove some systems (0.0, LS)
             // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
@@ -576,7 +647,7 @@ class Route extends Controller\AccessController {
                 if($count > 1){
                     // ... should always > 1
                     // loop all connections for current source system
-                    foreach($jumpData as $systemTargetId) {
+                    foreach($jumpData as $systemTargetId){
                         // skip last entry
                         if(--$count <= 0){
                             break;
@@ -736,6 +807,7 @@ class Route extends Controller\AccessController {
                     'wormholesReduced'      => (bool) $routeData['wormholesReduced'],
                     'wormholesCritical'     => (bool) $routeData['wormholesCritical'],
                     'wormholesEOL'          => (bool) $routeData['wormholesEOL'],
+                    'wormholesThera'        => (bool) $routeData['wormholesThera'],
                     'wormholesSizeMin'      => (string) $routeData['wormholesSizeMin'],
                     'excludeTypes'          => (array) $routeData['excludeTypes'],
                     'endpointsBubble'       => (bool) $routeData['endpointsBubble'],

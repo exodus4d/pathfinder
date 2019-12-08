@@ -13,6 +13,7 @@ use lib\db\Pool;
 use lib\api\CcpClient;
 use lib\api\GitHubClient;
 use lib\api\SsoClient;
+use lib\api\EveScoutClient;
 use lib\socket\AbstractSocket;
 use lib\socket\SocketInterface;
 use lib\socket\TcpSocket;
@@ -177,6 +178,7 @@ class Config extends \Prefab {
         $f3->set(SsoClient::CLIENT_NAME, SsoClient::instance());
         $f3->set(CcpClient::CLIENT_NAME, CcpClient::instance());
         $f3->set(GitHubClient::CLIENT_NAME, GitHubClient::instance());
+        $f3->set(EveScoutClient::CLIENT_NAME, EveScoutClient::instance());
 
         // Socket connectors ------------------------------------------------------------------------------------------
         $f3->set(TcpSocket::SOCKET_NAME, function(array $options = ['timeout' => 1]) : SocketInterface {

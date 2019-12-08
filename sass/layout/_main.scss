@@ -1456,6 +1456,7 @@ table{
   display: inline-block;
   width: 70px;
   height: 4px;
+  max-width: 100%;
   border-top: 2px solid $gray-light;
   border-bottom: 2px solid $gray-light;
   background-color: $gray;

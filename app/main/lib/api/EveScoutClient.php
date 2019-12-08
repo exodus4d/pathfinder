@@ -1,27 +1,25 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Exodus 4D
- * Date: 26.12.2018
- * Time: 17:39
- */
+
 
 namespace lib\api;
 
 use lib\Config;
 use Exodus4D\ESI\Client\ApiInterface;
-use Exodus4D\ESI\Client\Ccp\Sso\Sso as Client;
+use Exodus4D\ESI\Client\EveScout\EveScout as Client;
+use Exodus4D\ESI\Client\EveScout\EveScoutInterface as ClientInterface;
 
 /**
- * Class SsoClient
+ * Class EveScoutClient
  * @package lib\api
+ *
+ * @method ClientInterface getTheraConnections()
  */
-class SsoClient extends AbstractClient {
+class EveScoutClient extends AbstractClient {
 
     /**
      * @var string
      */
-    const CLIENT_NAME = 'ssoClient';
+    const CLIENT_NAME = 'eveScoutClient';
 
     /**
      * @param \Base $f3
@@ -30,7 +28,7 @@ class SsoClient extends AbstractClient {
     protected function getClient(\Base $f3) : ?ApiInterface {
         $client = null;
         if(class_exists(Client::class)){
-            $client = new Client(Config::getEnvironmentData('CCP_SSO_URL'));
+            $client = new Client(Config::getPathfinderData('api.eve_scout'));
         }else{
             $this->getLogger()->write($this->getMissingClassError(Client::class));
         }

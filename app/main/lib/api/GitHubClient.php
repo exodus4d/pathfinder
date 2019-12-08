@@ -9,9 +9,17 @@
 namespace lib\api;
 
 use lib\Config;
-use Exodus4D\ESI\Client\Github as Client;
 use Exodus4D\ESI\Client\ApiInterface;
+use Exodus4D\ESI\Client\GitHub\GitHub as Client;
+use Exodus4D\ESI\Client\GitHub\GitHubInterface as ClientInterface;
 
+/**
+ * Class GitHubClient
+ * @package lib\api
+ *
+ * @method ClientInterface getProjectReleases(string $projectName, int $count) : array
+ * @method ClientInterface markdownToHtml(string $context, string $markdown) : string
+ */
 class GitHubClient extends AbstractClient {
 
     /**

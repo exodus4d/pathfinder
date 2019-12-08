@@ -36,8 +36,6 @@ class GitHub extends Controller\Controller {
         $return->version->delta = null;
         $return->version->dev = false;
 
-        $md = \Markdown::instance();
-
         $releases = $f3->gitHubClient()->getProjectReleases('exodus4d/pathfinder', $releaseCount);
 
         foreach($releases as $key => &$release){
@@ -75,7 +73,7 @@ class GitHub extends Controller\Controller {
             if(!empty($html)){
                 $body = $html;
             }else{
-                $body = $md->convert(trim($body));
+                $body = \Markdown::instance()->convert(trim($body));
             }
 
             $release['body'] = $body;
