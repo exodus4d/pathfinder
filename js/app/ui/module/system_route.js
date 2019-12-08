@@ -350,7 +350,8 @@ define([
                                         wormholesThera: routeDialogData.hasOwnProperty('wormholesThera') ? parseInt(routeDialogData.wormholesThera) : 0,
                                         wormholesSizeMin: routeDialogData.wormholesSizeMin || '',
                                         excludeTypes: getLowerSizeConnectionTypes(routeDialogData.wormholesSizeMin),
-                                        endpointsBubble: routeDialogData.hasOwnProperty('endpointsBubble') ? parseInt(routeDialogData.endpointsBubble) : 0
+                                        endpointsBubble: routeDialogData.hasOwnProperty('endpointsBubble') ? parseInt(routeDialogData.endpointsBubble) : 0,
+                                        flag: routeDialogData.hasOwnProperty('flag') ? routeDialogData.flag : 'shortest'
                                     }]
                                 };
 

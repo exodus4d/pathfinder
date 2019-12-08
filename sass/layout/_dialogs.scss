@@ -87,9 +87,13 @@
   }
 
   // checkbox list ============================================================
-  .fa-tree-child + .checkbox{
-    margin-left: 5px;
-    display: inline-block;
+  @media (min-width: $screen-sm-min) {
+    .fa-tree-child + .checkbox{
+      margin-left: 5px;
+      display: inline-block;
+      float: none;
+      width: unset;
+    }
   }
 
   // form wizard ==============================================================

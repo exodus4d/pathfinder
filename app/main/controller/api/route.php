@@ -866,7 +866,6 @@ class Route extends Controller\AccessController {
         echo json_encode($return);
     }
 
-
 }
 
 
