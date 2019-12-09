@@ -38,11 +38,11 @@
                                         <td>{{ @map->typeId->name }}</td>
                                         <td class="text-right">{{ @map->getFormattedColumn('created') }}</td>
                                         <td class="pf-table-button-sm-cell">
-                                            <img src="//image.eveonline.com/Character/{{ @map->createdCharacterId->_id }}_32.jpg" >&nbsp;{{ @map->createdCharacterId->name  }}
+                                            <img src="{{ @tplImage->eveSrcUrl('characters', @map->createdCharacterId->_id, 32) }}" >&nbsp;{{ @map->createdCharacterId->name  }}
                                         </td>
                                         <td class="text-right">{{ @map->getFormattedColumn('updated') }}</td>
                                         <td class="pf-table-button-sm-cell">
-                                            <img src="//image.eveonline.com/Character/{{ @map->updatedCharacterId->_id }}_32.jpg" >&nbsp;{{ @map->updatedCharacterId->name  }}
+                                            <img src="{{ @tplImage->eveSrcUrl('characters', @map->updatedCharacterId->_id, 32) }}" >&nbsp;{{ @map->updatedCharacterId->name  }}
                                         </td>
                                         <td class="text-right pf-table-button-sm-cell">
                                             <check if="{{ @map->active }}">

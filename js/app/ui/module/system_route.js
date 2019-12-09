@@ -761,7 +761,7 @@ define([
         let flagButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', flagButtonClass].join(' ') + '"></i>';
         let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
         let searchButton = '<i class="fas ' + ['fa-search'].join(' ') + '"></i>';
-        let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
+        let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDark'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
         let tableRowData = {
@@ -1240,10 +1240,10 @@ define([
                 popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
                     // hint: "data" attributes should be in lower case!
                     let systemData = {
-                        systemId: $(this).data('systemid'),
+                        id: $(this).data('systemid'),
                         name: $(this).data('name')
                     };
-                    Util.setDestination(systemData, 'set_destination');
+                    Util.setDestination('set_destination', 'system', systemData);
 
                     // close popover
                     popoverRoot.popover('hide');

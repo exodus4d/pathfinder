@@ -3,7 +3,6 @@
   opacity: 0;
 }
 
-
 // splash loading animation ============================================================================
 
 .pf-color-line{
@@ -399,7 +398,11 @@
           background: rgba($gray, 0.80);
           overflow: hidden;
           will-change: width, transition;
-          padding: 10px 0;
+          padding: 5px 0;
+
+          .pf-character-info-img{
+            width: 36px;
+          }
 
           .pf-character-info-text{
             line-height: 25px;
@@ -640,6 +643,7 @@
 
     .btn-group {
       .btn { // smaller buttons on /setup page in tables
+        border-radius: 0;
         padding-top: 4px;
         padding-bottom: 4px;
       }
@@ -724,6 +728,8 @@
   }
 
   section {
+    min-height: auto; // overwrite default
+    padding-top: 10px; // overwrite default
     padding-bottom: 0; // overwrite default
     border-bottom: 0; // overwrite default
 
@@ -736,14 +742,46 @@
     }
 
     .container{
+      // increase container width (display more data)
+      @media (min-width: $screen-sm-min) {
+        width: $container-sm + 20px;
+      }
+      @media (min-width: $screen-md-min) {
+        width: $container-md + 80px;
+      }
+      @media (min-width: $screen-lg-min) {
+        width: $container-lg + 100px;
+      }
+
       & > .row{
         margin-bottom: 0; // overwrite default
       }
     }
   }
 
+  .pf-landing-pricing-panel{
+    margin-top: 10px; // overwrite default
+  }
+
   .panel-heading{
     padding-right: 8px; // overwrite default
+  }
+
+  .pf-setup-body-cronjob{
+    .panel-footer{
+      display: flex; // align multiple error/warning/.. elements
+      justify-content: space-around;
+    }
+  }
+
+  .pf-cron-row-active{
+    td:not(:last-child){
+      background-color: $teal-darker;
+    }
+
+    td:first-child{
+      background-color: $teal-darkest;
+    }
   }
 }
 

@@ -41,7 +41,7 @@ class CharacterUpdate extends AbstractCron {
      * @throws \Exception
      */
     function deleteLogData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
         $logInactiveTime = $this->getCharacterLogInactiveTime($f3);
 
         /**
@@ -58,7 +58,11 @@ class CharacterUpdate extends AbstractCron {
             'limit' => self::CHARACTERS_UPDATE_LOGS_MAX
         ]);
 
+        $total = 0;
+        $count = 0;
+
         if(is_object($characterLogs)){
+            $total = count($characterLogs);
             foreach($characterLogs as $characterLog){
                 /**
                  * @var $characterLog Pathfinder\CharacterLogModel
@@ -72,13 +76,22 @@ class CharacterUpdate extends AbstractCron {
                         }else{
                             $characterLog->erase();
                         }
+                    }else{
+                        // no valid $accessToken. (e.g. ESI is down; or invalid `refresh_token` found
+                        $characterLog->erase();
                     }
                 }else{
                     // character_log does not have a character assigned -> delete
                     $characterLog->erase();
                 }
+
+                $count++;
             }
         }
+
+        $importCount = $total;
+
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount);
     }
 
     /**
@@ -88,7 +101,7 @@ class CharacterUpdate extends AbstractCron {
      * @throws \Exception
      */
     function cleanUpCharacterData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
 
         /**
          * @var $characterModel Pathfinder\CharacterModel
@@ -109,6 +122,8 @@ class CharacterUpdate extends AbstractCron {
                 $character->save();
             }
         }
+
+        $this->logEnd(__FUNCTION__);
     }
 
     /**
@@ -119,7 +134,7 @@ class CharacterUpdate extends AbstractCron {
      * @throws \Exception
      */
     function deleteAuthenticationData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__, false);
 
         /**
          * @var $authenticationModel Pathfinder\CharacterAuthenticationModel
@@ -136,6 +151,8 @@ class CharacterUpdate extends AbstractCron {
                 $authentication->erase();
             }
         }
+
+        $this->logEnd(__FUNCTION__);
     }
 
 }

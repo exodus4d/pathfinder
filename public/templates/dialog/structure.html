@@ -1,6 +1,7 @@
 <div id="{{id}}">
     <form  role="form" class="form-horizontal">
 
+        {{^bulkData}}
         <div class="row">
             <div class="col-xs-6 ">
                 <div class="form-group">
@@ -24,8 +25,10 @@
                 </div>
             </div>
         </div>
+        {{/bulkData}}
 
         <div class="row">
+            {{^bulkData}}
             <div class="col-sm-6">
                 <div class="form-group">
                     <label class="col-sm-2 control-label" for="{{typeSelectId}}">Type</label>
@@ -38,6 +41,7 @@
                     </div>
                 </div>
             </div>
+            {{/bulkData}}
             <div class="col-sm-6">
                 <div class="form-group">
                     <label class="col-sm-2 control-label" for="{{corporationSelectId}}">Owner</label>
@@ -55,7 +59,7 @@
                 </div>
             </div>
         </div>
-
+        {{^bulkData}}
         <div class="row">
             <div class="col-xs-8 col-sm-12">
                 <div class="form-group">
@@ -70,6 +74,6 @@
 
             </div>
         </div>
-
+        {{/bulkData}}
     </form>
 </div>

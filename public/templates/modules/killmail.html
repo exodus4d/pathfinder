@@ -1,16 +1,16 @@
 <li class="media {{systemKillboardListEntryClass}}">
     <a href="{{{zKillboardUrl}}}/kill/{{killmail.killmail_id}}/" target="_blank" rel="noopener">
-        <img src="{{{ccpImageServerUrl}}}/Type/{{killmail.victim.ship_type_id}}_64.png" class="media-object pull-left {{systemKillboardListImgShip}}" title="killmail">
+        <img src="{{{ccpImageServerUrl}}}/types/{{killmail.victim.ship_type_id}}/icon?size=64" class="media-object pull-left {{systemKillboardListImgShip}}" title="killmail">
     </a>
 
     {{#killmail.victim.character_id}}
     <a href="{{{zKillboardUrl}}}/character/{{killmail.victim.character_id}}/" target="_blank" rel="noopener">
-        <img src="{{{ccpImageServerUrl}}}/Character/{{killmail.victim.character_id}}_32.jpg" class="media-object pull-left {{systemKillboardListImgChar}}" title="pilot KB">
+        <img src="{{{ccpImageServerUrl}}}/characters/{{killmail.victim.character_id}}/portrait?size=32" class="media-object pull-left {{systemKillboardListImgChar}}" title="pilot KB">
     </a>
     {{/killmail.victim.character_id}}
     {{^killmail.victim.character_id}}
     <a href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" target="_blank" rel="noopener">
-        <img src="{{{ccpImageServerUrl}}}/Corporation/{{killmail.victim.corporation_id}}_32.jpg" class="media-object pull-left {{systemKillboardListImgChar}}" title="corporation KB">
+        <img src="{{{ccpImageServerUrl}}}/corporations/{{killmail.victim.corporation_id}}/logo?size=32" class="media-object pull-left {{systemKillboardListImgChar}}" title="corporation KB">
     </a>
     {{/killmail.victim.character_id}}
 
@@ -26,13 +26,13 @@
     <div class="media-body">
         <h5 class="media-heading">
             <a href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" title="corporation KB" target="_blank" rel="noopener">
-                <img src="{{{ccpImageServerUrl}}}/Corporation/{{killmail.victim.corporation_id}}_32.png" class="{{systemKillboardListImgCorp}}">
+                <img src="{{{ccpImageServerUrl}}}/corporations/{{killmail.victim.corporation_id}}/logo?size=32" class="{{systemKillboardListImgCorp}}">
             </a>
         </h5>
         {{#killmail.victim.alliance_id}}
         <h5 class="media-heading">
             <a href="{{{zKillboardUrl}}}/alliance/{{killmail.victim.alliance_id}}/" title="alliance KB" target="_blank" rel="noopener">
-                <img src="{{{ccpImageServerUrl}}}/Alliance/{{killmail.victim.alliance_id}}_32.png" class="{{systemKillboardListImgAlly}}">
+                <img src="{{{ccpImageServerUrl}}}/alliances/{{killmail.victim.alliance_id}}/logo?size=32" class="{{systemKillboardListImgAlly}}">
             </a>
         </h5>
         {{/killmail.victim.alliance_id}}

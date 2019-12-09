@@ -13,6 +13,7 @@ use data\filesystem\Search;
 use DB\SQL\Schema;
 use DB\SQL\MySQL as MySQL;
 use lib\Config;
+use lib\Cron;
 use lib\Util;
 use Model\Pathfinder;
 use Model\Universe;
@@ -59,6 +60,7 @@ class Setup extends Controller {
         'PF' => [
             'info' => [],
             'models' => [
+                'Model\Pathfinder\CronModel',
                 'Model\Pathfinder\UserModel',
                 'Model\Pathfinder\AllianceModel',
                 'Model\Pathfinder\CorporationModel',
@@ -167,17 +169,10 @@ class Setup extends Controller {
         // js view (file)
         $f3->set('tplJsView', 'setup');
 
-        // simple counter (called within template)
-        $counter = [];
-        $f3->set('tplCounter', function(string $action = 'increment', string $type = 'default', $val = 0) use (&$counter){
-            $return = null;
-            switch($action){
-                case 'increment': $counter[$type]++; break;
-                case 'add': $counter[$type] += (int)$val; break;
-                case 'get': $return = $counter[$type]? : null; break;
-                case 'reset': unset($counter[$type]); break;
-            }
-            return $return;
+        $f3->set('tplCounter', $this->counter());
+
+        $f3->set('tplConvertBytes', function(){
+            return call_user_func_array([\lib\format\Number::instance(), 'bytesToString'], func_get_args());
         });
 
         // render view
@@ -264,6 +259,9 @@ class Setup extends Controller {
         // WebSocket information
         $f3->set('socketInformation', $this->getSocketInformation($f3));
 
+        // Cronjob ----------------------------------------------------------------------------------------------------
+        $f3->set('cronConfig', $this->getCronConfig($f3));
+
         // Administration ---------------------------------------------------------------------------------------------
         // Index information
         $f3->set('indexInformation', $this->getIndexData($f3));
@@ -296,9 +294,12 @@ class Setup extends Controller {
             'socket' => [
                 'icon' => 'fa-exchange-alt'
             ],
+            'cronjob' => [
+                'icon' => 'fa-user-clock'
+            ],
             'administration' => [
                 'icon' => 'fa-wrench'
-            ],
+            ]
         ];
 
         return $config;
@@ -761,20 +762,20 @@ class Setup extends Controller {
                         ],
                         'maxMemory' => [
                             'label' => 'maxmemory',
-                            'required' => $this->convertBytes($f3->get('REQUIREMENTS.REDIS.MAX_MEMORY')),
-                            'version' => $this->convertBytes($redisMemoryInfo['maxmemory']),
+                            'required' => \lib\format\Number::instance()->bytesToString($f3->get('REQUIREMENTS.REDIS.MAX_MEMORY')),
+                            'version' => \lib\format\Number::instance()->bytesToString($redisMemoryInfo['maxmemory']),
                             'check' => $redisMemoryInfo['maxmemory'] >= $f3->get('REQUIREMENTS.REDIS.MAX_MEMORY'),
                             'tooltip' => 'Max memory limit for Redis'
                         ],
                         'usedMemory' => [
                             'label' => 'used_memory',
-                            'version' => $this->convertBytes($redisMemoryInfo['used_memory']),
+                            'version' => \lib\format\Number::instance()->bytesToString($redisMemoryInfo['used_memory']),
                             'check' => $redisMemoryInfo['used_memory'] < $redisMemoryInfo['maxmemory'],
                             'tooltip' => 'Current memory used by Redis'
                         ],
                         'usedMemoryPeak' => [
                             'label' => 'used_memory_peak',
-                            'version' => $this->convertBytes($redisMemoryInfo['used_memory_peak']),
+                            'version' => \lib\format\Number::instance()->bytesToString($redisMemoryInfo['used_memory_peak']),
                             'check' => $redisMemoryInfo['used_memory_peak'] <= $redisMemoryInfo['maxmemory'],
                             'tooltip' => 'Peak memory used by Redis'
                         ],
@@ -1139,6 +1140,8 @@ class Setup extends Controller {
                                 'fieldConf' => $tableConfig['fieldConf'],
                                 'exists' => false,
                                 'empty' => true,
+                                'requiredCharset' => $tableConfig['charset'],
+                                'requiredCollation' => $tableConfig['charset'] . '_unicode_ci',
                                 'foreignKeys' => []
                             ];
                         }
@@ -1157,7 +1160,8 @@ class Setup extends Controller {
 
                 // check each table for changes
                 foreach($requiredTables as $requiredTableName => $data){
-
+                    $tableCharset = null;
+                    $tableCollation = null;
                     $tableExists = false;
                     $tableRows = 0;
                     // Check if table status is OK (no errors/warnings,..)
@@ -1173,6 +1177,14 @@ class Setup extends Controller {
                         // get row count
                         $tableRows = $db->getRowCount($requiredTableName);
 
+                        $tableStatus = $db->getTableStatus($requiredTableName);
+                        if(
+                            !empty($tableStatus['Collation']) &&
+                            ($statusVal = strstr($tableStatus['Collation'], '_', true)) !== false
+                        ){
+                            $tableCharset = $statusVal;
+                            $tableCollation = $tableStatus['Collation'];
+                        }
 
                         // find deprecated columns that are no longer needed ------------------------------------------
                         $deprecatedColumnNames = array_diff(array_keys($currentColumns), array_keys($data['fieldConf']), ['id']);
@@ -1365,6 +1377,8 @@ class Setup extends Controller {
                     }
 
                     $dbStatusCheckCount += $tableStatusCheckCount;
+                    $requiredTables[$requiredTableName]['currentCharset'] = $tableCharset;
+                    $requiredTables[$requiredTableName]['currentCollation'] = $tableCollation;
                     $requiredTables[$requiredTableName]['rows'] = $tableRows;
                     $requiredTables[$requiredTableName]['exists'] = $tableExists;
                     $requiredTables[$requiredTableName]['statusCheckCount'] = $tableStatusCheckCount;
@@ -1660,12 +1674,58 @@ class Setup extends Controller {
     }
 
     /**
+     * get cronjob config
+     * @param \Base $f3
+     * @return array
+     */
+    protected function getCronConfig(\Base $f3) : array {
+        $cron = Cron::instance();
+
+        $cronConf = [
+            'log' => [
+                'label' => 'LOG',
+                'required' => $f3->get('REQUIREMENTS.CRON.LOG'),
+                'version' => $f3->get('CRON.log'),
+                'check' => $f3->get('CRON.log') == $f3->get('REQUIREMENTS.CRON.LOG'),
+                'tooltip' => 'Write default cron.log'
+            ],
+            'cli' => [
+                'label' => 'CLI',
+                'required' => $f3->get('REQUIREMENTS.CRON.CLI'),
+                'version' => $f3->get('CRON.cli'),
+                'check' => $f3->get('CRON.cli') == $f3->get('REQUIREMENTS.CRON.CLI'),
+                'tooltip' => 'Jobs can be triggered by CLI. Must be set on Unix where "crontab -e" config is used'
+            ],
+            'web' => [
+                'label' => 'WEB',
+                'version' => (int)$f3->get('CRON.web'),
+                'check' => true,
+                'tooltip' => 'Jobs can be triggered by URL. Could be useful if jobs should be triggered by e.g. 3rd party app. Secure "/cron" url if active!'
+            ],
+            'silent' => [
+                'label' => 'SILENT',
+                'version' => (int)$f3->get('CRON.silent'),
+                'check' => true,
+                'tooltip' => 'Write job execution status to STDOUT if job completes'
+            ]
+        ];
+
+        $config = [
+            'checkCronConfig' => $cronConf,
+            'settings' => $f3->constants($cron, 'DEFAULT_'),
+            'jobs' => $cron->getJobsConfig()
+        ];
+
+        return $config;
+    }
+
+    /**
      * get indexed (cache) data information
      * @param \Base $f3
      * @return array
      * @throws \Exception
      */
-    protected function getIndexData(\Base $f3){
+    protected function getIndexData(\Base $f3) : array {
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
             /**
@@ -1890,7 +1950,7 @@ class Setup extends Controller {
             }
             $bytesAll += $bytes;
 
-            $dirAll[$key]['size'] = ($maxHit ? '>' : '') . $this->convertBytes($bytes);
+            $dirAll[$key]['size'] = ($maxHit ? '>' : '') . \lib\format\Number::instance()->bytesToString($bytes);
             $dirAll[$key]['task'] = [
                 [
                     'action' => http_build_query([
@@ -1905,7 +1965,7 @@ class Setup extends Controller {
         }
 
         return [
-            'sizeAll' => ($maxHitAll ? '>' : '') . $this->convertBytes($bytesAll),
+            'sizeAll' => ($maxHitAll ? '>' : '') . \lib\format\Number::instance()->bytesToString($bytesAll),
             'dirAll' => $dirAll
         ];
     }
@@ -1956,21 +2016,5 @@ class Setup extends Controller {
                 $result->erase();
             }
         }
-    }
-
-    /**
-     * convert Bytes to string + suffix
-     * @param int $bytes
-     * @param int $precision
-     * @return string
-     */
-    protected function convertBytes($bytes, $precision = 2){
-        $result = '0';
-        if($bytes){
-            $base = log($bytes, 1024);
-            $suffixes = array('', 'KB', 'M', 'GB', 'TB');
-            $result = round(pow(1024, $base - floor($base)), $precision) .''. $suffixes[(int)floor($base)];
-        }
-        return $result;
     }
 }

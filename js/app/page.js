@@ -6,6 +6,7 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/counter',
     'app/logging',
     'mustache',
     'app/map/util',
@@ -26,7 +27,7 @@ define([
     'dialog/credit',
     'xEditable',
     'app/module_map'
-], ($, Init, Util, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplHead, TplFooter) => {
+], ($, Init, Util, Counter, Logging, Mustache, MapUtil, MapContextMenu, SlideBars, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -873,13 +874,12 @@ define([
                 let popoverElement = $(e.target).data('bs.popover').tip();
 
                 // destroy all active tooltips inside this popover
-                popoverElement.destroyTooltip(true);
+                popoverElement.destroyTooltips(true);
             });
 
             // global "modal" callback --------------------------------------------------------------------------------
             bodyElement.on('hide.bs.modal', '> .modal', e => {
                 let modalElement = $(e.target);
-                modalElement.destroyTimestampCounter(true);
 
                 // destroy all form validators
                 // -> does not work properly. validation functions still used (js error) after 'destroy'
@@ -892,6 +892,14 @@ define([
                 modalElement.find('.' + Util.config.select2Class)
                     .filter((i, element) => $(element).data('select2'))
                     .select2('destroy');
+
+                // destroy DataTable instances
+                for(let table of modalElement.find('table.dataTable')){
+                    $(table).DataTable().destroy(true);
+                }
+
+                // destroy counter
+                Counter.destroyTimestampCounter(modalElement, true);
             });
 
             // global "close" trigger for context menus ---------------------------------------------------------------
@@ -1060,7 +1068,7 @@ define([
                 if(changedCharacter){
                     // current character changed
                     userInfoElement.find('span').text(Util.getObjVal(userData, 'character.name'));
-                    userInfoElement.find('img').attr('src', Util.eveImageUrl('character', Util.getObjVal(userData, 'character.id')));
+                    userInfoElement.find('img').attr('src', Util.eveImageUrl('characters', Util.getObjVal(userData, 'character.id')));
                 }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
@@ -1145,7 +1153,7 @@ define([
                     if(isCurrentLocation && shipTypeId){
                         // show ship image
                         breadcrumbHtml += '<img class="pf-head-image --right" ';
-                        breadcrumbHtml += 'src="' + Util.eveImageUrl('render', shipTypeId) + '" ';
+                        breadcrumbHtml += 'src="' + Util.eveImageUrl('types', shipTypeId) + '" ';
                         breadcrumbHtml += 'title="' + shipTypeName + '" ';
                         breadcrumbHtml += '>';
                     }

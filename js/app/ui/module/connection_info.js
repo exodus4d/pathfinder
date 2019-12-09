@@ -7,8 +7,9 @@ define([
     'app/init',
     'app/util',
     'bootbox',
+    'app/counter',
     'app/map/util'
-], ($, Init, Util, bootbox, MapUtil) => {
+], ($, Init, Util, bootbox, Counter, MapUtil) => {
     'use strict';
 
     let config = {
@@ -774,7 +775,7 @@ define([
                             _: function(data, type, row){
                                 let value = data.typeId;
                                 if(type === 'display'){
-                                    value = '<img src="' + Util.eveImageUrl('render', value) + '" title="' + data.typeName + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Util.eveImageUrl('types', value) + '" title="' + data.typeName + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }
@@ -794,7 +795,7 @@ define([
                             _: (cellData, type, rowData, meta) => {
                                 let value = cellData.name;
                                 if(type === 'display'){
-                                    value = '<img src="' + Util.eveImageUrl('character', cellData.id) + '" title="' + value + '" data-toggle="tooltip" />';
+                                    value = '<img src="' + Util.eveImageUrl('characters', cellData.id) + '" title="' + value + '" data-toggle="tooltip" />';
                                 }
                                 return value;
                             }
@@ -827,10 +828,7 @@ define([
                         title: 'log',
                         width: 55,
                         className: ['text-right', config.tableCellCounterClass].join(' '),
-                        data: 'created.created',
-                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                            $(cell).initTimestampCounter('d');
-                        }
+                        data: 'created.created'
                     },{
                         targets: 5,
                         name: 'edit',
@@ -873,7 +871,7 @@ define([
                             display: data => {
                                 let val = '<i class="fas fa-plus"></i>';
                                 if(data){
-                                    val = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                                    val = '<i class="fas fa-times txt-color txt-color-redDark"></i>';
                                 }
                                 return val;
                             }
@@ -931,6 +929,9 @@ define([
                         }
                     }
                 ],
+                initComplete: function(settings, json){
+                    Counter.initTableCounter(this, ['created:name']);
+                },
                 drawCallback: function(settings){
                     let animationRows = this.api().rows().nodes().to$().filter(function(a,b ){
                         return (

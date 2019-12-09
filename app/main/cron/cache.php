@@ -12,7 +12,10 @@ use data\filesystem\Search;
 
 class Cache extends AbstractCron {
 
-    const LOG_TEXT                          = '%s [%\'_10s] files, size [%\'_10s] byte, not writable [%\'_10s] files, errors [%\'_10s], exec (%.3Fs)';
+    /**
+     * log text
+     */
+    const LOG_TEXT                          = ', size [%\'_10s] byte, not writable [%\'_10s] files, errors [%\'_10s]';
 
     /**
      * default max expire for files (seconds)
@@ -33,9 +36,8 @@ class Cache extends AbstractCron {
      * >> php index.php "/cron/deleteExpiredCacheData"
      * @param \Base $f3
      */
-    function deleteExpiredData(\Base $f3){
-        $this->setMaxExecutionTime();
-        $time_start = microtime(true);
+    function deleteExpiredCacheData(\Base $f3){
+        $this->logStart(__FUNCTION__);
 
         // cache dir (dir is recursively searched...)
         $cacheDir = $f3->get('TEMP');
@@ -43,6 +45,7 @@ class Cache extends AbstractCron {
         $filterTime = (int)strtotime('-' . $this->getExpireMaxTime($f3) . ' seconds');
         $expiredFiles = Search::getFilesByMTime($cacheDir, $filterTime, Search::DEFAULT_FILE_LIMIT);
 
+        $totalFiles = 0;
         $deletedFiles = 0;
         $deletedSize = 0;
         $notWritableFiles = 0;
@@ -52,7 +55,8 @@ class Cache extends AbstractCron {
              * @var $file \SplFileInfo
              */
             if($file->isFile()){
-                if( $file->isWritable() ){
+                $totalFiles++;
+                if($file->isWritable()){
                     $tmpSize = $file->getSize();
                     if( unlink($file->getRealPath()) ){
                         $deletedSize += $tmpSize;
@@ -66,11 +70,13 @@ class Cache extends AbstractCron {
             }
         }
 
-        $execTime = microtime(true) - $time_start;
+        // Log --------------------------------------------------------------------------------------------------------
+        $total = $totalFiles;
+        $importCount = $total;
+        $count = $deletedFiles;
 
-        // Log ------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write( sprintf(self::LOG_TEXT, __FUNCTION__, $deletedFiles, $deletedSize, $notWritableFiles, $deleteErrors, $execTime) );
+        $text = sprintf(self::LOG_TEXT, $deletedSize, $notWritableFiles, $deleteErrors);
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount, 0, $text);
     }
 
 }

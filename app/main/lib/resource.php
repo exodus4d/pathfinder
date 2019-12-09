@@ -25,7 +25,8 @@ class Resource extends \Prefab {
         'script'    => 'script',
         'font'      => 'font',
         'document'  => 'document',
-        'image'     => 'image'
+        'image'     => 'image',
+        'url'       => ''
     ];
 
     /**
@@ -51,7 +52,8 @@ class Resource extends \Prefab {
         'script'    => '',
         'font'      => '',
         'document'  => '',
-        'image'     => ''
+        'image'     => '',
+        'url'       => ''
     ];
 
     /**
@@ -83,12 +85,13 @@ class Resource extends \Prefab {
     private $resources = [];
 
     /**
-     * set option
+     * set or extend option
      * @param string $option
      * @param $value
+     * @param bool $extend
      */
-    public function setOption(string $option, $value){
-        $this->$option = $value;
+    public function setOption(string $option, $value, bool $extend = false){
+        $this->$option = ($extend && is_array($value) && is_array($this->$option)) ? array_merge($this->$option, $value) : $value;
     }
 
     /**
@@ -117,7 +120,8 @@ class Resource extends \Prefab {
      * @return string
      */
     public function getLink(string $group, string $file) : string {
-        $link = $this->getPath($group) . '/' . $file;
+        // $group 'url' expect full qualified URLs
+        $link = ($group == 'url' ? '' : $this->getPath($group) . '/') . $file;
         // add extension if not already part of the file
         // -> allows switching between extensions (e.g. .jpg, .png) for the same image
         $link .= empty(pathinfo($file, PATHINFO_EXTENSION)) ? '.' . $this->getFileExtension($group) : '';
@@ -191,8 +195,8 @@ class Resource extends \Prefab {
                 if( empty($conf['options']['rel']) ){
                     $conf['options']['rel'] = self::ATTR_REL;
                 }
-                if( empty($conf['options']['as']) ){
-                    $conf['options']['as'] = $group;
+                if( empty($conf['options']['as']) && !empty($attrAs = $this->getLinkAttrAs($group)) ){
+                    $conf['options']['as'] = $attrAs;
                 }
                 if( empty($conf['options']['type']) && !empty($attrType = $this->getLinkAttrType($group)) ){
                     $conf['options']['type'] = $attrType;
@@ -202,7 +206,6 @@ class Resource extends \Prefab {
                     $conf['options'] = $conf['options'] + $additionalAttr;
                 }
             }
-            unset($options); // unset ref
         }
         unset($resources);  // unset ref
     }
@@ -237,6 +240,12 @@ class Resource extends \Prefab {
         return isset(self::ATTR_ADD[$group]) ? self::ATTR_ADD[$group] : [];
     }
 
+    /**
+     * get file extension by $group
+     * -> e.g. or fonts
+     * @param string $group
+     * @return string
+     */
     protected function getFileExtension(string $group) : string {
         return isset($this->fileExt[$group]) ? $this->fileExt[$group] : '';
     }

@@ -10,9 +10,92 @@ namespace Controller\Api;
 
 use Controller;
 use lib\Config;
+use lib\Cron;
 use Model;
 
 class Setup extends Controller\Controller {
+
+    /**
+     * get HTML table <tr>´s for all cronjobs
+     * @param \Base $f3
+     */
+    public function cronTable(\Base $f3){
+        $return = (object) [];
+        $return->error = [];
+        $return->jobsData = Cron::instance()->getJobsConfig();
+        $return->html = $this->getCronHtml($return->jobsData);
+        echo json_encode($return);
+    }
+
+    /**
+     * toggle "isPaused" for a cronjob by its name
+     * @param \Base $f3
+     */
+    public function cronPause(\Base $f3){
+        $postData = (array)$f3->get('POST');
+        $return = (object) [];
+        $return->error = [];
+
+        if($jobName = (string)$postData['job']){
+            $cron = Cron::instance();
+            if($job = $cron->getJob($jobName)){
+                if($job->valid()){
+                    $job->isPaused = !$job->isPaused;
+                    $job->save();
+
+                    $return->jobsData = $cron->getJobsConfig([$jobName]);
+                    $return->html = $this->getCronHtml($return->jobsData);
+                }
+            }
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
+     * execute a cronjob by its name
+     * -> runs sync
+     * -> max execution time might be lower than CLI calls!
+     * @param \Base $f3
+     */
+    public function cronExecute(\Base $f3){
+        $postData = (array)$f3->get('POST');
+        $return = (object) [];
+        $return->error = [];
+
+        if($jobName = (string)$postData['job']){
+            $cron = Cron::instance();
+            if($job = $cron->getJob($jobName)){
+                if($job->valid()){
+                    $cron->execute($jobName, false);
+
+                    $return->jobsData = $cron->getJobsConfig([$jobName]);
+                    $return->html = $this->getCronHtml($return->jobsData);
+                }
+            }
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
+     * get HTML for cronJobs
+     * @param array $jobsData
+     * @return string
+     */
+    protected function getCronHtml(array $jobsData) : string {
+        $tplData = [
+            'cronConfig' => [
+                'jobs' => $jobsData,
+                'settings' => $this->getF3()->constants(Cron::instance(), 'DEFAULT_')
+            ],
+            'tplCounter' => $this->counter(),
+            'tplConvertBytes' => function(){
+                return call_user_func_array([\lib\format\Number::instance(), 'bytesToString'], func_get_args());
+            }
+        ];
+        return \Template::instance()->render('templates/ui/cron_table_row.html', null, $tplData, 0);
+    }
 
     /**
      * build search index from existing data (e.g. Systems)

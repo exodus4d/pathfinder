@@ -15,6 +15,7 @@ body{
   cursor: default;
 }
 
+// links ==========================================================================================
 a, .pf-link{
   color: $teal;
   will-change: color;
@@ -29,6 +30,12 @@ a, .pf-link{
 
   &:focus{
     color: $teal;
+  }
+
+  &.disabled{
+    color: $navbar-default-link-color;
+    pointer-events: none;
+    cursor: default;
   }
 }
 
@@ -82,6 +89,35 @@ em,
   margin: 0;
 }
 
+// show/hide by [data-attr] value =================================================================
+.pf-hidden-by-attr{
+  &[data-attr='']{
+    display: none;
+  }
+
+  &:not([data-attr='']){
+    display: initial;
+  }
+
+  &:before{
+    content: attr(data-attr) ' ' attr(data-attr-label);
+  }
+}
+
+.pf-shown-by-attr{
+  &[data-attr='']{
+    display: initial;
+  }
+
+  &:not([data-attr='']){
+    display: none;
+  }
+
+  &:before{
+    content: attr(data-attr) ' ' attr(data-attr-label);
+  }
+}
+
 // scroll bar (webkit only) =======================================================================
 ::-webkit-scrollbar {
   display: none;  // hides the scrollbar but is still scrollable
@@ -128,6 +164,20 @@ em,
   color: $gray-darkest;
 }
 
+.row{
+  // swap render order
+  &--reverse{
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+// Flex layout ====================================================================================
+.pf-container-flex-end{
+  display: flex;
+  justify-content: flex-end;
+}
+
 // .well variants =================================================================================
 .well{
   &.well-text-number{
@@ -137,7 +187,15 @@ em,
     letter-spacing: .02em;
     line-height: 16px;
     text-rendering: geometricPrecision;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
+}
+
+// .collapse ======================================================================================
+.collapse{
+  will-change: height;
 }
 
 // help elements ==================================================================================
@@ -194,15 +252,30 @@ em,
   user-select: text;
 }
 
-// links ==========================================================================================
-a{
-  &.disabled{
-    color: $navbar-default-link-color;
-    pointer-events: none;
-    cursor: default;
-  }
+%pf-bg-image-wrapper{
+  background-size: contain;
+  background-origin: content-box;
+  background-repeat: no-repeat;
+  background-image: var(--bg-image);
+  background-position: bottom 0 right 0;
+  image-rendering: -webkit-optimize-contrast;
 }
 
+.pf-bg-icon-inline{
+  @extend %pf-bg-image-wrapper;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: -5px 5px;
+  outline: 1px solid;
+  outline-color: transparent;
+  outline-offset: 2px;
+  @include transition(outline-color 0.15s ease-out);
+
+  &:hover{
+    outline-color: $teal;
+  }
+}
 // alert messages =================================================================================
 .alert{
   will-change: opacity, transform;
@@ -469,6 +542,25 @@ select:active, select:hover {
       }
     }
 
+    &.pf-table-type-cell{
+      > span {
+        &:first-child{
+          display: inline-block;
+          width: 28px;
+        }
+        &:nth-child(2){
+          display: inline-block;
+          width: 22px;
+
+          kbd{
+            &:empty{
+              display: none;
+            }
+          }
+        }
+      }
+    }
+
     &.pf-table-image-cell{
       padding: 0 !important;
       image-rendering: -webkit-optimize-contrast;
@@ -623,6 +715,10 @@ table{
   }
 
   td, th{
+    &.separator-right{
+      border-right: 1px solid $gray-dark;
+    }
+
     &.pf-table-cell-10{
       width: 10px;
     }
@@ -651,13 +747,8 @@ table{
       border-top-color: transparent !important;
 
       .pf-table-cell-bg-image-wrapper{
+        @extend %pf-bg-image-wrapper;
         display: block;
-        background-size: contain;
-        background-origin: content-box;
-        background-repeat: no-repeat;
-        background-image: var(--bg-image);
-        background-position: bottom 0 right 0;
-        image-rendering: -webkit-optimize-contrast;
         width: auto;
         height: 40px;
         padding: 2px 0;
@@ -665,6 +756,43 @@ table{
         &.smaller{
           height: 30px;
         }
+      }
+    }
+
+    &.pf-table-cell-chart{
+      position: relative;
+
+      svg.peity{
+        display: block;
+        position: absolute;
+        margin-top: -2px; // ugly fix
+      }
+    }
+
+    &.pf-table-cell-progress{
+      position: relative;
+
+      &:before{
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0; // default if no --width var set
+        width: calc(var(--width) * 1%);
+        height: 1px;
+        border-top: 1px solid $blue;
+      }
+
+      &:after{
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        border-width: 0 2px;
+        border-style: solid;
+        border-color: $gray-lighter;
       }
     }
   }
@@ -969,7 +1097,7 @@ table{
 
         // icons in headline
         .pf-module-icon-button{
-          margin-left: 5px;
+          margin-left: 3px;
         }
       }
     }
@@ -1007,7 +1135,7 @@ table{
 
 // User status ====================================================================================
 .pf-user-status{
-  color: $red-darker;
+  color: $red-dark;
 }
 
 .pf-user-status-corp{
@@ -1373,7 +1501,7 @@ table{
   }
 
   &.pf-map-connection-wh-critical{
-    background-color: $red-darker;
+    background-color: $red-dark;
   }
 
   &.pf-map-connection-wh-size-s,
@@ -1433,7 +1561,7 @@ table{
 
     &:after{
       content: 'save mass';
-      background-color: $red-darker;
+      background-color: $red-dark;
       color: $gray-lightest;
       left: calc(50% - 28px);
     }
@@ -1459,7 +1587,7 @@ table{
   }
 
   &.pf-wh-critical{
-    background-color: $red-darker;
+    background-color: $red-dark;
     color: $black;
   }
 
@@ -1479,7 +1607,7 @@ table{
 }
 
 .pf-structure-status-offline{
-  color: $red-darker;
+  color: $red-dark;
 }
 
 // global tooltip settings ========================================================================

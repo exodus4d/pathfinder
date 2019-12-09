@@ -7,8 +7,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/map/util'
-], function($, Init, Util, MapUtil){
+    'app/map/util',
+    'app/map/overlay/util'
+], function($, Init, Util, MapUtil, MapOverlayUtil){
     'use strict';
 
     let config = {
@@ -93,6 +94,7 @@ define([
     let setOverlayObserver = (overlay, mapId) => {
         let overlayMain = overlay.find('.' + config.overlayLocalMainClass);
 
+        // open/close toggle ------------------------------------------------------------------------------------------
         overlayMain.on('click', function(){
             let overlayMain = $(this).parent('.' + config.overlayLocalClass);
             let isOpenStatus = isOpen(overlayMain);
@@ -108,6 +110,15 @@ define([
            }
         });
 
+        // trigger table re-draw() ------------------------------------------------------------------------------------
+        let mapWrapper = overlay.parents('.' + MapUtil.config.mapWrapperClass);
+        mapWrapper.on('pf:mapResize', function(e){
+            let tableElement = overlay.find('.' + config.overlayLocalTableClass);
+            let tableApi = tableElement.DataTable();
+            tableApi.draw('full-hold');
+        });
+
+        // tooltips ---------------------------------------------------------------------------------------------------
         overlayMain.initTooltips({
             container: 'body',
             placement: 'bottom'
@@ -229,7 +240,7 @@ define([
             let indexesRemove = filterRows(localTable, 'id', characterAllIds, false);
             localTable.rows(indexesRemove).remove();
 
-            localTable.draw();
+            localTable.draw('full-hold');
 
             // update system relevant data in overlay -----------------------------------------------------------------
             updateLocaleHeadline(overlay, systemData, characterAllIds.length, characterLocalIds.length);
@@ -339,12 +350,53 @@ define([
                 overlay.append(overlayMain);
                 overlay.append(content);
 
+                parentElement.append(overlay);
+
                 // set observer
                 setOverlayObserver(overlay, mapId);
 
-                parentElement.append(overlay);
-
                 // init local table ---------------------------------------------------------------------------------------
+                table.on('preDraw.dt', function(e, settings){
+                    let table = $(this);
+                    let mapWrapper = table.parents('.' + MapUtil.config.mapWrapperClass);
+
+                    // mapWrapper should always exist
+                    if(mapWrapper && mapWrapper.length) {
+                        // check available maxHeight for "locale" table based on current map height (resizable)
+                        let mapHeight = mapWrapper[0].offsetHeight;
+                        let localOverlay = MapOverlayUtil.getMapOverlay(table, 'local');
+                        let paginationElement = localOverlay.find('.dataTables_paginate');
+
+                        let tableApi = table.DataTable();
+                        let pageInfo = tableApi.page.info();
+                        let localTableRowHeight = 26;
+
+                        let localTop = localOverlay[0].offsetTop;
+                        let bottomSpace = 38 + 10; // "timer" overlay + some spacing top
+                        bottomSpace += 16 + 5 + 5; // horizontal scrollBar height + some spacing top + bottom
+                        let localHeightMax = mapHeight - bottomSpace - localTop; // max available for local overlay
+
+                        let localTableBodyMaxHeight = localHeightMax - 53; // - headline height + <thead> height
+                        let newPageLength = Math.floor(localTableBodyMaxHeight / localTableRowHeight);
+                        if(pageInfo.recordsDisplay > newPageLength){
+                            // show pagination and limit page length
+                            localTableBodyMaxHeight -= 30; // - pagination height
+                            newPageLength = Math.floor(localTableBodyMaxHeight / localTableRowHeight);
+                        }
+
+                        if(pageInfo.length !== newPageLength){
+                            tableApi.page.len(newPageLength);
+
+                            // page length changed -> show/hide pagination
+                            pageInfo = tableApi.page.info();
+                            if(pageInfo.pages <= 1){
+                                 paginationElement.hide();
+                            }else{
+                                 paginationElement.show();
+                            }
+                        }
+                    }
+                });
 
                 table.on('draw.dt', function(e, settings){
                     // init table tooltips
@@ -352,15 +404,6 @@ define([
                         container: 'body',
                         placement: 'left'
                     });
-
-                    // hide pagination in case of only one page
-                    let paginationElement = overlay.find('.dataTables_paginate');
-                    let pageElements = paginationElement.find('span .paginate_button');
-                    if(pageElements.length <= 1){
-                        paginationElement.hide();
-                    }else{
-                        paginationElement.show();
-                    }
                 });
 
                 // table init complete
@@ -372,9 +415,10 @@ define([
                     });
                 });
 
-                let localTable = table.DataTable( {
-                    pageLength: 13, // hint: if pagination visible => we need space to show it
+                let localTable = table.DataTable({
+                    pageLength: 5,
                     paging: true,
+                    pagingType: 'simple',
                     lengthChange: false,
                     ordering: true,
                     order: [ 0, 'asc' ],
@@ -386,7 +430,11 @@ define([
                         return 'pf-local-row_' + rowData.id; // characterId
                     },
                     language: {
-                        emptyTable: '<span>You&nbsp;are&nbsp;alone</span>'
+                        emptyTable: '<span>You&nbsp;are&nbsp;alone</span>',
+                        paginate: {
+                            next: '&nbsp;',
+                            previous: '&nbsp;'
+                        }
                     },
                     columnDefs: [
                         {
@@ -422,7 +470,7 @@ define([
                                 _: (data, type, row, meta) => {
                                     let value = data.typeName;
                                     if(type === 'display'){
-                                        value = '<img src="' + Util.eveImageUrl('render', data.typeId) + '"/>';
+                                        value = '<img src="' + Util.eveImageUrl('types', data.typeId) + '"/>';
                                     }
                                     return value;
                                 }

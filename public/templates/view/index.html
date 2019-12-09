@@ -53,10 +53,6 @@
         {{ @tplResource->buildLinks() }}                                                            {* Prefetch / Preload *}
     </check>
 
-    <link rel="prerender" href="//login.eveonline.com">
-    <link rel="dns-prefetch" href="//image.eveonline.com">
-    <link rel="dns-prefetch" href="//i.ytimg.com">
-
     <link rel="stylesheet" href="{{ @tplResource->getLink('style', 'pathfinder') }}" type="text/css" media="screen">
 </head>
 <body class="pf-body {{ @tplBodyClass }}" data-js-path="{{ @tplResource->getPath('script') }}" data-script="{{ @tplJsView }}" <check if="{{ @tplCharacterId }}">data-character-id="{{ @tplCharacterId }}"</check> data-version="{{ @PATHFINDER.VERSION }}">

@@ -10,8 +10,9 @@ define([
     'app/counter',
     'app/map/map',
     'app/map/util',
+    'app/lib/cache',
     'app/ui/form_element'
-], ($, Init, Util, bootbox, Counter, Map, MapUtil, FormElement) => {
+], ($, Init, Util, bootbox, Counter, Map, MapUtil, Cache, FormElement) => {
     'use strict';
 
     let config = {
@@ -51,6 +52,7 @@ define([
 
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (sig name)
 
+        tableCellTypeClass: 'pf-table-type-cell',                               // class for "type" cells
         tableCellConnectionClass: 'pf-table-connection-cell',                   // class for "connection" cells
         tableCellFocusClass: 'pf-table-focus-cell',                             // class for "tab-able" cells. enable focus()
         tableCellCounterClass: 'pf-table-counter-cell',                         // class for "counter" cells
@@ -76,7 +78,12 @@ define([
         sigInfoCountConDeleteId: 'pf-sig-info-count-con-delete'                 // id for "connection delete" counter
     };
 
-    let sigNameCache = {};                                                      // cache signature names
+    let sigTypeOptionsCache = new Cache({                                       // cache signature names
+        name: 'sigTypeOptions',
+        ttl: 60 * 5,
+        maxSize: 100,
+        debug: false
+    });
 
     let validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
@@ -135,7 +142,7 @@ define([
                 reason = jqXHR.statusText;
             }else if(jqXHR.name){
                 // validation error new sig (new row data save function)
-                reason = jqXHR.name;
+                reason = jqXHR.name.msg;
                 // re-open "name" fields (its a collection of fields but we need "id" field)
                 jqXHR.name.field.$element.editable('show');
             }else{
@@ -222,6 +229,36 @@ define([
     };
 
     /**
+     * Some signatures types can spawn in more than one 'areaId' for a 'groupId'
+     * -> e.g. a 'shattered' C3 WHs have Combat/Relic/.. sites from C2, C3, c4!
+     *    https://github.com/exodus4d/pathfinder/issues/875
+     * @param systemTypeId
+     * @param areaId
+     * @param groupId
+     * @param shattered
+     * @returns {[*]}
+     */
+    let getAreaIdsForSignatureTypeOptions = (systemTypeId, areaId, groupId, shattered = false) => {
+        let areaIds = [areaId];
+
+        if(
+            systemTypeId === 1 && shattered &&
+            [1, 2, 3, 4, 5, 6].includes(areaId) &&
+            [1, 2, 3].includes(groupId) // Combat, Relic, Data
+        ){
+            areaIds = [areaId - 1, areaId, areaId + 1].filter(areaId => areaId >= 1 && areaId <= 6);
+        }else if(
+            systemTypeId === 1 && shattered &&
+            [1, 2, 3, 4, 5, 6].includes(areaId) &&
+            [4, 6].includes(groupId) // Gas, Ore
+        ){
+            areaIds = [1, 2, 3, 4, 5, 6, 13];
+        }
+
+        return areaIds;
+    };
+
+    /**
      * get possible frig holes that could spawn in a system
      * filtered by "systemTypeId"
      * @param systemTypeId
@@ -238,13 +275,14 @@ define([
     /**
      * get all signature types that can exist for a given system
      * -> result is partially cached
-     * @param systemData
      * @param systemTypeId
      * @param areaId
      * @param groupId
-     * @returns {Array}
+     * @param statics
+     * @param shattered
+     * @returns {[]|*}
      */
-    let getAllSignatureNames = (systemData, systemTypeId, areaId, groupId) => {
+    let getSignatureTypeOptions = (systemTypeId, areaId, groupId, {statics = null, shattered = false} = {}) => {
         systemTypeId    = parseInt(systemTypeId || 0);
         areaId          = parseInt(areaId || 0);
         groupId         = parseInt(groupId || 0);
@@ -255,18 +293,23 @@ define([
             return newSelectOptions;
         }
 
-        let cacheKey = [systemTypeId, areaId, groupId].join('_');
+        // check if sig types require more than one 'areaId' to be checked
+        let areaIds = getAreaIdsForSignatureTypeOptions(systemTypeId, areaId, groupId, shattered);
+
+        let cacheKey = [systemTypeId, ...areaIds, groupId].join('_');
+
+        newSelectOptions = sigTypeOptionsCache.getOrDefault(cacheKey, []);
 
         // check for cached signature names
-        if(sigNameCache.hasOwnProperty( cacheKey )){
+        if(newSelectOptions.length){
             // cached signatures do not include static WHs!
             // -> ".slice(0)" creates copy
-            newSelectOptions =  sigNameCache[cacheKey].slice(0);
+            newSelectOptions = newSelectOptions.slice(0);
             newSelectOptionsCount = getOptionsCount('children', newSelectOptions);
         }else{
             // get new Options ----------
             // get all possible "static" signature names by the selected groupId
-            let tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
+            let tempSelectOptions = Util.getSignatureTypeNames(systemTypeId, areaIds, groupId);
 
             // format options into array with objects advantages: keep order, add more options (whs), use optgroup
             if(tempSelectOptions){
@@ -303,7 +346,7 @@ define([
                         frigateHoles.hasOwnProperty(frigKey)
                     ){
                         newSelectOptionsCount++;
-                        frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
+                        frigateWHData.push({value: newSelectOptionsCount, text: frigateHoles[frigKey]});
                     }
                 }
 
@@ -320,7 +363,7 @@ define([
                             Init.drifterWormholes.hasOwnProperty(drifterKey)
                         ){
                             newSelectOptionsCount++;
-                            drifterWHData.push( {value: newSelectOptionsCount, text: Init.drifterWormholes[drifterKey]} );
+                            drifterWHData.push({value: newSelectOptionsCount, text: Init.drifterWormholes[drifterKey]});
                         }
                     }
 
@@ -337,12 +380,12 @@ define([
                         Init.incomingWormholes.hasOwnProperty(incomingKey)
                     ){
                         newSelectOptionsCount++;
-                        incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
+                        incomingWHData.push({value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]});
                     }
                 }
 
                 if(incomingWHData.length > 0){
-                    newSelectOptions.push({ text: 'Incoming', children: incomingWHData});
+                    newSelectOptions.push({text: 'Incoming', children: incomingWHData});
                 }
             }else{
                 // groups without "children" (optgroup) should be sorted by "value"
@@ -351,20 +394,20 @@ define([
             }
 
             // update cache (clone array) -> further manipulation to this array, should not be cached
-            sigNameCache[cacheKey] = newSelectOptions.slice(0);
+            sigTypeOptionsCache.set(cacheKey, newSelectOptions.slice(0));
         }
 
-        // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics,...
+        // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics..)
         if(groupId === 5){
             // add static WH(s) for this system
-            if(systemData.statics){
+            if(statics){
                 let staticWHData = [];
-                for(let wormholeName of systemData.statics){
+                for(let wormholeName of statics){
                     let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
                     let staticWHName = wormholeData.name + ' - ' + wormholeData.security;
 
                     newSelectOptionsCount++;
-                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
+                    staticWHData.push({value: newSelectOptionsCount, text: staticWHName});
                 }
 
                 if(staticWHData.length > 0){
@@ -382,11 +425,11 @@ define([
      * @param groupId
      * @returns {Array}
      */
-    let getAllSignatureNamesBySystem = (systemElement, groupId) => {
+    let getSignatureTypeOptionsBySystem = (systemElement, groupId) => {
         let systemTypeId = systemElement.data('typeId');
         let areaId = Util.getAreaIdBySecurity(systemElement.data('security'));
         let systemData = {statics: systemElement.data('statics')};
-        return getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
+        return getSignatureTypeOptions(systemTypeId, areaId, groupId, systemData);
     };
 
     /**
@@ -473,7 +516,7 @@ define([
                 // hide row
 
                 // stop sig counter by adding a stopClass to each <td>, remove padding
-                cellElements.addClass('stopCounter')
+                cellElements.addClass(Counter.config.counterStopClass)
                     .velocity({
                         paddingTop: [0, '4px'],
                         paddingBottom: [0, '4px'],
@@ -882,11 +925,11 @@ define([
                             // try to get "typeId" from description string
                             let sigDescriptionLowerCase = sigDescription.toLowerCase();
 
-                            let typeOptions = getAllSignatureNames(
-                                systemData,
+                            let typeOptions = getSignatureTypeOptions(
                                 systemData.type.id,
                                 Util.getAreaIdBySecurity(systemData.security),
-                                sigGroupId
+                                sigGroupId,
+                                systemData
                             );
 
                             for(let [key, name] of Object.entries(Util.flattenXEditableSelectArray(typeOptions))){
@@ -1196,12 +1239,16 @@ define([
      */
     let activateCell = (cell) => {
         let cellElement = cell.nodes().to$();
-        // NO xEditable
-        cellElement.focus();
+        // check if cell is visible and not e.g. immediately filtered out by a search filter
+        // -> https://github.com/exodus4d/pathfinder/issues/865
+        if(cellElement.is(':visible')){
+            // NO xEditable
+            cellElement.focus();
 
-        if( cellElement.data('editable') ){
-            // cell is xEditable field -> show xEditable form
-            cellElement.editable('show');
+            if( cellElement.data('editable') ){
+                // cell is xEditable field -> show xEditable form
+                cellElement.editable('show');
+            }
         }
     };
 
@@ -1594,11 +1641,9 @@ define([
                             },
                             validate: function(value){
                                 let msg = false;
-                                let mbLength = [...$.trim(value)].length; // unicode beware
-                                if(mbLength < 3){
-                                    msg = 'Id is less than min of "3"';
-                                }else if(mbLength > 10){
-                                    msg = 'Id is more than max of "10"';
+                                //let mbLength = [...$.trim(value)].length; // unicode beware
+                                if(! value.trimChars().match(/^[a-zA-Z]{3}-\d{3}$/)){
+                                    msg = 'ID format invalid. E.g.: ABC-123';
                                 }
 
                                 if(msg){
@@ -1717,7 +1762,7 @@ define([
                     title: 'type',
                     type: 'string',     // required for sort/filter because initial data type is numeric
                     width: 180,
-                    class: [config.tableCellFocusClass].join(' '),
+                    class: [config.tableCellFocusClass, config.tableCellTypeClass].join(' '),
                     data: 'typeId',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tableApi = this.api();
@@ -1745,18 +1790,18 @@ define([
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 let rowData = tableApi.row($(cell).parents('tr')).data();
 
-                                let typeOptions = getAllSignatureNames(
-                                    systemData,
+                                let typeOptions = getSignatureTypeOptions(
                                     systemData.type.id,
                                     Util.getAreaIdBySecurity(systemData.security),
-                                    rowData.groupId
+                                    rowData.groupId,
+                                    systemData
                                 );
                                 return typeOptions;
                             },
                             display: function(value, sourceData){
                                 let selected = $.fn.editableutils.itemsByValue(value, sourceData);
                                 if(selected.length && selected[0].value > 0){
-                                    $(this).html(FormElement.formatSignatureTypeSelectionData({text: selected[0].text}));
+                                    $(this).html(FormElement.formatSignatureTypeSelectionData({text: selected[0].text}, undefined, {showWhSizeLabel: true}));
                                 }else{
                                     $(this).empty();
                                 }
@@ -1917,16 +1962,7 @@ define([
                     width: 80,
                     className: ['text-right', config.tableCellCounterClass, 'min-screen-d'].join(' '),
                     data: 'updated.updated',
-                    defaultContent: '',
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        // highlight cell
-                        let diff = Math.floor((new Date()).getTime()) - cellData * 1000;
-
-                        // age > 1 day
-                        if(diff > 86400000){
-                            $(cell).addClass('txt-color txt-color-warning');
-                        }
-                    }
+                    defaultContent: ''
                 },{
                     targets: 8,
                     name: 'info',
@@ -1957,7 +1993,7 @@ define([
                         display: (cellData, type, rowData, meta) => {
                             let val = '<i class="fas fa-plus"></i>';
                             if(rowData.id){
-                                val = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                                val = '<i class="fas fa-times txt-color txt-color-redDark"></i>';
                             }
                             return val;
                         }
@@ -2095,6 +2131,20 @@ define([
                     if(e.which === 13){
                         $(this).trigger('click');
                     }
+                });
+            },
+            rowCallback: function(){
+                let tableApi = this.api();
+                let time = Math.floor((new Date()).getTime());
+
+                tableApi.cells(null, ['updated:name']).every(function(rowIndex, colIndex, tableLoopCount, cellLoopCount){
+                    let cell = this;
+                    let node = cell.node();
+                    let cellData = cell.data();
+                    let diff = time - cellData * 1000;
+
+                    // highlight cell: age > 1 day
+                    $(node).toggleClass('txt-color txt-color-warning', diff > 86400000);
                 });
             }
         };
@@ -2359,7 +2409,7 @@ define([
         let getIconByAction = action => {
           switch(action){
               case 'add':       return 'fa-plus txt-color-green';
-              case 'delete':    return 'fa-times txt-color-redDarker';
+              case 'delete':    return 'fa-times txt-color-redDark';
               case 'edit':      return 'fa-pen txt-color-orangeDark';
               case 'undo':      return 'fa-undo txt-color-grayLight';
               case 'sync':      return 'fa-exchange-alt txt-color-orangeDark';
@@ -2599,6 +2649,7 @@ define([
                 $(this).on('keyup', 'td', {tableApi: tableApi}, function(e){
                     keyNavigation(tableApi, e);
                 });
+
 
                 Counter.initTableCounter(this, ['created:name', 'updated:name']);
             }
@@ -3303,6 +3354,6 @@ define([
         updateModule: updateModule,
         beforeHide: beforeHide,
         beforeDestroy: beforeDestroy,
-        getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
+        getSignatureTypeOptionsBySystem: getSignatureTypeOptionsBySystem
     };
 });

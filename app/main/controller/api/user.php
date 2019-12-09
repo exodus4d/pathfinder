@@ -10,6 +10,7 @@ namespace Controller\Api;
 
 
 use Controller;
+use lib\Config;
 use Model\Pathfinder;
 use Exception;
 
@@ -119,6 +120,7 @@ class User extends Controller\Controller{
         $cookieName = (string)$data['cookie'];
 
         $return = (object) [];
+        $return->ccpImageServer = Config::getPathfinderData('api.ccp_image_server');
         $return->error = [];
 
         if( !empty($cookieData = $this->getCookieByName($cookieName) )){

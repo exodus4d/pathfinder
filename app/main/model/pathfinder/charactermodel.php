@@ -1243,7 +1243,8 @@ class CharacterModel extends AbstractPathfinderModel {
             $skipRest = false;
             $logHistoryData = $this->filterLogsHistory(function(array $historyEntry) use ($mapId, $systemId, &$skipRest) : bool {
                 $addEntry = false;
-                if(in_array($mapId, (array)$historyEntry['mapIds'], true)){
+                //if(in_array($mapId, (array)$historyEntry['mapIds'], true)){   // $historyEntry is checked by EACH map -> would auto add system on map switch! #827
+                if(!empty((array)$historyEntry['mapIds'])){                     // if $historyEntry was already checked by ANY other map -> no further checks
                     $skipRest = true;
                 }
 

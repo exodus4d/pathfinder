@@ -468,7 +468,7 @@ class Sso extends Api\User{
                      */
                     $corporation = Pathfinder\AbstractPathfinderModel::getNew('CorporationModel');
                     $corporation->getById($corporationId, 0);
-                    if( !$corporation->dry() ){
+                    if($corporation->valid()){
                         $characterData->corporation = $corporation;
                     }
                 }
@@ -479,7 +479,7 @@ class Sso extends Api\User{
                      */
                     $alliance = Pathfinder\AbstractPathfinderModel::getNew('AllianceModel');
                     $alliance->getById($allianceId, 0);
-                    if( !$alliance->dry() ){
+                    if($alliance->valid()){
                         $characterData->alliance = $alliance;
                     }
                 }

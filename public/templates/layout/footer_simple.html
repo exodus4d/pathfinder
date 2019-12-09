@@ -1,10 +1,18 @@
-<footer class="navbar-default navbar-fixed-bottom">
-    <div class="container-fluid">
-        <a href="{{ 'login' | alias }}" class="btn btn-fake navbar-btn">
-            <i class="fas fa-arrow-left"></i>&nbsp;back
-        </a>
-        <a href="#pf-setup-server" class="btn btn-fake navbar-btn pull-right">
-            <i class="fas fa-arrow-up"></i>&nbsp;top
-        </a>
-    </div>
-</footer>
+<set linkLogin="{{ 'login' | alias }}"/>
+<set p1="{{ array_merge([['icon' => 'fas fa-arrow-left', 'label' => 'back', 'href' => @linkLogin]], (array) @p1) }}" />
+<set p2="{{ array_merge([['icon' => 'fas fa-arrow-up', 'label' => 'top', 'href' => '#pf-setup-server']], (array) @p2) }}" />
+
+<div class="hidden-xs pf-landing-sticky-panel pf-landing-sticky-panel--bottom pf-landing-sticky-panel--left">
+    <ul class="fa-ul">
+        <repeat group="{{ @p1 }}" value="{{ @link }}">
+            <li><i class="fa-li {{ @link.icon }}"></i><a href="{{ @link.href }}" data-panel-action="{{ @link.action }}">{{ @link.label }}</a></li>
+        </repeat>
+    </ul>
+</div>
+<div class="hidden-xs pf-landing-sticky-panel pf-landing-sticky-panel--bottom pf-landing-sticky-panel--right">
+    <ul class="fa-ul">
+        <repeat group="{{ @p2 }}" value="{{ @link }}">
+            <li><i class="fa-li {{ @link.icon }}"></i><a href="{{ @link.href }}" data-panel-action="{{ @link.action }}">{{ @link.label }}</a></li>
+        </repeat>
+    </ul>
+</div>

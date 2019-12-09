@@ -7,6 +7,8 @@ define([
     'app/init',
     'app/util',
     'app/key',
+    'app/lib/dragSelect',
+    'app/lib/eventHandler',
     'bootbox',
     'app/map/util',
     'app/map/contextmenu',
@@ -16,9 +18,8 @@ define([
     'app/map/layout',
     'app/map/magnetizing',
     'app/map/scrollbar',
-    'dragToSelect',
     'app/map/local'
-], ($, Init, Util, Key, bootbox, MapUtil, MapContextMenu, MapOverlay, MapOverlayUtil, System, Layout, Magnetizer, Scrollbar) => {
+], ($, Init, Util, Key, DragSelect, EventHandler, bootbox, MapUtil, MapContextMenu, MapOverlay, MapOverlayUtil, System, Layout, Magnetizer, Scrollbar) => {
 
     'use strict';
 
@@ -33,7 +34,6 @@ define([
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system on a map
         systemSelectedClass: 'pf-system-selected',                      // class for selected systems on a map
-        systemLockedClass: 'pf-system-locked',                          // class for locked systems on a map
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
         systemHeadCounterClass: 'pf-system-head-counter',               // class for system user counter
@@ -644,7 +644,7 @@ define([
             case 'add_first_waypoint':
             case 'add_last_waypoint':
                 systemData = system.getSystemData();
-                Util.setDestination(systemData, action);
+                Util.setDestination(action, 'system', {id: systemData.systemId, name: systemData.name});
                 break;
         }
     };
@@ -1108,6 +1108,8 @@ define([
 
             width = parseInt(width.substring(0, width.length - 2)) || 0;
             height = parseInt(height.substring(0, height.length - 2)) || 0;
+
+            mapWrapper.trigger('pf:mapResize');
 
             let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
             promiseStore.then((data) => {
@@ -1988,13 +1990,10 @@ define([
                 }
                 dragSystem.find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
 
-                // drag system is not always selected
-                let selectedSystems = mapContainer.getSelectedSystems().get();
-                selectedSystems = selectedSystems.concat(dragSystem.get());
-                selectedSystems = $.unique( selectedSystems );
-
-                // repaint connections (and overlays) -> just in case something fails...
-                revalidate(map, selectedSystems);
+                // update all dragged systems -> added to DragSelection
+                params.selection.forEach(elData => {
+                    MapUtil.markAsChanged($(elData[0]));
+                });
             }
         });
 
@@ -2112,7 +2111,7 @@ define([
 
         if( system.data('locked') === true ){
             system.data('locked', false);
-            system.removeClass( config.systemLockedClass );
+            system.removeClass(MapUtil.config.systemLockedClass);
 
             // enable draggable
             map.setDraggable(system, true);
@@ -2122,7 +2121,7 @@ define([
             }
         }else{
             system.data('locked', true);
-            system.addClass( config.systemLockedClass );
+            system.addClass(MapUtil.config.systemLockedClass);
 
             // enable draggable
             map.setDraggable(system, false);
@@ -2431,11 +2430,17 @@ define([
             });
         });
 
-        // init drag-frame selection
-        mapContainer.dragToSelect({
-            selectOnMove: true,
-            selectables: '.' + config.systemClass,
-            onHide: function(selectBox, deselectedSystems){
+        // init drag-frame selection ----------------------------------------------------------------------------------
+        let dragSelect = new DragSelect({
+            target: mapContainer[0],
+            selectables: '.' + config.systemClass + ':not(.' + MapUtil.config.systemLockedClass + '):not(.' + MapUtil.config.systemHiddenClass + ')',
+            selectedClass: MapUtil.config.systemSelectedClass,
+            selectBoxClass: 'pf-map-drag-to-select',
+            boundary: '.mCSB_container_wrapper',
+            onShow: () => {
+                Util.triggerMenuAction(document, 'Close');
+            },
+            onHide: (deselectedSystems) => {
                 let selectedSystems = mapContainer.getSelectedSystems();
 
                 if(selectedSystems.length > 0){
@@ -2444,22 +2449,18 @@ define([
 
                     // convert former group draggable systems so single draggable
                     for(let i = 0; i < selectedSystems.length; i++){
-                        map.addToDragSelection( selectedSystems[i] );
+                        map.addToDragSelection(selectedSystems[i]);
                     }
                 }
 
                 // convert former group draggable systems so single draggable
-                for(let j = 0; j < deselectedSystems.length; j++){
-                    map.removeFromDragSelection( deselectedSystems[j] );
+                for(let i = 0; i < deselectedSystems.length; i++){
+                    map.removeFromDragSelection(deselectedSystems[i]);
                 }
             },
-            onShow: function(){
-                Util.triggerMenuAction(document, 'Close');
-            },
-            onRefresh: function(){
-            }
+            debug: false,
+            debugEvents: false
         });
-
 
         // system body expand -----------------------------------------------------------------------------------------
         mapContainer.hoverIntent({
@@ -3177,9 +3178,35 @@ define([
         let mapElement = mapWrapper.find('.' + config.mapClass);
         let mapId = mapElement.data('id');
 
+        let dragSelect;
         Scrollbar.initScrollbar(mapWrapper, {
             callbacks: {
                 onInit: function(){
+                    let scrollWrapper = this;
+
+                    // ++++++++++++++++++++++++++++++++++++++++++++++++++
+                    EventHandler.addEventListener(this, 'update:dragSelect', function(e){
+                        e.stopPropagation();
+                        dragSelect = e.detail;
+                        let intersection = dragSelect.getIntersection();
+                        let originData = dragSelect._selectBox.dataset.origin;
+                        let dragOrigin = originData ? originData.split('|', 2) : [];
+                        let position = [null, null];
+                        let inverseDirection = (directions, i) => directions[((i + 2) % directions.length + directions.length) % directions.length];
+
+                        let allDirections = ['top', 'right', 'bottom', 'left'];
+                        allDirections.forEach((direction, i, allDirections) => {
+                            if(dragOrigin.includes(direction) && intersection.includes(direction)){
+                                position[i % 2] = direction;
+                            }else if(dragOrigin.includes(direction) && intersection.includes(inverseDirection(allDirections, i))){
+                                // reverse scroll (e.g. 1. drag&select scroll bottom end then move back to top)
+                                position[i % 2] = inverseDirection(allDirections, i);
+                            }
+                        });
+
+                        Scrollbar.autoScroll(scrollWrapper, position);
+                    }, {capture: true});
+
                     // init 'space' key + 'mouse' down for map scroll -------------------------------------------------
                     let scrollStart = [0, 0];
                     let mouseStart = [0, 0];
@@ -3263,11 +3290,11 @@ define([
                         }
                     };
 
-                    this.addEventListener('keydown', keyDownHandler, { capture: false });
-                    this.addEventListener('keyup', keyUpHandler, { capture: false });
-                    this.addEventListener('mousemove', mouseMoveHandler, { capture: false });
-                    this.addEventListener('mousedown', mouseDownHandler, { capture: false });
-                    this.addEventListener('mouseup', mouseUpHandler, { capture: false });
+                    this.addEventListener('keydown', keyDownHandler, {capture: false});
+                    this.addEventListener('keyup', keyUpHandler, {capture: false});
+                    this.addEventListener('mousemove', mouseMoveHandler, {capture: false});
+                    this.addEventListener('mousedown', mouseDownHandler, {capture: false});
+                    this.addEventListener('mouseup', mouseUpHandler, {capture: false});
                 },
                 onScroll: function(){
                     // scroll complete
@@ -3287,6 +3314,11 @@ define([
 
                     // hide all system head tooltips
                     $(this).find('.' + config.systemHeadClass + ' .fa').tooltip('hide');
+                },
+                whileScrolling: function(){
+                    if(dragSelect){
+                        dragSelect.update();
+                    }
                 }
             }
         });

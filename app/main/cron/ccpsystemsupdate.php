@@ -11,7 +11,10 @@ use lib\db\SQL;
 
 class CcpSystemsUpdate extends AbstractCron {
 
-    const LOG_TEXT = '%s prepare table (%.3F s), jump (%.3F s), kill (%.3F s), update all (%.3F s)';
+    /**
+     * log text
+     */
+    const LOG_TEXT = ' → [%.3Fs prepare table, %.3Fs jump, %.3Fs kill, %.3Fs update all]';
 
     /**
      * table names for all system log tables
@@ -37,47 +40,50 @@ class CcpSystemsUpdate extends AbstractCron {
     /**
      * check all system log tables for the correct number of system entries that will be locked
      * @param \Base $f3
-     * @return array
+     * @return int[]
      */
     private function prepareSystemLogTables(\Base $f3) : array {
-        $systemsData = [];
+        $systemIds = [];
 
         // get all available systems from "universe" DB
         $universeDB = $f3->DB->getDB('UNIVERSE');
 
         if($this->tableExists($universeDB, 'system')){
-            $systemsData = $universeDB->exec('SELECT 
-              `id` 
-            FROM 
-              `system` 
-            WHERE 
-              `security` = :ns OR
-              `security` = :ls OR 
-              `security` = :hs
-              ',
+            $systemsData = $universeDB->exec('
+                SELECT 
+                    `id` 
+                FROM 
+                    `system` 
+                WHERE 
+                    `security` = :ns OR
+                    `security` = :ls OR 
+                    `security` = :hs
+                ',
                 [':ns' => '0.0', ':ls' => 'L', ':hs' => 'H']
             );
+
+            $systemIds = array_map('intval', array_column($systemsData, 'id'));
+            sort($systemIds, SORT_NUMERIC);
 
             $pfDB = $f3->DB->getDB('PF');
 
             // insert systems into each log table if not exist
-            $pfDB->begin();
             foreach($this->logTables as $tableName){
+                $pfDB->begin();
                 // insert systems into jump log table
-                $sqlInsertSystem = "INSERT IGNORE INTO " . $tableName . " (systemId)
-                    VALUES(:systemId)";
+                $sqlInsertSystem = "INSERT IGNORE INTO " . $tableName . " (`systemId`) VALUES (:systemId)";
 
-                foreach($systemsData as $systemData){
-                    $pfDB->exec($sqlInsertSystem, array(
-                        ':systemId' => $systemData['id']
-                    ), 0, false);
+                foreach($systemIds as $systemId){
+                    $pfDB->exec($sqlInsertSystem, [
+                        ':systemId' => $systemId
+                    ], 0, false);
                 }
 
+                $pfDB->commit();
             }
-            $pfDB->commit();
         }
 
-        return $systemsData;
+        return $systemIds;
     }
 
 
@@ -87,15 +93,26 @@ class CcpSystemsUpdate extends AbstractCron {
      * @param \Base $f3
      */
     function importSystemData(\Base $f3){
-        $this->setMaxExecutionTime();
+        $this->logStart(__FUNCTION__);
+        $params = $this->getParams(__FUNCTION__);
+
 
         // prepare system jump log table ------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $systemsData = $this->prepareSystemLogTables($f3);
+        $systemIds = $this->prepareSystemLogTables($f3);
         $time_end = microtime(true);
         $execTimePrepareSystemLogTables = $time_end - $time_start;
 
+        $total = count($systemIds);
+        $offset = ($params['offset'] > 0 && $params['offset'] < $total) ? $params['offset'] : 0;
+        $systemIds = array_slice($systemIds, $offset, $params['length']);
+        $importCount = count($systemIds);
+        $count = 0;
+
         // switch DB for data import..
+        /**
+         * @var $pfDB SQL
+         */
         $pfDB = $f3->DB->getDB('PF');
 
         // get current jump data --------------------------------------------------------------------------------------
@@ -115,64 +132,57 @@ class CcpSystemsUpdate extends AbstractCron {
 
         // update system log tables -----------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $pfDB->begin();
 
+        $logTableCount = count($this->logTables);
+        $logTableCounter = 0;
         foreach($this->logTables as $key => $tableName){
-            $sql = "UPDATE
-                    $tableName
-                SET
-                    updated = now(),
-                    value24 = value23,
-                    value23 = value22,
-                    value22 = value21,
-                    value21 = value20,
-                    value20 = value19,
-                    value19 = value18,
-                    value18 = value17,
-                    value17 = value16,
-                    value16 = value15,
-                    value15 = value14,
-                    value14 = value13,
-                    value13 = value12,
-                    value12 = value11,
-                    value11 = value10,
-                    value10 = value9,
-                    value9 = value8,
-                    value8 = value7,
-                    value7 = value6,
-                    value6 = value5,
-                    value5 = value4,
-                    value4 = value3,
-                    value3 = value2,
-                    value2 = value1,
-                    value1 = :value
-                WHERE
-                  systemId = :systemId
-            ";
+            $logTableCounter++;
+            $pfDB->begin();
 
-            foreach($systemsData as $systemData){
-                $systemId = $systemData['id'];
+            $sqlUpdateColumn = vsprintf("SELECT `systemId`, IF (lastUpdatedValue, lastUpdatedValue, DEFAULT (lastUpdatedValue)) AS `updateColumn` FROM %s", [
+                $pfDB->quotekey($tableName)
+            ]);
+            $resUpdateColumns = $pfDB->exec($sqlUpdateColumn, null, 0);
+            $resUpdateColumns = array_column($resUpdateColumns, 'updateColumn', 'systemId');
+
+            foreach($systemIds as $systemId){
+                $column = 1;
+                if(isset($resUpdateColumns[$systemId])){
+                    $column = (int)$resUpdateColumns[$systemId];
+                    $column = (++$column > 24) ? 1 : $column;
+                }
 
                 // update data (if available)
                 $currentData = 0;
-                if( isset($systemValues[$systemId][$key]) ){
+                if(isset($systemValues[$systemId][$key])){
                     $currentData = (int)$systemValues[$systemId][$key];
                 }
 
+                $sql = vsprintf("UPDATE %s SET `updated` = NOW(), %s = :value, `lastUpdatedValue` = :updateColumn WHERE systemId = :systemId", [
+                    $pfDB->quotekey($tableName),
+                    $pfDB->quotekey('value' . $column)
+                ]);
+
                 $pfDB->exec($sql, [
                     ':systemId' => $systemId,
+                    ':updateColumn' => $column,
                     ':value' => $currentData
-                ], 0, false);
-            }
-        }
+                ] , 0);
 
-        $pfDB->commit();
+                // system import is done if ALL related tables (4) were updated
+                if($logTableCounter === $logTableCount){
+                    $count++;
+                }
+            }
+
+            $pfDB->commit();
+        }
 
         $time_end = microtime(true);
         $execTimeUpdateTables = $time_end - $time_start;
 
         // Log --------------------------------------------------------------------------------------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write( sprintf(self::LOG_TEXT, __FUNCTION__, $execTimePrepareSystemLogTables, $execTimeGetJumpData, $execTimeGetKillData, $execTimeUpdateTables) );
+        $text = sprintf(self::LOG_TEXT, $execTimePrepareSystemLogTables, $execTimeGetJumpData, $execTimeGetKillData, $execTimeUpdateTables);
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount, $offset, $text);
     }
 } 

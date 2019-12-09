@@ -4,7 +4,8 @@
 define([
     'jquery',
     'app/init',
-    'app/console',
+    'app/lib/prototypes',
+    'app/lib/console',
     'conf/system_effect',
     'conf/signature_type',
     'bootbox',
@@ -19,7 +20,7 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Con, SystemEffect, SignatureType, bootbox, localforage) => {
+], ($, Init, Proto, Con, SystemEffect, SignatureType, bootbox, localforage) => {
 
     'use strict';
 
@@ -448,7 +449,7 @@ define([
      * @param recursive
      * @returns {*}
      */
-    $.fn.destroyTooltip = function(recursive){
+    $.fn.destroyTooltips = function(recursive){
         return this.each(function(){
             let element = $(this);
             let tooltipSelector = '[title]';
@@ -554,7 +555,7 @@ define([
                 userData: userData,
                 otherCharacters: () => {
                     return userData.characters.filter((character, i) => {
-                        let characterImage = eveImageUrl('character', character.id);
+                        let characterImage = eveImageUrl('characters', character.id);
                         // preload image (prevent UI flicker
                         let img= new Image();
                         img.src = characterImage;
@@ -742,7 +743,7 @@ define([
 
             let defaultOptions = {
                 dismissible: true,
-                messageId: 'pf-alert-' + Math.random().toString(36).substring(7),
+                messageId: getRandomString('pf-alert-'),
                 messageTypeClass: messageTypeClass,
                 messageTextClass: messageTextClass,
                 insertElement: 'replace'
@@ -856,17 +857,39 @@ define([
 
     /**
      * get CCP image URLs for
-     * @param type 'alliance'|'corporation'|'character'|'type'|'render'
-     * @param id
+     * @param resourceType 'alliances'|'corporations'|'characters'|'types'
+     * @param $resourceId
      * @param size
+     * @param resourceVariant
      * @returns {boolean}
      */
-    let eveImageUrl = (type, id, size = 32) => {
+    let eveImageUrl = (resourceType, $resourceId, size = 32, resourceVariant = undefined) => {
         let url = false;
-        if(typeof type === 'string' && typeof id === 'number' && typeof size === 'number'){
-            type = type.capitalize();
-            let format = type === 'Character' ? 'jpg' : 'png';
-            url = Init.url.ccpImageServer + '/' + type + '/' + id + '_' + size + '.' + format;
+        if(
+            typeof resourceType === 'string' &&
+            typeof $resourceId === 'number' &&
+            typeof size === 'number'
+        ){
+            resourceType = resourceType.toLowerCase();
+
+            if(!resourceVariant){
+                switch(resourceType){
+                    // faction icons are on 'corporations' endpoint.. CCP fail?!
+                    case 'factions': resourceType = 'corporations'; // jshint ignore:line
+                    case 'alliances':
+                    case 'corporations': resourceVariant = 'logo'; break;
+                    case 'characters': resourceVariant = 'portrait'; break;
+                    case 'types': resourceVariant = 'icon'; break;
+                    default:
+                        console.warn('Invalid resourceType: %o for in eveImageUrl()', resourceType);
+                }
+            }
+
+            url = [Init.url.ccpImageServer, resourceType, $resourceId, resourceVariant].join('/');
+
+            let params = {size: size};
+            let searchParams = new URLSearchParams(params); // jshint ignore:line
+            url += '?' + searchParams.toString();
         }
         return url;
     };
@@ -951,85 +974,6 @@ define([
      */
     let initPrototypes = () => {
 
-        /**
-         * Array diff
-         * [1,2,3,4,5].diff([4,5,6]) => [1,2,3]
-         * @param a
-         * @returns {*[]}
-         */
-        Array.prototype.diff = function(a){
-            return this.filter(i => !a.includes(i));
-        };
-
-        /**
-         * Array intersect
-         * [1,2,3,4,5].intersect([4,5,6]) => [4,5]
-         * @param a
-         * @returns {*[]}
-         */
-        Array.prototype.intersect = function(a){
-            return this.filter(i => a.includes(i));
-        };
-
-        /**
-         * compares two arrays if all elements in a are also in b
-         * element order is ignored
-         * @param a
-         * @returns {boolean}
-         */
-        Array.prototype.equalValues = function(a){
-            return this.diff(a).concat(a.diff(this)).length === 0;
-        };
-
-        /**
-         * sort array of objects by property name
-         * @param p
-         * @returns {Array.<T>}
-         */
-        Array.prototype.sortBy = function(p){
-            return this.slice(0).sort((a,b) => {
-                return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-            });
-        };
-
-        /**
-         * capitalize first letter
-         * @returns {string}
-         */
-        String.prototype.capitalize = function(){
-            return this.charAt(0).toUpperCase() + this.slice(1);
-        };
-
-        /**
-         * get hash from string
-         * @returns {number}
-         */
-        String.prototype.hashCode = function(){
-            let hash = 0, i, chr;
-            if(this.length === 0) return hash;
-            for(i = 0; i < this.length; i++){
-                chr   = this.charCodeAt(i);
-                hash  = ((hash << 5) - hash) + chr;
-                hash |= 0; // Convert to 32bit integer
-            }
-            return hash;
-        };
-
-        String.prototype.trimLeftChars = function(charList){
-            if(charList === undefined)
-                charList = '\\s';
-            return this.replace(new RegExp('^[' + charList + ']+'), '');
-        };
-
-        String.prototype.trimRightChars = function(charList){
-            if(charList === undefined)
-                charList = '\\s';
-            return this.replace(new RegExp('[' + charList + ']+$'), '');
-        };
-
-        String.prototype.trimChars = function(charList){
-            return this.trimLeftChars(charList).trimRightChars(charList);
-        };
 
         initPassiveEvents();
     };
@@ -1560,6 +1504,14 @@ define([
     };
 
     /**
+     * get a random string
+     * -> e.g. as for Ids
+     * @param prefix
+     * @returns {string}
+     */
+    let getRandomString = (prefix = 'id_') => prefix + Math.random().toString(36).substring(2,10);
+
+    /**
      * get date obj with current EVE Server Time.
      * @returns {Date}
      */
@@ -1623,6 +1575,21 @@ define([
     };
 
     /**
+     * format json object with "time parts" into string
+     * @param parts
+     * @returns {string}
+     */
+    let formatTimeParts = parts => {
+        let label = '';
+        if(parts.days){
+            label += parts.days + 'd ';
+        }
+        label += ('00' + parts.hours).slice(-2);
+        label += ':' + ('00' + parts.min).slice(-2);
+        return label;
+    };
+
+    /**
      * start time measurement by a unique string identifier
      * @param timerName
      */
@@ -1669,23 +1636,25 @@ define([
      * @param maxCharLength
      */
     let updateCounter = (field, charCounterElement, maxCharLength) => {
-        let value = field.val();
-        let inputLength = value.length;
+        if(field.length){
+            let value = field.val();
+            let inputLength = value.length;
 
-        // line breaks are 2 characters!
-        let newLines = value.match(/(\r\n|\n|\r)/g);
-        let addition = 0;
-        if(newLines != null){
-            addition = newLines.length;
-        }
-        inputLength += addition;
+            // line breaks are 2 characters!
+            let newLines = value.match(/(\r\n|\n|\r)/g);
+            let addition = 0;
+            if(newLines != null){
+                addition = newLines.length;
+            }
+            inputLength += addition;
 
-        charCounterElement.text(maxCharLength - inputLength);
+            charCounterElement.text(maxCharLength - inputLength);
 
-        if(maxCharLength <= inputLength){
-            charCounterElement.toggleClass('txt-color-red', true);
-        }else{
-            charCounterElement.toggleClass('txt-color-red', false);
+            if(maxCharLength <= inputLength){
+                charCounterElement.toggleClass('txt-color-red', true);
+            }else{
+                charCounterElement.toggleClass('txt-color-red', false);
+            }
         }
     };
 
@@ -1819,7 +1788,7 @@ define([
         let key = 'tabId';
         let tabId = sessionStorage.getItem(key);
         if(tabId === null){
-            tabId = Math.random().toString(36).substr(2, 5);
+            tabId = getRandomString();
             sessionStorage.setItem(key, tabId);
         }
         return tabId;
@@ -2543,23 +2512,16 @@ define([
     };
 
     /**
-     * get Signature names out of global
-     * @param systemTypeId
-     * @param areaId
-     * @param sigGroupId
+     * get signature 'type' options for a systemTypeId
+     * -> areaIds is array! This is used for "Shattered WHs" where e.g.:
+     *    Combat/Relic/.. sites from multiple areaIds (C1, C2, C3) can spawn in a C2,...
+     * @param systemTypeId  1 == w-space; 2 == k-space; 3 == a-space
+     * @param areaIds       1 == c1; 2 == c2; 12 == Thera; 13 == Shattered Frig;...
+     * @param sigGroupId    1 == Combat; 2 == Relic; 3 == Data; ...
      * @returns {{}}
      */
-    let getAllSignatureNames = (systemTypeId, areaId, sigGroupId) => {
-        let signatureNames = {};
-        if(
-            SignatureType[systemTypeId] &&
-            SignatureType[systemTypeId][areaId] &&
-            SignatureType[systemTypeId][areaId][sigGroupId]
-        ){
-            signatureNames =  SignatureType[systemTypeId][areaId][sigGroupId];
-        }
-
-        return signatureNames;
+    let getSignatureTypeNames = (systemTypeId, areaIds, sigGroupId) => {
+        return objCombine(...areaIds.map(areaId => getObjVal(SignatureType, [systemTypeId, areaId, sigGroupId].join('.')) || {}));
     };
 
     /**
@@ -3350,6 +3312,21 @@ define([
         }, {});
 
     /**
+     * combines multiple objects into one object
+     * -> removes duplicate values
+     * -> properties are indexed 1, 2,..n
+     * @param objects
+     * @returns {{[p: string]: *}}
+     */
+    let objCombine = (...objects) => {
+        let combined = objects.reduce((acc, obj) => acc.concatFilter(Object.values(obj)), []);
+        combined.unshift('');  // properties should start at 1 (not 0)
+        combined = Object.assign({}, combined);
+        delete combined[0];
+        return combined;
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3483,9 +3460,11 @@ define([
         initDefaultSelect2Config: initDefaultSelect2Config,
         initDefaultEditableConfig: initDefaultEditableConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
+        getRandomString: getRandomString,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,
         getTimeDiffParts: getTimeDiffParts,
+        formatTimeParts: formatTimeParts,
         timeStart: timeStart,
         timeStop: timeStop,
         updateCounter: updateCounter,
@@ -3515,7 +3494,7 @@ define([
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
         getSignatureGroupOptions: getSignatureGroupOptions,
-        getAllSignatureNames: getAllSignatureNames,
+        getSignatureTypeNames: getSignatureTypeNames,
         getAreaIdBySecurity: getAreaIdBySecurity,
         setCurrentMapUserData: setCurrentMapUserData,
         getCurrentMapUserData: getCurrentMapUserData,

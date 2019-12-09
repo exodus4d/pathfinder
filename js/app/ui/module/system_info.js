@@ -20,12 +20,12 @@ define([
 
         // headline toolbar
         moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
+        textActionIconCopyClass: 'pf-module-icon-button-copy',                  // class for text action "copy"
 
         // breadcrumb
         constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" name
         regionLinkClass: 'pf-system-info-region',                               // class for "region" name
         typeLinkClass: 'pf-system-info-type',                                   // class for "type" name
-        urlLinkClass: 'pf-system-info-url',                                     // class for "url" copy link
 
         // info col/table
         systemInfoSectionClass: 'pf-system-info-section',                       // class for system info section
@@ -166,7 +166,7 @@ define([
                 fwContestedRow.find('.' + config.systemSovFwPercentageClass).text(percentage);
                 fwContestedRow.show();
 
-                let occupierFactionImage = Util.eveImageUrl('alliance', (occupierFaction ? occupierFaction.id : 0), 64);
+                let occupierFactionImage = Util.eveImageUrl('factions', (occupierFaction ? occupierFaction.id : 0), 64);
                 let occupierFactionName = occupierFaction ? occupierFaction.name : '';
 
                 fwOccupationRow.find('.' + config.systemSovFwOccupationImageClass)[0].style.setProperty('--bg-image', 'url(\'' + occupierFactionImage + '\')');
@@ -193,20 +193,25 @@ define([
      * @param systemData
      */
     let getThirdPartySystemLinks = (pages, systemData) => {
-        let urls = {};
+        let links = [];
         let isWormhole = MapUtil.getSystemTypeInfo(Util.getObjVal(systemData, 'type.id'), 'name') === 'w-space';
         let systemName = Util.getObjVal(systemData, 'name') || '';
         let regionName = Util.getObjVal(systemData, 'region.name') || '';
 
-        let validUrls = 0;
+        let setDestination = e => {
+            e.preventDefault();
+            e.stopPropagation();
+            Util.setDestination('set_destination', 'system', {id: systemData.systemId, name: systemData.name});
+        };
+
         for(let i = 0; i < pages.length; i++){
-            let url = false;
+            let link = null;
+            let showInModuleHead = true;
             let domain = Util.getObjVal(Init, 'url.' + pages[i]);
-            if(domain || pages[i] === 'eve'){
+            if(domain){
+                // linkOut url
+                let url = false;
                 switch(pages[i]){
-                    case 'eve':
-                        url = 'https://client'; // fake url
-                        break;
                     case 'dotlan':
                         let systemNameTemp = systemName.replace(/ /g, '_');
                         let regionNameTemp = regionName.replace(/ /g, '_');
@@ -231,16 +236,41 @@ define([
 
                 if(url){
                     let urlObj = new URL(url);
-                    urls[++validUrls + '_url'] = {
-                        page: pages[i],
-                        domain: urlObj.hostname,
+                    link = {
+                        title: urlObj.hostname,
                         url: url
                     };
                 }
+            }else{
+                // custom callback
+                let action = false;
+                let title = false;
+                switch(pages[i]){
+                    case 'eve':
+                        action = setDestination;
+                        title = 'set destination';
+                        showInModuleHead = false;
+                        break;
+                }
+
+                if(action){
+                    link = {
+                        title: title|| pages[i],
+                        action: action
+                    };
+                }
+            }
+
+
+            if(link){
+                links.push(Object.assign({}, link, {
+                    page: pages[i],
+                    showInModuleHead: showInModuleHead
+                }));
             }
         }
 
-        return urls;
+        return links;
     };
 
     /**
@@ -280,7 +310,7 @@ define([
             if(sovDataFact){
                 sovereigntyPrimary = {
                     row1Val: 'Faction',
-                    row1Img: Util.eveImageUrl('alliance', sovDataFact.id, 64),
+                    row1Img: Util.eveImageUrl('factions', sovDataFact.id, 64),
                     row1ImgTitle: sovDataFact.name,
                     row2Val: sovDataFact.name
                 };
@@ -288,7 +318,7 @@ define([
                 if(sovDataAlly){
                     sovereigntyPrimary = {
                         row1Val: 'Alliance',
-                        row1Img: Util.eveImageUrl('alliance', sovDataAlly.id, 64),
+                        row1Img: Util.eveImageUrl('alliances', sovDataAlly.id, 64),
                         row1ImgTitle: sovDataAlly.name,
                         row2Val: '<' + sovDataAlly.ticker + '>',
                         row3Label: 'Ally',
@@ -299,7 +329,7 @@ define([
                     sovereigntySecondary = {
                         row1Label: 'Corp',
                         row1Val: sovDataCorp.name,
-                        row1Img: Util.eveImageUrl('corporation', sovDataCorp.id, 64)
+                        row1Img: Util.eveImageUrl('corporations', sovDataCorp.id, 64)
                     };
                 }
             }
@@ -326,6 +356,7 @@ define([
             sovereigntySecondary: sovereigntySecondary ? Object.assign({}, sovereigntyDefault, sovereigntySecondary) : undefined,
             static: staticsData,
             moduleHeadlineIconClass: config.moduleHeadlineIconClass,
+            textActionIconCopyClass: config.textActionIconCopyClass,
             infoSectionClass: config.systemInfoSectionClass,
             descriptionSectionClass: config.descriptionSectionClass,
             sovSectionClass: config.systemSovSectionClass,
@@ -378,9 +409,9 @@ define([
             systemConstellationLinkClass: config.constellationLinkClass,
             systemRegionLinkClass: config.regionLinkClass,
             systemTypeLinkClass: config.typeLinkClass,
-            systemUrlLinkClass: config.urlLinkClass,
+            systemUrlLinkClass: config.textActionIconCopyClass,
             ccpImageServerUrl: Init.url.ccpImageServer,
-            thirdPartyLinks: getThirdPartySystemLinks(['eve', 'dotlan', 'eveeye', 'anoik'], systemData)
+            thirdPartyLinks: getThirdPartySystemLinks(['dotlan', 'eveeye', 'anoik', 'eve'], systemData)
         };
 
         requirejs(['text!templates/modules/system_info.html', 'mustache', 'summernote.loader'], (template, Mustache, Summernote) => {
@@ -526,7 +557,7 @@ define([
             }
 
             // copy system deeplink URL -------------------------------------------------------------------------------
-            moduleElement.find('.' + config.urlLinkClass).on('click', function(){
+            moduleElement.find('.' + config.textActionIconCopyClass).on('click', function(){
                 let mapUrl = $(this).attr('data-url');
                 Util.copyToClipboard(mapUrl).then(payload => {
                     if(payload.data){
@@ -561,6 +592,19 @@ define([
                 });
                 return 'Loading...';
             };
+
+            // 3rd party click callbacks ------------------------------------------------------------------------------
+            moduleElement.on('click', '[data-link]', e => {
+                for(let link of data.thirdPartyLinks){
+                    if(
+                        e.target.dataset.link === link.page &&
+                        typeof link.action === 'function'
+                    ){
+                        link.action(e);
+                        break;
+                    }
+                }
+            });
 
             // init tooltips ------------------------------------------------------------------------------------------
             let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');

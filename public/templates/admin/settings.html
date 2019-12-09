@@ -15,7 +15,7 @@
                             <div class="panel-heading text-left">
                                 <h3 class="panel-title">
                                     {{ @corpCount }}. {{@corpName}}
-                                    <img class="pf-character-image" src="//image.eveonline.com/Corporation/{{ @corporation->_id }}_32.png" alt="{{ @corporation->name }}"/>
+                                    <img class="pf-character-image" src="{{ @tplImage->eveSrcUrl('corporations', @corporation->_id, 32) }}" alt="{{ @corporation->name }}"/>
                                 </h3>
                             </div>
                             <div class="panel-body panel-reverse-order">

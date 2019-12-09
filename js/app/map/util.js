@@ -33,6 +33,7 @@ define([
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system on a map
         systemSelectedClass: 'pf-system-selected',                      // class for selected systems on on map
+        systemLockedClass: 'pf-system-locked',                          // class for locked systems on a map
         systemHiddenClass: 'pf-system-hidden',                          // class for hidden (filtered) systems
 
         // dataTable
@@ -530,7 +531,7 @@ define([
                     // ... get endpoint label for source || target system
                     if(tmpSystem && tmpSystem){
                         // ... get all  available signature type (wormholes) names
-                        let availableSigTypeNames = SystemSignatures.getAllSignatureNamesBySystem(tmpSystem, 5);
+                        let availableSigTypeNames = SystemSignatures.getSignatureTypeOptionsBySystem(tmpSystem, 5);
                         let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
 
                         if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){

@@ -587,6 +587,12 @@
   }
 }
 
+// Badges
+// -------------------------
+@mixin badge-variant($color) {
+  background-color: $color;
+}
+
 // Contextual backgrounds
 // -------------------------
 // [converter] $parent hack

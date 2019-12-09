@@ -223,21 +223,6 @@ define([
     };
 
     /**
-     * format json object with "time parts" into string
-     * @param parts
-     * @returns {string}
-     */
-    let formatTimeParts = parts => {
-        let label = '';
-        if(parts.days){
-            label += parts.days + 'd ';
-        }
-        label += ('00' + parts.hours).slice(-2);
-        label += ':' + ('00' + parts.min).slice(-2);
-        return label;
-    };
-
-    /**
      * hide default icon and replace it with "loading" icon
      * @param iconElement
      */
@@ -429,8 +414,8 @@ define([
 
                         // format overlay label
                         let labels = [
-                            formatTimeParts(createdDiff) + '&nbsp;<i class="fas fa-fw fa-plus-square"></i>',
-                            formatTimeParts(updatedDiff) + '&nbsp;<i class="fas fa-fw fa-pen-square"></i>'
+                            Util.formatTimeParts(createdDiff) + '&nbsp;<i class="fas fa-fw fa-plus-square"></i>',
+                            Util.formatTimeParts(updatedDiff) + '&nbsp;<i class="fas fa-fw fa-pen-square"></i>'
                         ];
 
                         // add label overlay --------------------------------------------------------------------------
@@ -474,7 +459,7 @@ define([
                         connection.addOverlay([
                             'Label',
                             {
-                                label: '<i class="fas fa-fw fa-hourglass-end"></i>&nbsp;' + formatTimeParts(diff),
+                                label: '<i class="fas fa-fw fa-hourglass-end"></i>&nbsp;' + Util.formatTimeParts(diff),
                                 id: MapOverlayUtil.config.connectionOverlayEolId,
                                 cssClass: [MapOverlayUtil.config.componentOverlayClass, 'eol'].join(' '),
                                 location: 0.25

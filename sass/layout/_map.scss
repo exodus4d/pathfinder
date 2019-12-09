@@ -2,7 +2,7 @@ $mapHeight:             1500px;
 $mapWidth:              2500px;
 
 $mapWrapperHeight:      520px + 35px;
-$mapWrapperMinHeight:   250px;
+$mapWrapperMinHeight:   300px;
 $mapWrapperMaxHeight:   1000px;              // no vertical scrollbar: $mapHeight + 35px;
 $mapWrapperMaxWidth:    $mapWidth + 35px;
 
@@ -49,7 +49,7 @@ $mapBubbleWidth:        30px;
     max-width: $mapWrapperMaxWidth;
     max-height: $mapWrapperMaxHeight;
     min-height: $mapWrapperMinHeight;
-    overflow: auto;
+    overflow: hidden; // required for resizing to work with pos: absolute "overlay" elements
     padding: 5px;
     background: rgba($gray-darker, 0.93);
     box-shadow:inset -3px 3px 10px 0 rgba($black, 0.3);
@@ -207,6 +207,10 @@ $mapBubbleWidth:        30px;
       .pf-local-table {
         font-size: 10px;
 
+        &.no-footer{
+          border-bottom: 1px solid transparent; // overwrite default
+        }
+
         td {
           white-space: nowrap;
         }
@@ -215,6 +219,7 @@ $mapBubbleWidth:        30px;
       .dataTables_paginate,
       .dataTables_empty{
         white-space: nowrap;
+        padding-top: 3px; // overwrite default
       }
 
       .pf-map-overlay-toolbar{
@@ -502,10 +507,10 @@ $mapBubbleWidth:        30px;
 
   // selected system
   .pf-system-selected:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
-    @include box-shadow($red-darkest 0px 0px 8px 0px);
-    background-color: $red-darkest;
+    @include box-shadow($red-darker 0px 0px 8px 0px);
+    background-color: $red-darker;
     .pf-system-head, .pf-system-body{
-      background-color: $red-darkest;
+      background-color: $red-darker;
     }
   }
 
@@ -623,8 +628,8 @@ $mapBubbleWidth:        30px;
 
   .jtk-endpoint-drop-forbidden{
     circle {
-      stroke: $red-darker !important;
-      fill: $red-darker !important;
+      stroke: $red-dark !important;
+      fill: $red-dark !important;
     }
   }
 
@@ -735,7 +740,7 @@ $mapBubbleWidth:        30px;
   .pf-map-connection-wh-critical {
 
     path:nth-child(2){
-      stroke: $red-darker;
+      stroke: $red-dark;
     }
   }
 
@@ -829,7 +834,7 @@ $mapBubbleWidth:        30px;
   }
 
   .mass{
-    background-color: $red-darker;
+    background-color: $red-dark;
     color: $gray-lightest;
   }
 
@@ -855,6 +860,25 @@ $mapBubbleWidth:        30px;
       animation-duration: 4s;
       animation-iteration-count: infinite;
     }
+  }
+}
+
+// DratSelect =========================================================================================================
+.pf-map-drag-to-select {
+  background: $teal-dark !important;
+  display: block;
+  visibility: hidden; // triggered by js
+  opacity: 0; // triggered by js
+  z-index: 9000;
+  border: 1px dashed $gray-lighter;
+  pointer-events: none; // required for "mouseover" event which should be ignored
+  will-change: left, top, width, height, opacity;
+  @include border-radius(5px);
+  @include transition(opacity 0.15s linear);
+
+  &.active {
+    visibility: visible;
+    opacity: 0.3;
   }
 }
 
@@ -886,10 +910,12 @@ $mapBubbleWidth:        30px;
   }
 
   // nested (sub) menu
-  .dropdown-menu{
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    clip-path: inset(-12px -12px -12px 0px); // hide left box shadow
+  &:not(.dropdown-submenu-left){
+    .dropdown-menu{
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      clip-path: inset(-12px -12px -12px 0px); // hide left box shadow
+    }
   }
 
   // top menu
@@ -909,6 +935,14 @@ $mapBubbleWidth:        30px;
     }
   }
 
+  &.dropdown-submenu-left{
+    > .dropdown-submenu > .dropdown-menu {
+      left: -100%;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      clip-path: inset(-12px 0 -12px -12px); // hide right box shadow
+    }
+  }
 }
 
 // tooltip for a system with active user (they are not positioned within the system element)

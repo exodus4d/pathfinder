@@ -24,9 +24,6 @@ define([
 
         // headline toolbar
         moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
-        moduleHeadlineIconAddClass: 'pf-module-icon-button-add',                // class for "add structure" icon
-        moduleHeadlineIconReaderClass: 'pf-module-icon-button-reader',          // class for "dScan reader" icon
-        moduleHeadlineIconRefreshClass: 'pf-module-icon-button-refresh',        // class for "refresh" icon
 
         // system intel module
         intelTableId: 'pf-intel-table-',                                        // id prefix for all tables in module
@@ -49,7 +46,8 @@ define([
         tableCellEllipsisClass: 'pf-table-cell-ellipses-auto',                  // class for table "ellipsis" cells
         tableCellActionClass: 'pf-table-action-cell',                           // class for "action" cells
         tableCellActionIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
-        tableCellServicesClass: 'pf-table-services-cell'                        // class for table station "services" cells
+        tableCellServicesClass: 'pf-table-services-cell',                       // class for table station "services" cells
+        tableCellPopoverClass: 'pf-table-popover-cell'                          // class for table cells with a "popover"
     };
 
     let maxDescriptionLength = 512;
@@ -70,6 +68,15 @@ define([
     let getIconForInformationWindow = () => {
         return '<i class="fas fa-fw fa-id-card ' + config.tableCellActionIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
     };
+
+    /**
+     * get a dataTableApi instance from global cache
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstance = (mapId, systemId, tableType) => Util.getDataTableInstance(config.intelTableId, mapId, systemId, tableType);
 
     /**
      * get dataTable id
@@ -284,8 +291,9 @@ define([
      * @param tableApi
      * @param systemId
      * @param structureData
+     * @param bulkData
      */
-    let showStructureDialog = (moduleElement, tableApi, systemId, structureData) => {
+    let showStructureDialog = (moduleElement, tableApi, systemId, structureData = null, bulkData = null) => {
         let structureStatusData = Util.getObjVal(Init, 'structureStatus');
 
         let statusData = Object.keys(structureStatusData).map((k) => {
@@ -322,6 +330,7 @@ define([
         let data = {
             id: config.structureDialogId,
             structureData: structureData,
+            bulkData: bulkData,
             structureStatus: statusData,
             nameInputId: config.nameInputId,
             statusSelectId: config.statusSelectId,
@@ -334,9 +343,13 @@ define([
 
         requirejs(['text!templates/dialog/structure.html', 'mustache'], (template, Mustache) => {
             let content = Mustache.render(template, data);
+            let title = 'Structure';
+            if(bulkData){
+                title += ' <span class="txt-color txt-color-warning">&nbsp;(' + bulkData.length + ' rows)</span>&nbsp;';
+            }
 
             let structureDialog = bootbox.dialog({
-                title: 'Structure',
+                title: title,
                 message: content,
                 show: false,
                 buttons: {
@@ -346,7 +359,9 @@ define([
                     },
                     autoFill: {
                         label: buttonLabelAutoFill,
-                        className: 'btn-primary' + (disableButtonAutoFill ? ' pf-font-italic disabled' : ''),
+                        className: 'btn-primary' +
+                            (disableButtonAutoFill ? ' pf-font-italic disabled' : '') +
+                            (bulkData ? ' hidden' : ''),
                         callback: function(){
                             let form = this.find('form');
                             form.find('#' + config.nameInputId).val(characterStructureName);
@@ -378,7 +393,20 @@ define([
                                 moduleElement.showLoadingAnimation();
 
                                 let method = formData.id ? 'PATCH' : 'PUT';
-                                Util.request(method, 'structure', formData.id, formData,
+                                let ids = formData.id;
+                                let data = formData;
+
+                                if(bulkData){
+                                    // bulk update multiple rows
+                                    method = 'POST';
+                                    ids = [];
+                                    data = bulkData.map(structureData => {
+                                        structureData.corporationId = formData.corporationId;
+                                        return structureData;
+                                    });
+                                }
+
+                                Util.request(method, 'structure', ids, data,
                                     {
                                         moduleElement: moduleElement,
                                         tableApi: tableApi
@@ -524,7 +552,7 @@ define([
                     if (!last || last.id !== group.id) {
                         // "stations" are grouped by "raceId" with its "factionId"
                         // "structures" are grouped by "corporationId" that ADDED it (not the ingame "owner" of it)
-                        let imgType = 'stations' === group.groupedDataKey ? 'alliance' : 'corporation';
+                        let imgType = 'stations' === group.groupedDataKey ? 'factions' : 'corporations';
 
                         $(rows).eq(i).before(
                             '<tr class="group">' +
@@ -574,22 +602,6 @@ define([
                     class: config.moduleHandlerClass
                 }),
                 $('<h5>', {
-                    class: 'pull-right'
-                }).append(
-                    $('<i>', {
-                        class: ['fas', 'fa-fw', 'fa-plus', config.moduleHeadlineIconClass, config.moduleHeadlineIconAddClass].join(' '),
-                        title: 'add'
-                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
-                    $('<i>', {
-                        class: ['fas', 'fa-fw', 'fa-paste', config.moduleHeadlineIconClass, config.moduleHeadlineIconReaderClass].join(' '),
-                        title: 'D-Scan&nbsp;reader'
-                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
-                    $('<i>', {
-                        class: ['fas', 'fa-fw', 'fa-sync', config.moduleHeadlineIconClass, config.moduleHeadlineIconRefreshClass].join(' '),
-                        title: 'refresh&nbsp;all'
-                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip')
-                ),
-                $('<h5>', {
                     text: 'Structures'
                 })
             )
@@ -608,6 +620,10 @@ define([
             },
             order: [[10, 'desc' ], [0, 'asc' ]],
             rowId: rowData => getRowId('structures', rowData.id),
+            select: {
+                style: 'os',
+                selector: 'td:not(.' + config.tableCellActionClass + ')'
+            },
             language: {
                 emptyTable:  'No structures recorded',
                 info: '_START_ to _END_ of _MAX_',
@@ -641,7 +657,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display' && value){
-                                value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
+                                value = '<img src="' + Util.eveImageUrl('types', value, 64) +'"/>';
                             }
                             return value;
                         }
@@ -675,7 +691,7 @@ define([
                             let value = data;
                             if(type === 'display' && value){
                                 value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
+                                value += '<img src="' + Util.eveImageUrl('corporations', data, 64) + '"/>';
                                 value += '</a>';
                             }
                             return value;
@@ -693,7 +709,7 @@ define([
                     targets: 6,
                     name: 'note',
                     title: 'note',
-                    className: [config.tableCellEllipsisClass, 'all'].join(' '),
+                    className: [config.tableCellEllipsisClass, 'all', Util.config.popoverTriggerClass, config.tableCellPopoverClass].join(' '),
                     data: 'description'
                 },{
                     targets: 7,
@@ -726,10 +742,19 @@ define([
                             $(cell).removeClass(config.tableCellActionClass + ' ' + config.moduleHeadlineIconClass);
                         }else{
                             $(cell).on('click', function(e){
-                                // get current row data (important!)
-                                // -> "rowData" param is not current state, values are "on createCell()" state
-                                rowData = tableApi.row( $(cell).parents('tr')).data();
-                                showStructureDialog(moduleElement, tableApi, systemData.systemId, rowData);
+                                let rowData = null;
+                                let bulkData = null;
+                                // check if multiple rows are selected + current row is one of them -> bulk edit
+                                let rowsSelected = tableApi.rows({selected: true});
+                                if(rowsSelected.count() && tableApi.row(rowIndex, {selected: true}).count()){
+                                    bulkData = [...new Set(rowsSelected.data().toArray().map(rowData => ({id: rowData.id})))];
+                                }else{
+                                    // get current row data (important!)
+                                    // -> "rowData" param is not current state, values are "on createCell()" state
+                                    rowData = tableApi.row( $(cell).parents('tr')).data();
+                                }
+
+                                showStructureDialog(moduleElement, tableApi, systemData.systemId, rowData, bulkData);
                             });
                         }
                     }
@@ -743,7 +768,7 @@ define([
                     data: null,
                     render: {
                         display: data => {
-                            let icon = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
+                            let icon = '<i class="fas fa-times txt-color txt-color-redDark"></i>';
                             if(data.rowGroupData.id !== corporationId){
                                 icon = '<i class="fas fa-ban txt-color txt-color-grayLight" title="restricted" data-placement="left"></i>';
                             }
@@ -812,15 +837,116 @@ define([
             }
         };
 
-        $.extend(true, structureDataTableOptions, getDataTableDefaults());
-        let tableApiStructure = structureTable.DataTable(structureDataTableOptions);
+        let tableApiStructure = structureTable.DataTable($.extend(true, {}, getDataTableDefaults(), structureDataTableOptions));
 
+        // "Responsive" Datatables Plugin
         new $.fn.dataTable.Responsive(tableApiStructure);
 
         tableApiStructure.on('responsive-resize', function(e, tableApi, columns){
             // rowGroup length changes as well -> trigger draw() updates rowGroup length (see drawCallback())
             tableApi.draw();
         });
+
+        // "Select" Datatables Plugin
+        tableApiStructure.select();
+
+        // "Buttons" Datatables Plugin
+        tableApiStructure.on('user-select', function(e, tableApi, type, cell, originalEvent){
+            let rowData = tableApi.row(cell.index().row).data();
+            if(Util.getObjVal(rowData, 'rowGroupData.id') !== corporationId){
+                e.preventDefault();
+            }
+        });
+
+        let buttons = new $.fn.dataTable.Buttons(tableApiStructure, {
+                dom: {
+                    container: {
+                        tag: 'h5',
+                        className: 'pull-right'
+                    },
+                    button: {
+                        tag: 'i',
+                        className: ['fas', 'fa-fw', config.moduleHeadlineIconClass].join(' '),
+                    },
+                    buttonLiner: {
+                        tag: null
+                    }
+                },
+                name: 'tableTools',
+                buttons: [
+                    {
+                        name: 'selectToggle',
+                        className: ['fa-check-double'].join(' '),
+                        titleAttr: 'select&nbsp;all',
+                        attr:  {
+                            'data-toggle': 'tooltip',
+                            'data-html': true
+                        },
+                        action: function(e, tableApi, node, config){
+                            let indexes = tableApi.rows().eq(0).filter(rowIdx => {
+                                return Util.getObjVal(tableApi.cell(rowIdx, 'rowGroupData:name').data(), 'id') === corporationId;
+                            });
+
+                            let rowCountAll = tableApi.rows(indexes).count();
+                            let rowCountSelected = tableApi.rows({selected: true}).count();
+                            if(rowCountSelected && (rowCountSelected >= rowCountAll)){
+                                tableApi.rows().deselect();
+                                node.removeClass('active');
+                            }else{
+                                tableApi.rows(indexes).select();
+                                node.addClass('active');
+                            }
+                        }
+                    },
+                    {
+                        name: 'add',
+                        className: 'fa-plus',
+                        titleAttr: 'add',
+                        attr:  {
+                            'data-toggle': 'tooltip',
+                            'data-html': true
+                        },
+                        action: function(e, tableApi, node, config){
+                           showStructureDialog(moduleElement, tableApi, systemData.systemId);
+                        }
+                    },
+                    {
+                        name: 'dScan',
+                        className: 'fa-paste',
+                        titleAttr: 'D-Scan&nbsp;reader',
+                        attr:  {
+                            'data-toggle': 'tooltip',
+                            'data-html': true
+                        },
+                        action: function(e, tableApi, node, config ){
+                            showDscanReaderDialog(moduleElement, tableApi, systemData);
+                        }
+                    },
+                    {
+                        name: 'refresh',
+                        className: 'fa-sync',
+                        titleAttr: 'refresh&nbsp;all',
+                        attr:  {
+                            'data-toggle': 'tooltip',
+                            'data-html': true
+                        },
+                        action: function(e, tableApi, node, config ){
+                            moduleElement.showLoadingAnimation();
+
+                            Util.request('GET', 'system', systemData.id, {mapId: mapId},
+                                {
+                                    moduleElement: moduleElement,
+                                    tableApi: tableApi,
+                                    removeMissing: true
+                                },
+                                context => context.moduleElement.hideLoadingAnimation()
+                            ).then(payload => callbackUpdateTableRows(payload.context, Util.getObjVal(payload.data, 'structures')));
+                        }
+                    }
+                ]
+        });
+
+        tableApiStructure.buttons().container().appendTo(moduleElement.find('.' + config.moduleHeadClass));
 
         if(showStationTable){
             // "Stations" table ---------------------------------------------------------------------------------------
@@ -869,7 +995,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data;
                                 if(type === 'display' && value){
-                                    value = '<img src="' + Util.eveImageUrl('type', value, 64) +'"/>';
+                                    value = '<img src="' + Util.eveImageUrl('types', value, 64) +'"/>';
                                 }
                                 return value;
                             }
@@ -965,7 +1091,7 @@ define([
                                 let value = data;
                                 if(type === 'display' && value){
                                     value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
-                                    value += '<img src="' + Util.eveImageUrl('corporation', data, 64) + '"/>';
+                                    value += '<img src="' + Util.eveImageUrl('corporations', data, 64) + '"/>';
                                     value += '</a>';
                                 }
                                 return value;
@@ -1057,8 +1183,7 @@ define([
                 }
             };
 
-            $.extend(true, stationDataTableOptions, getDataTableDefaults());
-            let tableApiStation = stationTable.DataTable(stationDataTableOptions);
+            let tableApiStation = stationTable.DataTable($.extend(true, {}, getDataTableDefaults(), stationDataTableOptions));
 
             new $.fn.dataTable.Responsive(tableApiStation);
 
@@ -1221,36 +1346,44 @@ define([
         let structureTableElement =  moduleElement.find('.' + config.systemStructuresTableClass);
         let tableApi = structureTableElement.DataTable();
 
-        // init structure dialog --------------------------------------------------------------------------------------
-        moduleElement.find('.' + config.moduleHeadlineIconAddClass).on('click', function(e){
-            showStructureDialog(moduleElement, tableApi, systemData.systemId);
-        });
-
-        // init structure dialog --------------------------------------------------------------------------------------
-        moduleElement.find('.' + config.moduleHeadlineIconReaderClass).on('click', function(e){
-            showDscanReaderDialog(moduleElement, tableApi, systemData);
-        });
-
-        // init refresh button ----------------------------------------------------------------------------------------
-        moduleElement.find('.' + config.moduleHeadlineIconRefreshClass).on('click', function(e){
-            moduleElement.showLoadingAnimation();
-
-            Util.request('GET', 'system', systemData.id, {mapId: mapId},
-                    {
-                        moduleElement: moduleElement,
-                        tableApi: tableApi,
-                        removeMissing: true
-                    },
-                    context => context.moduleElement.hideLoadingAnimation()
-                ).then(payload => callbackUpdateTableRows(payload.context, Util.getObjVal(payload.data, 'structures')));
-        });
-
         // init listener for global "past" dScan into this page -------------------------------------------------------
         moduleElement.on('pf:updateIntelModuleByClipboard', function(e, clipboard){
             updateStructureTableByClipboard(systemData, clipboard, {
                 moduleElement: moduleElement,
                 tableApi: tableApi
             });
+        });
+
+        // init popovers for some table cells -------------------------------------------------------------------------
+        moduleElement.hoverIntent({
+            over: function(e){
+                let tableApi = getDataTableInstance(mapId, systemData.id, 'structure');
+
+                // simple <table> for layout (CSS)
+                let cellData = tableApi.cell(this).data();
+                if(cellData && cellData.length){
+                    let content = '<table><tr><td>' + cellData.replace(/\r?\n/g, '<br />') + '</td></tr></table>';
+
+                    let options = {
+                        placement: 'top',
+                        html: true,
+                        trigger: 'manual',
+                        container: 'body',
+                        title: '',
+                        content: content,
+                        delay: {
+                            show: 0,
+                            hide: 0
+                        },
+                    };
+
+                    $(this).popover(options).popover('show');
+                }
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: '.' + config.tableCellPopoverClass
         });
     };
 
@@ -1263,8 +1396,8 @@ define([
         let stationTable = moduleElement.find('.' + config.systemStationsTableClass);
         let tableApiStructure = structureTable.DataTable();
         let tableApiStation = stationTable.DataTable();
-        tableApiStructure.destroy();
-        tableApiStation.destroy();
+        tableApiStructure.destroy(true);
+        tableApiStation.destroy(true);
     };
 
     return {

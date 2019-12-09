@@ -174,7 +174,7 @@ $pfSystemSectionMinHeight: 123px;
   .pf-sig-table-clear-button{
     will-change: opacity, transform;
     display: none;
-    color: $red-darker;
+    color: $red-dark;
   }
 
   .pf-sig-table{
@@ -225,6 +225,12 @@ $pfSystemSectionMinHeight: 123px;
 
 // system graph module =====================================================
 .pf-system-graph-module{
+
+  .pf-module-head{
+    h5.pull-right{
+      margin-right: 5px;
+    }
+  }
 
   .pf-system-graph{
     position: relative;

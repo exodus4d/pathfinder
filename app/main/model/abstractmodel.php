@@ -88,6 +88,12 @@ abstract class AbstractModel extends Cortex {
      */
     protected $validationError              = [];
 
+
+    /**
+     * default charset for table
+     */
+    const DEFAULT_CHARSET                   = 'utf8mb4';
+
     /**
      * default caching time of field schema - seconds
      */
@@ -137,8 +143,9 @@ abstract class AbstractModel extends Cortex {
      * @param null $table
      * @param null $fluid
      * @param int $ttl
+     * @param string $charset
      */
-    public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = self::DEFAULT_TTL){
+    public function __construct($db = null, $table = null, $fluid = null, $ttl = self::DEFAULT_TTL, $charset = self::DEFAULT_CHARSET){
 
         if(!is_object($db)){
             $db = self::getF3()->DB->getDB(static::DB_ALIAS);
@@ -148,6 +155,9 @@ abstract class AbstractModel extends Cortex {
             // no valid DB connection found -> break on error
             self::getF3()->set('HALT', true);
         }
+
+        // set charset -> used during table setup()
+        $this->charset = $charset;
 
         $this->addStaticFieldConfig();
 
@@ -179,6 +189,14 @@ abstract class AbstractModel extends Cortex {
         $this->aftererase(function($self, $pkeys){
             $self->afterEraseEvent($self, $pkeys);
         });
+    }
+
+    /**
+     * checks whether table exists on DB
+     * @return bool
+     */
+    public function tableExists() : bool {
+        return is_object($this->db) ? $this->db->tableExists($this->table) : false;
     }
 
     /**
@@ -912,7 +930,7 @@ abstract class AbstractModel extends Cortex {
      */
     protected function isOutdated() : bool {
         $outdated = true;
-        if(!$this->dry()){
+        if($this->valid()){
             try{
                 $timezone = $this->getF3()->get('getTimeZone')();
                 $currentTime = new \DateTime('now', $timezone);

@@ -15,9 +15,9 @@ use data\filesystem\Search;
 class MapHistory extends AbstractCron {
 
     /**
-     * log msg for truncateFiles() cronjob
+     * log msg for truncateMapHistoryLogFiles() cronjob
      */
-    const LOG_TEXT              = '%s [%4s] log files, [%s] truncated, [%4s] not writable, [%4s] read error, [%4s] write error, [%4s] rename error, [%4s] delete error, exec (%.3Fs)';
+    const LOG_TEXT              = ', [%4s] log files, [%s] truncated, [%4s] not writable, [%4s] read error, [%4s] write error, [%4s] rename error, [%4s] delete error';
 
     /**
      * default log file size limit before truncate, bytes (1MB)
@@ -59,8 +59,8 @@ class MapHistory extends AbstractCron {
      * >> php index.php "/cron/truncateMapHistoryLogFiles"
      * @param \Base $f3
      */
-    function truncateFiles(\Base $f3){
-        $timeStart = microtime(true);
+    function truncateMapHistoryLogFiles(\Base $f3){
+        $this->logStart(__FUNCTION__);
 
         $largeFiles = 0;
         $notWritableFiles = 0;
@@ -121,10 +121,11 @@ class MapHistory extends AbstractCron {
             }
         }
 
-        $execTime = microtime(true) - $timeStart;
+        $importCount = $total = $largeFiles;
+        $count = count($truncatedFileNames);
 
-        // Log ------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write(sprintf(self::LOG_TEXT, __FUNCTION__, $largeFiles, implode(', ', $truncatedFileNames), $notWritableFiles, $readErrors, $writeErrors, $renameErrors, $deleteErrors, $execTime));
+        // Log --------------------------------------------------------------------------------------------------------
+        $text = sprintf(self::LOG_TEXT, $largeFiles, implode(', ', $truncatedFileNames), $notWritableFiles, $readErrors, $writeErrors, $renameErrors, $deleteErrors);
+        $this->logEnd(__FUNCTION__, $total, $count, $importCount, 0, $text);
     }
 }

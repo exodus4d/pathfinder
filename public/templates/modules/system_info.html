@@ -15,10 +15,16 @@
     <h5><a href="javascript:void(0);" data-url="{{ajaxConstellationInfoUrl}}/{{system.constellation.id}}" class="{{systemConstellationLinkClass}} popup-ajax {{popoverTriggerClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
     <h5>
         <span data-toggle="tooltip" title="system" class="{{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
-        <i class="fas fa-fw fa-copy {{moduleHeadlineIconClass}} {{systemUrlLinkClass}}" data-toggle="tooltip" title="copy link" data-url="{{systemUrl}}"></i>
+        <i class="fas fa-fw fa-copy {{moduleHeadlineIconClass}} {{systemUrlLinkClass}}" data-toggle="tooltip" title="copy url" data-url="{{systemUrl}}"></i>
         {{#system.locked}}
         <i class="fas fa-fw fa-lock" data-toggle="tooltip" title="locked"></i>
         {{/system.locked}}
+
+        {{#thirdPartyLinks}}
+            {{#showInModuleHead}}
+            <a class="pf-bg-icon-inline" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ title }}" href="{{ url }}" target="_blank" rel="noopener"></a>
+            {{/showInModuleHead}}
+        {{/thirdPartyLinks}}
     </h5>
 </div>
 
@@ -82,7 +88,7 @@
                 {{/static}}
                 </tbody>
             </table>
-
+<!--
             <div class="pf-resizearea">
                 <table class="table table-condensed pf-table-fixed {{infoTableClass}}">
                     <colgroup>
@@ -94,21 +100,21 @@
                     <thead>
                     <tr>
                         <th>Links</th>
-                        <th class="pf-table-cell-bg-image" rowspan="2">
-                            {{#thirdPartyLinks.1_url}}
-                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ domain }}" href="{{ url }}" target="_blank" rel="noopener"></a>
-                            {{/thirdPartyLinks.1_url}}
-                        </th>
-                        <th class="pf-table-cell-bg-image" rowspan="2">
-                            {{#thirdPartyLinks.2_url}}
-                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ domain }}" href="{{ url }}" target="_blank" rel="noopener"></a>
-                            {{/thirdPartyLinks.2_url}}
-                        </th>
-                        <th class="pf-table-cell-bg-image" rowspan="2">
-                            {{#thirdPartyLinks.3_url}}
-                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ domain }}" href="{{ url }}" target="_blank" rel="noopener"></a>
-                            {{/thirdPartyLinks.3_url}}
-                        </th>
+                        {{#thirdPartyLinks}}
+                            {{#showInModuleHead}}
+                            <th class="pf-table-cell-bg-image" rowspan="2"></th>
+                            {{/showInModuleHead}}
+                            {{^showInModuleHead}}
+                            <th class="pf-table-cell-bg-image" rowspan="2">
+                                {{#url}}
+                                <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ title }}" href="{{ url }}" target="_blank" rel="noopener"></a>
+                                {{/url}}
+                                {{^url}}
+                                <span class="pf-table-cell-bg-image-wrapper smaller pf-link" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ title }}" data-link="{{page}}"></span>
+                                {{/url}}
+                            </th>
+                            {{/showInModuleHead}}
+                        {{/thirdPartyLinks}}
                     </tr>
                     <tr>
                         <th>&nbsp;</th>
@@ -125,6 +131,7 @@
                     <div class="pf-resizebar-bar"></div>
                 </div>
             </div>
+-->
         </div>
     </div>
 

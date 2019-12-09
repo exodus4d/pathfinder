@@ -31,11 +31,8 @@
 </section>
 
 <section id="pf-setup-server">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-network-wired"></i> Server</h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-server collapse in">
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
 
@@ -165,7 +162,7 @@
                                     <h3 class="panel-title txt-color txt-color-success">OK</h3>
                                 </true>
                                 <false>
-                                    <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                                    <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} warning</h3>
                                 </false>
                             </check>
                         </div>
@@ -177,15 +174,18 @@
 
         </div>
 
+        <h4 data-target=".pf-setup-body-server" data-toggle="collapse"><i class="fas fa-fw fa-network-wired"></i> Server
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'server' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'server' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
 <section id="pf-setup-environment">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-server"></i> Environment</h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-environment collapse in">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                 {* Framework requirements (PHP) *}
                 <set requirementsData="{{@checkRequirements}}" />
@@ -203,7 +203,7 @@
                                 <h3 class="panel-title txt-color txt-color-success">OK</h3>
                             </true>
                             <false>
-                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} warning</h3>
                             </false>
                         </check>
                     </div>
@@ -218,7 +218,7 @@
 
                 <div class="panel panel-default pricing-big">
                     <div class="panel-heading text-left">
-                        <h3 class="panel-title">PHP config (php.ini)</h3>
+                        <h3 class="panel-title">PHP config <kbd class="pull-right">php.ini</kbd></h3>
                     </div>
                     <div class="panel-body no-padding text-align-center">
                         <include href="templates/modules/requirements_table.html"/>
@@ -229,7 +229,7 @@
                                 <h3 class="panel-title txt-color txt-color-success">OK</h3>
                             </true>
                             <false>
-                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} warning</h3>
                             </false>
                         </check>
                     </div>
@@ -239,15 +239,18 @@
             </div>
         </div>
 
+        <h4 data-target=".pf-setup-body-environment" data-toggle="collapse"><i class="fas fa-fw fa-server"></i> Environment
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'environment' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'environment' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
 <section id="pf-setup-settings">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-sliders-h"></i> Settings</h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-settings collapse in">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                 <div class="panel panel-default pricing-big">
 
@@ -391,15 +394,18 @@
 
         </div>
 
+        <h4 data-target=".pf-setup-body-settings" data-toggle="collapse"><i class="fas fa-fw fa-sliders-h"></i> Settings
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'settings' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'settings' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
 <section id="pf-setup-database">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-database"></i> Database</h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-database collapse in">
 
             <repeat group="{{ @checkDatabase }}" key="{{ @dbKey }}" value="{{ @dbInformation }}">
                 {* Check if DB is connected and up2date *}
@@ -579,7 +585,7 @@
                                         </th>
                                         <th>Table</th>
                                         <th class="col-sm-1 col-md-1 text-center">exist</th>
-                                        <th class="col-sm-3 col-md-3">&nbsp;</th>
+                                        <th class="col-sm-3 col-md-3">charset</th>
                                         <th class="col-sm-1 col-md-1 text-center">
                                             <i class="fas fa-fw fa-battery-half"></i>
                                         </th>
@@ -615,7 +621,23 @@
                                                     </false>
                                                 </check>
                                             </td>
-                                            <td></td>
+                                            <td>
+                                                <check if="{{ @tableData.exists }}">
+                                                    <true>
+                                                        <check if="{{ @tableData.currentCharset == @tableData.requiredCharset }}">
+                                                            <true>
+                                                                <kbd class="txt-color txt-color-success" title="{{ @tableData.currentCollation }}">{{ @tableData.currentCharset }}</kbd>
+                                                            </true>
+                                                            <false>
+                                                                <kbd class="txt-color txt-color-warning" title="{{ @tableData.requiredCollation }}">{{ @tableData.requiredCharset }}</kbd>
+                                                            </false>
+                                                        </check>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fas fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @tableData.requiredCharset }}"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
                                             <td class="text-center">
                                                 <check if="{{ @tableData.rows <= 0 }}">
                                                     <true>
@@ -884,15 +906,18 @@
 
         </div>
 
+        <h4 data-target=".pf-setup-body-database" data-toggle="collapse"><i class="fas fa-fw fa-database"></i> Database
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'database' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'database' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
 <section id="pf-setup-cache">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-hdd"></i> Cache <span class="txt-color txt-color-gray">[optional]</span></h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-cache collapse in">
             <check if="{{ @checkRedisInformation }}">
                 <true>
                     {* Redis server found *}
@@ -1008,17 +1033,20 @@
                 </false>
             </check>
 
-
         </div>
+
+        <h4 data-target=".pf-setup-body-cache" data-toggle="collapse"><i class="fas fa-fw fa-hdd"></i> Cache <span class="txt-color txt-color-gray">[optional]</span>
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'cache' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'cache' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
 <section id="pf-setup-socket">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-random"></i> Socket configuration <span class="txt-color txt-color-gray">[optional]</span></h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-socket collapse in">
 
             <repeat group="{{ @socketInformation }}" key="{{ @socketType }}" value="{{ @socketData }}">
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -1147,15 +1175,118 @@
 
         </div>
 
+        <h4 data-target=".pf-setup-body-socket" data-toggle="collapse"><i class="fas fa-fw fa-random"></i> Socket configuration <span class="txt-color txt-color-gray">[optional]</span>
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'socket' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'socket' . '_danger') }}</span>
+            </div>
+        </h4>
+    </div>
+</section>
+
+<section id="pf-setup-cronjob">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-cronjob collapse in">
+
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title"><i class="fas fa-user-clock"></i>&nbsp;&nbsp;Configuration <kbd class="pull-right">app/cron.ini</kbd></h3>
+                    </div>
+
+                    <div class="panel-body no-padding text-left">
+                        <check if="{{ @cronConfig.checkCronConfig }}">
+                            <set requirementsData="{{ @cronConfig.checkCronConfig }}" />
+                            <include href="templates/modules/requirements_table.html"/>
+                        </check>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12 pf-landing-pricing-panel">
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title"><i class="fas fa-calendar"></i>&nbsp;&nbsp;Jobs</h3>
+                    </div>
+
+                    <div class="panel-body no-padding text-left">
+                        <table class="table pf-table-fixed">
+                            <colgroup>
+                                <col style="width: 45px;" class="bg-color bg-color-grayDark"/>
+                                <col/>
+                                <col class="hidden-xs hidden-sm"/>
+                                <col style="width: 120px;"/>
+                                <col style="width: 85px;" span="3"/>
+                                <col style="width: 75px;" span="2"class="hidden-xs hidden-sm"/>
+                                <col style="width: 45px;"/>
+                                <col style="width: 85px;"/>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <td class="bg-color bg-color-gray"></td>
+                                    <td></td>
+                                    <td class="hidden-xs hidden-sm"></td>
+                                    <td class="separator-right"></td>
+                                    <td class="text-center separator-right" colspan="3">last</td>
+                                    <td class="text-center hidden-xs hidden-sm separator-right" colspan="2">average</td>
+                                    <td></td>
+                                    <td class="text-right no-padding">
+                                        <div class="btn-group">
+                                            <label
+                                                class="btn btn-default" data-toggle="button"
+                                                data-action="cronTable" data-callback="updateCronjob"
+                                                data-payload="{{ htmlspecialchars(json_encode(['count' => 0])) }}"
+                                                data-loading-text="<i class='fas fa-fw fa-sync fa-spin'></i>"
+                                            >
+                                                <i class="fas fa-fw fa-sync"></i>
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-right bg-color bg-color-gray">status</td>
+                                    <td>name</td>
+                                    <td class="hidden-xs hidden-sm">handler</td>
+                                    <td class="separator-right">schedule</td>
+                                    <td class="text-center">start time</td>
+                                    <td class="text-right">exec.&nbsp;time</td>
+                                    <td class="text-right separator-right">mem.&nbsp;peak</td>
+                                    <td class="text-right hidden-xs hidden-sm">exec.&nbsp;time</td>
+                                    <td class="text-right hidden-xs hidden-sm separator-right">mem.&nbsp;peak</td>
+                                    <td class="text-center"><i class="fas fa-fw fa-file-alt"></i></td>
+                                    <td class="text-right"></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <include href="templates/ui/cron_table_row.html"/>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel-footer text-align-center">
+                        <h3 class="panel-title txt-color txt-color-danger pf-hidden-by-attr" data-attr="{{ @tplCounter('get', 'cronjob_danger') }}" data-attr-type="danger" data-attr-label="error"></h3>
+                        <h3 class="panel-title txt-color txt-color-warning pf-hidden-by-attr" data-attr="{{ @tplCounter('get', 'cronjob_warning') }}" data-attr-type="warning" data-attr-label="warning"></h3>
+                        <h3 class="panel-title txt-color txt-color-success pf-shown-by-attr" data-attr="{{ @tplCounter('get', 'cronjob_danger') + @tplCounter('get', 'cronjob_warning') ? : '' }}" data-attr-type="success" data-attr-label="OK"></h3>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <h4 data-target=".pf-setup-body-cronjob" data-toggle="collapse"><i class="fas fa-fw fa-user-clock"></i> Cronjob
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'cronjob' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'cronjob' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
 <section id="pf-setup-administration">
-    <div class="container">
-
-        <h4><i class="fas fa-fw fa-wrench"></i> Administration</h4>
-
-        <div class="row text-center">
+    <div class="container row--reverse">
+        <div class="row text-center pf-setup-body-administration collapse in">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
 
                 {* Index *}
@@ -1235,7 +1366,8 @@
                                                 <div class="btn-group btn-group-justified">
                                                     <repeat group="{{ @indexData.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
                                                         <a
-                                                            data-type="{{ @type }}" data-action="{{ @taskData.action }}" data-countall="{{ @indexData.countAll }}"
+                                                            data-action="{{ @taskData.action }}" data-callback="updateIndexCount"
+                                                            data-payload="{{ htmlspecialchars(json_encode(['type' => @type, 'countAll' => @indexData.countAll, 'count' => 0, 'offset' => 0])) }}"
                                                             data-loading-text="<i class='fas fa-sync fa-spin'></i>&nbsp;&nbsp;wait&hellip;<div class='btn-progress'></div>" autocomplete="off"
                                                             class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.countBuild ?'disabled':'' }} {{ @tplCounter('get', 'database_warning_all') ?'disabled':'' }}" role="button"
                                                         >
@@ -1275,28 +1407,36 @@
                     </div>
 
                     <div class="panel-body no-padding">
-                        <repeat group="{{ @checkDirSize.dirAll }}" key="{{ @key }}" value="{{ @dirData }}">
-                            <div class="btn-group btn-group-justified">
-                                <span class="btn btn-default disabled btn-fake">
-                                    {{ @dirData.label }}
-                                    <kbd class="pull-right">{{ @dirData.path }}&nbsp;→
-                                        <check if="{{ @dirData.size }}">
-                                            <true>
-                                                {{ @dirData.size }}
-                                            </true>
-                                            <false>
-                                                0KB
-                                            </false>
-                                        </check>
-                                    </kbd>
-                                </span>
-                                <repeat group="{{ @dirData.task }}"  value="{{ @taskData }}">
-                                    <a href="?{{ @taskData.action }}#pf-setup-administration" class="btn {{ @taskData.btn }}" role="button">
-                                        <i class="fas fa-fw {{ @taskData.icon }}"></i> {{ @taskData.label }}
-                                    </a>
-                                </repeat>
-                            </div>
-                        </repeat>
+                        <table class="table">
+                            <thead>
+                            <repeat group="{{ @checkDirSize.dirAll }}" key="{{ @key }}" value="{{ @dirData }}">
+                                <tr>
+                                    <td>{{ @dirData.label }}</td>
+                                    <td class="col-xs-3 text-right">
+                                        <kbd>{{ @dirData.path }}&nbsp;→
+                                            <check if="{{ @dirData.size }}">
+                                                <true>
+                                                    {{ @dirData.size }}
+                                                </true>
+                                                <false>
+                                                    0KB
+                                                </false>
+                                            </check>
+                                        </kbd>
+                                    </td>
+                                    <td class="col-xs-6 no-padding">
+                                        <div class="btn-group btn-group-justified">
+                                            <repeat group="{{ @dirData.task }}"  value="{{ @taskData }}">
+                                                <a href="?{{ @taskData.action }}#pf-setup-administration" class="btn {{ @taskData.btn }}" role="button">
+                                                    <i class="fas fa-fw {{ @taskData.icon }}"></i>&nbsp;{{ @taskData.label }}
+                                                </a>
+                                            </repeat>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </repeat>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -1311,17 +1451,35 @@
                     </div>
 
                     <div class="panel-body no-padding">
-                        <div class="btn-group btn-group-justified">
-                            <span class="btn btn-default disabled btn-fake">Invalidate all Cookie data</span>
-                            <a href="?action=invalidateCookies#pf-setup-administration" class="btn btn-danger" role="button">
-                                <i class="fas fa-fw fa-trash"></i> Clear authentication data
-                            </a>
-                        </div>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <td>Invalidate all Cookie data</td>
+                                <td class="col-xs-6 no-padding">
+                                    <div class="btn-group btn-group-justified">
+                                        <a class="btn btn-danger" href="?action=invalidateCookies#pf-setup-administration" role="button" >
+                                            <i class="fas fa-fw fa-trash"></i>&nbsp;Clear authentication data
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
         </div>
+
+        <h4 data-target=".pf-setup-body-administration" data-toggle="collapse"><i class="fas fa-fw fa-wrench"></i> Administration
+            <div class="pull-right">
+                <span class="badge badge-warning" title="warning" data-placement="top">{{ @tplCounter('get', 'administration' . '_warning') }}</span>
+                <span class="badge badge-danger" title="error" data-placement="top">{{ @tplCounter('get', 'administration' . '_danger') }}</span>
+            </div>
+        </h4>
     </div>
 </section>
 
@@ -1352,4 +1510,5 @@
 </nav>
 
 {* footer *}
-<include href="templates/layout/footer_simple.html"/>
+<set panel2="{{ [['icon' => 'far fa-window-maximize', 'label' => 'toggle', 'action' => 'collapse-all']] }}" />
+<include href="templates/layout/footer_simple.html" with="p2={{ @panel2 }}"/>

@@ -13,8 +13,8 @@
   // Define globals exposed by Node.js.
   "node": true,
 
-  // Allow ES6.
-  "esversion": 7,
+  // Allow ES8.
+  "esversion": 9,
 
   /*
    * ENFORCING OPTIONS

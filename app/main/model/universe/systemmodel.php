@@ -143,7 +143,7 @@ class SystemModel extends AbstractUniverseModel {
             // 'Shattered' systems have ONLY planets named with '(shattered)'
             // -> system 'Thera' has '(shattered)' AND other planets -> not shattered.
             // -> system 'J164104, 'J115422' - the only non-shattered wormholes which have a shattered planet -> not shattered.
-            $data->shattered        = count(array_filter($planetsData, function(object $planetData){
+            $data->shattered        = count(array_filter($planetsData, function($planetData){
                 return property_exists($planetData, 'type') &&
                     (strpos(strtolower($planetData->type->name), '(shattered)') !== false);
             })) == count($planetsData);

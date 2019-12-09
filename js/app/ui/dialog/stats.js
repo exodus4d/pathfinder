@@ -8,9 +8,10 @@ define([
     'app/init',
     'app/util',
     'app/render',
+    'app/counter',
     'bootbox',
     'peityInlineChart'
-], ($, Init, Util, Render, bootbox) => {
+], ($, Init, Util, Render, Counter, bootbox) => {
     'use strict';
 
     let config = {
@@ -37,7 +38,7 @@ define([
      * init blank statistics dataTable
      * @param dialogElement
      */
-    let initStatsTable = function(dialogElement){
+    let initStatsTable = dialogElement => {
         let columnNumberWidth = 28;
         let cellPadding = 4;
         let lineChartWidth = columnNumberWidth + (2 * cellPadding);
@@ -114,6 +115,7 @@ define([
             columnDefs: [
                 {
                     targets: 0,
+                    name: 'rowIndex',
                     title: '<i class="fas fa-hashtag"></i>',
                     orderable: false,
                     searchable: false,
@@ -122,6 +124,7 @@ define([
                     data: 'character.id'
                 },{
                     targets: 1,
+                    name: 'image',
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -130,11 +133,12 @@ define([
                     data: 'character',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Util.eveImageUrl('character', parseInt(data.id)) + '"/>';
+                            return '<img src="' + Util.eveImageUrl('characters', parseInt(data.id)) + '"/>';
                         }
                     }
                 },{
                     targets: 2,
+                    name: 'name',
                     title: 'name',
                     width: 200,
                     data: 'character',
@@ -144,20 +148,16 @@ define([
                     }
                 },{
                     targets: 3,
+                    name: 'lastLogin',
                     title: 'last login',
                     searchable: false,
                     width: 70,
                     className: ['text-right', 'separator-right'].join(' '),
-                    data: 'character',
-                    render: {
-                        _: 'lastLogin',
-                        sort: 'lastLogin'
-                    },
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        $(cell).initTimestampCounter();
-                    }
+                    data: 'character.lastLogin',
+                    defaultContent: ''
                 },{
                     targets: 4,
+                    name: 'mapCreate',
                     title: '<span title="created" data-toggle="tooltip">C&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -169,6 +169,7 @@ define([
                     }
                 },{
                     targets: 5,
+                    name: 'mapUpdate',
                     title: '<span title="updated" data-toggle="tooltip">U&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -180,6 +181,7 @@ define([
                     }
                 },{
                     targets: 6,
+                    name: 'mapDelete',
                     title: '<span title="deleted" data-toggle="tooltip">D&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -191,6 +193,7 @@ define([
                     }
                 },{
                     targets: 7,
+                    name: 'mapSum',
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
@@ -201,6 +204,7 @@ define([
                     }
                 },{
                     targets: 8,
+                    name: 'systemCreate',
                     title: '<span title="created" data-toggle="tooltip">C&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -212,6 +216,7 @@ define([
                     }
                 },{
                     targets: 9,
+                    name: 'systemUpdate',
                     title: '<span title="updated" data-toggle="tooltip">U&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -223,6 +228,7 @@ define([
                     }
                 },{
                     targets: 10,
+                    name: 'systemDelete',
                     title: '<span title="deleted" data-toggle="tooltip">D&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -234,6 +240,7 @@ define([
                     }
                 },{
                     targets: 11,
+                    name: 'systemSum',
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
@@ -244,6 +251,7 @@ define([
                     }
                 },{
                     targets: 12,
+                    name: 'connectionCreate',
                     title: '<span title="created" data-toggle="tooltip">C&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -255,6 +263,7 @@ define([
                     }
                 },{
                     targets: 13,
+                    name: 'connectionUpdate',
                     title: '<span title="updated" data-toggle="tooltip">U&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -266,6 +275,7 @@ define([
                     }
                 },{
                     targets: 14,
+                    name: 'connectionDelete',
                     title: '<span title="deleted" data-toggle="tooltip">D&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -277,6 +287,7 @@ define([
                     }
                 },{
                     targets: 15,
+                    name: 'connectionSum',
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
@@ -287,6 +298,7 @@ define([
                     }
                 },{
                     targets: 16,
+                    name: 'signatureCreate',
                     title: '<span title="created" data-toggle="tooltip">C&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -298,6 +310,7 @@ define([
                     }
                 },{
                     targets: 17,
+                    name: 'signatureUpdate',
                     title: '<span title="updated" data-toggle="tooltip">U&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -309,6 +322,7 @@ define([
                     }
                 },{
                     targets: 18,
+                    name: 'signatureDelete',
                     title: '<span title="deleted" data-toggle="tooltip">D&nbsp;&nbsp;</span>',
                     orderable: false,
                     searchable: false,
@@ -320,6 +334,7 @@ define([
                     }
                 },{
                     targets: 19,
+                    name: 'signatureSum',
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
@@ -330,6 +345,7 @@ define([
                     }
                 },{
                     targets: 20,
+                    name: 'totalSum',
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
@@ -346,6 +362,8 @@ define([
                 // initial statistics data request
                 let requestData = getRequestDataFromTabPanels(dialogElement);
                 getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
+
+                Counter.initTableCounter(this, ['lastLogin:name']);
             },
             drawCallback: function(settings){
                 this.api().rows().nodes().to$().each(function(i, row){
@@ -374,7 +392,7 @@ define([
                 });
 
                 $(sumColumnIndexes).each(function(index, value){
-                    $( api.column( value ).footer() ).text( renderNumericColumn(pageTotalColumns[index], 'display') );
+                    $(api.column(value).footer()).text( renderNumericColumn(pageTotalColumns[index], 'display') );
                 });
             },
             data: [] // will be added dynamic
@@ -404,8 +422,7 @@ define([
      * @param requestData
      * @param context
      */
-    let getStatsData = function(requestData, context){
-
+    let getStatsData = (requestData, context) => {
         context.dynamicArea = $('#' + config.statsContainerId + ' .' + Util.config.dynamicAreaClass);
         context.dynamicArea.showLoadingAnimation();
 
@@ -418,7 +435,7 @@ define([
         }).done(function(data){
             this.dynamicArea.hideLoadingAnimation();
 
-            this.callback(data);
+            this.callback(data, this);
         }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': loadStatistics', text: reason, type: 'warning'});
@@ -430,7 +447,7 @@ define([
      * update "header"/"filter" elements in dialog
      * @param responseData
      */
-    let drawStatsTable = function(responseData){
+    let drawStatsTable = (responseData, context) => {
         let dialogElement = $('#' + config.statsDialogId);
 
         // update filter/header -----------------------------------------------------------------------------
@@ -467,8 +484,8 @@ define([
 
         // clear and (re)-fill table ------------------------------------------------------------------------
         let formattedData = formatStatisticsData(responseData);
-        this.tableApi.clear();
-        this.tableApi.rows.add(formattedData).draw();
+        context.tableApi.clear();
+        context.tableApi.rows.add(formattedData).draw();
     };
 
     /**
@@ -477,7 +494,7 @@ define([
      * @param statsData
      * @returns {Array}
      */
-    let formatStatisticsData = function(statsData){
+    let formatStatisticsData = statsData => {
         let formattedData = [];
         let yearStart = statsData.start.year;
         let weekStart = statsData.start.week;
@@ -687,7 +704,7 @@ define([
      * @param dialogElement
      * @returns {{}}
      */
-    let getRequestDataFromTabPanels = function(dialogElement){
+    let getRequestDataFromTabPanels = dialogElement => {
         let requestData = {};
 
         // get data from "tab" panel links ------------------------------------------------------------------

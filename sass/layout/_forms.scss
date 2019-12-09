@@ -124,16 +124,6 @@ fieldset[disabled]{
 
 // buttons ============================================================================================================
 .btn{
-  // "fake" button (no user interaction)
-  &.btn-fake{
-    border: none;
-    text-align: left;
-    cursor: default;
-    opacity: 1 !important;
-    color: $gray-light !important;
-    background-color: transparent !important;
-  }
-
   // progress bar inside button
   .btn-progress{
     position: absolute;

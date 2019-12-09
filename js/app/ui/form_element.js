@@ -38,19 +38,19 @@ define([
 
             switch(data.categoryType){
                 case 'character':
-                    imagePath = Util.eveImageUrl('character', data.id);
+                    imagePath = Util.eveImageUrl('characters', data.id);
                     break;
                 case 'corporation':
-                    imagePath = Util.eveImageUrl('corporation', data.id);
+                    imagePath = Util.eveImageUrl('corporations', data.id);
                     break;
                 case 'alliance':
-                    imagePath = Util.eveImageUrl('alliance', data.id);
+                    imagePath = Util.eveImageUrl('alliances', data.id);
                     break;
                 case 'inventoryType':
-                    imagePath = Util.eveImageUrl('type', data.id);
+                    imagePath = Util.eveImageUrl('types', data.id);
                     break;
                 case 'render':
-                    imagePath = Util.eveImageUrl('render', data.id);
+                    imagePath = Util.eveImageUrl('types', data.id);
                     break;
                 case 'station':
                     iconName = 'fa-home';
@@ -77,14 +77,23 @@ define([
     /**
      * format results data for signature type select
      * @param state
-     * @returns {*|jQuery|HTMLElement}
+     * @param container
+     * @param customOptions
+     * @returns {*|k.fn.init|jQuery|HTMLElement}
      */
-    let formatSignatureTypeSelectionData = state => {
+    let formatSignatureTypeSelectionData = (state, container, customOptions) => {
         let parts = state.text.split(' - ');
 
         let markup = '';
         if(parts.length === 2){
             // wormhole data -> 2 columns
+            let name = parts[0];
+            let sizeLabel;
+            if(Util.getObjVal(customOptions, 'showWhSizeLabel')){
+                let wormholeSizeData = Util.getObjVal(Init, 'wormholes.' + name + '.size');
+                sizeLabel = Util.getObjVal(wormholeSizeData, 'label') || '';
+            }
+
             let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
             // some labels have a "suffix" label that should not have the securityClass
             let labelParts = parts[1].split(/\s(.+)/);
@@ -93,9 +102,14 @@ define([
 
             let classes = [securityClass, Util.config.popoverTriggerClass, Util.config.helpDefaultClass];
 
-            markup += '<span>' + parts[0] + '</span>&nbsp;&nbsp;';
+            markup += '<span>' + name + '</span>';
+            if(sizeLabel !== undefined){
+                markup += '<span><kbd>' + sizeLabel + '</kbd></span>';
+            }else{
+                markup += '&nbsp;&nbsp;';
+            }
             markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
-            markup += '<span class="' + classes.join(' ') + '" data-name="' + parts[0] + '">&nbsp;&nbsp;' + label + '</span>';
+            markup += '<span class="' + classes.join(' ') + '" data-name="' + name + '">&nbsp;&nbsp;' + label + '</span>';
             if(suffix.length){
                 markup += '&nbsp;<span>' + suffix + '</span>';
             }
@@ -343,15 +357,15 @@ define([
             let hideShatteredClass = !data.shattered ? 'hide' : '';
 
             let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
-            markup += '<div class="col-sm-4 pf-select-item-anchor ' + systemNameClass + '">' + data.text + '</div>';
-            markup += '<div class="col-sm-2 text-right ' + data.effectClass + '">';
+            markup += '<div class="col-xs-4 pf-select-item-anchor ' + systemNameClass + '">' + data.text + '</div>';
+            markup += '<div class="col-xs-2 text-right ' + data.effectClass + '">';
             markup += '<i class="fas fa-fw fa-square ' + hideEffectClass + '"></i>';
             markup += '</div>';
-            markup += '<div class="col-sm-2 text-right ' + data.secClass + '">' + data.security + '</div>';
-            markup += '<div class="col-sm-2 text-right ' + shatteredClass + '">';
+            markup += '<div class="col-xs-2 text-right ' + data.secClass + '">' + data.security + '</div>';
+            markup += '<div class="col-xs-2 text-right ' + shatteredClass + '">';
             markup += '<i class="fas fa-fw fa-chart-pie ' + hideShatteredClass + '"></i>';
             markup += '</div>';
-            markup += '<div class="col-sm-2 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
+            markup += '<div class="col-xs-2 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
 
             return markup;
         }

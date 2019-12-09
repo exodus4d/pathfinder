@@ -34,8 +34,9 @@ $green-dark:                  #4f9e4f;
 
 // red
 $red:                         #d9534f;
-$red-darker:                  #a52521;
-$red-darkest:                 #58100d;
+$red-dark:                    #a52521;
+$red-darker:                  #58100d;
+$red-darkest:                 #430c0a;
 
 // indigo
 $indigo-light:                #9fa8da;
@@ -108,4 +109,5 @@ $brand-primary:               $teal-dark !default;
 $brand-success:               $green-dark !default;
 $brand-info:                  $blue-dark !default;
 $brand-warning:               $orange !default;
-$brand-danger:                $red-darker !default;
+$brand-danger:                $red-dark !default;
+$brand-hint:                  $yellow-dark !default;

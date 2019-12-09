@@ -37,6 +37,7 @@ requirejs.config({
         slidebars: 'lib/slidebars',                                     // v2.0.2   Slidebars - side menu plugin https://www.adchsm.com/slidebars/
         jsPlumb: 'lib/jsplumb',                                         // v2.9.3   jsPlumb main map draw plugin http://jsplumb.github.io/jsplumb/home.html
         farahey: 'lib/farahey',                                         // v1.1.2   jsPlumb "magnetizing" plugin extension - https://github.com/ThomasChan/farahey
+        easyTimer: 'lib/easytimer.min',                                 // v4.0.2   EasyTimer - Timer/Chronometer/Countdown library - http://albert-gonzalez.github.io/easytimer.js
         customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5   Custom scroll bars - http://manos.malihu.gr
         mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13  Mousewheel - https://github.com/jquery/jquery-mousewheel
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1   X-editable - in placed editing
@@ -44,8 +45,7 @@ requirejs.config({
         raphael: 'lib/raphael.min',                                     // v2.2.8   Raphaël - required for morris - https://dmitrybaranovskiy.github.io/raphael
         bootbox: 'lib/bootbox.min',                                     // v5.2.0   Bootbox.js - custom dialogs - http://bootboxjs.com
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
-        peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1   Inline Chart - http://benpickles.github.io/peity/
-        dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1     Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
+        peityInlineChart: 'lib/jquery.peity.min',                       // v3.3.0   Inline Chart - http://benpickles.github.io/peity/
         hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.10.0  Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         select2: 'lib/select2.min',                                     // v4.0.3   Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
@@ -53,7 +53,7 @@ requirejs.config({
         blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3  Image Gallery - https://github.com/blueimp/Gallery
         blueImpGalleryHelper: 'lib/blueimp-helper',                     //          helper function for Blue Imp Gallery
         blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.4.2   Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
-        bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.5   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
+        bootstrapConfirmation: 'lib/bootstrap-confirmation.min',        // v1.0.7   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
         bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0   Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
         lazyload: 'lib/jquery.lazyload.min',                            // v1.9.7   LazyLoader images - https://appelsiini.net/projects/lazyload/
         sortable: 'lib/sortable.min',                                   // v1.6.0   Sortable - drag&drop reorder - https://github.com/rubaxa/Sortable
@@ -145,9 +145,6 @@ requirejs.config({
             deps: ['jquery']
         },
         peityInlineChart: {
-            deps: ['jquery']
-        },
-        dragToSelect: {
             deps: ['jquery']
         },
         hoverIntent: {

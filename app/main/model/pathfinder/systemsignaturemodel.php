@@ -167,7 +167,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      */
     protected function validate_name(string $key, string $val): bool {
         $valid = true;
-        if(mb_strlen($val) < 3){
+        if(!mb_ereg('^[a-zA-Z]{3}-\d{3}$', $val)){
             $valid = false;
             $this->throwValidationException($key);
         }

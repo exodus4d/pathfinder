@@ -44,7 +44,7 @@
                                     <tr>
                                         <td class="text-right">{{ @member->_id }}</td>
                                         <td class="pf-table-button-sm-cell" data-order="{{ @member->name }}" data-search="{{ @member->name }}">
-                                            <img src="//image.eveonline.com/Character/{{ @member->_id }}_32.jpg" >&nbsp;{{ @member->name }}
+                                            <img src="{{ @tplImage->eveSrcUrl('characters', @member->_id, 32) }}" >&nbsp;{{ @member->name }}
                                         </td>
                                         <td class="text-right">
                                             <span class="label {{@roleType}}">{{ @member->roleId->label }}</span>

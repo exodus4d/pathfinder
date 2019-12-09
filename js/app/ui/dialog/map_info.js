@@ -7,10 +7,10 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
     'app/counter',
+    'bootbox',
     'app/map/util'
-], ($, Init, Util, Render, bootbox, Counter, MapUtil) => {
+], ($, Init, Util, Render, Counter, bootbox, MapUtil) => {
 
     'use strict';
 
@@ -182,7 +182,7 @@ define([
         mapElement.append(dlElementRight);
 
         // init map lifetime counter
-        $('.' + config.mapInfoLifetimeCounterClass).initTimestampCounter();
+        Counter.initTimestampCounter($('.' + config.mapInfoLifetimeCounterClass));
 
         mapElement.find('.' + config.textActionIconCopyClass).on('click', function(){
            let mapUrl = $(this).find('span').text().trim();
@@ -456,7 +456,7 @@ define([
                     width: 10,
                     className: ['text-center', config.tableCellActionClass].join(' '),
                     data: null,
-                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDarker"></i>',
+                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDark"></i>',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
@@ -657,7 +657,7 @@ define([
                     width: 10,
                     className: ['text-center', config.tableCellActionClass].join(' '),
                     data: null,
-                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDarker"></i>',
+                    defaultContent: '<i class="fas fa-times txt-color txt-color-redDark"></i>',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         let tempTableElement = this;
 
@@ -764,7 +764,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(data && type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('render', value.typeId) + '" title="' + value.typeName + '" data-toggle="tooltip" />';
+                                value = '<img src="' + Util.eveImageUrl('types', value.typeId) + '" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
                         }
@@ -802,7 +802,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
+                                value = '<img src="' + Util.eveImageUrl('characters', value) + '"/>';
                             }
                             return value;
                         }
@@ -842,7 +842,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('corporation', value.id) + '"/>';
+                                value = '<img src="' + Util.eveImageUrl('corporations', value.id) + '"/>';
                             }
                             return value;
                         }
@@ -1125,7 +1125,7 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Util.eveImageUrl('character', value) + '"/>';
+                                value = '<img src="' + Util.eveImageUrl('characters', value) + '"/>';
                             }
                             return value;
                         }
@@ -1167,7 +1167,6 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                               // txt-color-redDarker
                                 value = '<i class="fas fa-code ' + config.tableCellActionIconClass + '"></i>';
                             }
                             return value;
@@ -1250,7 +1249,7 @@ define([
             class: config.tableToolsClass
         }));
 
-        let buttons = new $.fn.dataTable.Buttons( logDataTable, {
+        let buttons = new $.fn.dataTable.Buttons(logDataTable, {
             buttons: [
                 {
                     className: 'btn btn-sm btn-default',

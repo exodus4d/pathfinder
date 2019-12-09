@@ -63,6 +63,32 @@ class SQL extends \DB\SQL {
     }
 
     /**
+     * @param string|null $table
+     * @return array|null
+     */
+    public function getTableStatus(?string $table) : ?array {
+        $status = null;
+        $sql = "SHOW TABLE STATUS";
+        $args = null;
+        if(!empty($table)){
+            $sql .= " LIKE :table";
+            $args = [
+                ':table' => $table
+            ];
+        }
+
+        if(!empty($statusRes = $this->exec($sql, $args))){
+            if(!empty($table)){
+                $status = reset($statusRes);
+            }else{
+                $status = $statusRes;
+            }
+        }
+
+        return $status;
+    }
+
+    /**
      * set some default config for this DB
      * @param string $characterSetDatabase
      * @param string $collationDatabase
