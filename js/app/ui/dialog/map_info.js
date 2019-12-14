@@ -1069,20 +1069,35 @@ define([
                     title: '<i class="far fa-fw fa-clock"></i>',
                     width: 100,
                     className: ['text-right'].join(' '),
-                    data: 'datetime.date',
+                    data: 'datetime',
                     render: {
                         _: function(data, type, row, meta){
-                            // strip microseconds
-                            let logDateString = data.substring(0, 19);
-                            let logDate = new Date(logDateString.replace(/-/g, '/'));
-                            data = Util.convertDateToString(logDate, true);
-
-                            // check whether log is new (today) ->
-                            if(logDate.setHours(0,0,0,0) === serverHours){
-                                // replace dd/mm/YYYY
-                                data = 'today' + data.substring(10);
+                            let value = '';
+                            let logDateString;
+                            if(typeof data === 'string' && data.length){
+                                // NEW: > v1.5.5 e.g: '2019-12-09T22:07:01.382455+00:00'
+                                logDateString = data;
+                            }else if(data && data.date){
+                                // OLD: <= v1.5.5 object data.date: '2019-12-09 14:50:46.608484'
+                                logDateString = data.date;
                             }
-                            return data;
+
+                            if(logDateString){
+                                logDateString = logDateString
+                                    .substring(0, 19)
+                                    .replace(/-/g, '/')
+                                    .replace(/T/g, ' ');
+                                let logDate = new Date(logDateString);
+                                value = Util.convertDateToString(logDate, true);
+
+                                // check whether log is new (today) ->
+                                if(logDate.setHours(0,0,0,0) === serverHours){
+                                    // replace dd/mm/YYYY
+                                    value = 'today' + value.substring(10);
+                                }
+                            }
+
+                            return value;
                         }
                     }
                 },{

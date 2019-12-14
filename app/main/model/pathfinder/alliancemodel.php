@@ -63,7 +63,7 @@ class AllianceModel extends AbstractPathfinderModel {
         $allianceData->shared = $this->shared;
 
         return $allianceData;
-    }/** @noinspection PhpHierarchyChecksInspection */
+    }
 
     /**
      * Event "Hook" function

@@ -127,7 +127,7 @@ abstract class AbstractWebhookHandler extends Handler\AbstractProcessingHandler 
      *
      * @param array $record
      */
-    protected function write(array $record){
+    protected function write(array $record) : void {
         $record = $this->excludeFields($record);
 
         $postData = $this->getSlackData($record);

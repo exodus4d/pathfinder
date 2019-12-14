@@ -156,7 +156,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
     /**
      * setter for connection type
      * @param $type
-     * @return int|number
+     * @return array
      */
     public function set_type($type){
         // remove unwanted types -> they should not be send from client

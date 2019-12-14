@@ -14,10 +14,35 @@ use Monolog\Logger;
 
 abstract class AbstractLog implements LogInterface {
 
+    /**
+     * error message invalid log level
+     */
     const ERROR_LEVEL               = 'Invalid log level "%s"';
+
+    /**
+     * error message invalid log tag
+     */
     const ERROR_TAG                 = 'Invalid log tag "%s"';
+
+    /**
+     * error message unknown Handler key
+     */
     const ERROR_HANDLER_KEY         = 'Handler key "%s" not found in handlerConfig (%s)';
+
+    /**
+     * error message undefined Handler params
+     */
     const ERROR_HANDLER_PARAMS      = 'No handler parameters found for handler key "%s"';
+
+    /**
+     * error message unknown Processor key
+     */
+    const ERROR_PROCESSOR_KEY         = 'Processor key "%s" not found in processorConfig (%s)';
+
+    /**
+     * error message undefined Processor params
+     */
+    const ERROR_PROCESSOR_PARAMS      = 'No processor parameters found for processor key "%s"';
 
     /**
      * PSR-3 log levels
@@ -54,6 +79,15 @@ abstract class AbstractLog implements LogInterface {
      * @var array
      */
     protected $handlerParamsConfig  = [];
+
+    /**
+     * some processor need individual configuration parameters
+     * -> see $processorConfig end getProcessorParams()
+     * @var array
+     */
+    protected $processorParamsConfig = [
+        'psr' => ['Y-m-d\A\TH:i:s.uP', false]
+    ];
 
     /**
      * multiple Log() objects can be marked as "grouped"
@@ -110,6 +144,10 @@ abstract class AbstractLog implements LogInterface {
     private $buffer                 = true;
 
 
+    /**
+     * AbstractLog constructor.
+     * @param string $action
+     */
     public function __construct(string $action){
         $this->setF3();
         $this->action       = $action;
@@ -176,7 +214,7 @@ abstract class AbstractLog implements LogInterface {
      * @param array $data
      * @return LogInterface
      */
-    public function setData(array $data) : LogInterface{
+    public function setData(array $data) : LogInterface {
         $this->data = $data;
         return $this;
     }
@@ -185,7 +223,7 @@ abstract class AbstractLog implements LogInterface {
      * @param array $data
      * @return LogInterface
      */
-    public function setTempData(array $data) : LogInterface{
+    public function setTempData(array $data) : LogInterface {
         $this->tmpData = $data;
         return $this;
     }
@@ -227,7 +265,7 @@ abstract class AbstractLog implements LogInterface {
     /**
      * @return array
      */
-    public function getHandlerConfig() : array{
+    public function getHandlerConfig() : array {
         return $this->handlerConfig;
     }
 
@@ -238,8 +276,6 @@ abstract class AbstractLog implements LogInterface {
      * @throws \Exception
      */
     public function getHandlerParams(string $handlerKey) : array {
-        $params = [];
-
         if($this->hasHandlerKey($handlerKey)){
             switch($handlerKey){
                 case 'stream': $params = $this->getHandlerParamsStream();
@@ -255,10 +291,10 @@ abstract class AbstractLog implements LogInterface {
                     $params = $this->getHandlerParamsSlack($handlerKey);
                     break;
                 default:
-                    throw new \Exception( sprintf(self::ERROR_HANDLER_PARAMS, $handlerKey));
+                    throw new \Exception(sprintf(self::ERROR_HANDLER_PARAMS, $handlerKey));
             }
         }else{
-            throw new \Exception( sprintf(self::ERROR_HANDLER_KEY, $handlerKey, implode(', ', array_flip($this->handlerConfig))));
+            throw new \Exception(sprintf(self::ERROR_HANDLER_KEY, $handlerKey, implode(', ', array_flip($this->handlerConfig))));
         }
 
         return $params;
@@ -279,57 +315,78 @@ abstract class AbstractLog implements LogInterface {
     }
 
     /**
+     * get __construct() parameters for a given $processorKey
+     * @param string $processorKey
+     * @return array
+     * @throws \Exception
+     */
+    public function getProcessorParams(string $processorKey) : array {
+        if($this->hasProcessorKey($processorKey)){
+            switch($processorKey){
+                case 'psr': $params = $this->getProcessorParamsPsr();
+                    break;
+                default:
+                    throw new \Exception(sprintf(self::ERROR_PROCESSOR_PARAMS, $processorKey));
+            }
+        }else{
+            throw new \Exception(sprintf(self::ERROR_PROCESSOR_KEY, $processorKey, implode(', ', array_flip($this->processorConfig))));
+        }
+
+        return $params;
+    }
+
+    /**
      * @return string
      */
-    public function getMessage() : string{
+    public function getMessage() : string {
         return $this->message;
     }
 
     /**
      * @return string
      */
-    public function getAction() : string{
+    public function getAction() : string {
         return $this->action;
     }
 
     /**
      * @return string
      */
-    public function getChannelType() : string{
+    public function getChannelType() : string {
         return $this->channelType;
     }
 
     /**
      * @return string
      */
-    public function getChannelName() : string{
+    public function getChannelName() : string {
         return $this->getChannelType();
     }
 
     /**
      * @return string
      */
-    public function getLevel() : string{
+    public function getLevel() : string {
         return $this->level;
     }
 
     /**
      * @return string
      */
-    public function getTag() : string{
+    public function getTag() : string {
         return $this->tag;
     }
 
     /**
      * @return array
      */
-    public function getData() : array{
+    public function getData() : array {
         return $this->data;
     }
     /**
      * @return array
      */
-    public function getContext() : array{
+    public function getContext() : array {
         $context = [
             'data' => $this->getData(),
             'tag' => $this->getTag()
@@ -351,7 +408,7 @@ abstract class AbstractLog implements LogInterface {
     /**
      * @return array
      */
-    public function getHandlerGroups() : array{
+    public function getHandlerGroups() : array {
         return $this->handlerGroups;
     }
 
@@ -372,7 +429,7 @@ abstract class AbstractLog implements LogInterface {
      * @param string $handlerKey
      * @return bool
      */
-    public function hasHandlerKey(string $handlerKey) : bool{
+    public function hasHandlerKey(string $handlerKey) : bool {
         return array_key_exists($handlerKey, $this->handlerConfig);
     }
 
@@ -380,21 +437,29 @@ abstract class AbstractLog implements LogInterface {
      * @param string $handlerKey
      * @return bool
      */
-    public function hasHandlerGroupKey(string $handlerKey) : bool{
+    public function hasHandlerGroupKey(string $handlerKey) : bool {
         return in_array($handlerKey, $this->getHandlerGroups());
+    }
+
+    /**
+     * @param string $processorKey
+     * @return bool
+     */
+    public function hasProcessorKey(string $processorKey) : bool {
+        return array_key_exists($processorKey, $this->processorConfig);
     }
 
     /**
      * @return bool
      */
-    public function hasBuffer() : bool{
+    public function hasBuffer() : bool {
         return $this->buffer;
     }
 
     /**
      * @return bool
      */
-    public function isGrouped() : bool{
+    public function isGrouped() : bool {
         return !empty($this->getHandlerGroups());
     }
 
@@ -415,12 +480,12 @@ abstract class AbstractLog implements LogInterface {
         unset($this->handlerParamsConfig[$handlerKey]);
     }
 
-    // Handler parameters for Monolog\Handler\AbstractHandler ---------------------------------------------------------
+    // Handler parameters for Monolog\Handler\* instances -------------------------------------------------------------
 
     /**
      * @return array
      */
-    protected function getHandlerParamsStream() : array{
+    protected function getHandlerParamsStream() : array {
         $params = [];
         if( !empty($conf = $this->handlerParamsConfig['stream']) ){
             $params[] = $conf->stream;
@@ -539,6 +604,16 @@ abstract class AbstractLog implements LogInterface {
         }
 
         return $params;
+    }
+
+    // Processor parameters for Monolog\Processor\* instances ---------------------------------------------------------
+
+    /**
+     * get __construct() params for PsrLogMessageProcessor() call
+     * @return array
+     */
+    protected function getProcessorParamsPsr() : array {
+        return !empty($conf = $this->processorParamsConfig['psr']) ? $conf : [];
     }
 
     /**

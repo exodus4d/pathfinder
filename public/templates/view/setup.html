@@ -1159,7 +1159,7 @@
                                                 <kbd>{{ mb_strimwidth(pathinfo(@logData.fileName, PATHINFO_FILENAME), 0, 15, '…') }}</kbd>
                                             </td>
                                             <td class="bg-color bg-color-tealDarker">{{ @logData.message }}</td>
-                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(@logData.logTypes, ', ') }}" data-placement="right" data-container="body">
+                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(', ', @logData.logTypes) }}" data-placement="right" data-container="body">
                                                 <i class="fas fa-fw fa-tag txt-color {{ @logTypeClass }}"></i>
                                             </td>
                                         </tr>

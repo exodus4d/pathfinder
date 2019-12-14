@@ -6,7 +6,7 @@ if(file_exists($composerAutoloader)){
     require_once($composerAutoloader);
 }
 
-$f3 = require_once('app/lib/base.php');
+$f3 = \Base::instance();
 
 // load main config
 $f3->config('app/config.ini', true);

@@ -17,47 +17,51 @@ interface LogInterface {
 
     public function setTag(string $tag);
 
-    public function setData(array $data): LogInterface;
+    public function setData(array $data) : LogInterface;
 
-    public function setTempData(array $data): LogInterface;
+    public function setTempData(array $data) : LogInterface;
 
-    public function addHandler(string $handlerKey, string $formatterKey = null, \stdClass $handlerParams = null): LogInterface;
+    public function addHandler(string $handlerKey, string $formatterKey = null, \stdClass $handlerParams = null) : LogInterface;
 
-    public function addHandlerGroup(string $handlerKey): LogInterface;
+    public function addHandlerGroup(string $handlerKey) : LogInterface;
 
-    public function getHandlerConfig(): array;
+    public function getHandlerConfig() : array;
 
-    public function getHandlerParamsConfig(): array;
+    public function getHandlerParamsConfig() : array;
 
-    public function getProcessorConfig(): array;
+    public function getProcessorConfig() : array;
 
-    public function getHandlerParams(string $handlerKey): array;
+    public function getProcessorParams(string $processorKey) : array;
 
-    public function getMessage(): string;
+    public function getHandlerParams(string $handlerKey) : array;
 
-    public function getAction(): string;
+    public function getMessage() : string;
 
-    public function getChannelType(): string;
+    public function getAction() : string;
 
-    public function getChannelName(): string;
+    public function getChannelType() : string;
 
-    public function getLevel(): string;
+    public function getChannelName() : string;
 
-    public function getData(): array;
+    public function getLevel() : string;
 
-    public function getContext(): array;
+    public function getData() : array;
 
-    public function getHandlerGroups(): array;
+    public function getContext() : array;
 
-    public function getGroupHash(): string;
+    public function getHandlerGroups() : array;
 
-    public function hasHandlerKey(string $handlerKey): bool;
+    public function getGroupHash() : string;
 
-    public function hasHandlerGroupKey(string $handlerKey): bool;
+    public function hasHandlerKey(string $handlerKey) : bool;
 
-    public function hasBuffer(): bool;
+    public function hasHandlerGroupKey(string $handlerKey) : bool;
 
-    public function isGrouped(): bool;
+    public function hasProcessorKey(string $processorKey) : bool;
+
+    public function hasBuffer() : bool;
+
+    public function isGrouped() : bool;
 
     public function removeHandlerGroups();
 

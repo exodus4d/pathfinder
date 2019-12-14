@@ -104,13 +104,19 @@ class Cron extends \Cron {
      * @return mixed|void
      */
     public function registerJob(string $name, array $jobConf){
-        if($job = $this->getJob($name)){
-            if($job->dry()){
-                $job->name = $name;
+        // method is called from /setup page -> DB might not be created at this point!
+        // -> check if DB exists here. Otherwise Cortex()->__construct()
+        \Base::instance()->DB->setSilent(true);
+        if(\Base::instance()->DB->getDB(Pathfinder\AbstractPathfinderModel::DB_ALIAS)){
+            if($job = $this->getJob($name)){
+                if($job->dry()){
+                    $job->name = $name;
+                }
+                $job->setData($jobConf);
+                return $job->save();
             }
-            $job->setData($jobConf);
-            return $job->save();
         }
+        \Base::instance()->DB->setSilent(false);
     }
 
     /**

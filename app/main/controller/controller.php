@@ -132,7 +132,7 @@ class Controller {
             $f3->get('SESSION_CACHE') === 'mysql' &&
             ($db = $f3->DB->getDB('PF')) instanceof SQL
         ){
-            if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
+            if(!headers_sent() && session_status() != PHP_SESSION_ACTIVE){
                 /**
                  * callback() for suspect sessions
                  * @param $session

@@ -31,7 +31,7 @@ class SocketHandler extends \Monolog\Handler\SocketHandler {
      * @param array $record
      * @return bool
      */
-    public function handle(array $record){
+    public function handle(array $record) : bool {
         if (!$this->isHandling($record)) {
             return false;
         }

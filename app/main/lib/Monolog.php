@@ -12,6 +12,7 @@ namespace lib;
 use controller\LogController;
 use lib\logging;
 use Monolog\Registry;
+use Monolog\Processor\ProcessorInterface;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\BufferHandler;
@@ -20,10 +21,24 @@ use Monolog\Logger;
 
 class Monolog extends \Prefab {
 
+    /**
+     * error message for unknown formatter
+     */
     const ERROR_FORMATTER                                   = 'Unknown log formatter for key "%s"';
+
+    /**
+     * error message for unknown handler
+     */
     const ERROR_HANDLER                                     = 'Unknown log handler for key "%s"';
+
+    /**
+     * error message for unknown processor
+     */
     const ERROR_PROCESSOR                                   = 'Unknown log processor for key "%s"';
 
+    /**
+     * available formatters
+     */
     const FORMATTER = [
         'line'          => 'Monolog\Formatter\LineFormatter',
         'json'          => 'Monolog\Formatter\JsonFormatter',
@@ -31,6 +46,9 @@ class Monolog extends \Prefab {
         'mail'          => 'lib\logging\formatter\MailFormatter'
     ];
 
+    /**
+     * available handlers
+     */
     const HANDLER = [
         'stream'        => 'Monolog\Handler\StreamHandler',
         'mail'          => 'Monolog\Handler\SwiftMailerHandler',
@@ -41,6 +59,9 @@ class Monolog extends \Prefab {
         'discordRally'  => 'lib\logging\handler\DiscordRallyWebhookHandler'
     ];
 
+    /**
+     * available processors
+     */
     const PROCESSOR = [
         'psr'           => 'Monolog\Processor\PsrLogMessageProcessor'
     ];
@@ -54,12 +75,7 @@ class Monolog extends \Prefab {
     ];
 
     public function __construct(){
-        // set timezone for all Logger instances
-        if(class_exists(Logger::class)){
-            if( is_callable($getTimezone = \Base::instance()->get('getTimeZone')) ){
-                Logger::setTimezone($getTimezone());
-            };
-        }else{
+        if(!class_exists(Logger::class)){
             LogController::getLogger('ERROR')->write(sprintf(Config::ERROR_CLASS_NOT_EXISTS_COMPOSER, Logger::class));
         }
     }
@@ -107,6 +123,10 @@ class Monolog extends \Prefab {
                 }else{
                     $logger = new Logger($log->getChannelName());
 
+                    if(is_callable($getTimezone = \Base::instance()->get('getTimeZone'))){
+                        $logger->setTimezone($getTimezone());
+                    }
+
                     // disable microsecond timestamps (seconds should be fine)
                     $logger->useMicrosecondTimestamps(true);
 
@@ -143,7 +163,8 @@ class Monolog extends \Prefab {
                             $logger->pushProcessor($processorCallback);
                         }else{
                             // get Monolog Processor class
-                            $processor = $this->getProcessor($processorKey);
+                            $processorParams = $log->getProcessorParams($processorKey);
+                            $processor = $this->getProcessor($processorKey, $processorParams);
                             $logger->pushProcessor($processor);
                         }
                     }
@@ -187,7 +208,7 @@ class Monolog extends \Prefab {
      * @return HandlerInterface
      * @throws \Exception
      */
-    private function getHandler(string $handlerKey, array $handlerParams = []): HandlerInterface{
+    private function getHandler(string $handlerKey, array $handlerParams = []) : HandlerInterface{
         if(array_key_exists($handlerKey, self::HANDLER)){
             $handlerClass = self::HANDLER[$handlerKey];
             $handler = new $handlerClass(...$handlerParams);
@@ -201,13 +222,14 @@ class Monolog extends \Prefab {
     /**
      * get Monolog Processor instance by key
      * @param string $processorKey
-     * @return callable
+     * @param array $processorParams
+     * @return ProcessorInterface
      * @throws \Exception
      */
-    private function getProcessor(string $processorKey): callable {
+    private function getProcessor(string $processorKey, array $processorParams = []) : ProcessorInterface {
         if(array_key_exists($processorKey, self::PROCESSOR)){
             $ProcessorClass = self::PROCESSOR[$processorKey];
-            $processor = new  $ProcessorClass();
+            $processor = new $ProcessorClass(...$processorParams);
         }else{
             throw new \Exception(sprintf(self::ERROR_PROCESSOR, $processorKey));
         }
