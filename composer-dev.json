@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Exodus4D\\Pathfinder\\": "app/main"
+      "Exodus4D\\Pathfinder\\": "app/"
     }
   },
   "repositories": [
@@ -34,8 +34,10 @@
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-ctype": "*",
+    "ext-gd": "*",
     "bcosca/fatfree-core": "3.7.*",
     "ikkez/f3-cortex": "dev-master#0d7754a5897a639e563add6b8d6db53fc0fae677",
+    "ikkez/f3-sheet": "0.4.*",
     "xfra35/f3-cron": "1.2.*",
     "monolog/monolog": "2.*",
     "swiftmailer/swiftmailer": "6.2.*",

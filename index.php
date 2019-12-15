@@ -1,4 +1,8 @@
 <?php
+namespace Exodus4D\Pathfinder;
+
+use Exodus4D\Pathfinder\Lib;
+
 session_name('pathfinder_session');
 
 $composerAutoloader = 'vendor/autoload.php';
@@ -12,9 +16,9 @@ $f3 = \Base::instance();
 $f3->config('app/config.ini', true);
 
 // load environment dependent config
-lib\Config::instance($f3);
+Lib\Config::instance($f3);
 
 // initiate cron-jobs
-lib\Cron::instance();
+Lib\Cron::instance();
 
 $f3->run();
