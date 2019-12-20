@@ -22,11 +22,13 @@ define([
         dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
         // new map form
+        newNameInputId: 'pf-map-dialog-new-name-input',                                 // id for "name" input
         newIconSelectId: 'pf-map-dialog-new-icon-select',                               // id for "icon" select
         newScopeSelectId: 'pf-map-dialog-new-scope-select',                             // id for "scope" select
         newTypeSelectId: 'pf-map-dialog-new-type-select',                               // id for "type" select
 
         // edit map form
+        editNameInputId: 'pf-map-dialog-edit-name-input',                               // id for "name" input
         editIconSelectId: 'pf-map-dialog-edit-icon-select',                             // id for "icon" select
         editScopeSelectId: 'pf-map-dialog-edit-scope-select',                           // id for "scope" select
         editTypeSelectId: 'pf-map-dialog-edit-type-select',                             // id for "type" select
@@ -136,6 +138,7 @@ define([
                 // render "new map" tab content -----------------------------------------------------------------------
                 let mapFormDataNew = $.extend({}, mapFormData, {
                     hasRightMapForm: hasRightMapCreate,
+                    nameInputId: config.newNameInputId,
                     iconSelectId: config.newIconSelectId,
                     scopeSelectId: config.newScopeSelectId,
                     typeSelectId: config.newTypeSelectId
@@ -145,6 +148,7 @@ define([
                 // render "edit map" tab content ----------------------------------------------------------------------
                 let mapFormDataEdit = $.extend({}, mapFormData, {
                     hasRightMapForm: hasRightMapUpdate,
+                    nameInputId: config.editNameInputId,
                     iconSelectId: config.editIconSelectId,
                     scopeSelectId: config.editScopeSelectId,
                     typeSelectId: config.editTypeSelectId

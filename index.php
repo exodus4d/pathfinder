@@ -11,6 +11,7 @@ if(file_exists($composerAutoloader)){
 }
 
 $f3 = \Base::instance();
+$f3->set('NAMESPACE', __NAMESPACE__);
 
 // load main config
 $f3->config('app/config.ini', true);

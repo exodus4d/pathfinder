@@ -15,6 +15,7 @@ use Exodus4D\Pathfinder\Lib\Db\Sql;
 use Exodus4D\Pathfinder\Lib\Config;
 use Exodus4D\Pathfinder\Lib\Cron;
 use Exodus4D\Pathfinder\Lib\Util;
+use Exodus4D\Pathfinder\Lib\Format\Number;
 use Exodus4D\Pathfinder\Model\Pathfinder;
 use Exodus4D\Pathfinder\Model\Universe;
 use Exodus4D\Pathfinder\Controller\Ccp\Universe as UniverseController;
@@ -174,7 +175,7 @@ class Setup extends Controller {
         $f3->set('tplCounter', $this->counter());
 
         $f3->set('tplConvertBytes', function(){
-            return call_user_func_array([\lib\format\Number::instance(), 'bytesToString'], func_get_args());
+            return call_user_func_array([Number::instance(), 'bytesToString'], func_get_args());
         });
 
         // render view
@@ -754,20 +755,20 @@ class Setup extends Controller {
                         ],
                         'maxMemory' => [
                             'label' => 'maxmemory',
-                            'required' => \lib\format\Number::instance()->bytesToString($f3->get('REQUIREMENTS.REDIS.MAX_MEMORY')),
-                            'version' => \lib\format\Number::instance()->bytesToString($redisMemoryInfo['maxmemory']),
+                            'required' => Number::instance()->bytesToString($f3->get('REQUIREMENTS.REDIS.MAX_MEMORY')),
+                            'version' => Number::instance()->bytesToString($redisMemoryInfo['maxmemory']),
                             'check' => $redisMemoryInfo['maxmemory'] >= $f3->get('REQUIREMENTS.REDIS.MAX_MEMORY'),
                             'tooltip' => 'Max memory limit for Redis'
                         ],
                         'usedMemory' => [
                             'label' => 'used_memory',
-                            'version' => \lib\format\Number::instance()->bytesToString($redisMemoryInfo['used_memory']),
+                            'version' => Number::instance()->bytesToString($redisMemoryInfo['used_memory']),
                             'check' => $redisMemoryInfo['used_memory'] < $redisMemoryInfo['maxmemory'],
                             'tooltip' => 'Current memory used by Redis'
                         ],
                         'usedMemoryPeak' => [
                             'label' => 'used_memory_peak',
-                            'version' => \lib\format\Number::instance()->bytesToString($redisMemoryInfo['used_memory_peak']),
+                            'version' => Number::instance()->bytesToString($redisMemoryInfo['used_memory_peak']),
                             'check' => $redisMemoryInfo['used_memory_peak'] <= $redisMemoryInfo['maxmemory'],
                             'tooltip' => 'Peak memory used by Redis'
                         ],
@@ -1125,7 +1126,7 @@ class Setup extends Controller {
 
                         // get table data from model
                         foreach($dbData['models'] as $model){
-                            $tableConfig =  call_user_func($model . '::resolveConfiguration');
+                            $tableConfig = call_user_func(Config::withNamespace($model) . '::resolveConfiguration');
                             $requiredTables[$tableConfig['table']] = [
                                 'model' => $model,
                                 'name' => $tableConfig['table'],
@@ -1221,7 +1222,7 @@ class Setup extends Controller {
                             $currentColType = $currentColumns[$columnName]['type'];
                             $currentNullable = $currentColumns[$columnName]['nullable'];
                             $hasNullable = $currentNullable ? '1' : '0';
-                            $currentColIndexData = call_user_func($data['model'] . '::indexExists', [$columnName]);
+                            $currentColIndexData = call_user_func(Config::withNamespace($data['model']) . '::indexExists', [$columnName]);
                             $currentColIndex = is_array($currentColIndexData);
                             $hasIndex = ($currentColIndex) ? '1' : '0';
                             $hasUnique = ($currentColIndexData['unique']) ? '1' : '0';
@@ -1938,7 +1939,7 @@ class Setup extends Controller {
             }
             $bytesAll += $bytes;
 
-            $dirAll[$key]['size'] = ($maxHit ? '>' : '') . \lib\format\Number::instance()->bytesToString($bytes);
+            $dirAll[$key]['size'] = ($maxHit ? '>' : '') . Number::instance()->bytesToString($bytes);
             $dirAll[$key]['task'] = [
                 [
                     'action' => http_build_query([
@@ -1953,7 +1954,7 @@ class Setup extends Controller {
         }
 
         return [
-            'sizeAll' => ($maxHitAll ? '>' : '') . \lib\format\Number::instance()->bytesToString($bytesAll),
+            'sizeAll' => ($maxHitAll ? '>' : '') . Number::instance()->bytesToString($bytesAll),
             'dirAll' => $dirAll
         ];
     }

@@ -9,8 +9,9 @@
 namespace Exodus4D\Pathfinder\Controller\Api;
 
 use Exodus4D\Pathfinder\Lib\Config;
-use Exodus4D\Pathfinder\Controller;
 use Exodus4D\Pathfinder\Lib\Cron;
+use Exodus4D\Pathfinder\Lib\Format\Number;
+use Exodus4D\Pathfinder\Controller;
 use Exodus4D\Pathfinder\Model;
 
 class Setup extends Controller\Controller {
@@ -91,7 +92,7 @@ class Setup extends Controller\Controller {
             ],
             'tplCounter' => $this->counter(),
             'tplConvertBytes' => function(){
-                return call_user_func_array([\lib\format\Number::instance(), 'bytesToString'], func_get_args());
+                return call_user_func_array([Number::instance(), 'bytesToString'], func_get_args());
             }
         ];
         return \Template::instance()->render('templates/ui/cron_table_row.html', null, $tplData, 0);

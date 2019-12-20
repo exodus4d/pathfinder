@@ -569,7 +569,7 @@ class Config extends \Prefab {
         if($matches = (bool)preg_match('/^(\w+)\h*=\h*(.+)/', strtolower(trim($dsn)), $parts)){
             $conf['type'] = $parts[1];
             if($conf['type'] == 'redis'){
-                list($conf['host'], $conf['port'], $conf['db']) = explode(':', $parts[2]) + [1 => 6379, 2 => null];
+                [$conf['host'], $conf['port'], $conf['db']] = explode(':', $parts[2]) + [1 => 6379, 2 => null];
             }elseif($conf['type'] == 'folder'){
                 $conf['folder'] = $parts[2];
             }
@@ -641,6 +641,11 @@ class Config extends \Prefab {
         return $format;
     }
 
+    /**
+     * @param $fromExists
+     * @param int $ttlMax
+     * @return int
+     */
     static function ttlLeft($fromExists, int $ttlMax) : int {
         $ttlMax = max($ttlMax, 0);
         if($fromExists){
@@ -654,5 +659,17 @@ class Config extends \Prefab {
             // == false
             return $ttlMax;
         }
+    }
+
+    /**
+     * @param string|null $class
+     * @return string
+     */
+    static function withNamespace(?string $class) : string {
+        $path = [\Base::instance()->get('NAMESPACE')];
+        if($class){
+            $path[] = $class;
+        }
+        return implode('\\', $path);
     }
 }

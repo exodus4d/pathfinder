@@ -1,7 +1,7 @@
 <?php
 
 
-namespace lib\format;
+namespace Exodus4D\Pathfinder\Lib\Format;
 
 
 class Number extends \Prefab {

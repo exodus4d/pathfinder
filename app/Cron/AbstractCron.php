@@ -8,6 +8,7 @@
 
 namespace Exodus4D\Pathfinder\Cron;
 
+use Exodus4D\Pathfinder\Lib\Format\Number;
 use Exodus4D\Pathfinder\Model\Pathfinder;
 
 abstract class AbstractCron {
@@ -201,7 +202,7 @@ abstract class AbstractCron {
 
         $text = sprintf(self::LOG_TEXT_BASE,
             $state['count'], $state['importCount'], $percent, $state['total'],
-            \lib\format\Number::instance()->bytesToString($memPeak), $duration
+            Number::instance()->bytesToString($memPeak), $duration
         );
 
         $text .= $logText ? $logText: '';
