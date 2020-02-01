@@ -10,6 +10,7 @@ define([
     'use strict';
 
     let config = {
+        contextMenuContainerId: 'pf-contextmenu-container',                         // id for container element that holds (hidden) context menus
         mapContextMenuId: 'pf-map-contextmenu',                                     // id for "maps" context menu
         connectionContextMenuId: 'pf-map-connection-contextmenu',                   // id for "connections" context menu
         endpointContextMenuId: 'pf-map-endpoint-contextmenu',                       // id for "endpoints" context menu

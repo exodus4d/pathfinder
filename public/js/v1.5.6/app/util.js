@@ -6,10 +6,10 @@ define([
     'app/init',
     'app/lib/prototypes',
     'app/lib/console',
+    'app/lib/localStore',
     'conf/system_effect',
     'conf/signature_type',
     'bootbox',
-    'localForage',
     'lazyload',
     'velocity',
     'velocityUI',
@@ -20,7 +20,7 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Proto, Con, SystemEffect, SignatureType, bootbox, localforage) => {
+], ($, Init, Proto, Con, LocalStoreManager, SystemEffect, SignatureType, bootbox) => {
 
     'use strict';
 
@@ -63,8 +63,11 @@ define([
 
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
-        mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
-        mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
+        mapTabBarIdPrefix: 'pf-map-tab-bar-',                                   // id prefix map tab bar lists <ul>
+        mapTabBarClass: 'pf-map-tab-bar',                                       // class for map tab bar lists <ul>
+        mapTabContentClass: 'pf-map-tab-content',                               // class for map tab content
+        mapTabContentAreaClass: 'pf-map-tab-content-area',                      // class for map tab content grid areas
+        mapTabContentAreaAliases: ['map', 'a', 'b', 'c'],
         mapClass: 'pf-map' ,                                                    // class for all maps
 
         // util
@@ -93,14 +96,15 @@ define([
         helpClass: 'pf-help',                                                   // class for "help" tooltip elements
 
         // fonts
-        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
+        fontTriglivianClass: 'pf-triglivian',                                   // class for "Triglivian" names (e.g. Abyssal systems)
+
+        // LocalStore
+        localStoreNames: ['default', 'character', 'map', 'module']              // Allowed name identifiers for DB names
     };
 
     let stopTimerCache = {};                                                    // cache for stopwatch timer
 
     let animationTimerCache = {};                                               // cache for table row animation timeout
-
-    let localStorage;                                                           // cache for "localForage" singleton
 
     /*
      *  ===============================================================================================================
@@ -114,22 +118,14 @@ define([
     $.fn.showLoadingAnimation = function(options){
         return this.each(function(){
             let loadingElement = $(this);
-            let iconSize = 'fa-lg';
+            let iconSize = getObjVal(options, 'icon.size') || 'fa-lg';
 
             // disable all events
-            loadingElement.css('pointer-events', 'none');
-
-            if(options){
-                if(options.icon){
-                    if(options.icon.size){
-                        iconSize = options.icon.size;
-                    }
-                }
-            }
+            //loadingElement.css('pointer-events', 'none');
 
             let overlay = $('<div>', {
                 class: config.ajaxOverlayClass
-            }).append(
+            }).css('pointer-events', 'none').append(
                 $('<div>', {
                     class: [config.ajaxOverlayWrapperClass].join(' ')
                 }).append(
@@ -151,20 +147,21 @@ define([
     };
 
     /**
-     * removes a loading indicator
+     * removes loading overlay(s)
      */
     $.fn.hideLoadingAnimation = function(){
         return this.each(function(){
-            let loadingElement = $(this);
-            let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
-            if(overlay.length){
+            let parentEl = $(this);
+            let overlays = parentEl.find('.' + config.ajaxOverlayClass);
+            if(overlays.length){
+                overlays.css('pointer-events', 'auto');
                 // important: "stop" is required to stop "show" animation
                 // -> otherwise "complete" callback is not fired!
-                overlay.velocity('stop').velocity('reverse', {
+                overlays.velocity('stop').velocity('reverse', {
                     complete: function(){
-                        $(this).remove();
-                        // enable all events
-                        loadingElement.css('pointer-events', 'auto');
+                        this.forEach(overlay => {
+                            overlay.remove();
+                        });
                     }
                 });
             }
@@ -429,23 +426,35 @@ define([
      * @param  {object} options
      * @returns {*}
      */
-    $.fn.initTooltips = function(options){
-        options = (typeof options === 'object') ? options : {};
-
-        let defaultOptions = {
-            container:  this,
-            delay: 100
+    $.fn.initTooltips = function(options= {}){
+        let containerSelectors = ['.modal', '.popover'];
+        let getContainer = (el, selectors = containerSelectors) => {
+            for(let i = 0; i < selectors.length; i++){
+                let checkContainer = el.closest(containerSelectors[i]);
+                if(checkContainer){
+                    return checkContainer;
+                }
+            }
         };
-        options = $.extend(defaultOptions, options);
 
         return this.each(function(){
             let tooltipElements = $(this).find('[title]');
-            tooltipElements.tooltip('destroy').tooltip(options);
+            if(tooltipElements.length){
+                let tooltipOptions = Object.assign({}, options);
+                if(!options.hasOwnProperty('container')){
+                    // check if current this is a modal/(child of modal) element
+                    let container = getContainer(this);
+                    if(container){
+                        tooltipOptions.container = container;
+                    }
+                }
+                tooltipElements.tooltip('destroy').tooltip(tooltipOptions);
+            }
         });
     };
 
     /**
-     * destroy popover elements
+     * destroy tooltips from element
      * @param recursive
      * @returns {*}
      */
@@ -606,7 +615,6 @@ define([
                             title: 'select character',
                             trigger: 'manual',
                             placement: 'bottom',
-                            container: 'body',
                             content: content,
                             animation: false
                         }).data('bs.popover').tip().addClass(config.popoverClass);
@@ -816,26 +824,6 @@ define([
         });
     };
 
-    /**
-     * get all mapTabElements (<a> tags)
-     * or search for a specific tabElement within mapModule
-     * @param mapId
-     * @returns {JQuery|*|{}|T}
-     */
-    $.fn.getMapTabElements = function(mapId){
-        let mapModule = $(this);
-        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
-
-        if(mapId){
-            // search for a specific tab element
-            mapTabElements = mapTabElements.filter(function(i, el){
-                return ( $(el).data('mapId') === mapId );
-            });
-        }
-
-        return mapTabElements;
-    };
-
     /*
      *  ===============================================================================================================
      *   Util functions that are global available for all modules
@@ -858,16 +846,16 @@ define([
     /**
      * get CCP image URLs for
      * @param resourceType 'alliances'|'corporations'|'characters'|'types'
-     * @param $resourceId
+     * @param resourceId
      * @param size
      * @param resourceVariant
      * @returns {boolean}
      */
-    let eveImageUrl = (resourceType, $resourceId, size = 32, resourceVariant = undefined) => {
+    let eveImageUrl = (resourceType, resourceId, size = 32, resourceVariant = undefined) => {
         let url = false;
         if(
             typeof resourceType === 'string' &&
-            typeof $resourceId === 'number' &&
+            typeof resourceId === 'number' &&
             typeof size === 'number'
         ){
             resourceType = resourceType.toLowerCase();
@@ -885,7 +873,7 @@ define([
                 }
             }
 
-            url = [Init.url.ccpImageServer, resourceType, $resourceId, resourceVariant].join('/');
+            url = [Init.url.ccpImageServer, resourceType, resourceId, resourceVariant].join('/');
 
             let params = {size: size};
             let searchParams = new URLSearchParams(params); // jshint ignore:line
@@ -967,15 +955,6 @@ define([
             const addEvent = EventTarget.prototype.addEventListener; // jshint ignore:line
             overwriteAddEvent(addEvent);
         }
-    };
-
-    /**
-     * init utility prototype functions
-     */
-    let initPrototypes = () => {
-
-
-        initPassiveEvents();
     };
 
     /**
@@ -1283,6 +1262,23 @@ define([
     };
 
     /**
+     * set default configuration for "Tooltip" plugin
+     * @param containerEl
+     */
+    let initDefaultTooltipConfig = containerEl => {
+        $.fn.tooltip.Constructor.DEFAULTS.container = containerEl;
+        $.fn.tooltip.Constructor.DEFAULTS.delay = 100;
+    };
+
+    /**
+     * set default configuration for "Popover" plugin
+     * @param containerEl
+     */
+    let initDefaultPopoverConfig = containerEl => {
+        $.fn.popover.Constructor.DEFAULTS.container = containerEl;
+    };
+
+    /**
      * set default configuration for "Confirmation" popover plugin
      */
     let initDefaultConfirmationConfig = () => {
@@ -1424,7 +1420,9 @@ define([
     /**
      * set default configuration for "xEditable" plugin
      */
-    let initDefaultEditableConfig = () => {
+    let initDefaultEditableConfig = containerEl => {
+        $.fn.editable.defaults.container = containerEl;
+
         // use fontAwesome buttons template
         $.fn.editableform.buttons =
             '<div class="btn-group">'+
@@ -1516,11 +1514,10 @@ define([
      * @returns {Date}
      */
     let getServerTime = () => {
-
         // Server is running with GMT/UTC (EVE Time)
         let localDate = new Date();
 
-        let serverDate = new Date(
+        return new Date(
             localDate.getUTCFullYear(),
             localDate.getUTCMonth(),
             localDate.getUTCDate(),
@@ -1528,8 +1525,6 @@ define([
             localDate.getUTCMinutes(),
             localDate.getUTCSeconds()
         );
-
-        return serverDate;
     };
 
     /**
@@ -1669,12 +1664,11 @@ define([
 
     /**
      * trigger a notification (on screen or desktop)
-     * @param customConfig
-     * @param settings
+     * @param args
      */
-    let showNotify = (customConfig, settings) => {
-        requirejs(['notification'], Notification => {
-            Notification.showNotify(customConfig, settings);
+    let showNotify = (...args) => {
+        requirejs(['PNotify.loader'], Notification => {
+            Notification.showNotify(...args);
         });
     };
 
@@ -1682,7 +1676,7 @@ define([
      * stop browser tab title "blinking"
      */
     let stopTabBlink = () => {
-        requirejs(['notification'], Notification => {
+        requirejs(['PNotify.loader'], Notification => {
             Notification.stopTabBlink();
         });
     };
@@ -2092,15 +2086,6 @@ define([
     };
 
     /**
-     * get mapElement from overlay or any child of that
-     * @param mapOverlay
-     * @returns {jQuery}
-     */
-    let getMapElementFromOverlay = mapOverlay => {
-        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
-    };
-
-    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -2114,6 +2099,32 @@ define([
 
         return mapModule;
     };
+
+    /**
+     * get all map tab link elements (<a> tags)
+     * or search for a specific tabElement within mapModule
+     * @param mapModule
+     * @param mapId
+     * @returns {NodeListOf<HTMLElementTagNameMap[string]>}
+     */
+    let getMapTabLinkElements = (mapModule, mapId) => {
+        let selector = `.${config.mapTabBarClass}  > li > a`;
+        if(mapId){
+            selector += `[data-map-id="${mapId}"]`;
+        }
+
+        return mapModule.querySelectorAll(selector);
+    };
+
+    /**
+     * get clas for tab content areas (drapable sections)
+     * @param alias
+     * @returns {string}
+     */
+    let getMapTabContentAreaClass = alias => [
+        config.mapTabContentAreaClass,
+        config.mapTabContentAreaAliases.includes(alias) ? alias : undefined
+    ].filter(Boolean).join('-');
 
     /**
      *
@@ -2737,6 +2748,7 @@ define([
         return userInfo;
     };
 
+
     /**
      * get "nearBy" systemData based on a jump radius around a currentSystem
      * @param currentSystemData
@@ -3112,17 +3124,16 @@ define([
     };
 
     /**
-     * get localForage instance (singleton) for offline client site storage
-     * @returns {localforage}
+     * get LocalStore instance for offline client data store
+     * @param name
+     * @returns {LocalStore}
      */
-    let getLocalStorage = function(){
-        if(localStorage === undefined){
-            localStorage = localforage.createInstance({
-                driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE],
-                name: 'Pathfinder local storage'
-            });
+    let getLocalStore = name => {
+        if(config.localStoreNames.includes(name)){
+            return LocalStoreManager.getStore(name);
+        }else{
+            throw new RangeError('Invalid LocalStore name. Allowed names: ' + config.localStoreNames.join('|'));
         }
-        return localStorage;
     };
 
     /**
@@ -3454,8 +3465,10 @@ define([
         getVersion: getVersion,
         showVersionInfo: showVersionInfo,
         eveImageUrl: eveImageUrl,
-        initPrototypes: initPrototypes,
+        initPassiveEvents: initPassiveEvents,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
+        initDefaultTooltipConfig: initDefaultTooltipConfig,
+        initDefaultPopoverConfig: initDefaultPopoverConfig,
         initDefaultConfirmationConfig: initDefaultConfirmationConfig,
         initDefaultSelect2Config: initDefaultSelect2Config,
         initDefaultEditableConfig: initDefaultEditableConfig,
@@ -3480,8 +3493,9 @@ define([
         isXHRAborted: isXHRAborted,
         triggerMenuAction: triggerMenuAction,
         getLabelByRole: getLabelByRole,
-        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
+        getMapTabLinkElements: getMapTabLinkElements,
+        getMapTabContentAreaClass: getMapTabContentAreaClass,
         getSystemEffectMultiplierByAreaId: getSystemEffectMultiplierByAreaId,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
@@ -3529,7 +3543,7 @@ define([
         openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         formatMassValue: formatMassValue,
-        getLocalStorage: getLocalStorage,
+        getLocalStore: getLocalStore,
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,

@@ -107,7 +107,7 @@ define([
         delete(){
             let isDeleted = false;
             if(this._manager){
-                isDeleted = this._manager.delete(this.name);
+                isDeleted = this._manager.delete(this._name);
             }
             return isDeleted;
         }

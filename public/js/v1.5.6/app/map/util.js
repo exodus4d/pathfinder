@@ -18,14 +18,6 @@ define([
         zoomMax: 1.5,
         zoomMin: 0.5,
 
-        // local storage
-        characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
-        mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
-        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
-
-        mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
-
-        mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapCompactClass: 'pf-compact',                                  // class for map compact system UI
 
@@ -500,7 +492,7 @@ define([
             connectionData &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('module/system_signature');
+            let SystemSignatureModule = require('module/system_signature');
 
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
@@ -531,7 +523,7 @@ define([
                     // ... get endpoint label for source || target system
                     if(tmpSystem && tmpSystem){
                         // ... get all  available signature type (wormholes) names
-                        let availableSigTypeNames = SystemSignatures.getSignatureTypeOptionsBySystem(tmpSystem, 5);
+                        let availableSigTypeNames = SystemSignatureModule.getSignatureTypeOptionsBySystem(tmpSystem, 5);
                         let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
 
                         if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){
@@ -609,7 +601,7 @@ define([
      * @param element
      * @returns {*}
      */
-    let getTabContentElementByMapElement = element => $(element).closest('.' + config.mapTabContentClass);
+    let getTabContentElementByMapElement = element => $(element).closest('.' + Util.config.mapTabContentClass);
 
     /**
      * checks if there is an "active" connection on a map
@@ -753,11 +745,11 @@ define([
                 'height': scrollableHeight ? scaledHeight + 'px' : (wrapperHeight) + 'px',
             });
 
-            let mapWrapperElement = mapContainer.closest('.mCustomScrollbar');
+            let areaMap = mapContainer.closest('.mCustomScrollbar');
             if(scrollableWidth && scrollableHeight){
-                mapWrapperElement.mCustomScrollbar('update');
+                areaMap.mCustomScrollbar('update');
             }else{
-                mapWrapperElement.mCustomScrollbar('scrollTo', '#' + mapContainer.attr('id'), {
+                areaMap.mCustomScrollbar('scrollTo', '#' + mapContainer.attr('id'), {
                     scrollInertia: 0,
                     scrollEasing: 'linear',
                     timeout: 0,
@@ -1001,7 +993,12 @@ define([
         setSystemActive(map, system);
 
         // get parent Tab Content and fire update event
-        getTabContentElementByMapElement(system).trigger('pf:drawSystemModules');
+        let mapContainer = $(map.getContainer());
+
+        getTabContentElementByMapElement(mapContainer).trigger('pf:renderSystemModules', {
+            mapId: parseInt(mapContainer.data('id')),
+            payload: Util.getCurrentSystemData()
+        });
     };
 
     /**
@@ -1015,9 +1012,9 @@ define([
         // get parent Tab Content and fire update event
         let mapContainer = $(map.getContainer());
 
-        getTabContentElementByMapElement(mapContainer).trigger('pf:drawConnectionModules', {
-            connections: connections,
-            mapId: parseInt(mapContainer.data('id'))
+        getTabContentElementByMapElement(mapContainer).trigger('pf:renderConnectionModules', {
+            mapId: parseInt(mapContainer.data('id')),
+            payload: connections
         });
     };
 
@@ -1046,9 +1043,11 @@ define([
     let showFindRouteDialog = (mapContainer, systemToData) => {
         // get parent Tab Content and fire update event
         getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
-            task: 'showFindRouteDialog',
-            systemToData: systemToData,
-            mapId: parseInt(mapContainer.data('id'))
+            mapId: parseInt(mapContainer.data('id')),
+            payload: {
+                task: 'showFindRouteDialog',
+                systemToData: systemToData
+            }
         });
     };
 
@@ -1059,9 +1058,11 @@ define([
      */
     let findRoute = (mapContainer, systemToData) => {
         getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
-            task: 'findRoute',
-            systemToData: systemToData,
-            mapId: parseInt(mapContainer.data('id'))
+            mapId: parseInt(mapContainer.data('id')),
+            payload: {
+                task: 'findRoute',
+                systemToData: systemToData
+            }
         });
     };
 
@@ -1268,84 +1269,6 @@ define([
     };
 
     /**
-     * store local data for current user (IndexDB)
-     * @param key
-     * @param value
-     */
-    let storeLocaleCharacterData = (key, value) => {
-        if(key.length && value){
-            let userData = Util.getCurrentUserData();
-            if(
-                userData &&
-                userData.character
-            ){
-                storeLocalData('character', userData.character.id, key, value);
-            }
-        }
-    };
-
-    /**
-     * get key prefix for local storage data
-     * @param type
-     * @returns {boolean}
-     */
-    let getLocalStoragePrefixByType = (type) => {
-        let prefix = false;
-        switch(type){
-            case 'character':   prefix = config.characterLocalStoragePrefix; break;
-            case 'map':   prefix = config.mapLocalStoragePrefix; break;
-            default:   prefix = config.mapLocalStoragePrefix;
-        }
-        return prefix;
-    };
-
-    /**
-     * get stored local data from client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @returns {*}
-     */
-    let getLocaleData = (type, objectId) => {
-        if(objectId > 0){
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.getLocalStorage().getItem(storageKey);
-        }else{
-            console.warn('Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * store local config data to client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     * @param value
-     */
-    let storeLocalData = (type, objectId, key, value) => {
-        if(objectId > 0){
-            // get current map config
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data){
-                // This code runs once the value has been loaded
-                // from the offline store.
-                data = (data === null) ? {} : data;
-                // set/update value
-                data[this.key] = this.value;
-                Util.getLocalStorage().setItem(this.storageKey, data);
-            }.bind({
-                key: key,
-                value: value,
-                storageKey: storageKey
-            })).catch(function(err){
-                // This code runs if there were any errors
-                console.error('Map local storage can not be accessed!');
-            });
-        }else{
-            console.warn('storeLocalData(): Local storage requires object id > 0');
-        }
-    };
-
-    /**
      * show map animations when a new map gets visual
      * @param mapElement
      * @param show
@@ -1531,11 +1454,10 @@ define([
             // -> implementation would be difficult...
             if(map.getZoom() === 1){
                 let mapElement = $(map.getContainer());
-                let promiseStore = getLocaleData('map', mapElement.data('id'));
-                promiseStore.then(data => {
+                Util.getLocalStore('map').getItem(mapElement.data('id')).then(data => {
                     if(data && data.scrollOffset){
-                        let mapWrapper = mapElement.parents('.' + config.mapWrapperClass);
-                        Scrollbar.scrollToPosition(mapWrapper, [data.scrollOffset.y, data.scrollOffset.x]);
+                        let areaMap = mapElement.closest('.' + Util.getMapTabContentAreaClass('map'));
+                        Scrollbar.scrollToPosition(areaMap, [data.scrollOffset.y, data.scrollOffset.x]);
                     }
 
                     resolve(payload);
@@ -1557,8 +1479,7 @@ define([
 
         let zoomToDefaultScaleExecutor = resolve => {
             let mapElement = $(map.getContainer());
-            let promiseStore = getLocaleData('map', mapElement.data('id'));
-            promiseStore.then(data => {
+            Util.getLocalStore('map').getItem(mapElement.data('id')).then(data => {
                 if(data && data.mapZoom){
                     setZoom(map, data.mapZoom);
                 }
@@ -1571,32 +1492,6 @@ define([
         };
 
         return new Promise(zoomToDefaultScaleExecutor);
-    };
-
-    /**
-     * delete local map configuration by key (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     */
-    let deleteLocalData = (type, objectId, key) => {
-        if(objectId > 0){
-            // get current map config
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data){
-                if(
-                    data &&
-                    data.hasOwnProperty(key)
-                ){
-                    delete data[key];
-                    Util.getLocalStorage().setItem(this.storageKey, data);
-                }
-            }.bind({
-                storageKey: storageKey
-            }));
-        }else{
-            console.warn('deleteLocalData(): Local storage requires object id > 0');
-        }
     };
 
     /**
@@ -1650,8 +1545,7 @@ define([
                         // check if desktop notification was already send
                         let mapId = system.data('mapid');
                         let systemId = system.data('id');
-                        let promiseStore = getLocaleData('map', mapId);
-                        promiseStore.then(function(data){
+                        Util.getLocalStore('map').getItem(mapId).then(function(data){
                             // This code runs once the value has been loaded
                             // from the offline store.
                             let rallyPokeData = {};
@@ -1669,7 +1563,7 @@ define([
                                 rallyPokeData[this.systemId] !== rallyUpdated // already send to that system but in the past
                             ){
                                 rallyPokeData[this.systemId] = rallyUpdated;
-                                storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
+                                Util.getLocalStore('map').setItem(`${this.mapId}.rallyPoke`, rallyPokeData);
 
                                 notificationOptions.type = 'info';
                                 Util.showNotify(notificationOptions, {
@@ -1686,7 +1580,7 @@ define([
                     }
 
                     // update active "route" module -> add rally point row --------------------------------------------
-                    let mapContainer = system.parents('.' + config.mapClass);
+                    let mapContainer = system.parents('.' + Util.config.mapClass);
                     findRoute(mapContainer, {
                         systemId: system.data('systemId'),
                         name: system.data('name'),
@@ -1711,28 +1605,27 @@ define([
      * set map "shortcut" events
      */
     $.fn.setMapShortcuts = function(){
-        return this.each((i, mapWrapper) => {
-            mapWrapper = $(mapWrapper);
-            let mapElement = mapWrapper.find('.' + config.mapClass);
+        return this.each((i, areaMap) => {
+            areaMap = $(areaMap);
+            let mapElement = areaMap.find('.' + Util.config.mapClass);
 
             // dynamic require Map module -> otherwise there is a require(), loop
             let Map = require('app/map/map');
             let System = require('app/map/system');
-            let map = Map.getMapInstance( mapElement.data('id'));
+            let map = Map.getMapInstance(mapElement.data('id'));
 
-            mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
+            areaMap.watchKey('mapSystemAdd', areaMap => {
                 System.showNewSystemDialog(map, {position: {x: 0, y: 0}}, Map.saveSystemCallback);
             },{focus: true});
 
-            mapWrapper.watchKey('mapSystemsSelect', (mapWrapper) => {
+            areaMap.watchKey('mapSystemsSelect', areaMap => {
                 mapElement.selectAllSystems();
             },{focus: true});
 
-            mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
+            areaMap.watchKey('mapSystemsDelete', areaMap => {
                 let selectedSystems = mapElement.getSelectedSystems();
                 $.fn.showDeleteSystemDialog(map, selectedSystems);
             },{focus: true});
-
         });
     };
 
@@ -2309,10 +2202,6 @@ define([
         changeZoom: changeZoom,
         setZoom: setZoom,
         toggleSystemAliasEditable: toggleSystemAliasEditable,
-        storeLocaleCharacterData: storeLocaleCharacterData,
-        getLocaleData: getLocaleData,
-        storeLocalData: storeLocalData,
-        deleteLocalData: deleteLocalData,
         visualizeMap: visualizeMap,
         setMapDefaultOptions: setMapDefaultOptions,
         getSystemPosition: getSystemPosition,

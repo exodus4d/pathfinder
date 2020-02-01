@@ -60,9 +60,6 @@ define([
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
 
-        // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                           // class for container element that holds hidden "context menus"
-
         // system signature module
         systemSignatureModuleClass: 'pf-system-signature-module',               // module wrapper (signatures)
         systemIntelModuleClass: 'pf-system-intel-module',                       // module wrapper (intel)
@@ -110,7 +107,7 @@ define([
      * @param element
      */
     let initHeaderTooltips = element => {
-        element.find('[title]').tooltip({
+        element.initTooltips({
             placement: 'bottom',
             delay: {
                 show: 500,
@@ -120,53 +117,61 @@ define([
     };
 
     /**
-     * load main page structure elements and navigation container into body
-     * @returns {*|w.fn.init|jQuery|HTMLElement}
+     * render page content + left/right menu
+     * @param rootEl
+     * @returns {Promise<{pageEl: HTMLDivElement, pageMenuRightEl: HTMLDivElement, pageMenuLeftEl: HTMLDivElement}>}
      */
-    let loadPageStructure = () => {
+    let renderPage = rootEl => {
+        let pageEl = Object.assign(document.createElement('div'), {
+            className: config.pageClass
+        });
+        pageEl.setAttribute('canvas', 'container');
 
-        let executor = resolve => {
-            let body = $('body');
+        let contextMenuContainerEl = Object.assign(document.createElement('div'), {
+            id: MapContextMenu.config.contextMenuContainerId
+        });
+        pageEl.append(Util.getMapModule()[0], contextMenuContainerEl);
 
-            let pageElement = $('<div>', {
-                class: config.pageClass
-            }).attr('canvas', 'container').append(
-                Util.getMapModule(),
-                $('<div>', {
-                    id: config.dynamicElementWrapperId
-                })
-            );
+        let pageMenuLeftEl = Object.assign(document.createElement('div'), {
+            className: [config.pageMenuClass, config.pageMenuLeftClass].join(' ')
+        });
+        pageMenuLeftEl.setAttribute('off-canvas', [config.pageMenuLeftClass, 'left', 'push'].join(' '));
 
-            let pageMenuLeftElement = $('<div>', {
-                class: [config.pageMenuClass, config.pageMenuLeftClass].join(' ')
-            }).attr('off-canvas', [config.pageMenuLeftClass, 'left', 'push'].join(' '));
+        let pageMenuRightEl = Object.assign(document.createElement('div'), {
+            className: [config.pageMenuClass, config.pageMenuRightClass].join(' ')
+        });
+        pageMenuRightEl.setAttribute('off-canvas', [config.pageMenuRightClass, 'right', 'push'].join(' '));
 
-            let pageMenuRightElement = $('<div>', {
-                class: [config.pageMenuClass, config.pageMenuRightClass].join(' ')
-            }).attr('off-canvas', [config.pageMenuRightClass, 'right', 'push'].join(' '));
+        rootEl.prepend(pageEl, pageMenuLeftEl, pageMenuRightEl);
 
-            body.prepend(pageElement, pageMenuLeftElement, pageMenuRightElement);
-
-            Promise.all([
-                loadHeader(pageElement),
-                loadFooter(pageElement),
-                loadLeftMenu(pageMenuLeftElement),
-                loadRightMenu(pageMenuRightElement),
-                loadSVGs()
-            ]).then(payload => Promise.all([
-                setMenuObserver(payload[2].data),
-                setMenuObserver(payload[3].data),
-                setDocumentObserver(),
-                setBodyObserver(),
-                setGlobalShortcuts()
-            ])).then(() => resolve({
-                action: 'loadPageStructure',
-                data: {}
-            }));
-        };
-
-        return new Promise(executor);
+        return Promise.resolve({pageEl, pageMenuLeftEl, pageMenuRightEl});
     };
+
+    /**
+     * load main page structure elements and navigation container into body
+     * @param pageEl
+     * @param pageMenuLeftEl
+     * @param pageMenuRightEl
+     * @returns {Promise}
+     */
+    let loadPageStructure = ({pageEl, pageMenuLeftEl, pageMenuRightEl}) => new Promise(resolve => {
+        Promise.all([
+            loadHeader(pageEl),
+            loadFooter(pageEl),
+            loadLeftMenu(pageMenuLeftEl),
+            loadRightMenu(pageMenuRightEl),
+            loadSVGs()
+        ]).then(payload => Promise.all([
+            setMenuObserver(payload[2].data),
+            setMenuObserver(payload[3].data),
+            setDocumentObserver(),
+            setBodyObserver(),
+            setGlobalShortcuts()
+        ])).then(() => resolve({
+            action: 'loadPageStructure',
+            data: pageEl
+        }));
+    });
 
     /**
      * build main menu from mapConfig array
@@ -230,13 +235,13 @@ define([
 
     /**
      * load left menu content options
-     * @param pageMenuLeftElement
+     * @param pageMenuLeftEl
      * @returns {Promise<any>}
      */
-    let loadLeftMenu = pageMenuLeftElement => {
+    let loadLeftMenu = pageMenuLeftEl => {
 
         let executor = resolve => {
-            pageMenuLeftElement.append(getMenu([
+            $(pageMenuLeftEl).append(getMenu([
                 {
                     type: 'button',
                     label: 'Home',
@@ -303,7 +308,7 @@ define([
 
             resolve({
                 action: 'loadLeftMenu',
-                data: pageMenuLeftElement
+                data: pageMenuLeftEl
             });
         };
 
@@ -312,13 +317,13 @@ define([
 
     /**
      * load right menu content options
-     * @param pageMenuRightElement
+     * @param pageMenuRightEl
      * @returns {Promise<any>}
      */
-    let loadRightMenu = pageMenuRightElement => {
+    let loadRightMenu = pageMenuRightEl => {
 
         let executor = resolve => {
-            pageMenuRightElement.append(getMenu([
+            $(pageMenuRightEl).append(getMenu([
                 {
                     type: 'button',
                     label: 'Information',
@@ -407,7 +412,7 @@ define([
 
             resolve({
                 action: 'loadRightMenu',
-                data: pageMenuRightElement
+                data: pageMenuRightEl
             });
         };
 
@@ -445,10 +450,10 @@ define([
 
     /**
      * load page header
-     * @param pageElement
+     * @param pageEl
      * @returns {Promise<any>}
      */
-    let loadHeader = pageElement => {
+    let loadHeader = pageEl => {
 
         let executor = resolve => {
             let moduleData = {
@@ -462,7 +467,7 @@ define([
                 mapTrackingId:              Util.config.headMapTrackingId
             };
 
-            pageElement.prepend(Mustache.render(TplHead, moduleData));
+            pageEl.insertAdjacentHTML('afterbegin', Mustache.render(TplHead, moduleData));
 
             // init header --------------------------------------------------------------------------------------------
 
@@ -571,7 +576,7 @@ define([
             resolve({
                 action: 'loadHeader',
                 data: {
-                    pageElement: pageElement
+                    pageEl: pageEl
                 }
             });
         };
@@ -581,10 +586,10 @@ define([
 
     /**
      * load page footer
-     * @param pageElement
+     * @param pageEl
      * @returns {Promise<any>}
      */
-    let loadFooter = pageElement => {
+    let loadFooter = pageEl => {
 
         let executor = resolve => {
             let moduleData = {
@@ -594,11 +599,11 @@ define([
                 currentYear:            new Date().getFullYear()
             };
 
-            pageElement.prepend(Mustache.render(TplFooter, moduleData));
+            pageEl.insertAdjacentHTML('afterbegin', Mustache.render(TplFooter, moduleData));
 
             // init footer --------------------------------------------------------------------------------------------
 
-            pageElement.find('.' + config.footerLicenceLinkClass).on('click', e => {
+            $(pageEl.querySelector(`.${config.footerLicenceLinkClass}`)).on('click', e => {
                 e.stopPropagation();
                 //show credits info dialog
                 $.fn.showCreditsDialog();
@@ -609,7 +614,7 @@ define([
             resolve({
                 action: 'loadFooter',
                 data: {
-                    pageElement: pageElement
+                    pageEl: pageEl
                 }
             });
         };
@@ -619,10 +624,10 @@ define([
 
     /**
      * set page menu observer
-     * @param menuElement
+     * @param menuEl
      * @returns {Promise<any>}
      */
-    let setMenuObserver = menuElement => {
+    let setMenuObserver = menuEl => {
 
         let executor = resolve => {
 
@@ -634,7 +639,7 @@ define([
                 }
             };
 
-            menuElement.on('click', '.list-group-item[data-action]', e => {
+            $(menuEl).on('click', '.list-group-item[data-action]', e => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -707,7 +712,10 @@ define([
                                 title: 'Test Notification',
                                 text: 'Accept browser security question'
                             },{
-                                desktop: true,
+                                desktop: {
+                                    title: 'Test OK',
+                                    text: 'Desktop notifications active'
+                                },
                                 stack: 'barBottom'
                             });
                             break;
@@ -1272,11 +1280,11 @@ define([
     };
 
     /**
-     *  set event listener if the program tab is active or not
-     *  this is used to lower the update ping cycle to reduce server load
+     * set event listener if the program tab is active or not
+     * this is used to lower the update ping cycle to reduce server load
+     * @returns {Promise}
      */
-    let initTabChangeObserver = () => {
-
+    let initTabChangeObserver = () => new Promise(resolve => {
         // increase the timer if a user is inactive
         let increaseTimer = 5000;
 
@@ -1335,21 +1343,24 @@ define([
             document.addEventListener(visibilityChange, handleVisibilityChange, false);
         }
 
-    };
+        resolve({
+            action: 'initTabChangeObserver',
+            data: false
+        });
+    });
 
     /**
      * add "hidden" context menu elements to page
+     * @returns {Promise[]}
      */
-    let renderMapContextMenus = () => {
-        Promise.all([
-            MapContextMenu.renderMapContextMenu(),
-            MapContextMenu.renderConnectionContextMenu(),
-            MapContextMenu.renderEndpointContextMenu(),
-            MapContextMenu.renderSystemContextMenu(Init.systemStatus)
-        ]).then(payloads => {
-            $('#' + config.dynamicElementWrapperId).append(payloads.join(''));
-        });
-    };
+    let renderMapContextMenus = () => Promise.all([
+        MapContextMenu.renderMapContextMenu(),
+        MapContextMenu.renderConnectionContextMenu(),
+        MapContextMenu.renderEndpointContextMenu(),
+        MapContextMenu.renderSystemContextMenu(Init.systemStatus)
+    ]).then(payloads => {
+        document.getElementById(MapContextMenu.config.contextMenuContainerId).innerHTML = payloads.join('');
+    });
 
     /**
      * trigger "program status" in head
@@ -1476,6 +1487,7 @@ define([
     };
 
     return {
+        renderPage: renderPage,
         loadPageStructure: loadPageStructure,
         initTabChangeObserver: initTabChangeObserver,
         renderMapContextMenus: renderMapContextMenus

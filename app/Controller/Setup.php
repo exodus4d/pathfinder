@@ -148,7 +148,7 @@ class Setup extends Controller {
      * @return bool
      */
     function beforeroute(\Base $f3, $params): bool {
-        $this->initResource($f3);
+        $f3->set('tplResource', $this->initResource($f3));
 
         // page title
         $f3->set('tplPageTitle', 'Setup | ' . Config::getPathfinderData('name'));

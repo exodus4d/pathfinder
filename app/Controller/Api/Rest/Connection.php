@@ -14,6 +14,51 @@ use Exodus4D\Pathfinder\Model\Pathfinder;
 class Connection extends AbstractRestController {
 
     /**
+     * @param \Base $f3
+     * @param $params
+     * @throws \Exception
+     */
+    public function get(\Base $f3, $params){
+        $requestData = $this->getRequestData($f3);
+        $connectionIds = array_map('intval', explode(',', (string)$params['id']));
+        $addData = (array)$requestData['addData'];
+        $filterData = (array)$requestData['filterData'];
+        $connectionData = [];
+
+        if($mapId = (int)$requestData['mapId']){
+            $activeCharacter = $this->getCharacter();
+
+            /**
+             * @var $map Pathfinder\MapModel
+             */
+            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
+            $map->getById($mapId);
+
+            if($map->hasAccess($activeCharacter)){
+                $connections = $map->getConnections($connectionIds, 'wh');
+                foreach($connections as $connection){
+                    $check = true;
+                    $data =  $connection->getData(in_array('signatures', $addData), in_array('logs', $addData));
+                    // filter result
+                    if(in_array('signatures', $filterData) && !$data->signatures){
+                        $check = false;
+                    }
+
+                    if(in_array('logs', $filterData) && !$data->logs){
+                        $check = false;
+                    }
+
+                    if($check){
+                        $connectionData[] = $data;
+                    }
+                }
+            }
+        }
+
+        $this->out($connectionData);
+    }
+
+    /**
      * save a new connection or updates an existing (drag/drop) between two systems
      * if a connection is changed (drag&drop) to another system. -> this function is called for update
      * @param \Base $f3

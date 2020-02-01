@@ -9,7 +9,7 @@
 namespace Exodus4D\Pathfinder\Model\Pathfinder;
 
 use DB\SQL\Schema;
-use Exodus4D\Pathfinder\Controller\Api\Route;
+use Exodus4D\Pathfinder\Controller\Api\Rest\Route;
 use Exodus4D\Pathfinder\Lib\Logging;
 use Exodus4D\Pathfinder\Exception;
 
@@ -234,9 +234,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
                 $this->scope = 'abyssal';
                 $this->type = ['abyssal'];
             }else{
-                $routeController = new Route();
-                $route = $routeController->searchRoute($this->source->systemId, $this->target->systemId, 1);
-
+                $route = (new Route())->searchRoute($this->source->systemId, $this->target->systemId, 1);
                 if($route['routePossible']){
                     $this->scope = 'stargate';
                     $this->type = ['stargate'];

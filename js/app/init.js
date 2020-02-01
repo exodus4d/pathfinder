@@ -44,11 +44,8 @@ define([], () => {
             getMapConnectionData: '/api/map/getConnectionData',             // ajax URL - get connection data
             getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
             // system API
-            getSystemGraphData: '/api/system/graphData',                    // ajax URL - get all system graph data
             setDestination: '/api/system/setDestination',                   // ajax URL - set destination
             pokeRally: '/api/system/pokeRally',                             // ajax URL - send rally point pokes
-            // route API
-            searchRoute: '/api/route/search',                               // ajax URL - search system routes
             // stats API
             getStatisticsData: '/api/statistic/getData',                    // ajax URL - get statistics data (activity log)
             // universe API

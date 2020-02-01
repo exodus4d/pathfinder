@@ -13,8 +13,6 @@ define([
     let config = {
         logTimerCount: 3,                                                                   // map log timer in seconds
 
-        mapWrapperClass: 'pf-map-wrapper',                                                  // wrapper div (scrollable)
-
         // map overlays sections
         mapOverlayClass: 'pf-map-overlay',                                                  // class for all map overlays
         mapOverlayTimerClass: 'pf-map-overlay-timer',                                       // class for map overlay timer e.g. map timer
@@ -53,25 +51,34 @@ define([
      * @returns {null}
      */
     let getMapOverlay = (element, overlayType) => {
-        let mapWrapperElement = $(element).parents('.' + config.mapWrapperClass);
+        let areaMap = $(element).closest('.' + Util.getMapTabContentAreaClass('map'));
 
         let mapOverlay = null;
         switch(overlayType){
             case 'timer':
-                mapOverlay = mapWrapperElement.find('.' + config.mapOverlayTimerClass);
+                mapOverlay = areaMap.find('.' + config.mapOverlayTimerClass);
                 break;
             case 'info':
-                mapOverlay = mapWrapperElement.find('.' + config.mapOverlayInfoClass);
+                mapOverlay = areaMap.find('.' + config.mapOverlayInfoClass);
                 break;
             case 'zoom':
-                mapOverlay = mapWrapperElement.find('.' + config.mapOverlayZoomClass);
+                mapOverlay = areaMap.find('.' + config.mapOverlayZoomClass);
                 break;
             case 'local':
-                mapOverlay = mapWrapperElement.find('.' + config.overlayLocalClass);
+                mapOverlay = areaMap.find('.' + config.overlayLocalClass);
                 break;
         }
 
         return mapOverlay;
+    };
+
+    /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {jQuery}
+     */
+    let getMapElementFromOverlay = mapOverlay => {
+        return $(mapOverlay).closest('.' + Util.getMapTabContentAreaClass('map')).find('.' + Util.config.mapClass);
     };
 
     /**
@@ -91,6 +98,7 @@ define([
     return {
         config: config,
         getMapOverlay: getMapOverlay,
+        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapCounter: getMapCounter,
         getMapOverlayInterval: getMapOverlayInterval
     };

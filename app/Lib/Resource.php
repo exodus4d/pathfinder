@@ -15,45 +15,52 @@ class Resource extends \Prefab {
      * default link "rel" attribute
      * @link https://w3c.github.io/preload/#x2.link-type-preload
      */
-    const ATTR_REL = 'preload';
+    const ATTR_REL      = 'preload';
 
     /**
      * default link "as" attributes
      */
     const ATTR_AS = [
-        'style'     => 'style',
-        'script'    => 'script',
-        'font'      => 'font',
-        'document'  => 'document',
-        'image'     => 'image',
-        'url'       => ''
+        'style'         => 'style',
+        'script'        => 'script',
+        'font'          => 'font',
+        'document'      => 'document',
+        'image'         => 'image',
+        'url'           => ''
     ];
 
     /**
      * default link "type" attributes
      */
     const ATTR_TYPE = [
-        'font'      => 'font/woff2'
+        'font'          => 'font/woff2'
     ];
 
     /**
      * default additional attributes by $group
      */
     const ATTR_ADD = [
-        'font'      => ['crossorigin' => 'anonymous']
+        'font'          => ['crossorigin' => 'anonymous']
     ];
+
+    /**
+     * BASE path
+     * @var string
+     */
+    private $basePath   = '';
 
     /**
      * absolute file path -> use setOption() for update
      * @var array
      */
     private $filePath = [
-        'style'     => '',
-        'script'    => '',
-        'font'      => '',
-        'document'  => '',
-        'image'     => '',
-        'url'       => ''
+        'style'         => '',
+        'script'        => '',
+        'font'          => '',
+        'document'      => '',
+        'image'         => '',
+        'favicon'       => '',
+        'url'           => ''
     ];
 
     /**
@@ -62,10 +69,10 @@ class Resource extends \Prefab {
      * @var array
      */
     private $fileExt = [
-        'style'     => 'css',
-        'script'    => 'js',
-        'document'  => 'html',
-        'font'      => 'woff2'
+        'style'         => 'css',
+        'script'        => 'js',
+        'document'      => 'html',
+        'font'          => 'woff2'
     ];
 
     /**
@@ -76,7 +83,7 @@ class Resource extends \Prefab {
      * @see buildHeader()
      * @var string
      */
-    private $output = 'inline';
+    private $output     = 'inline';
 
     /**
      * resource file cache
@@ -134,7 +141,7 @@ class Resource extends \Prefab {
      * @return string
      */
     public function getPath(string $group) : string {
-        return $this->filePath[$group];
+        return rtrim($this->basePath, '/\\') . $this->filePath[$group];
     }
 
     /**

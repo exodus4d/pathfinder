@@ -27,7 +27,7 @@
     }
   ],
   "require": {
-    "php-64bit": ">=7.1",
+    "php-64bit": ">=7.2",
     "ext-pdo": "*",
     "ext-openssl": "*",
     "ext-curl": "*",
@@ -40,7 +40,7 @@
     "ikkez/f3-sheet": "0.4.*",
     "xfra35/f3-cron": "1.2.*",
     "monolog/monolog": "2.*",
-    "swiftmailer/swiftmailer": "6.2.x",
+    "swiftmailer/swiftmailer": "6.2.*",
     "league/html-to-markdown": "4.9.*",
     "cache/redis-adapter": "1.0.*",
     "cache/filesystem-adapter": "1.0.*",

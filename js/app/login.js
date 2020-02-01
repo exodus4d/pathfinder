@@ -529,16 +529,16 @@ define([
                         setVersionLinkObserver();
 
                         // mark panel as "shown"
-                        Util.getLocalStorage().setItem(storageKey, currentVersion);
+                        Util.getLocalStore('default').setItem(storageKey, currentVersion);
                     }
                 });
             });
         };
 
-        Util.getLocalStorage().getItem(storageKey).then(function(data){
+        Util.getLocalStore('default').getItem(storageKey).then(data => {
             // check if panel was shown before
             if(data){
-                if(data !== this.version){
+                if(data !== currentVersion){
                     // show current panel
                     showNotificationPanel();
                 }
@@ -546,9 +546,7 @@ define([
                 // show current panel
                 showNotificationPanel();
             }
-        }.bind({
-            version: currentVersion
-        }));
+        });
     };
 
     /**

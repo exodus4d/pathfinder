@@ -1,0 +1,17 @@
+.pf-connection-info-module {
+
+  .pf-module-body {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .pf-connection-info-table {
+    width: 100%;
+    font-size: 10px;
+
+    td {
+      .fa-plus {
+        @extend .pf-dialog-icon-button;
+      }
+    }
+  }
+}

@@ -1033,7 +1033,7 @@ define([
                 // get to last page (pageIndex starts at zero) -> check if last page > 0
                 context.tableApi.page(newPageIndex).draw(false);
             }else{
-                Util.showNotify({title: 'No logs found', text: 'No more entries', type: 'danger'});
+                Util.showNotify({title: 'No logs found', text: 'No more entries', type: 'warning'});
             }
 
         };

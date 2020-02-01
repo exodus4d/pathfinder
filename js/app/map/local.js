@@ -100,7 +100,7 @@ define([
             let isOpenStatus = isOpen(overlayMain);
 
             // store current state in indexDB (client)
-            MapUtil.storeLocalData('map', mapId, 'showLocal', !isOpenStatus );
+            Util.getLocalStore('map').setItem(`${mapId}.showLocal`, !isOpenStatus);
 
            // trigger open/close
            if( isOpenStatus ){
@@ -111,8 +111,8 @@ define([
         });
 
         // trigger table re-draw() ------------------------------------------------------------------------------------
-        let mapWrapper = overlay.parents('.' + MapUtil.config.mapWrapperClass);
-        mapWrapper.on('pf:mapResize', function(e){
+        let areaMap = overlay.closest('.' + Util.getMapTabContentAreaClass('map'));
+        areaMap.on('pf:mapResize', function(e){
             let tableElement = overlay.find('.' + config.overlayLocalTableClass);
             let tableApi = tableElement.DataTable();
             tableApi.draw('full-hold');
@@ -120,7 +120,6 @@ define([
 
         // tooltips ---------------------------------------------------------------------------------------------------
         overlayMain.initTooltips({
-            container: 'body',
             placement: 'bottom'
         });
     };
@@ -247,8 +246,7 @@ define([
 
             // open Overlay -------------------------------------------------------------------------------------------
             if( !isOpen(overlay) ){
-                let promiseStore = MapUtil.getLocaleData('map', mapId);
-                promiseStore.then(dataStore => {
+                Util.getLocalStore('map').getItem(mapId).then(dataStore => {
                     if(
                         dataStore &&
                         dataStore.showLocal
@@ -358,12 +356,12 @@ define([
                 // init local table ---------------------------------------------------------------------------------------
                 table.on('preDraw.dt', function(e, settings){
                     let table = $(this);
-                    let mapWrapper = table.parents('.' + MapUtil.config.mapWrapperClass);
+                    let areaMap = table.closest('.' + Util.getMapTabContentAreaClass('map'));
 
-                    // mapWrapper should always exist
-                    if(mapWrapper && mapWrapper.length) {
+                    // areaMap should always exist
+                    if(areaMap && areaMap.length) {
                         // check available maxHeight for "locale" table based on current map height (resizable)
-                        let mapHeight = mapWrapper[0].offsetHeight;
+                        let mapHeight = areaMap[0].offsetHeight;
                         let localOverlay = MapOverlayUtil.getMapOverlay(table, 'local');
                         let paginationElement = localOverlay.find('.dataTables_paginate');
 
@@ -401,7 +399,6 @@ define([
                 table.on('draw.dt', function(e, settings){
                     // init table tooltips
                     $(this).find('td').initTooltips({
-                        container: 'body',
                         placement: 'left'
                     });
                 });
@@ -410,7 +407,6 @@ define([
                 table.on('init.dt', function(){
                     // init table head tooltips
                     $(this).initTooltips({
-                        container: 'body',
                         placement: 'top'
                     });
                 });

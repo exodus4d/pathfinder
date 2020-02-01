@@ -19,8 +19,6 @@ define([
             y: 0
         },
 
-        mapClass: 'pf-map',                                                             // class for all maps
-
         systemHeadInfoClass: 'pf-system-head-info',                                     // class for system info
         systemHeadInfoLeftClass: 'pf-system-head-info-left',                            // class for left system info
         systemHeadInfoRightClass: 'pf-system-head-info-right',                          // class for right system info
@@ -618,7 +616,7 @@ define([
                                 html: true,
                                 animation: true,
                                   template: template,
-                                viewport: system.closest('.' + config.mapClass)
+                                viewport: system.closest('.' + Util.config.mapClass)
                             };
 
                             // init new tooltip -> Do not show automatic maybe system is currently dragged

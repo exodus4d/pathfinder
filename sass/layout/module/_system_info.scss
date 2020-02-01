@@ -1,0 +1,161 @@
+.pf-system-info-module {
+
+  // breadcrumb
+  h5 {
+    text-transform: capitalize;
+  }
+
+  .pf-module-head {
+    .fa-angle-double-right{
+      width: 20px; // some more spacing
+    }
+  }
+
+  .pf-module-body {
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  }
+
+  .pf-system-info-section {
+    .pf-dynamic-area {
+      height: calc(100% - 23px);
+    }
+  }
+
+  .pf-system-info-name-cell {
+    user-select: all;
+  }
+
+  .pf-system-info-svg {
+    position: absolute;
+    margin: 2px 0;
+  }
+
+  .pf-system-sov-fw-percentage {
+    border-top-color: transparent;
+  }
+
+  .pf-system-sov-fw-status-icon {
+    margin-left: 20px;
+    color: var(--color);
+  }
+
+  .pf-system-sov-fw-contested-row,
+  .pf-system-sov-fw-occupation-row {
+    display: none;
+  }
+
+  // dynamic area specific for the description field
+  .pf-system-description-section{
+    grid-column: span 2;
+  }
+
+  .pf-system-info-description-area {
+    height: 100%;
+    min-height: 100px;
+    padding: 0; // overwrite default "pf-dynamic-area"
+
+    .pf-system-info-description-button {
+      position: absolute;
+      right: 10px;
+      top: 13px;
+    }
+
+    .pf-system-info-description {
+      padding: 10px;
+      user-select: text;
+    }
+
+    .note-toolbar {
+      kbd {
+        padding: 3px 4px;
+      }
+
+      .note-customBtn {
+        float: right; // customBtn group should be right
+      }
+
+      @include clearfix(); // because of "floating" right button group
+    }
+  }
+
+  // custom wysiwyg editor styles
+  .pf-system-info-description, .note-editable {
+
+    & > h2:first-child, & > h3:first-child {
+      margin-top: 0 !important; // no margin if first element
+    }
+
+    h2, h3 {
+      &:before {
+        font-family: "Font Awesome 5 Free";
+        content: "\f105";
+        font-weight: bold;
+        display: inline-block;
+        margin-right: 3px;
+      }
+    }
+
+    h2 {
+      font-size: 16px;
+      margin: 15px 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    a {
+      &:after {
+        font-family: "Font Awesome 5 Free";
+        content: "\f35d";
+        font-size: 70%;
+        vertical-align: top;
+        font-weight: bold;
+        display: inline-block;
+        margin-left: 2px;
+      }
+    }
+
+    // custom WYSIWYG style
+    hr {
+      border-top: 1px solid $gray-dark;
+    }
+
+    blockquote {
+      padding: 5px 10px;
+      margin: 0 0 10px;
+      font-size: 13px;
+      border-left: 3px solid $teal;
+    }
+
+    ol, ul {
+      padding-left: 20px;
+    }
+
+    ul {
+      list-style: disc;
+    }
+
+    ol {
+      list-style: decimal;
+    }
+  }
+}
+
+.pf-map-tab-content-area-b,
+.pf-map-tab-content-area-c {
+  .pf-system-info-module {
+    .pf-module-body-small {
+      .pf-system-info-section {
+        grid-column: span 2;
+      }
+    }
+  }
+}
+
+.modal.link-dialog {
+  .checkbox {
+    display: none; // hide checkbox for "target" link attribute -> always _blank
+  }
+}

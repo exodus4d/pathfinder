@@ -1,13 +1,13 @@
 define([
     'jquery',
     'app/init',
-    'pnotify',
+    'PNotify',
     //'pnotify.buttons',
     //'pnotify.confirm',
-    'pnotify.nonblock',
-    'pnotify.desktop',
+    'PNotifyNonBlock',
+    'PNotifyDesktop',
     //'pnotify.history',
-    'pnotify.callbacks'
+    'PNotifyCallbacks'
 ], ($, Init, PNotify) => {
     'use strict';
 
@@ -141,6 +141,17 @@ define([
             // set onclick for notification
             notify.get().on('click', settings.click);
         }
+
+
+        PNotify.defaults.styling = 'bootstrap3';
+        PNotify.defaults.icons = 'fontawesome5';
+        PNotify.defaults.delay = 5000;
+        PNotify.defaults.width = '250px';
+
+
+        PNotify.notice({
+            text: "I'm a notice."
+        });
 
     };
 

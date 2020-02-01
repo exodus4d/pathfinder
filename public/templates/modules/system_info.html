@@ -1,212 +1,172 @@
-<div class="pf-module-head">
-    <h5 class="pull-right {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" title="alias">
-        {{#system.alias}}
-        {{system.alias}}
-        {{/system.alias}}
-        {{^system.alias}}
-        {{system.name}}
-        {{/system.alias}}
-    </h5>
+{{! Info section ================================================================================================== }}
+<script id="tplInfoSection" type="text/template">
+    <span title="status" data-status="{{system.status.id}}" class="label center-block {{config.systemInfoStatusLabelClass}} {{systemStatusClass}}">
+        {{systemStatusLabel}}
+    </span>
 
-    <h5 class="pf-module-handler-drag"></h5>
-
-    <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" title="type">{{systemTypeName}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5><span class="{{systemRegionLinkClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" title="region">{{system.region.name}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5><a href="javascript:void(0);" data-url="{{ajaxConstellationInfoUrl}}/{{system.constellation.id}}" class="{{systemConstellationLinkClass}} popup-ajax {{popoverTriggerClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5>
-        <span data-toggle="tooltip" title="system" class="{{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
-        <i class="fas fa-fw fa-copy {{moduleHeadlineIconClass}} {{systemUrlLinkClass}}" data-toggle="tooltip" title="copy url" data-url="{{systemUrl}}"></i>
-        {{#system.locked}}
-        <i class="fas fa-fw fa-lock" data-toggle="tooltip" title="locked"></i>
-        {{/system.locked}}
-
-        {{#thirdPartyLinks}}
-            {{#showInModuleHead}}
-            <a class="pf-bg-icon-inline" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ title }}" href="{{ url }}" target="_blank" rel="noopener"></a>
-            {{/showInModuleHead}}
-        {{/thirdPartyLinks}}
-    </h5>
-</div>
-
-<div class="row">
-
-    {{! Info table ================================================================================================ }}
-    <div class="col-xs-6 col-sm-3 {{infoSectionClass}}">
-        <span data-toggle="tooltip" title="status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
-            {{systemStatusLabel}}
-        </span>
-
-        <div class="pf-dynamic-area" data-resizebar>
+    <div class="pf-dynamic-area" data-resizebar>
+        <table class="table table-condensed pf-table-fixed {{config.infoTableClass}}">
+            <thead>
+            <tr>
+                <th class="pf-table-cell-50">Name</th>
+                <th class="text-right pf-table-cell-ellipses-auto pf-system-info-name-cell">
+                    {{#system.drifter}}
+                    <i class="fas fa-fw fa-wave-square {{systemSecurityClass}}" title="drifter"></i>&nbsp;
+                    {{/system.drifter}}
+                    {{#system.shattered}}
+                    <i class="fas fa-fw fa-chart-pie {{systemShatteredClass}}" title="shattered"></i>&nbsp;
+                    {{/system.shattered}}
+                    <span class="pf-help-default {{config.systemInfoNameClass}} {{systemNameClass}}">{{system.name}}</span>
+                </th>
+                <th class="pf-table-cell-20 text-right {{systemSecurityClass}}">{{system.security}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Security</td>
+                <td></td>
+                <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
+            </tr>
+            {{#systemEffectName}}
+            <tr>
+                <td>Effect</td>
+                <td class="text-right pf-font-capitalize">{{systemEffectName}}</td>
+                <td class="text-right {{config.systemInfoEffectClass}}"><i class="fas fa-fw fa-square pf-system-effect {{systemEffectClass}}"></i></td>
+            </tr>
+            {{/systemEffectName}}
+            {{#system.faction}}
+            <tr>
+                <td>Faction</td>
+                <td class="text-right pf-table-cell-ellipses-auto" colspan="2">{{system.faction.name}}</td>
+            </tr>
+            {{/system.faction}}
+            {{#systemPlanetCount}}
+            <tr>
+                <td>Planets</td>
+                <td></td>
+                <td class="text-right pf-help-default {{config.systemInfoPlanetsClass}}">{{systemPlanetCount}}</td>
+            </tr>
+            {{/systemPlanetCount}}
+            {{#systemStaticData}}
+            <tr>
+                <td>Static</td>
+                <td class="text-right">{{name}}</td>
+                <td class="text-right pf-help-default {{class}} {{popoverTriggerClass}}" data-name="{{name}}">{{security}}</td>
+            </tr>
+            {{/systemStaticData}}
+            </tbody>
+        </table>
+        <!--
+        <div class="pf-resizearea">
             <table class="table table-condensed pf-table-fixed {{infoTableClass}}">
-                <thead>
-                <tr>
-                    <th class="pf-table-cell-50">Name</th>
-                    <th class="text-right pf-table-cell-ellipses-auto pf-system-info-name-cell">
-                        {{#system.drifter}}
-                        <i class="fas fa-fw fa-wave-square {{securityClass}}" data-toggle="tooltip" title="drifter"></i>&nbsp;
-                        {{/system.drifter}}
-                        {{#system.shattered}}
-                        <i class="fas fa-fw fa-chart-pie {{shatteredClass}}" data-toggle="tooltip" title="shattered"></i>&nbsp;
-                        {{/system.shattered}}
-                        <span class="pf-help-default {{nameInfoClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
-                    </th>
-                    <th class="pf-table-cell-20 text-right {{securityClass}}">{{system.security}}</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>Security</td>
-                    <td></td>
-                    <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
-                </tr>
-                {{#effectName}}
-                <tr>
-                    <td>Effect</td>
-                    <td class="text-right pf-font-capitalize">{{effectName}}</td>
-                    <td class="text-right {{effectInfoClass}}"><i class="fas fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
-                </tr>
-                {{/effectName}}
-                {{#system.faction}}
-                <tr>
-                    <td>Faction</td>
-                    <td class="text-right pf-table-cell-ellipses-auto" colspan="2">{{system.faction.name}}</td>
-                </tr>
-                {{/system.faction}}
-                {{#planetCount}}
-                <tr>
-                    <td>Planets</td>
-                    <td></td>
-                    <td class="text-right pf-help-default {{planetsInfoClass}}">{{planetCount}}</td>
-                </tr>
-                {{/planetCount}}
-                {{#static}}
-                <tr>
-                    <td>Static</td>
-                    <td class="text-right">{{name}}</td>
-                    <td class="text-right pf-help-default {{class}} {{wormholePrefixClass}}{{name}}">{{security}}</td>
-                </tr>
-                {{/static}}
-                </tbody>
-            </table>
-<!--
-            <div class="pf-resizearea">
-                <table class="table table-condensed pf-table-fixed {{infoTableClass}}">
-                    <colgroup>
-                        <col/>
-                        <col style="width: 40px;"/>
-                        <col style="width: 40px;"/>
-                        <col style="width: 40px;"/>
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th>Links</th>
-                        {{#thirdPartyLinks}}
-                            {{#showInModuleHead}}
-                            <th class="pf-table-cell-bg-image" rowspan="2"></th>
-                            {{/showInModuleHead}}
-                            {{^showInModuleHead}}
-                            <th class="pf-table-cell-bg-image" rowspan="2">
-                                {{#url}}
-                                <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ title }}" href="{{ url }}" target="_blank" rel="noopener"></a>
-                                {{/url}}
-                                {{^url}}
-                                <span class="pf-table-cell-bg-image-wrapper smaller pf-link" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" data-toggle="tooltip" title="{{ title }}" data-link="{{page}}"></span>
-                                {{/url}}
-                            </th>
-                            {{/showInModuleHead}}
-                        {{/thirdPartyLinks}}
-                    </tr>
-                    <tr>
-                        <th>&nbsp;</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-            <div class="pf-dynamic-area-statusbar">
-                <div class="pf-dynamic-area-resizebar">
-                    <div class="pf-resizebar-bar"></div>
-                    <div class="pf-resizebar-bar"></div>
-                    <div class="pf-resizebar-bar"></div>
-                </div>
-            </div>
--->
-        </div>
-    </div>
-
-    {{! Sovereignty table ========================================================================================= }}
-    <div class="col-xs-6 col-sm-3 {{sovSectionClass}} {{^sovereigntyPrimary}}hidden{{/sovereigntyPrimary}}">
-        <div class="pf-dynamic-area">
-            <table class="table table-condensed pf-table-fixed {{sovTableClass}}">
                 <colgroup>
-                    <col style="width: 40px;"/>
                     <col/>
-                    <col style="width: 45px;"/>
+                    <col style="width: 40px;"/>
+                    <col style="width: 40px;"/>
+                    <col style="width: 40px;"/>
                 </colgroup>
                 <thead>
-                {{#sovereigntyPrimary}}
                 <tr>
-                    <th>{{row1Label}}</th>
-                    <th class="text-right">{{row1Val}}</th>
-                    <th class="pf-table-cell-bg-image" rowspan="2">
-                        <div class="pf-table-cell-bg-image-wrapper pf-help-default" style="--bg-image: url('{{{row1Img}}}');" data-toggle="tooltip" title="{{row1ImgTitle}}"></div>
-                    </th>
+                    <th>Links</th>
+                    {{#thirdPartyLinks}}
+                        {{#showInModuleHead}}
+                        <th class="pf-table-cell-bg-image" rowspan="2"></th>
+                        {{/showInModuleHead}}
+                        {{^showInModuleHead}}
+                        <th class="pf-table-cell-bg-image" rowspan="2">
+                            {{#url}}
+                            <a class="pf-table-cell-bg-image-wrapper smaller" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');"  title="{{ title }}" href="{{ url }}" target="_blank" rel="noopener"></a>
+                            {{/url}}
+                            {{^url}}
+                            <span class="pf-table-cell-bg-image-wrapper smaller pf-link" style="--bg-image: url('/public/img/icons/logo_{{page}}.png');" title="{{ title }}" data-link="{{page}}"></span>
+                            {{/url}}
+                        </th>
+                        {{/showInModuleHead}}
+                    {{/thirdPartyLinks}}
                 </tr>
                 <tr>
-                    <th>{{#row2Label}}{{row2Label}}{{/row2Label}}</th>
-                    <th class="text-right pf-table-cell-ellipses-auto">{{#row2Val}}{{row2Val}}{{/row2Val}}</th>
+                    <th>&nbsp;</th>
                 </tr>
-                {{/sovereigntyPrimary}}
                 </thead>
                 <tbody>
-                {{#sovereigntyPrimary.row3Val}}
-                <tr>
-                    <td>{{sovereigntyPrimary.row3Label}}</td>
-                    <td colspan="2" class="text-right pf-table-cell-ellipses-auto">{{sovereigntyPrimary.row3Val}}</td>
-                </tr>
-                {{/sovereigntyPrimary.row3Val}}
-                {{#sovereigntySecondary}}
-                <tr>
-                    <td>{{row1Label}}</td>
-                    <td colspan="2" class="text-right pf-table-cell-ellipses-auto">{{row1Val}}</td>
-                </tr>
-                {{/sovereigntySecondary}}
-                <tr class="{{sovFwContestedRowClass}}">
-                    <td>
-                        <svg class="pf-system-info-svg pf-help-default" width="12px" height="12px" data-toggle="tooltip" title="Faction Warfare System">
-                            <use xlink:href="#pf-svg-swords"/>
-                        </svg>
-                        <i class="fas fa-flag {{sovFwStatusIconClass}}"></i>
-                    </td>
-                    <td class="text-right pf-table-cell-ellipses-auto {{sovFwContestedInfoClass}}"></td>
-                    <td class="text-right {{sovFwPercentageInfoClass}}"></td>
-                </tr>
-                <tr class="{{sovFwOccupationRowClass}}">
-                    <td></td>
-                    <td class="text-right pf-table-cell-ellipses-auto">occupied&nbsp;by</td>
-                    <td class="pf-table-cell-bg-image" rowspan="2">
-                        <div class="pf-table-cell-bg-image-wrapper pf-help-default {{sovFwOccupationImageClass}}"></div>
-                    </td>
-                </tr>
-                <tr class="{{sovFwOccupationRowClass}}">
-                    <td colspan="2" class="text-right pf-table-cell-ellipses-auto {{sovFwOccupationInfoClass}}"></td>
-                </tr>
                 </tbody>
             </table>
         </div>
-    </div>
-
-    {{! Description editor ======================================================================================== }}
-    <div class="col-xs-12 col-sm-6 {{^sovereigntyPrimary}}col-sm-9{{/sovereigntyPrimary}} {{descriptionSectionClass}}">
-        <div class="pf-dynamic-area {{descriptionAreaClass}}">
-            <div class="{{descriptionTextareaClass}} {{summernoteClass}}"></div>
-            <i class="fas fa-fw fa-lg fa-pen pull-right {{moduleHeadlineIconClass}} {{descriptionButtonClass}}" data-toggle="tooltip" title="edit description"></i>
+        <div class="pf-dynamic-area-statusbar">
+            <div class="pf-dynamic-area-resizebar">
+                <div class="pf-resizebar-bar"></div>
+                <div class="pf-resizebar-bar"></div>
+                <div class="pf-resizebar-bar"></div>
+            </div>
         </div>
+        -->
     </div>
+</script>
 
-</div>
+{{! Sovereignty section =========================================================================================== }}
+<script id="tplSovSection" type="text/template">
+    <table class="table table-condensed pf-table-fixed {{config.systemSovTableClass}}">
+        <colgroup>
+            <col style="width: 40px;"/>
+            <col/>
+            <col style="width: 45px;"/>
+        </colgroup>
+        <thead>
+        {{#sovereigntyPrimary}}
+        <tr>
+            <th>{{row1Label}}</th>
+            <th class="text-right">{{row1Val}}</th>
+            <th class="pf-table-cell-bg-image" rowspan="2">
+                <div class="pf-table-cell-bg-image-wrapper pf-help-default" style="--bg-image: url('{{{row1Img}}}');" title="{{row1ImgTitle}}"></div>
+            </th>
+        </tr>
+        <tr>
+            <th>{{#row2Label}}{{row2Label}}{{/row2Label}}</th>
+            <th class="text-right pf-table-cell-ellipses-auto">{{#row2Val}}{{row2Val}}{{/row2Val}}</th>
+        </tr>
+        {{/sovereigntyPrimary}}
+        </thead>
+        <tbody>
+        {{#sovereigntyPrimary.row3Val}}
+        <tr>
+            <td>{{sovereigntyPrimary.row3Label}}</td>
+            <td colspan="2" class="text-right pf-table-cell-ellipses-auto">{{sovereigntyPrimary.row3Val}}</td>
+        </tr>
+        {{/sovereigntyPrimary.row3Val}}
+        {{#sovereigntySecondary}}
+        <tr>
+            <td>{{row1Label}}</td>
+            <td colspan="2" class="text-right pf-table-cell-ellipses-auto">{{row1Val}}</td>
+        </tr>
+        {{/sovereigntySecondary}}
+        <tr class="{{config.systemSovFwContestedRowClass}}">
+            <td>
+                <svg class="pf-system-info-svg pf-help-default" width="12px" height="12px" title="Faction Warfare System">
+                    <use xlink:href="#pf-svg-swords"/>
+                </svg>
+                <i class="fas fa-flag {{config.systemSovFwStatusIconClass}}"></i>
+            </td>
+            <td class="text-right pf-table-cell-ellipses-auto {{config.systemSovFwContestedClass}}"></td>
+            <td class="text-right {{config.systemSovFwPercentageClass}}"></td>
+        </tr>
+        <tr class="{{config.systemSovFwOccupationRowClass}}">
+            <td></td>
+            <td class="text-right pf-table-cell-ellipses-auto">occupied&nbsp;by</td>
+            <td class="pf-table-cell-bg-image" rowspan="2">
+                <div class="pf-table-cell-bg-image-wrapper pf-help-default {{config.systemSovFwOccupationImageClass}}"></div>
+            </td>
+        </tr>
+        <tr class="{{config.systemSovFwOccupationRowClass}}">
+            <td colspan="2" class="text-right pf-table-cell-ellipses-auto {{config.systemSovFwOccupationClass}}"></td>
+        </tr>
+        </tbody>
+    </table>
+</script>
 
-
-
-
+{{! Description section =========================================================================================== }}
+<script id="tplDescSection" type="text/template">
+    <div class="pf-dynamic-area {{config.descriptionAreaClass}}">
+        <div class="{{config.descriptionTextareaElementClass}} {{summernoteClass}}"></div>
+        <i class="fas fa-fw fa-lg fa-pen pull-right {{config.moduleHeadlineIconClass}} {{config.addDescriptionButtonClass}}" title="edit description"></i>
+    </div>
+</script>

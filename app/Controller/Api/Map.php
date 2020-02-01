@@ -170,7 +170,7 @@ class Map extends Controller\AccessController {
 
             // get program routes -------------------------------------------------------------------------------------
             $return->routes = [
-                'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
+                'ssoLogin' => $this->getF3()->alias('sso', ['action' => 'requestAuthorization'])
             ];
 
             // get third party APIs -----------------------------------------------------------------------------------
@@ -180,6 +180,11 @@ class Map extends Controller\AccessController {
                 'eveeye'                => Config::getPathfinderData('api.eveeye'),
                 'dotlan'                => Config::getPathfinderData('api.dotlan'),
                 'anoik'                 => Config::getPathfinderData('api.anoik')
+            ];
+
+            // get Plugin config --------------------------------------------------------------------------------------
+            $return->plugin = [
+                'modules'               => Config::getPluginConfig('modules')
             ];
 
             // Character default config -------------------------------------------------------------------------------
@@ -1065,7 +1070,7 @@ class Map extends Controller\AccessController {
                             ){
                                 // check distance between systems (in jumps)
                                 // -> if > 1 it is !very likely! a wormhole
-                                $route = (new Route())->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
+                                $route = (new Controller\Api\Rest\Route())->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
 
                                 if(!$route['routePossible']){
                                     $addSourceSystem = true;
@@ -1165,7 +1170,7 @@ class Map extends Controller\AccessController {
                                     // .. now we need to check jump distance between systems
                                     // -> if > 1 it is !very likely! podded jump
                                     if(empty($route)){
-                                        $route = (new Route())->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
+                                        $route = (new Controller\Api\Rest\Route())->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
                                     }
 
                                     if(!$route['routePossible']){

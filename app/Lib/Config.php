@@ -40,6 +40,11 @@ class Config extends \Prefab {
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
 
     /**
+     * Hive key for custom plugins (js map modules)
+     */
+    const HIVE_KEY_PLUGIN                           = 'PLUGIN';
+
+    /**
      * Hive key for Socket validation check
      */
     const CACHE_KEY_SOCKET_VALID                    = 'CACHED_SOCKET_VALID';
@@ -374,7 +379,7 @@ class Config extends \Prefab {
      * get SMTP config values
      * @return \stdClass
      */
-    static function getSMTPConfig(): \stdClass{
+    static function getSMTPConfig() : \stdClass{
         $config             = new \stdClass();
         $config->host       = self::getEnvironmentData('SMTP_HOST');
         $config->port       = self::getEnvironmentData('SMTP_PORT');
@@ -392,9 +397,9 @@ class Config extends \Prefab {
      * @param \stdClass $config
      * @return bool
      */
-    static function isValidSMTPConfig(\stdClass $config): bool {
+    static function isValidSMTPConfig(\stdClass $config) : bool {
         // validate email from either an configured array or plain string
-        $validateMailConfig = function($mailConf = null): bool {
+        $validateMailConfig = function($mailConf = null) : bool {
             $email = null;
             if(is_array($mailConf)){
                 reset($mailConf);
@@ -437,12 +442,34 @@ class Config extends \Prefab {
     }
 
     /**
+     * get Plugin config from `plugin.ini`
+     * @param string|null $key
+     * @param bool $checkEnabled
+     * @return array|null
+     */
+    static function getPluginConfig(?string $key, bool $checkEnabled = true) : ?array {
+        $isEnabled = $checkEnabled ?
+            filter_var(\Base::instance()->get(
+                self::HIVE_KEY_PLUGIN . '.' . strtoupper($key) . '_ENABLED'),
+                FILTER_VALIDATE_BOOLEAN
+            ) :
+            true;
+
+        $data = null;
+        if($isEnabled){
+            $hiveKey = self::HIVE_KEY_PLUGIN . '.' . strtoupper($key);
+            $data = (array)\Base::instance()->get($hiveKey);
+        }
+        return $data;
+    }
+
+    /**
      * get custom $message for a a HTTP $status
      * -> use this in addition to the very general Base::HTTP_XXX labels
      * @param int $status
      * @return string
      */
-    static function getMessageFromHTTPStatus(int $status): string {
+    static function getMessageFromHTTPStatus(int $status) : string {
         switch($status){
             case 403:
                 $message = 'Access denied: User not found'; break;

@@ -1,24 +1,15 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: exodus4d
- * Date: 06.06.15
- * Time: 03:34
- */
 
-namespace Exodus4D\Pathfinder\Controller\Api;
+
+namespace Exodus4D\Pathfinder\Controller\Api\Rest;
+
 
 use Exodus4D\Pathfinder\Lib\Config;
-use Exodus4D\Pathfinder\Controller;
 use Exodus4D\Pathfinder\Controller\Ccp\Universe;
 use Exodus4D\Pathfinder\Model\Pathfinder;
 
-/**
- * Routes controller
- * Class Route
- * @package Controller\Api
- */
-class Route extends Controller\AccessController {
+class Route extends AbstractRestController {
+
 
     /**
      * cache key for current Thera connections from eve-scout.com
@@ -739,8 +730,8 @@ class Route extends Controller\AccessController {
      * @param \Base $f3
      * @throws \Exception
      */
-    public function search($f3){
-        $requestData = (array)$f3->get('POST');
+    public function post(\Base $f3){
+        $requestData = $this->getRequestData($f3);
 
         $activeCharacter = $this->getCharacter();
 
@@ -861,20 +852,6 @@ class Route extends Controller\AccessController {
             }
         }
 
-        echo json_encode($return);
+        $this->out($return);
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -25,7 +25,6 @@ requirejs.config({
         mappage: './app/mappage',                                       // initial start "map page" view
         setup: './app/setup',                                           // initial start "setup page" view
         admin: './app/admin',                                           // initial start "admin page" view
-        notification: './app/notification',                             // "notification" view
 
         jquery: 'lib/jquery-3.4.1.min',                                 // v3.4.1   jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0   Bootstrap js code - http://getbootstrap.com/javascript
@@ -56,7 +55,7 @@ requirejs.config({
         bootstrapConfirmation: 'lib/bootstrap-confirmation.min',        // v1.0.7   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
         bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0   Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
         lazyload: 'lib/jquery.lazyload.min',                            // v1.9.7   LazyLoader images - https://appelsiini.net/projects/lazyload/
-        sortable: 'lib/sortable.min',                                   // v1.6.0   Sortable - drag&drop reorder - https://github.com/rubaxa/Sortable
+        sortable: 'lib/sortable.min',                                   // v1.10.1  Sortable - drag&drop reorder - https://github.com/SortableJS/Sortable
 
         'summernote.loader': './app/summernote.loader',                 // v0.8.10  Summernote WYSIWYG editor -https://summernote.org
         'summernote': 'lib/summernote/summernote.min',
@@ -65,7 +64,7 @@ requirejs.config({
         easePack: 'lib/EasePack.min',
         tweenLite: 'lib/TweenLite.min',
 
-        // datatables                                                   // v1.10.18 DataTables - https://datatables.net
+        // DataTables                                                   // v1.10.18 DataTables - https://datatables.net
         'datatables.loader': './app/datatables.loader',
         'datatables.net': 'lib/datatables/DataTables-1.10.18/js/jquery.dataTables.min',
         'datatables.net-buttons': 'lib/datatables/Buttons-1.5.6/js/dataTables.buttons.min',
@@ -74,15 +73,14 @@ requirejs.config({
         'datatables.net-select': 'lib/datatables/Select-1.3.0/js/dataTables.select.min',
         'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
-        // notification plugin
-        pnotify: 'lib/pnotify/pnotify',                                 // v3.2.1 PNotify - notification core file - https://sciactive.com/pnotify/
-        'pnotify.buttons': 'lib/pnotify/pnotify.buttons',               // PNotify - buttons notification extension
-        'pnotify.confirm': 'lib/pnotify/pnotify.confirm',               // PNotify - confirmation notification extension
-        'pnotify.nonblock': 'lib/pnotify/pnotify.nonblock',             // PNotify - notification non-block extension (hover effect)
-        'pnotify.desktop': 'lib/pnotify/pnotify.desktop',               // PNotify - desktop push notification extension
-        'pnotify.history': 'lib/pnotify/pnotify.history',               // PNotify - history push notification history extension
-        'pnotify.callbacks': 'lib/pnotify/pnotify.callbacks',           // PNotify - callbacks push notification extension
-        'pnotify.reference': 'lib/pnotify/pnotify.reference'            // PNotify - reference push notification extension
+        // PNotify                                                      // v4.0.0 PNotify - notification core file - https://sciactive.com/pnotify
+        'PNotify.loader': './app/pnotify.loader',
+        'PNotify': 'lib/pnotify/PNotify',
+        'PNotifyButtons': 'lib/pnotify/PNotifyButtons',
+        'PNotifyNonBlock': 'lib/pnotify/PNotifyNonBlock',
+        'PNotifyDesktop': 'lib/pnotify/PNotifyDesktop',
+        'PNotifyCallbacks': 'lib/pnotify/PNotifyCallbacks',
+        'NonBlock': 'lib/pnotify/NonBlock'                              // v1.0.8 NonBlock.js - for PNotify "nonblock" feature
     },
     shim: {
         bootstrap: {
@@ -137,9 +135,6 @@ requirejs.config({
             init: function ($, Raphael) {
                 window.Raphael = Raphael;
             }
-        },
-        pnotify: {
-            deps: ['jquery']
         },
         easyPieChart: {
             deps: ['jquery']

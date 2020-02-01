@@ -432,10 +432,9 @@ define([
                                             Util.showNotify({title: dialogTitle, text: 'Map: ' + responseData.mapData.mapData.name, type: 'success'});
 
                                             // update map-tab Element
-                                            let tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
-
-                                            if(tabLinkElement.length === 1){
-                                                ModuleMap.updateTabData(tabLinkElement, responseData.mapData.mapData);
+                                            let tabLinkEls = Util.getMapTabLinkElements(Util.getMapModule()[0], responseData.mapData.mapData.id);
+                                            if(tabLinkEls.length === 1){
+                                                ModuleMap.updateTabData(tabLinkEls[0], responseData.mapData.mapData);
                                             }
 
                                             $(mapInfoDialog).modal('hide');
@@ -803,6 +802,10 @@ define([
             },
             callback: function(result){
                 if(result){
+                    // lock dialog
+                    let dialogContent = mapDeleteDialog.find('.modal-content');
+                    dialogContent.showLoadingAnimation();
+
                     let data = {mapData: mapData.config};
 
                     $.ajax({

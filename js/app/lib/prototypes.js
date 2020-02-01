@@ -1,5 +1,43 @@
-define([], () => {
+define([
+    'app/lib/dataStore'
+], (DataStore) => {
     'use strict';
+
+    // DOM node data store ============================================================================================
+    window.dataStore = new DataStore();
+
+    /**
+     * @param key
+     * @param value
+     * @returns {HTMLElement}
+     */
+    HTMLElement.prototype.setData = function(key, value){
+        return window.dataStore.set(this, key, value);
+    };
+
+    /**
+     * @param key
+     * @returns {*}
+     */
+    HTMLElement.prototype.getData = function(key){
+        return window.dataStore.get(this, key);
+    };
+
+    /**
+     * @param key
+     * @returns {*}
+     */
+    HTMLElement.prototype.hasData = function(key){
+        return window.dataStore.has(this, key);
+    };
+
+    /**
+     * @param key
+     * @returns {*}
+     */
+    HTMLElement.prototype.removeData = function(key){
+        return window.dataStore.remove(this, key);
+    };
 
     /**
      * Array diff

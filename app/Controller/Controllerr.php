@@ -93,7 +93,7 @@ class Controller {
                 header('Pf-Maintenance: ' . $modeMaintenance);
             }
         }else{
-            $this->initResource($f3);
+            $f3->set('tplResource', $this->initResource($f3));
 
             $this->setTemplate(Config::getPathfinderData('view.index'));
 
@@ -161,15 +161,18 @@ class Controller {
     /**
      * init new Resource handler
      * @param \Base $f3
+     * @return Resource
      */
     protected function initResource(\Base $f3){
         $resource = Resource::instance();
+        $resource->setOption('basePath', $f3->get('BASE'));
         $resource->setOption('filePath', [
-            'style'     => $f3->get('BASE') . '/public/css/' . Config::getPathfinderData('version'),
-            'script'    => $f3->get('BASE') . '/public/js/' . Config::getPathfinderData('version'),
-            'font'      => $f3->get('BASE') . '/public/fonts',
-            'document'  => $f3->get('BASE') . '/public/templates',
-            'image'     => $f3->get('BASE') . '/public/img'
+            'style'     => sprintf('/%scss/%s',     $f3->get('UI'), Config::getPathfinderData('version')),
+            'script'    => sprintf('/%sjs/%s',      $f3->get('UI'), Config::getPathfinderData('version')),
+            'font'      => sprintf('/%sfonts',      $f3->get('UI')),
+            'document'  => sprintf('/%stemplates',  $f3->get('UI')),
+            'image'     => sprintf('/%simg',        $f3->get('UI')),
+            'favicon'   => $f3->get('FAVICON')
         ], true);
 
         $resource->register('style', 'pathfinder');
@@ -187,7 +190,7 @@ class Controller {
         $resource->register('url', Config::getPathfinderData('api.ccp_image_server'), 'dns-prefetch');
         $resource->register('url', '//i.ytimg.com', 'dns-prefetch'); // YouTube tiny embed domain
 
-        $f3->set('tplResource', $resource);
+        return $resource;
     }
 
     /**

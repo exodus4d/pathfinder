@@ -233,6 +233,7 @@ em,
 }
 
 .pf-module-icon-button{
+  position: relative; // for absolut positioned [data-badge]:after elements
   cursor: pointer;
   color: $gray-light; // overwrite xEditable button style
   @include transition(color 0.15s ease-out);
@@ -243,6 +244,23 @@ em,
 
   &.editable{
     border-bottom: none !important; // overwrite xEditable button style
+  }
+
+  &[data-badge]:after {
+    content: attr(data-badge);
+    position: absolute;
+    top: -8px;
+    left: calc(100% - 5px);
+    color: $orange;
+    border-radius: 9px;
+    padding: 3px 4px;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+    vertical-align: baseline;
+    white-space: nowrap;
+    text-align: center;
+    font-family: Oxygen, Arial, sans-serif;
   }
 }
 
@@ -282,31 +300,67 @@ em,
 }
 
 // form fields custom styles ======================================================================
-.editable-input{
+.editable-input {
 
-  optgroup[label]{
+  optgroup[label] {
     background-color: $gray;
     color: $gray-light;
 
-    option{
+    option {
       background-color: $gray-dark;
       color: $gray-lighter;
       font-family: $font-family-monospace;
     }
   }
 
-  .editable-checklist{
-    & > div > label {
+  .editable-checklist {
+    > div > label {
       @extend .checkbox;
       display: block !important;
       padding-left: 20px !important; // overwrite inline-form styles
       color: $gray-lighter;
 
-      & > span {
+      > span {
         @extend label;
 
-        &:after{
+        &:after {
           top: -2px;
+        }
+      }
+    }
+
+    // layout settings popover (active map modules)
+    &.pf-editable-settings {
+      display: grid;
+      column-gap: 15px;
+      grid-template-columns: repeat(2, auto);
+      align-items: end;
+
+      > div:nth-child(7) {
+        grid-column: span 2;
+      }
+
+      > div:nth-child(1), > div:nth-child(8) {
+        &:before {
+          display: block;
+          font-weight: bold;
+          line-height: 18px;
+          margin-bottom: 5px;
+          margin-top: 5px;
+          color: lighten($gray-light, 10%);
+          padding-left: 25px;
+        }
+      }
+
+      > div:nth-child(1) {
+        &:before {
+          content: 'Modules';
+        }
+      }
+
+      > div:nth-child(8) {
+        &:before {
+          content: 'Plugins';
         }
       }
     }
@@ -319,7 +373,37 @@ em,
       color: $orange;
     }
   }
+
+  // toggle 2 elements active (settings popover)
+  .pf-editable-toggle {
+    display: flex;
+    margin-bottom: 5px;
+    justify-content: space-between;
+    align-items: center;
+
+    .pf-editable-toggle-item{
+      @extend %pf-bg-image-wrapper;
+      width: 98px;
+      height: 68px;
+      background-color: lighten($gray-light, 10%);
+      padding: 3px;
+      border-radius: 4px;
+      border: 1px solid $gray-dark;
+      cursor: pointer;
+      @include transition(background-color 0.08s ease-out);
+      will-change: background-color;
+
+      &.active {
+        background-color: $teal;
+      }
+
+      &:hover {
+        background-color: $teal-lighter;
+      }
+    }
+  }
 }
+
 select:active, select:hover {
   outline: none
 }
@@ -387,6 +471,16 @@ select:active, select:hover {
     color: $gray-light;
   }
 
+  .dataTables_filter {
+    margin-top: 0;  // overwrite default (mobile breakpoint)
+
+    @media (max-width: $screen-xs-max) {
+      input[type='search'] {
+        width: 100px;
+      }
+    }
+  }
+
   .dt-buttons,
   .dt-stats{
     display: inline-block;
@@ -410,6 +504,14 @@ select:active, select:hover {
       &.disabled{
         color: darken($gray-light, 8%)
       }
+
+      &.processing{
+        &:after {
+          border: 2px solid darken($gray-light, 8%);
+          border-left-color: $orange;
+          border-right-color: $orange;
+        }
+      }
     }
   }
 }
@@ -421,11 +523,6 @@ select:active, select:hover {
   .dataTables_info{
     padding-top: 0;
     text-align: left;
-  }
-
-  & > div{
-    padding-left: 5px;
-    padding-right: 5px;
   }
 
   .dataTables_paginate{
@@ -450,9 +547,11 @@ select:active, select:hover {
   .dt-buttons{
     text-align: right;
     margin-bottom: 0;
+    float: right !important;
 
     .dt-button{
       line-height: 18px;
+      padding-right: 0;
 
       .fa{
         margin-right: 0;
@@ -968,169 +1067,6 @@ table{
 
 .pf-map-type-global{
   color: $teal-lighter;
-}
-
-// maps module ====================================================================================
-#pf-map-module{
-  margin: 15px 10px 0 10px;
-
-  // Tabs (colored)
-  #pf-map-tabs {
-
-    a[role="tab"]:hover{
-      .pf-map-tab-handler:before{
-        color: $orange
-      }
-    }
-
-    .pf-map-tab-handler{
-      &:before{
-        content: '\22EE\22EE\00A0';
-        display: inline-block;
-        cursor: -moz-grab !important;
-        cursor: -webkit-grab !important;
-        cursor: grab !important;
-        color: $gray-light;
-        width: 12px;
-        transition: color 0.15s ease-out, background-color 0.15s ease-out;
-        pointer-events: all;
-      }
-    }
-
-    .pf-map-type-tab-default{
-      border-top: 2px solid transparent;
-    }
-
-    .pf-map-type-tab-private{
-      border-top: 2px solid $indigo;
-    }
-
-    .pf-map-type-tab-corporation{
-      border-top: 2px solid $green;
-    }
-
-    .pf-map-type-tab-alliance{
-      border-top: 2px solid $blue;
-    }
-
-    .pf-map-type-tab-global{
-      border-top: 2px solid $teal-lighter;
-    }
-
-    .pf-map-tab-icon{
-      margin-right: 3px;
-    }
-
-    .pf-map-tab-shared-icon{
-      margin-left: 3px;
-    }
-  }
-}
-
-// Tab Content Body Grid ==========================================================================
-.pf-map-content-row{
-  margin-top: 10px;
-  padding-bottom: 40px; // space for footer
-
-  >.pf-map-content-col:first-child{
-    @media (min-width: $screen-md-min) {
-      padding-right: 0; // overwrite default
-    }
-  }
-
-  // all modules within a row
-  .pf-module{
-    font-family: $font-family-bold;
-    background: rgba($gray, 0.27);
-    padding: 10px;
-    width: 100%;
-    margin-bottom: 10px;
-    will-change: height, transform, opacity;
-    overflow: hidden;
-    @include border-radius(5px);
-    border-top-left-radius: 0;
-
-    &:before{
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      border-style: solid;
-      border-width: 0 0 9px 9px;
-      border-color: transparent transparent transparent $gray;
-      cursor: ns-resize;
-    }
-
-    // all labels in a module
-    .label{
-      margin-bottom: 10px;
-    }
-
-    // dynamic areas as child of a module
-    .pf-dynamic-area{
-      background: rgba($gray-darker, 0.4);
-    }
-
-    .pf-module-head{
-      margin-bottom: 10px;
-
-      .pf-module-handler-drag{
-        display: inline-block;
-        cursor: -moz-grab !important;
-        cursor: -webkit-grab !important;
-        cursor: grab !important;
-        transition: color 0.15s ease-out;
-
-        &:before{
-          content: '\22EE\22EE\00A0';
-        }
-
-        &:hover{
-          color: $orange-light;
-        }
-      }
-
-      h5{
-        display: inline-block;
-        line-height: 16px;
-        margin-bottom: 0;
-
-        // icons in headline
-        .pf-module-icon-button{
-          margin-left: 3px;
-        }
-      }
-    }
-
-    // system info table
-    .pf-module-table{
-      font-size: 11px;
-      white-space: nowrap;
-    }
-  }
-
-  // "Fake" spacer module -> preserves height during hide -> show animation for a module
-  .pf-module-spacer{
-    margin-bottom: 10px;  // same as .pf-module -> no UI jump
-  }
-
-  .pf-module-control-area{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
-    min-height: inherit;
-
-    &:hover{
-      .fa-sync{
-        @include transform(rotateZ(720deg));
-      }
-    }
-
-    .fa-sync{
-      @include transition(transform 1.6s ease-out);
-    }
-  }
 }
 
 // User status ====================================================================================
@@ -1732,7 +1668,7 @@ td.pf-popover-trigger{
       width: 100%;
       height: 9px;
       padding-top: 1px;
-      cursor: ns-resize;
+      cursor: row-resize;
 
       &:hover{
         .pf-resizebar-bar{
@@ -1752,17 +1688,17 @@ td.pf-popover-trigger{
 
 // code highlighting ==============================================================================
 .pf-code-ObjectBrace {
-  color: $pink-darker;
+  color: lighten($pink-darker, 15%);
   font-weight: bold;
 }
 
 .pf-code-ArrayBrace {
-  color: $purple-dark;
+  color: $teal-lightest;
   font-weight: bold;
 }
 
 .pf-code-PropertyName {
-  color: $gray-darkest;
+  color: lighten($gray-light, 15%);
   font-weight: bold;
 }
 
@@ -1771,32 +1707,61 @@ td.pf-popover-trigger{
 }
 
 .pf-code-Number {
-  color: $green-dark;
+  color: $green;
 }
 
 .pf-code-Boolean {
-  color: $indigo-darkest;
+  color: $indigo;
   font-weight: bold;
 }
 
 .pf-code-Function {
-  color: $pink-darker;
+  color: lighten($gray-light, 15%);
+  font-style: italic;
+  white-space: pre;
 }
 
 .pf-code-Null {
-  color: $gray-darker;
+  color: $red;
   font-weight: bold;
 }
 
 .pf-code-Comma {
-  color: $gray-darkest;
+  color: lighten($gray-light, 15%);
   font-weight: bold;
+}
+
+.pf-code-Date {
+  color: lighten($gray-light, 15%);
+  font-style: italic;
+}
+
+pre {
+  .fa-ul {
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+  }
+
+  > ul {
+    margin-top: 10px;
+  }
 }
 
 code {
   .fas, .far, .fab {
-    color: $gray;
+    color: $gray-light;
     cursor: pointer;
+    margin: 0 3px;
+  }
+
+  section {
+    border-radius: 5px;
+
+    &:not(:last-child) {
+      border-bottom: 1px dashed $gray;
+      padding-bottom: 5px;
+    }
   }
 }
 
@@ -1980,6 +1945,27 @@ code {
   }
 }
 
+.flex-row {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.flex-col {
+  flex: 0 0 auto;
+}
+
+.flex-grow {
+  flex-grow: 1;
+  flex-basis: 0;
+  max-width: 100%;
+}
+
+.flex-between {
+  justify-content: space-between;
+}
+
 // global info panel ==============================================================================
 #pf-global-info{
   width: 100%;
@@ -2006,24 +1992,10 @@ code {
   }
 }
 
-// drag&drop (Sortable) ===========================================================================
-.pf-sortable-ghost{
-  will-change: opacity;
-  transition: opacity 0.2s ease-out;
-  opacity: 0.7 !important;
-
-  .pf-module-handler-drag{
-    color: $orange-light;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-    cursor: grabbing;
-  }
-}
-
 /*
 Animate the stripes
 */
-@-webkit-keyframes move{
+@-webkit-keyframes move {
   0% {
     background-position: 0 0;
   }
@@ -2031,7 +2003,8 @@ Animate the stripes
     background-position: 50px 50px;
   }
 }
-@-moz-keyframes move{
+
+@-moz-keyframes move {
   0% {
     background-position: 0 0;
   }
@@ -2039,7 +2012,8 @@ Animate the stripes
     background-position: 50px 50px;
   }
 }
-@-ms-keyframes move{
+
+@-ms-keyframes move {
   0% {
     background-position: 0 0;
   }
@@ -2047,7 +2021,8 @@ Animate the stripes
     background-position: 50px 50px;
   }
 }
-@keyframes move{
+
+@keyframes move {
   0% {
     background-position: 0 0;
   }

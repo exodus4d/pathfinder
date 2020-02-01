@@ -5,11 +5,12 @@ define([
     'app/promises/promise.deferred',
     'app/promises/promise.timeout',
     'datatables.net',
+    'datatables.net-select',
     'datatables.net-buttons',
     'datatables.net-buttons-html',
-    'datatables.net-responsive',
-    'datatables.net-select'
+    'datatables.net-responsive'
 ], ($, Init, Counter, DeferredPromise, TimeoutPromise) => {
+
     'use strict';
 
     // all Datatables stuff is available...

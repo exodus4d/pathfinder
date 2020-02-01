@@ -37,6 +37,7 @@ define([
         if(logDialog.length){
             // dialog is open
             let statusArea = logDialog.find('.' + config.taskDialogStatusAreaClass);
+            statusArea.destroyTooltips(true);
             requirejs(['text!templates/modules/sync_status.html', 'mustache'], (templateSyncStatus, Mustache) => {
                 let data = {
                     timestampCounterClass: config.timestampCounterClass,
@@ -57,7 +58,7 @@ define([
                 let counterElements = syncStatusElement.find('.' + config.timestampCounterClass);
                 Counter.initTimestampCounter(counterElements);
 
-                syncStatusElement.initTooltips({
+                statusArea.initTooltips({
                     placement: 'right'
                 });
             });
@@ -92,9 +93,9 @@ define([
 
             // init log table
             logDataTable = logTable.DataTable({
-                dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"fS>>' +
-                    '<"row"<"col-xs-12"tr>>' +
-                    '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+                dom: '<"flex-row flex-between"<"flex-col"l><"flex-col"B><"flex-col"fS>>' +
+                    '<"flex-row"<"flex-col flex-grow"tr>>' +
+                    '<"flex-row flex-between"<"flex-col"i><"flex-col"p>>',
                 buttons: {
                     name: 'tableTools',
                     buttons: [
@@ -286,23 +287,24 @@ define([
                             parseTime: false,
                             ymin: 0,
                             yLabelFormat: labelYFormat,
-                            padding: 10,
+                            padding: 8,
                             hideHover: true,
-                            pointSize: 3,
+                            pointSize: 2.5,
                             lineColors: ['#375959'],
                             pointFillColors: ['#477372'],
                             pointStrokeColors: ['#313335'],
-                            lineWidth: 2,
-                            grid: false,
+                            lineWidth: 1.5,
+                            grid: true,
                             gridStrokeWidth: 0.3,
                             gridTextSize: 9,
                             gridTextFamily: 'Oxygen Bold',
                             gridTextColor: '#63676a',
-                            behaveLikeLine: true,
+                            behaveLikeLine: false,
                             goals: [],
+                            goalStrokeWidth: 1,
                             goalLineColors: ['#66c84f'],
                             smooth: false,
-                            fillOpacity: 0.3,
+                            fillOpacity: 0.2,
                             resize: true
                         });
 

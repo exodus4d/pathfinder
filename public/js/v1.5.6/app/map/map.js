@@ -27,9 +27,6 @@ define([
         zIndexCounter: 110,
         maxActiveConnections: 8,
 
-        mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
-
-        mapClass: 'pf-map',                                             // class for all maps
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system on a map
@@ -45,7 +42,6 @@ define([
         systemBodyItemStatusClass: 'pf-user-status',                    // class for player status in system body
         systemBodyItemNameClass: 'pf-system-body-item-name',            // class for player name in system body
         systemBodyRightClass: 'pf-system-body-right',                   // class for player ship name in system body
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for dynamic content (dialogs, context-menus,...)
 
         // endpoint classes
         endpointSourceClass: 'pf-map-endpoint-source',
@@ -578,7 +574,7 @@ define([
      * @param system
      */
     let systemActions = (action, system) => {
-        let mapContainer = system.closest('.' + config.mapClass);
+        let mapContainer = system.closest('.' + Util.config.mapClass);
         let map = MapUtil.getMapInstance(system.attr('data-mapid'));
         let systemData = {};
 
@@ -685,8 +681,7 @@ define([
                 let filterScope = action.split('_')[1];
                 let filterScopeLabel = MapUtil.getScopeInfoForConnection( filterScope, 'label');
 
-                let promiseStore = MapUtil.getLocaleData('map', mapId);
-                promiseStore.then(data => {
+                Util.getLocalStore('map').getItem(mapId).then(data => {
                     let filterScopes = [];
                     if(data && data.filterScopes){
                         filterScopes = data.filterScopes;
@@ -704,7 +699,7 @@ define([
                     }
 
                     // store filterScopes in IndexDB
-                    MapUtil.storeLocalData('map', mapId, 'filterScopes', filterScopes);
+                    Util.getLocalStore('map').setItem(`${mapId}.filterScopes`, filterScopes);
                     MapUtil.filterMapByScopes(map, filterScopes);
 
                     Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
@@ -1085,17 +1080,17 @@ define([
     };
 
     /**
-     * set map wrapper observer
-     * @param mapWrapper
+     * set map area observer
+     * @param areaMap
      * @param mapConfig
      */
-    let setMapWrapperObserver = (mapWrapper, mapConfig) => {
+    let setMapAreaObserver = (areaMap, mapConfig) => {
 
         /**
          * save current map dimension to local storage
          * @param entry
          */
-        let saveMapSize = (entry) => {
+        let saveMapSize = entry => {
             let width = '';
             let height = '';
             if(entry.constructor.name === 'HTMLDivElement'){
@@ -1109,10 +1104,9 @@ define([
             width = parseInt(width.substring(0, width.length - 2)) || 0;
             height = parseInt(height.substring(0, height.length - 2)) || 0;
 
-            mapWrapper.trigger('pf:mapResize');
+            areaMap.trigger('pf:mapResize');
 
-            let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
-            promiseStore.then((data) => {
+            Util.getLocalStore('map').getItem(mapConfig.config.id).then((data) => {
                 let storeData = true;
 
                 if(
@@ -1125,7 +1119,7 @@ define([
                 }
 
                 if(storeData){
-                    MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
+                    Util.getLocalStore('map').setItem(`${mapConfig.config.id}.style`, {
                         width: width,
                         height: height
                     });
@@ -1148,7 +1142,7 @@ define([
                 }
             });
 
-            wrapperResize.observe(mapWrapper[0]);
+            wrapperResize.observe(areaMap[0]);
         }else if(requestAnimationFrame){
             // ResizeObserver() not supported
             let checkMapSize = (entry) => {
@@ -1156,17 +1150,18 @@ define([
                 return setTimeout(checkMapSize, 500, entry);
             };
 
-            checkMapSize(mapWrapper[0]);
+            checkMapSize(areaMap[0]);
         }
     };
 
     /**
      * get a mapMapElement
-     * @param parentElement
+     * @param areaMap
      * @param mapConfig
      * @returns {Promise<any>}
      */
-    let newMapElement = (parentElement, mapConfig) => {
+    let newMapElement = (areaMap, mapConfig) => {
+        areaMap = $(areaMap);
 
         /**
          * new map element promise
@@ -1175,45 +1170,37 @@ define([
          */
         let newMapElementExecutor = (resolve, reject) => {
             // get map dimension from local storage
-            let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
-            promiseStore.then((data) => {
+            Util.getLocalStore('map').getItem(mapConfig.config.id).then(data => {
                 let height = 0;
                 if(data && data.style){
                      height = data.style.height;
                 }
 
-                // create map wrapper
-                let mapWrapper = $('<div>', {
-                    class: config.mapWrapperClass,
-                    height: height
-                });
+                areaMap.css('height', height);
 
-                setMapWrapperObserver(mapWrapper, mapConfig);
+                setMapAreaObserver(areaMap, mapConfig);
 
                 let mapId = mapConfig.config.id;
 
                 // create new map container
                 let mapContainer = $('<div>', {
                     id: config.mapIdPrefix + mapId,
-                    class: config.mapClass
+                    class: Util.config.mapClass
                 }).data('id', mapId);
 
-                mapWrapper.append(mapContainer);
-
-                // append mapWrapper to parent element (at the top)
-                parentElement.prepend(mapWrapper);
+                areaMap.append(mapContainer);
 
                 // set main Container for current map -> the container exists now in DOM !! very important
                 mapConfig.map.setContainer(mapContainer);
 
                 // init custom scrollbars and add overlay
-                initMapScrollbar(mapWrapper);
+                initMapScrollbar(areaMap);
 
                 // set map observer
                 setMapObserver(mapConfig.map);
 
                 // set shortcuts
-                mapWrapper.setMapShortcuts();
+                areaMap.setMapShortcuts();
 
                 // show static overlay actions
                 let mapOverlay = MapOverlayUtil.getMapOverlay(mapContainer, 'info');
@@ -1417,8 +1404,7 @@ define([
          */
         let filterMapByScopes = payload => {
             let filterMapByScopesExecutor = resolve => {
-                let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
-                promiseStore.then(dataStore => {
+                Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
                     let scopes = [];
                     if(dataStore && dataStore.filterScopes){
                         scopes = dataStore.filterScopes;
@@ -1439,8 +1425,7 @@ define([
          */
         let showInfoSignatureOverlays = payload => {
             let showInfoSignatureOverlaysExecutor = resolve => {
-                let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
-                promiseStore.then(dataStore => {
+                Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
                     if(dataStore && dataStore.mapSignatureOverlays){
                         MapOverlay.showInfoSignatureOverlays($(payload.data.mapConfig.map.getContainer()));
                     }
@@ -1625,7 +1610,6 @@ define([
             title: 'System alias',
             placement: 'top',
             onblur: 'submit',
-            container: 'body',
             toggle: 'manual',       // is triggered manually on dblClick
             showbuttons: false
         });
@@ -1751,7 +1735,7 @@ define([
             options.id = MapContextMenu.config.systemContextMenuId;
             options.selectCallback = systemActions;
 
-            let mapContainer = system.closest('.' + config.mapClass);
+            let mapContainer = system.closest('.' + Util.config.mapClass);
 
             // hidden menu actions
             if(system.data('locked') === true){
@@ -1795,8 +1779,7 @@ define([
             let mapContainer = $(map.getContainer());
 
             // active menu actions
-            let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id'));
-            promiseStore.then(dataStore => {
+            Util.getLocalStore('map').getItem(mapContainer.data('id')).then(dataStore => {
                 if(dataStore && dataStore.filterScopes){
                     options.active = dataStore.filterScopes.map(scope => 'filter_' + scope);
                 }
@@ -2005,10 +1988,9 @@ define([
         let systemTooltipOptions = {
             toggle: 'tooltip',
             placement: 'right',
-            container: 'body',
             viewport: system.id
         };
-        system.find('.fas').tooltip(systemTooltipOptions);
+        //system.find('.fas').tooltip(systemTooltipOptions);
 
         // system click events ========================================================================================
         let double = function(e){
@@ -2316,9 +2298,9 @@ define([
 
                 // store new zoom level in IndexDB
                 if(zoom === 1){
-                    MapUtil.deleteLocalData('map', mapId, 'mapZoom');
+                    Util.getLocalStore('map').removeItem(`${mapId}.mapZoom`);
                 }else{
-                    MapUtil.storeLocalData('map', mapId, 'mapZoom', zoom);
+                    Util.getLocalStore('map').setItem(`${mapId}.mapZoom`, zoom);
                 }
             });
 
@@ -2406,7 +2388,7 @@ define([
             e.stopPropagation();
 
             // make sure map is clicked and NOT a connection
-            if($(e.target).hasClass(config.mapClass)){
+            if($(e.target).hasClass(Util.config.mapClass)){
                 getContextMenuConfig(map).then(payload => {
                     let context = {
                         component: map
@@ -2532,6 +2514,20 @@ define([
             selector: '.' + config.systemClass + ' .' + config.systemHeadExpandClass
         });
 
+        mapContainer.hoverIntent({
+            over: function(e){
+                $(this).tooltip({
+                    trigger: 'manual',
+                    placement: 'right',
+                    viewport: this.closest(`.${config.systemClass}`)
+                }).tooltip('show');
+            },
+            out: function(e){
+                $(this).tooltip('destroy');
+            },
+            selector: `.${config.systemClass} .fas[title]`
+        });
+
         // system "active users" popover ------------------------------------------------------------------------------
         mapContainer.hoverIntent({
             over: function(e){
@@ -2611,8 +2607,7 @@ define([
             // get map menu config options
             let mapOption = mapOptions[data.option];
 
-            let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id'));
-            promiseStore.then(function(dataStore){
+            Util.getLocalStore('map').getItem(mapContainer.data('id')).then(function(dataStore){
                 let notificationText = 'disabled';
                 let button = $('#' + this.mapOption.buttonId);
                 let dataExists = false;
@@ -2643,7 +2638,7 @@ define([
                     MapOverlayUtil.getMapOverlay(this.mapContainer, 'info').updateOverlayIcon(this.data.option, 'hide');
 
                     // delete map option
-                    MapUtil.deleteLocalData('map', this.mapContainer.data('id'), this.data.option);
+                    Util.getLocalStore('map').removeItem(`${this.mapContainer.data('id')}.${this.data.option}`);
                 }else{
                     // toggle button class
                     button.addClass('active');
@@ -2662,7 +2657,7 @@ define([
                     MapOverlayUtil.getMapOverlay(this.mapContainer, 'info').updateOverlayIcon(this.data.option, 'show');
 
                     // store map option
-                    MapUtil.storeLocalData('map', this.mapContainer.data('id'), this.data.option, 1);
+                    Util.getLocalStore('map').setItem(`${this.mapContainer.data('id')}.${this.data.option}`, 1);
 
                     notificationText = 'enabled';
                 }
@@ -2701,8 +2696,8 @@ define([
                 }
 
                 if(select){
-                    let mapWrapper = mapContainer.closest('.' + config.mapWrapperClass);
-                    Scrollbar.scrollToCenter(mapWrapper, system);
+                    let areaMap = mapContainer.closest('.' + Util.getMapTabContentAreaClass('map'));
+                    Scrollbar.scrollToCenter(areaMap, system);
                     // select system
                     MapUtil.showSystemInfo(map, system);
                 }
@@ -3135,12 +3130,12 @@ define([
 
     /**
      * load OR updates system map
-     * @param tabContentElement  parent element where the map will be loaded
+     * @param areaMap  parent element where the map will be loaded
      * @param mapConfig
      * @param options
      * @returns {Promise<any>}
      */
-    let loadMap = (tabContentElement, mapConfig, options) => {
+    let loadMap = (areaMap, mapConfig, options) => {
 
         /**
          * load map promise
@@ -3155,7 +3150,7 @@ define([
 
                 if(mapConfig.map.getContainer() === undefined){
                     // map not loaded -> create & update
-                    newMapElement(tabContentElement, mapConfig)
+                    newMapElement(areaMap, mapConfig)
                         .then(payload => updateMap(payload.data.mapConfig))
                         .then(payload => resolve(payload));
                 }else{
@@ -3172,14 +3167,14 @@ define([
 
     /**
      * init scrollbar for Map element
-     * @param mapWrapper
+     * @param areaMap
      */
-    let initMapScrollbar = mapWrapper => {
-        let mapElement = mapWrapper.find('.' + config.mapClass);
+    let initMapScrollbar = areaMap => {
+        let mapElement = areaMap.find('.' + Util.config.mapClass);
         let mapId = mapElement.data('id');
 
         let dragSelect;
-        Scrollbar.initScrollbar(mapWrapper, {
+        Scrollbar.initScrollbar(areaMap, {
             callbacks: {
                 onInit: function(){
                     let scrollWrapper = this;
@@ -3215,7 +3210,7 @@ define([
                     let animationFrameId = 0;
 
                     let toggleDragScroll = active => {
-                        mapElement.toggleClass('disabled', active).toggleClass(' pf-map-move', active);
+                        mapElement.toggleClass('disabled', active).toggleClass('pf-map-move', active);
                     };
 
                     let stopDragScroll = () => {
@@ -3303,7 +3298,7 @@ define([
                     mapElement.attr('data-scroll-top', this.mcs.top);
 
                     // store new map scrollOffset -> localDB
-                    MapUtil.storeLocalData('map', mapId, 'scrollOffset', {
+                    Util.getLocalStore('map').setItem(`${mapId}.scrollOffset`, {
                         x: Math.abs(this.mcs.left),
                         y: Math.abs(this.mcs.top)
                     });
@@ -3326,8 +3321,8 @@ define([
         // ------------------------------------------------------------------------------------------------------------
         // add map overlays after scrollbar is initialized
         // because of its absolute position
-        mapWrapper.initMapOverlays();
-        mapWrapper.initLocalOverlay(mapId);
+        areaMap.initMapOverlays();
+        areaMap.initLocalOverlay(mapId);
     };
 
     return {

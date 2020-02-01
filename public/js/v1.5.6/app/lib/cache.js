@@ -127,7 +127,7 @@ define([], () => {
 
         constructor(config){
             this.config = Object.assign({},{
-                name:       'Default',          // custom name for identification
+                name:       'Default',          // custom unique name for identification
                 ttl:        3600,               // default ttl for cache entries
                 maxSize:    600,                // max cache entries
                 bufferSize: 10,                 // cache entry count in percent to be removed if maxSize reached

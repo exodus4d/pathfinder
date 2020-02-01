@@ -32,3 +32,11 @@ cache_path = '.sass-cache'
 # preferred_syntax = :sass
 # and then run:
 # sass-convert -R --from scss --to sass sass scss && rm -rf sass && mv scss sass
+
+# custom SASS functions
+module Sass::Script::Functions
+    def currentYear()
+        # return Sass::Script::String.new(Time.now.to_s)
+        return Sass::Script::String.new(Time.now.year.to_s)
+    end
+end

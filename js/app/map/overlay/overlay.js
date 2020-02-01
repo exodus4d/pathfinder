@@ -17,7 +17,7 @@ define([
      * @returns {*}
      */
     let getMapObjectFromOverlayIcon = overlayIcon => {
-        return MapUtil.getMapInstance(Util.getMapElementFromOverlay(overlayIcon).data('id'));
+        return MapUtil.getMapInstance(MapOverlayUtil.getMapElementFromOverlay(overlayIcon).data('id'));
     };
 
     /**
@@ -323,7 +323,7 @@ define([
             iconClass: ['fas', 'fa-fw', 'fa-filter'],
             onClick: function(e){
                 // clear all filter
-                let mapElement = Util.getMapElementFromOverlay(this);
+                let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                 let map = getMapObjectFromOverlayIcon(this);
 
                 MapUtil.storeLocalData('map', mapElement.data('id'), 'filterScopes', []);
@@ -349,7 +349,7 @@ define([
             iconClass: ['fas', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
-                    let mapElement = Util.getMapElementFromOverlay(this);
+                    let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                     mapElement.find('.' + MapOverlayUtil.config.systemHeadClass).each(function(){
                         let systemHead = $(this);
                         // init popover if not already exists
@@ -373,7 +373,7 @@ define([
                     });
                 },
                 out: function(e){
-                    let mapElement = Util.getMapElementFromOverlay(this);
+                    let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                     mapElement.find('.' + MapOverlayUtil.config.systemHeadClass).popover('hide');
                 }
             }
@@ -556,7 +556,7 @@ define([
                     duration: Init.animationSpeed.mapOverlay,
                     complete: function(){
                         counterChart.data('interval', false);
-                        Util.getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
+                        MapOverlayUtil.getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
                     }
                 });
             }
