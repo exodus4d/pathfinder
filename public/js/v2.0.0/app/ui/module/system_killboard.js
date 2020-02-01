@@ -205,7 +205,7 @@ define([
                             this.showKills(this._config.chunkCountKills);
                         }else{
                             // no kills found
-                            this.moduleElement.append(
+                            this._bodyEl.append(
                                 this.newLabelElement('No kills found within the last 24h', ['label-success'])
                             );
                         }

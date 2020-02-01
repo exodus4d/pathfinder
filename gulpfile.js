@@ -94,7 +94,9 @@ let trackTable = {
 let uglifyJsOptions = {
     warnings: true,
     toplevel: false,
-    ecma: 8
+    ecma: 8,
+    nameCache: {},          // cache mangled variable and property names across multiple invocations of minify()
+    keep_classnames: true   // pass true to prevent discarding or mangling of class names.
 };
 
 // Sourcemaps options

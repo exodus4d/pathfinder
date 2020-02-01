@@ -234,14 +234,23 @@ $mapModuleGridRowMinHeight: 38px;
 
     &-a {
       grid-area: area1;
+      display: grid;
+      grid-gap: 10px;
+      grid-auto-rows: max-content;
     }
 
     &-b {
       grid-area: area2;
+      display: grid;
+      grid-gap: 10px;
+      grid-auto-rows: max-content;
     }
 
     &-c {
       grid-area: area3;
+      display: grid;
+      grid-gap: 10px;
+      grid-auto-rows: max-content;
     }
   }
 }
@@ -252,14 +261,11 @@ $mapModuleGridRowMinHeight: 38px;
   background: rgba($gray, 0.27);
   padding: 10px;
   width: 100%;
-  will-change: height, transform, opacity;
   overflow: hidden;
   @include border-radius(5px);
   border-top-left-radius: 0;
-
-  &:not(:last-child) {
-    margin-bottom: 10px;
-  }
+  opacity: 0; // animated by JS
+  will-change: opacity, transform, height;
 
   &:before {
     content: '';
@@ -272,7 +278,7 @@ $mapModuleGridRowMinHeight: 38px;
     cursor: row-resize;
   }
 
-  .label {
+  .label:not(:last-child) {
     margin-bottom: 10px;
   }
 
@@ -316,7 +322,6 @@ $mapModuleGridRowMinHeight: 38px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 10px;
     min-height: inherit;
 
     &:hover {

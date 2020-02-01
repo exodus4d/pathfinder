@@ -349,7 +349,8 @@ define([
                 // show animation -------------------------------------------------------------------------------------
                 $(moduleElement).velocity({
                     opacity: [1, 0],
-                    translateY: [0, +20]
+                    translateY: [0, +20],
+                    translateZ: 0 // Force HA by animating a 3D property
                 }, {
                     duration: Init.animationSpeed.mapModule,
                     easing: 'easeOutSine',

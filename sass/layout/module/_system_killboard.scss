@@ -8,7 +8,7 @@
   }
 
   .pf-system-killboard-list {
-    padding-bottom: 5px;
+    margin-bottom: 0; // overwrite default
 
     & > li {
       padding-left: 0;
@@ -187,6 +187,6 @@
   }
 
   .pf-module-control-area {
-    margin-bottom: 0;
+    margin-top: 15px;
   }
 }
