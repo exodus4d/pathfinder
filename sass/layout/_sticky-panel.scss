@@ -23,19 +23,19 @@
     margin-top: 10px;
   }
 
-  &--top{
+  &:top{
     top: 50px;
   }
 
-  &--bottom{
+  &:bottom{
     bottom: 10px;
   }
 
-  &--left{
+  &:left{
     left: 10px;
   }
 
-  &--right{
+  &:right{
     right: 10px;
   }
 }

@@ -14,8 +14,10 @@ let gzip                = require('gulp-gzip');
 let brotli              = require('gulp-brotli');
 let uglifyjs            = require('uglify-es');
 let composer            = require('gulp-uglify/composer');
-let compass             = require('gulp-compass');
+let sass                = require('gulp-sass');
+var autoprefixer        = require('gulp-autoprefixer');
 let cleanCSS            = require('gulp-clean-css');
+let uglifyCSS           = require('gulp-uglifycss');
 let bytediff            = require('gulp-bytediff');
 let debug               = require('gulp-debug');
 let notifier            = require('node-notifier');
@@ -188,8 +190,7 @@ let brotliOptions = {
     skipLarger: true                    // use orig. files in case of *.br size > orig. size
 };
 
-let compassOptions = {
-    config_file: './config.rb',
+let sassOptions = {
     css: 'public/css/' + CONF.TAG,      // #VERSION# will be replaced with version tag
     sass: 'sass',
     time: true,                         // show execution time
@@ -664,18 +665,15 @@ gulp.task('task:renameJsDest', () => {
 });
 
 /**
- * build CSS rom SASS files (Compass)
+ * build CSS from SASS files (Compass)
  */
 gulp.task('task:sass', () => {
-    compassOptions.sourcemap = CONF.CSS.SOURCEMAPS;
-
-    return gulp.src( './sass/**/*.scss')
-        .pipe(compass(compassOptions))
-        .pipe(bytediff.start())
-        .pipe(bytediff.stop(data => {
-            trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
-            return colors.green('Build CSS file "' + data.fileName + '"');
-        }))
+    return gulp.src( 'sass/**/*.scss')
+        .pipe(sourcemaps.init())
+        .pipe(sass().on('error', sass.logError))
+        .pipe(autoprefixer())
+        .pipe(uglifyCSS())
+        .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG));
 });
 

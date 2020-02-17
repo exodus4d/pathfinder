@@ -57,3 +57,6 @@ package-lock.json
 /public/js/vX.X.X/
 /vendor/
 /history/
+/nbproject/private/
+/public/css/
+/public/js/

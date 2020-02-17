@@ -8,10 +8,8 @@
  * Copyright 2015 - 2018, Exodus 4D - Mark Friedrich
  *
  */
-
-@import "compass";
-@import "compass/reset";
-@import "compass/css3";
+// Compass Replacement Libraries 
+@import "../node_modules/compass-mixins/lib/compass";
 
 // Core variables and mixins
 @import "colors";

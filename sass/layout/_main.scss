@@ -1885,11 +1885,11 @@ code {
     @include transition( border-color 0.15s ease-out );
     will-change: border-color;
 
-    &.--left{
+    &:left{
       margin-right: 3px;
     }
 
-    &.--right{
+    &:right{
       margin-left: 8px;
     }
   }
