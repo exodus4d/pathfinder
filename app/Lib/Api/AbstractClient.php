@@ -298,8 +298,8 @@ abstract class AbstractClient extends \Prefab {
     public function __call(string $name, array $arguments = []){
         $return = [];
         if(is_object($this->client)){
-            if( method_exists($this->client, $name) ){
-                $return  = call_user_func_array([$this->client, $name], $arguments);
+            if(method_exists($this->client, $name)){
+                $return = call_user_func_array([$this->client, $name], $arguments);
             }else{
                 $errorMsg = $this->getMissingMethodError(get_class($this->client), $name);
                 $this->getLogger('ERROR')->write($errorMsg);
@@ -336,18 +336,20 @@ abstract class AbstractClient extends \Prefab {
             $client->setNewLog($this->newLog());
             $client->setIsLoggable($this->isLoggable($f3));
 
-            $client->setLogStats(true);                    // add cURL stats (e.g. transferTime) to logged requests
-            $client->setLogCache(true);                   // add cache info (e.g. from cached) to logged requests
-            //$client->setLogAllStatus(true);                     // log all requests regardless of response HTTP status code
-            $client->setLogFile('esi_requests');//
+            $client->setLogStats(true);                        // add cURL stats (e.g. transferTime) to loggable requests
+            $client->setLogCache(true);                       // add cache info (e.g. from cached) to loggable requests
+            $client->setLogAllStatus(false);                 // log all requests regardless of response HTTP status code
+            $client->setLogRequestHeaders(false);       // add request HTTP headers to loggable requests
+            $client->setLogResponseHeaders(false);      // add response HTTP headers to loggable requests
+            $client->setLogFile('esi_requests');
 
             $client->setRetryLogFile('esi_retry_requests');
 
             $client->setCacheDebug(true);
             $client->setCachePool($this->getCachePool($f3));
 
-            // use local proxy server for debugging requests
-            //$client->setProxy('127.0.0.1:8888');
+
+            //$client->setProxy('127.0.0.1:8888');             // use local proxy server for debugging requests
 
             // disable SSL certificate verification -> allow proxy to decode(view) request
             //$client->setVerify(false);

@@ -107,7 +107,7 @@ define([
                     updateDateDiff(element, date, round);
                 }
             };
-            Cron.set(counterTask);
+            counterTask.start();
 
             element.attr(config.counterTaskAttr, taskName);
         }
@@ -138,7 +138,7 @@ define([
         counterTask.task = timer => {
             tableApi.cells(null, columnSelector).every(cellUpdate);
         };
-        Cron.set(counterTask);
+        counterTask.start();
 
         tableElement.attr(config.counterTaskAttr, taskName);
     };

@@ -22,7 +22,7 @@ class Universe extends Controller\Controller {
         $regionsWhitelist = [
             10000002 // The Forge (13 constellations -> 93 systems)
         ];
-        $regionIds = $f3->ccpClient()->getUniverseRegions();
+        $regionIds = $f3->ccpClient()->send('getUniverseRegions');
         $regionIds = array_intersect($regionsWhitelist, $regionIds);
 
         $region = Model\Universe\AbstractUniverseModel::getNew('RegionModel');
@@ -43,7 +43,7 @@ class Universe extends Controller\Controller {
         $constellationsWhitelist = [
             20000014 // Mal (11 systems)
         ];
-        $constellationIds = $f3->ccpClient()->getUniverseConstellations();
+        $constellationIds = $f3->ccpClient()->send('getUniverseConstellations');
         $constellationIds = array_intersect($constellationsWhitelist, $constellationIds);
         $constellation = Model\Universe\AbstractUniverseModel::getNew('ConstellationModel');
         foreach($constellationIds as $constellationId){
@@ -306,13 +306,13 @@ class Universe extends Controller\Controller {
         $f3 = \Base::instance();
         $universeNameData = [];
         if( !empty($categories) && !empty($search)){
-            $universeIds = $f3->ccpClient()->search($categories, $search, $strict);
+            $universeIds = $f3->ccpClient()->send('search', $categories, $search, $strict);
             if(isset($universeIds['error'])){
                 // ESI error
                 $universeNameData = $universeIds;
             }elseif( !empty($universeIds) ){
                 $universeIds = Util::arrayFlattenByValue($universeIds);
-                $universeNameData = $f3->ccpClient()->getUniverseNamesData($universeIds);
+                $universeNameData = $f3->ccpClient()->send('getUniverseNames', $universeIds);
             }
         }
         return $universeNameData;

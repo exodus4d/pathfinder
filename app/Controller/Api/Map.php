@@ -179,7 +179,8 @@ class Map extends Controller\AccessController {
                 'zKillboard'            => Config::getPathfinderData('api.z_killboard'),
                 'eveeye'                => Config::getPathfinderData('api.eveeye'),
                 'dotlan'                => Config::getPathfinderData('api.dotlan'),
-                'anoik'                 => Config::getPathfinderData('api.anoik')
+                'anoik'                 => Config::getPathfinderData('api.anoik'),
+                'eveScout'              => Config::getPathfinderData('api.eve_scout')
             ];
 
             // get Plugin config --------------------------------------------------------------------------------------

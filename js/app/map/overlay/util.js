@@ -84,22 +84,32 @@ define([
     /**
      * get the map counter chart from overlay
      * @param element
-     * @returns {jQuery}
+     * @returns {Element}
      */
-    let getMapCounter = element => $(element).find('.' + Init.classes.pieChart.pieChartMapCounterClass);
+    let getMapCounter = element => element.querySelector(`.${Init.classes.pieChart.pieChartMapCounterClass}`);
 
     /**
-     * get interval value from map timer overlay
-     * @param element
-     * @returns {*}
+     * if there is an "active" (connected) counter task
+     * -> lock overlay
+     * @param {HTMLElement} element
+     * @returns {boolean}
      */
-    let getMapOverlayInterval = element => getMapCounter(getMapOverlay(element, 'timer')).data('interval');
+    let isMapCounterOverlayActive = element => {
+        let mapOverlay = getMapOverlay(element, 'timer');
+        if(mapOverlay){
+            let mapCounter = getMapCounter(mapOverlay[0]);
+            if(mapCounter && mapCounter.getData('counterTask')){
+                return mapCounter.getData('counterTask').isConnected();
+            }
+        }
+        return false;
+    };
 
     return {
         config: config,
         getMapOverlay: getMapOverlay,
         getMapElementFromOverlay: getMapElementFromOverlay,
         getMapCounter: getMapCounter,
-        getMapOverlayInterval: getMapOverlayInterval
+        isMapCounterOverlayActive: isMapCounterOverlayActive
     };
 });

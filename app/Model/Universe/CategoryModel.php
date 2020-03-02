@@ -178,14 +178,14 @@ class CategoryModel extends AbstractUniverseModel {
      * @return array
      */
     public static function getUniverseCategoryData(int $id) : array {
-        return self::getF3()->ccpClient()->getUniverseCategoryData($id);
+        return self::getF3()->ccpClient()->send('getUniverseCategory', $id);
     }
 
     /**
      * @return array
      */
     public static function getUniverseCategories() : array {
-        return self::getF3()->ccpClient()->getUniverseCategories();
+        return self::getF3()->ccpClient()->send('getUniverseCategories');
     }
 
     /**

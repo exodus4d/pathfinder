@@ -93,10 +93,16 @@ class Connection extends AbstractRestController {
                     $connection->mapId = $map;
                     $connection->source = $source;
                     $connection->target = $target;
-                    $connection->copyfrom($connectionData, ['scope', 'type']);
 
-                    // change the default type for the new connection
-                    $connection->setDefaultTypeData();
+                    // if scope + type data send -> use them ...
+                    if($requestData['scope'] && !empty($requestData['type'])){
+                        $connection->copyfrom($requestData, ['scope', 'type']);
+                    }
+
+                    // ... set/change default scope + type
+                    if(!$requestData['disableAutoScope']){
+                        $connection->setAutoScopeAndType();
+                    }
 
                     if($connection->save($activeCharacter)){
                         $connectionData = $connection->getData();

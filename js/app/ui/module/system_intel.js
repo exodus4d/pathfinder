@@ -42,18 +42,16 @@ define([
          * @returns {*}
          */
         getDataTableInstance(mapId, systemId, tableType){
-            return Util.getDataTableInstance(this._config.intelTableId, mapId, systemId, tableType);
+            return BaseModule.Util.getDataTableInstance(this._config.intelTableId, mapId, systemId, tableType);
         }
 
         /**
          * get dataTable id
-         * @param mapId
-         * @param systemId
-         * @param tableType
+         * @param {...string} parts  e.g. 'tableType', 'mapId', 'systemId'
          * @returns {string}
          */
-        getTableId(tableType, mapId, systemId){
-            return Util.getTableId(this._config.intelTableId, tableType, mapId, systemId);
+        getTableId(...parts){
+            return BaseModule.Util.getTableId(this._config.intelTableId, ...parts);
         }
 
         /**
@@ -63,7 +61,7 @@ define([
          * @returns {string}
          */
         getRowId(tableType, id){
-            return Util.getTableRowId(this._config.intelTableRowIdPrefix, tableType, id);
+            return BaseModule.Util.getTableRowId(this._config.intelTableRowIdPrefix, tableType, id);
         }
 
         /**
@@ -73,7 +71,7 @@ define([
          * @returns {*}
          */
         getRowById(tableApi, id){
-            return tableApi.rows().ids().toArray().find(rowId => rowId === this.getRowId(Util.getObjVal(this.getTableMetaData(tableApi), 'type'), id));
+            return tableApi.rows().ids().toArray().find(rowId => rowId === this.getRowId(BaseModule.Util.getObjVal(this.getTableMetaData(tableApi), 'type'), id));
         }
 
         /**
@@ -84,7 +82,6 @@ define([
         getTableMetaData(tableApi){
             return tableApi ? tableApi.init().pfMeta : null;
         }
-
 
         /**
          * vormat roman numeric string to int
@@ -331,7 +328,7 @@ define([
                                 $(cell).find('i').tooltip();
                             }else{
                                 let confirmationSettings = {
-                                    title: 'delete structure',
+                                    title: '---',
                                     template: Util.getConfirmationTemplate(null, {
                                         size: 'small',
                                         noTitle: true
@@ -397,7 +394,6 @@ define([
             // "Select" Datatables Plugin
             tableApiStructure.select();
 
-            // "Buttons" Datatables Plugin
             tableApiStructure.on('user-select', function(e, tableApi, type, cell, originalEvent){
                 let rowData = tableApi.row(cell.index().row).data();
                 if(Util.getObjVal(rowData, 'rowGroupData.id') !== corporationId){
@@ -405,6 +401,7 @@ define([
                 }
             });
 
+            // "Buttons" Datatables Plugin
             let buttons = new $.fn.dataTable.Buttons(tableApiStructure, {
                 dom: {
                     container: {
@@ -421,6 +418,18 @@ define([
                 },
                 name: 'tableTools',
                 buttons: [
+                    {
+                        name: 'add',
+                        className: 'fa-plus',
+                        titleAttr: 'add',
+                        attr:  {
+                            'data-toggle': 'tooltip',
+                            'data-html': true
+                        },
+                        action: function(e, tableApi, node, config){
+                            module.showStructureDialog(tableApi);
+                        }
+                    },
                     {
                         name: 'selectToggle',
                         className: ['fa-check-double'].join(' '),
@@ -443,18 +452,6 @@ define([
                                 tableApi.rows(indexes).select();
                                 node.addClass('active');
                             }
-                        }
-                    },
-                    {
-                        name: 'add',
-                        className: 'fa-plus',
-                        titleAttr: 'add',
-                        attr:  {
-                            'data-toggle': 'tooltip',
-                            'data-html': true
-                        },
-                        action: function(e, tableApi, node, config){
-                            module.showStructureDialog(tableApi);
                         }
                     },
                     {
@@ -1066,22 +1063,17 @@ define([
                 api.remove();
             }
 
-            if(
-                notificationCounter.added > 0 ||
-                notificationCounter.changed > 0 ||
-                notificationCounter.deleted > 0
-            ){
+            if(Math.max(...Object.values(notificationCounter))){
                 context.tableApi.draw();
             }
 
-            // show notification ------------------------------------------------------------------------------------------
-            let notification = '';
-            notification += notificationCounter.added > 0 ? notificationCounter.added + ' added<br>' : '';
-            notification += notificationCounter.changed > 0 ? notificationCounter.changed + ' changed<br>' : '';
-            notification += notificationCounter.deleted > 0 ? notificationCounter.deleted + ' deleted<br>' : '';
+            // show notification --------------------------------------------------------------------------------------
+            let notification = Object.keys(notificationCounter).reduce((acc, key) => {
+                return `${acc}${notificationCounter[key] ? `${notificationCounter[key]} ${key}<br>` : ''}`;
+            }, '');
 
             if(hadData && notification.length){
-                this.showNotify({title: 'Structures updated', text: notification, type: 'success'});
+                this.showNotify({title: 'Structures updated', text: notification, type: 'success', textTrusted: true});
             }
         }
 
@@ -1291,7 +1283,7 @@ define([
          */
         update(systemData){
             return super.update(systemData).then(systemData => new Promise(resolve => {
-                // update structure table data --------------------------------------------------------------------------------
+                // update structure table data ------------------------------------------------------------------------
                 let structureContext = {
                     tableApi: $(this.moduleElement.querySelector('.' + this._config.systemStructuresTableClass)).DataTable(),
                     removeMissing: true
@@ -1299,7 +1291,7 @@ define([
 
                 this.callbackUpdateTableRows(structureContext, Util.getObjVal(systemData, 'structures'));
 
-                // update station table data ----------------------------------------------------------------------------------
+                // update station table data --------------------------------------------------------------------------
                 let stationContext = {
                     tableApi: $(this.moduleElement.querySelector('.' + this._config.systemStationsTableClass)).DataTable(),
                     removeMissing: false

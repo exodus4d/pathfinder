@@ -150,7 +150,7 @@ class AllianceModel extends AbstractPathfinderModel {
         $loaded = parent::getById($id, $ttl, $isActive);
         if($this->isOutdated()){
             // request alliance data
-            $allianceData = self::getF3()->ccpClient()->getAllianceData($id);
+            $allianceData = self::getF3()->ccpClient()->send('getAlliance', $id);
             if(!empty($allianceData) && !isset($allianceData['error'])){
                 $this->copyfrom($allianceData, ['id', 'name', 'ticker']);
                 $this->save();

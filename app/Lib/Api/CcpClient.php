@@ -11,14 +11,13 @@ namespace Exodus4D\Pathfinder\Lib\Api;
 use Exodus4D\Pathfinder\Lib\Config;
 use Exodus4D\ESI\Client\ApiInterface;
 use Exodus4D\ESI\Client\Ccp\Esi\Esi as Client;
-use Exodus4D\ESI\Client\Ccp\Esi\EsiInterface as ClientInterface;
 
 /**
  * Class CcpClient
  * @package lib\api
  *
- * @method ClientInterface getServerStatus()
- * @method ClientInterface getStatusForRoutes(string $version)
+ * @method ApiInterface send(string $requestHandler, ...$handlerParams)
+ * @method ApiInterface sendBatch(array $configs)
  */
 class CcpClient extends AbstractClient {
 

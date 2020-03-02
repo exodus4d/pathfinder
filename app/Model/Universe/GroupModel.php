@@ -178,14 +178,14 @@ class GroupModel extends AbstractUniverseModel {
      * @return array
      */
     public static function getUniverseGroupData(int $id) : array {
-        return self::getF3()->ccpClient()->getUniverseGroupData($id);
+        return self::getF3()->ccpClient()->send('getUniverseGroup', $id);
     }
 
     /**
      * @return array
      */
     public static function getUniverseGroups() : array {
-        return self::getF3()->ccpClient()->getUniverseGroups();
+        return self::getF3()->ccpClient()->send('getUniverseGroups');
     }
 
     /**

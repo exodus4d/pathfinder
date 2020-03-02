@@ -186,23 +186,48 @@ define([
      * @param mapData
      * @param value
      * @param key
-     * @returns {any}
+     * @returns {{}|boolean}
      */
     let getSystemDataFromMapData = (mapData, value, key = 'id') => {
-        return mapData ? mapData.data.systems.find(system => system[key] === value) || false : false;
+        return (Util.getObjVal(mapData, `data.systems`) || [])
+            .find(systemData => systemData[key] === value) || false;
     };
 
     /**
-     * get system data by mapId system data selector
+     * get system data by mapId + system data selector
      * -> e.g. value = 2 and key = 'id'
      * -> e.g. value = 30002187 and key = 'systemId' => looks for 'Amarr' CCP systemId
      * @param mapId
      * @param value
      * @param key
-     * @returns {any}
+     * @returns {{}|boolean}
      */
     let getSystemData = (mapId, value, key = 'id') => {
         return getSystemDataFromMapData(Util.getCurrentMapData(mapId), value, key);
+    };
+
+    /**
+     * get connection data from mapData
+     * @see getConnectionData
+     * @param mapData
+     * @param value
+     * @param key
+     * @returns {{}|boolean}
+     */
+    let getConnectionDataFromMapData = (mapData, value, key = 'id') => {
+        return (Util.getObjVal(mapData, `data.connections`) || [])
+            .find(connectionData => connectionData[key] === value) || false;
+    };
+
+    /**
+     * get connection data by mapId + connection data selector
+     * @param mapId
+     * @param value
+     * @param key
+     * @returns {{}|boolean}
+     */
+    let getConnectionData = (mapId, value, key = 'id') => {
+        return getConnectionDataFromMapData(Util.getCurrentMapData(mapId), value, key);
     };
 
     /**
@@ -212,14 +237,7 @@ define([
      * @returns {string}
      */
     let getSystemTypeInfo = (systemTypeId, option) => {
-        let systemTypeInfo = '';
-        $.each(Init.systemType, function(prop, data){
-            if(systemTypeId === data.id){
-                systemTypeInfo = data[option];
-                return;
-            }
-        });
-        return systemTypeInfo;
+        return (Object.values(Init.systemType).find(data => data.id === systemTypeId) || {})[option] || '';
     };
 
     /**
@@ -229,11 +247,7 @@ define([
      * @returns {string}
      */
     let getEffectInfoForSystem = (effect, option) => {
-        let effectInfo = '';
-        if( Init.classes.systemEffects.hasOwnProperty(effect) ){
-            effectInfo = Init.classes.systemEffects[effect][option];
-        }
-        return effectInfo;
+        return Util.getObjVal(Init.classes.systemEffects, `${effect}.${option}`) || '';
     };
 
     /**
@@ -478,13 +492,16 @@ define([
     let getConnectionDataFromSignatures = (connection, connectionData) => {
         let signatureTypeData = {
             source: {
+                ids: [],
                 names: [],
                 labels: []
             },
             target: {
+                ids: [],
                 names: [],
                 labels: []
-            }
+            },
+            hash: false     // unique hash key build from all relevant signature for connection
         };
 
         if(
@@ -501,41 +518,50 @@ define([
             let sourceId            = sourceSystem.data('id');
             let targetId            = targetSystem.data('id');
 
+            // in case connection is currently "dragged" between systems, sourceId and/or targetId is undefined
+            if(!sourceId || !targetId){
+                return signatureTypeData;
+            }
+
+            let hash = [];
             // ... collect overlay/label data from signatures
             for(let signatureData of connectionData.signatures){
-                // ... typeId is required to get a valid name
-                if(signatureData.typeId > 0){
+                hash.push(Util.getObjVal(signatureData, 'updated.updated'));
 
-                    // whether "source" or "target" system is relevant for current connection and current signature...
-                    let tmpSystem = null;
-                    let tmpSystemType = null;
+                // whether "source" or "target" system is relevant for current connection and current signature...
+                let tmpSystem = null;
+                let tmpSystemType = null;
 
-                    if(signatureData.system.id === sourceId){
-                        // relates to "source" endpoint
-                        tmpSystemType = 'source';
-                        tmpSystem = sourceSystem;
-                    }else if(signatureData.system.id === targetId){
-                        // relates to "target" endpoint
-                        tmpSystemType = 'target';
-                        tmpSystem = targetSystem;
-                    }
+                if(signatureData.system.id === sourceId){
+                    // relates to "source" endpoint
+                    tmpSystemType = 'source';
+                    tmpSystem = sourceSystem;
+                }else if(signatureData.system.id === targetId){
+                    // relates to "target" endpoint
+                    tmpSystemType = 'target';
+                    tmpSystem = targetSystem;
+                }
 
-                    // ... get endpoint label for source || target system
-                    if(tmpSystem && tmpSystem){
-                        // ... get all  available signature type (wormholes) names
-                        let availableSigTypeNames = SystemSignatureModule.getSignatureTypeOptionsBySystem(tmpSystem, 5);
-                        let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
+                signatureTypeData[tmpSystemType].ids.push(signatureData.id);
+                signatureTypeData[tmpSystemType].names.push(signatureData.name.toUpperCase());
 
-                        if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){
-                            let label = flattenSigTypeNames[signatureData.typeId];
-                            // shorten label, just take the ingame name
-                            label = label.substr(0, label.indexOf(' '));
-                            signatureTypeData[tmpSystemType].names.push(signatureData.name);
-                            signatureTypeData[tmpSystemType].labels.push(label);
-                        }
+                // ... typeId is required to get a valid labels
+                // ... get endpoint label for source || target system
+                if(signatureData.typeId > 0 && tmpSystem && tmpSystem){
+                    // ... get all  available signature type (wormholes) names
+                    let availableSigTypeNames = SystemSignatureModule.getSignatureTypeOptionsBySystem(tmpSystem, 5);
+                    let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
+
+                    if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){
+                        let label = flattenSigTypeNames[signatureData.typeId];
+                        // shorten label, just take the ingame name
+                        label = label.substr(0, label.indexOf(' '));
+                        signatureTypeData[tmpSystemType].labels.push(label);
                     }
                 }
             }
+            // ... build unique hash
+            signatureTypeData.hash = hash.join().hashCode();
         }
 
         return signatureTypeData;
@@ -621,64 +647,66 @@ define([
      */
     let filterMapByScopes = (map, scopes) => {
         if(map){
-            map.batch(() => {
-                let mapElement = $(map.getContainer());
-                let allSystems = mapElement.getSystems();
-                let allConnections = map.getAllConnections();
+            map.setSuspendDrawing(true);
 
-                if(scopes && scopes.length){
-                    // filter connections -------------------------------------------------------------------------------------
-                    let visibleSystems = [];
-                    let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
+            let mapElement = $(map.getContainer());
+            let allSystems = mapElement.getSystems();
+            let allConnections = map.getAllConnections();
 
-                    for(let connection of allConnections){
-                        if(visibleConnections.indexOf(connection) >= 0){
-                            setConnectionVisible(connection, true);
-                            // source/target system should always be visible -> even if filter scope not matches system type
-                            if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
-                                visibleSystems.push(connection.endpoints[0].element);
-                            }
-                            if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
-                                visibleSystems.push(connection.endpoints[1].element);
-                            }
-                        }else{
-                            setConnectionVisible(connection, false);
-                        }
-                    }
+            if(scopes && scopes.length){
+                // filter connections -------------------------------------------------------------------------------------
+                let visibleSystems = [];
+                let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
 
-                    // filter systems -----------------------------------------------------------------------------------------
-                    let visibleTypeIds = [];
-                    if(scopes.indexOf('wh') >= 0){
-                        visibleTypeIds.push(1);
-                    }
-                    if(scopes.indexOf('abyssal') >= 0){
-                        visibleTypeIds.push(4);
-                    }
-
-                    for(let system of allSystems){
-                        if(
-                            visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
-                            visibleSystems.indexOf(system) >= 0
-                        ){
-                            setSystemVisible(system, map, true);
-                        }else{
-                            setSystemVisible(system, map, false);
-                        }
-                    }
-
-                    MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'show');
-                }else{
-                    // clear filter
-                    for(let system of allSystems){
-                        setSystemVisible(system, map, true);
-                    }
-                    for(let connection of allConnections){
+                for(let connection of allConnections){
+                    if(visibleConnections.indexOf(connection) >= 0){
                         setConnectionVisible(connection, true);
+                        // source/target system should always be visible -> even if filter scope not matches system type
+                        if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
+                            visibleSystems.push(connection.endpoints[0].element);
+                        }
+                        if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
+                            visibleSystems.push(connection.endpoints[1].element);
+                        }
+                    }else{
+                        setConnectionVisible(connection, false);
                     }
-
-                    MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'hide');
                 }
-            });
+
+                // filter systems -----------------------------------------------------------------------------------------
+                let visibleTypeIds = [];
+                if(scopes.indexOf('wh') >= 0){
+                    visibleTypeIds.push(1);
+                }
+                if(scopes.indexOf('abyssal') >= 0){
+                    visibleTypeIds.push(4);
+                }
+
+                for(let system of allSystems){
+                    if(
+                        visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
+                        visibleSystems.indexOf(system) >= 0
+                    ){
+                        setSystemVisible(system, map, true);
+                    }else{
+                        setSystemVisible(system, map, false);
+                    }
+                }
+
+                MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'show');
+            }else{
+                // clear filter
+                for(let system of allSystems){
+                    setSystemVisible(system, map, true);
+                }
+                for(let connection of allConnections){
+                    setConnectionVisible(connection, true);
+                }
+
+                MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'hide');
+            }
+
+            map.setSuspendDrawing(false, true);
         }
     };
 
@@ -792,17 +820,19 @@ define([
      */
     let setSystemActive = (map, system) => {
         // deselect all selected systems on map
-        let mapContainer = $( map.getContainer() );
-        mapContainer.find('.' + config.systemClass).removeClass(config.systemActiveClass);
+        let mapContainer = map.getContainer();
+        [...mapContainer.getElementsByClassName(config.systemClass)]
+            .forEach(systemEl =>
+                systemEl.classList.remove(config.systemActiveClass)
+            );
 
         // set current system active
         system.addClass(config.systemActiveClass);
 
-        // collect all required data from map module to update the info element
-        // store them global and assessable for each module
+        // collect all required systemData from map module -> cache
         let systemData = system.getSystemData();
         systemData.mapId = parseInt(system.attr('data-mapid')) || 0;
-        Util.setCurrentSystemData(systemData);
+        Util.setCurrentSystemData(systemData.mapId, systemData);
     };
 
     /**
@@ -913,20 +943,22 @@ define([
      * @param connections
      */
     let setConnectionsActive = (map, connections) => {
-        map.batch(() => {
-            // set all inactive
-            for(let connection of getConnectionsByType(map, 'state_active')){
-                if(!connections.includes(connection)){
-                    removeConnectionType(connection, 'state_active');
-                }
-            }
+        map.setSuspendDrawing(true);
 
-            for(let connection of connections){
-                if(!connection.hasType('state_active')){
-                    addConnectionType(connection, 'state_active');
-                }
+        // set all inactive
+        for(let connection of getConnectionsByType(map, 'state_active')){
+            if(!connections.includes(connection)){
+                removeConnectionType(connection, 'state_active');
             }
-        });
+        }
+
+        for(let connection of connections){
+            if(!connection.hasType('state_active')){
+                addConnectionType(connection, 'state_active');
+            }
+        }
+
+        map.setSuspendDrawing(false, true);
     };
 
     /**
@@ -969,19 +1001,36 @@ define([
     let toggleConnectionActive = (map, connections) => {
         let selectedConnections = [];
         let deselectedConnections = [];
-        map.batch(() => {
-            for(let connection of connections){
-                if(connection.hasType('state_active')){
-                    removeConnectionType(connection, 'state_active');
-                    deselectedConnections.push(connection);
-                }else{
-                    addConnectionType(connection, 'state_active');
-                    selectedConnections.push(connection);
-                }
+
+        map.setSuspendDrawing(true);
+
+        for(let connection of connections){
+            if(connection.hasType('state_active')){
+                removeConnectionType(connection, 'state_active');
+                deselectedConnections.push(connection);
+            }else{
+                addConnectionType(connection, 'state_active');
+                selectedConnections.push(connection);
             }
-        });
+        }
+
+        map.setSuspendDrawing(false, true);
 
         updateConnectionInfo(map, selectedConnections, deselectedConnections);
+    };
+
+    /**
+     * show global map info panels
+     * @param map
+     */
+    let showMapInfo = map => {
+        // get parent Tab Content and fire update event
+        let mapContainer = $(map.getContainer());
+
+        getTabContentElementByMapElement(mapContainer).trigger('pf:renderGlobalModules', {
+            mapId: parseInt(mapContainer.data('id')),
+            payload: null
+        });
     };
 
     /**
@@ -994,10 +1043,11 @@ define([
 
         // get parent Tab Content and fire update event
         let mapContainer = $(map.getContainer());
+        let mapId = parseInt(mapContainer.data('id')) || 0;
 
         getTabContentElementByMapElement(mapContainer).trigger('pf:renderSystemModules', {
-            mapId: parseInt(mapContainer.data('id')),
-            payload: Util.getCurrentSystemData()
+            mapId: mapId,
+            payload: Util.getCurrentSystemData(mapId)
         });
     };
 
@@ -1238,10 +1288,12 @@ define([
     let setUniqueConnectionType = (connection, type, types) => {
         type = types.includes(type) ? [type] : [];
 
-        connection._jsPlumb.instance.batch(() => {
-            removeConnectionTypes(connection, types.diff(type));
-            addConnectionTypes(connection, type);
-        });
+        connection._jsPlumb.instance.setSuspendDrawing(true);
+
+        removeConnectionTypes(connection, types.diff(type));
+        addConnectionTypes(connection, type);
+
+        connection._jsPlumb.instance.setSuspendDrawing(false, true);
     };
 
     /**
@@ -2075,6 +2127,40 @@ define([
     };
 
     /**
+     * calculate the x/y coordinates for a new system - relative to current map scroll offset
+     * @param mapContainer
+     * @param maxResults
+     * @returns {[{x: number, y: number}]}
+     */
+    let newSystemPositionsByMapOffset = (mapContainer, maxResults = 1) => {
+        let scrollPosition = {
+            x: Math.abs(parseInt(mapContainer.attr('data-scroll-left')) || 0),
+            y: Math.abs(parseInt(mapContainer.attr('data-scroll-top')) || 0)
+        };
+
+        // space new positions from map top (e.g. used for tooltips)
+        scrollPosition.y = Math.max(scrollPosition.y, 30);
+
+        // default position -> current map section top/left
+        let positions = [scrollPosition];
+
+        // check default position for overlapping
+        let dimensions = newSystemPositionByCoordinates(mapContainer, {
+            center: [scrollPosition.x, scrollPosition.y],
+            minX: scrollPosition.x,
+            minY: scrollPosition.y
+        }, maxResults, true);
+
+        if(dimensions.length){
+            positions = dimensions.map(dim => ({
+                x: parseInt(dim.left) || 0,
+                y: parseInt(dim.top) || 0
+            }));
+        }
+        return positions;
+    };
+
+    /**
      *
      * @param mapContainer
      */
@@ -2083,30 +2169,8 @@ define([
 
         if(mapContainer){
             let mapId = mapContainer.data('id');
-            let scrollPosition = {
-                x: Math.abs(parseInt(mapContainer.attr('data-scroll-left')) || 0),
-                y: Math.abs(parseInt(mapContainer.attr('data-scroll-top')) || 0)
-            };
 
-            // space new positions from map top (e.g. used for tooltips)
-            scrollPosition.y = Math.max(scrollPosition.y, 30);
-
-            // default position -> current map section top/left -------------------------------------------------------
-            positions.defaults = [scrollPosition];
-
-            // check default position for overlapping -----------------------------------------------------------------
-            let dimensions = newSystemPositionByCoordinates(mapContainer, {
-                center: [scrollPosition.x, scrollPosition.y],
-                minX: scrollPosition.x,
-                minY: scrollPosition.y
-            }, 2, true);
-
-            if(dimensions.length){
-                positions.defaults = dimensions.map(dim => ({
-                    x: parseInt(dim.left) || 0,
-                    y: parseInt(dim.top) || 0
-                }));
-            }
+            positions.defaults = newSystemPositionsByMapOffset(mapContainer, 2);
 
             // -> calc possible coordinates for new system that should be used based on current user location ---------
             let currentLocationData = Util.getCurrentLocationData();
@@ -2162,6 +2226,8 @@ define([
         getInfoForSystem: getInfoForSystem,
         getSystemDataFromMapData: getSystemDataFromMapData,
         getSystemData: getSystemData,
+        getConnectionDataFromMapData: getConnectionDataFromMapData,
+        getConnectionData: getConnectionData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         markAsChanged: markAsChanged,
@@ -2172,6 +2238,7 @@ define([
         toggleConnectionType: toggleConnectionType,
         toggleConnectionActive: toggleConnectionActive,
         setSystemActive: setSystemActive,
+        showMapInfo: showMapInfo,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         showFindRouteDialog: showFindRouteDialog,
@@ -2180,6 +2247,7 @@ define([
         getConnectionsByType: getConnectionsByType,
         getEndpointsDataByConnection: getEndpointsDataByConnection,
         getDataByConnection: getDataByConnection,
+        getDataByConnections: getDataByConnections,
         searchConnectionsBySystems: searchConnectionsBySystems,
         searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
         getConnectionInfo: getConnectionInfo,
@@ -2191,7 +2259,6 @@ define([
         setConnectionMassStatusType: setConnectionMassStatusType,
         setConnectionJumpMassType: setConnectionJumpMassType,
         getScopeInfoForConnection: getScopeInfoForConnection,
-        getDataByConnections: getDataByConnections,
         deleteConnections: deleteConnections,
         getConnectionDataFromSignatures: getConnectionDataFromSignatures,
         getEndpointOverlaySignatureLocation: getEndpointOverlaySignatureLocation,
@@ -2212,6 +2279,7 @@ define([
         checkRight: checkRight,
         newSystemPositionBySystem: newSystemPositionBySystem,
         newSystemPositionByCoordinates: newSystemPositionByCoordinates,
+        newSystemPositionsByMapOffset: newSystemPositionsByMapOffset,
         newSystemPositionsByMap: newSystemPositionsByMap,
         getMapDeeplinkUrl: getMapDeeplinkUrl
     };

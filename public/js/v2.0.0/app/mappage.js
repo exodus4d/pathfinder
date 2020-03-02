@@ -308,15 +308,14 @@ define([
 
 
     /**
-     * clear both main update timeouts
+     * clear both main update timeouts, and reset values
      * -> stop program from working -> shutdown
      */
     let clearUpdateTimeouts = () => {
-        for(let intervalKey in updateTimeouts){
-            if(updateTimeouts.hasOwnProperty(intervalKey)){
-                clearTimeout(updateTimeouts[intervalKey]);
-            }
-        }
+        Object.keys(updateTimeouts).forEach(intervalKey => {
+            clearTimeout(updateTimeouts[intervalKey]);
+            updateTimeouts[intervalKey] = 0;
+        });
     };
 
 
@@ -417,20 +416,20 @@ define([
 
         // IMPORTANT: Get user data for ONE map that is currently visible
         // On later releases this can be easy changed to "full update" all maps for a user
-        let mapIds = [];
+        let mapId;
         let newSystemPositions = null;
         let activeMap = Util.getMapModule().getActiveMap();
 
         if(activeMap){
-            mapIds = [activeMap.data('id')];
+            mapId = activeMap.data('id');
             newSystemPositions = MapUtil.newSystemPositionsByMap(activeMap);
         }
 
         let updatedUserData = {
-            mapIds: mapIds,
+            mapIds: mapId ? [mapId] : [],
             getMapUserData: Util.getSyncType() === 'webSocket' ? 0 : 1,
             mapTracking: locationToggle.is(':checked') ? 1 : 0, // location tracking
-            systemData: Util.getCurrentSystemData()
+            systemData: Util.getCurrentSystemData(mapId)
         };
 
         if(newSystemPositions){

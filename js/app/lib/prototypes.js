@@ -103,14 +103,9 @@ define([
      * @returns {number}
      */
     String.prototype.hashCode = function(){
-        let hash = 0, i, chr;
-        if(this.length === 0) return hash;
-        for(i = 0; i < this.length; i++){
-            chr   = this.charCodeAt(i);
-            hash  = ((hash << 5) - hash) + chr;
-            hash |= 0; // Convert to 32bit integer
-        }
-        return hash;
+        let hash = this.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+        // make positive
+        return (hash + 2147483647) + 1;
     };
 
     String.prototype.trimLeftChars = function(charList){

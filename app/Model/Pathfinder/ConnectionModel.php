@@ -130,7 +130,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
         $connectionData->source         = $this->source->id;
         $connectionData->target         = $this->target->id;
         $connectionData->scope          = $this->scope;
-        $connectionData->type           = $this->type;
+        $connectionData->type           = (array)json_decode($this->get('type', true));
         $connectionData->updated        = strtotime($this->updated);
         $connectionData->created        = strtotime($this->created);
         $connectionData->eolUpdated     = strtotime($this->eolUpdated);
@@ -219,10 +219,10 @@ class ConnectionModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * set default connection type by search route between endpoints
+     * set default connection scope + type by search route between endpoints
      * @throws \Exception
      */
-    public function setDefaultTypeData(){
+    public function setAutoScopeAndType(){
         if(
             is_object($this->source) &&
             is_object($this->target)
@@ -233,15 +233,16 @@ class ConnectionModel extends AbstractMapTrackingModel {
             ){
                 $this->scope = 'abyssal';
                 $this->type = ['abyssal'];
+            }elseif(
+                $this->source->isKspace() &&
+                $this->target->isKspace() &&
+                (new Route())->searchRoute($this->source->systemId, $this->target->systemId, 1)['routePossible']
+            ){
+                $this->scope = 'stargate';
+                $this->type = ['stargate'];
             }else{
-                $route = (new Route())->searchRoute($this->source->systemId, $this->target->systemId, 1);
-                if($route['routePossible']){
-                    $this->scope = 'stargate';
-                    $this->type = ['stargate'];
-                }else{
-                    $this->scope = 'wh';
-                    $this->type = ['wh_fresh'];
-                }
+                $this->scope = 'wh';
+                $this->type = ['wh_fresh'];
             }
         }
     }
@@ -294,7 +295,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
             !$this->scope ||
             empty($types)
         ){
-            $this->setDefaultTypeData();
+            $this->setAutoScopeAndType();
         }
 
         return $this->isValid() ? parent::beforeInsertEvent($self, $pkeys) : false;

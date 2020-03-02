@@ -80,7 +80,7 @@ class ConstellationModel extends AbstractUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient()->getUniverseConstellationData($id);
+        $data = self::getF3()->ccpClient()->send('getUniverseConstellation', $id);
         if(!empty($data)){
             /**
              * @var $region RegionModel
@@ -99,7 +99,7 @@ class ConstellationModel extends AbstractUniverseModel {
      */
     public function loadSystemsData(){
         if( !$this->dry() ){
-            $data = self::getF3()->ccpClient()->getUniverseConstellationData($this->_id);
+            $data = self::getF3()->ccpClient()->send('getUniverseConstellation', $this->_id);
             if(!empty($data)){
                 foreach((array)$data['systems'] as $systemId){
                     /**

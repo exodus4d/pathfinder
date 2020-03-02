@@ -215,7 +215,7 @@ class User extends Controller\Controller{
         if( $targetId = (int)$data['targetId']){
             $activeCharacter = $this->getCharacter();
 
-            $response =  $f3->ccpClient()->openWindow($targetId, $activeCharacter->getAccessToken());
+            $response =  $f3->ccpClient()->send('openWindow', $targetId, $activeCharacter->getAccessToken());
 
             if(empty($response)){
                 $return->targetId = $targetId;

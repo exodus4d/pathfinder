@@ -11,14 +11,13 @@ namespace Exodus4D\Pathfinder\Lib\Api;
 use Exodus4D\Pathfinder\Lib\Config;
 use Exodus4D\ESI\Client\ApiInterface;
 use Exodus4D\ESI\Client\GitHub\GitHub as Client;
-use Exodus4D\ESI\Client\GitHub\GitHubInterface as ClientInterface;
 
 /**
  * Class GitHubClient
  * @package lib\api
  *
- * @method ClientInterface getProjectReleases(string $projectName, int $count) : array
- * @method ClientInterface markdownToHtml(string $context, string $markdown) : string
+ * @method ApiInterface send(string $requestHandler, ...$handlerParams)
+ * @method ApiInterface sendBatch(array $configs)
  */
 class GitHubClient extends AbstractClient {
 

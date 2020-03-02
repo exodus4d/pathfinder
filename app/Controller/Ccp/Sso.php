@@ -390,7 +390,7 @@ class Sso extends Api\User{
         $accessData->refreshToken = null;
         $accessData->esiAccessTokenExpires = 0;
 
-        $authCodeRequestData = $this->getF3()->ssoClient()->getAccessData($this->getAuthorizationData(), $requestParams);
+        $authCodeRequestData = $this->getF3()->ssoClient()->send('getAccess', $this->getAuthorizationData(), $requestParams);
 
         if( !empty($authCodeRequestData) ){
             if( !empty($authCodeRequestData['accessToken']) ){
@@ -429,7 +429,7 @@ class Sso extends Api\User{
      * @return array
      */
     public function verifyCharacterData(string $accessToken) : array {
-        $characterData = $this->getF3()->ssoClient()->getVerifyCharacterData($accessToken);
+        $characterData = $this->getF3()->ssoClient()->send('getVerifyCharacter', $accessToken);
 
         if( !empty($characterData) ){
             // convert string with scopes to array
@@ -451,8 +451,7 @@ class Sso extends Api\User{
         $characterData = (object) [];
 
         if($characterId){
-            $characterDataBasic =  $this->getF3()->ccpClient()->getCharacterData($characterId);
-
+            $characterDataBasic = $this->getF3()->ccpClient()->send('getCharacter', $characterId);
             if( !empty($characterDataBasic) ){
                 // remove some "unwanted" data -> not relevant for Pathfinder
                 $characterData->character = array_filter($characterDataBasic, function($key){

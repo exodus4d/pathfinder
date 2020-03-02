@@ -292,7 +292,7 @@ class CorporationModel extends AbstractPathfinderModel {
             !empty($accessToken) &&
             !$this->isNPC
         ){
-            $response = self::getF3()->ccpClient()->getCorporationRoles($this->_id, $accessToken);
+            $response = self::getF3()->ccpClient()->send('getCorporationRoles', $this->_id, $accessToken);
             if( !empty($response['roles']) ){
                 $characterRolesData = (array)$response['roles'];
             }
@@ -356,10 +356,10 @@ class CorporationModel extends AbstractPathfinderModel {
         $loaded = parent::getById($id, $ttl, $isActive);
         if($this->isOutdated()){
             // request corporation data
-            $corporationData = self::getF3()->ccpClient()->getCorporationData($id);
+            $corporationData = self::getF3()->ccpClient()->send('getCorporation', $id);
             if(!empty($corporationData) && !isset($corporationData['error'])){
                 // check for NPC corporation
-                $corporationData['isNPC'] = self::getF3()->ccpClient()->isNpcCorporation($id);
+                $corporationData['isNPC'] = in_array($id, self::getF3()->ccpClient()->send('getNpcCorporations'));
 
                 $this->copyfrom($corporationData, ['id', 'name', 'ticker', 'memberCount', 'isNPC']);
                 $this->save();

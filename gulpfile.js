@@ -516,7 +516,7 @@ gulp.task('task:hintJS', () => {
  * concat/build JS files by modules
  */
 gulp.task('task:concatJS', () => {
-    let modules = ['login', 'mappage', 'setup', 'admin', 'PNotify.loader', 'datatables.loader'];
+    let modules = ['login', 'mappage', 'setup', 'admin', 'pnotify.loader', 'datatables.loader', 'summernote.loader'];
     let srcModules = ['./js/app/*(' + modules.join('|') + ').js'];
 
     return gulp.src(srcModules, {base: 'js'})

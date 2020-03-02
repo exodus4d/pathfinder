@@ -461,4 +461,3 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return PNotifyDesktop;
 });
-//# sourceMappingURL=PNotifyDesktop.js.map

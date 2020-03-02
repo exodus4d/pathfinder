@@ -491,7 +491,7 @@ class SystemModel extends AbstractUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient()->getUniverseSystemData($id);
+        $data = self::getF3()->ccpClient()->send('getUniverseSystem', $id);
 
         if(!empty($data)){
             /**
@@ -521,7 +521,7 @@ class SystemModel extends AbstractUniverseModel {
      */
     public function loadPlanetsData(){
         if($this->valid()){
-            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
+            $data = self::getF3()->ccpClient()->send('getUniverseSystem', $this->_id);
             if($data['planets']){
                 // planets are optional since ESI v4 (e.g. Abyssal systems)
                 foreach((array)$data['planets'] as $planetData){
@@ -542,7 +542,7 @@ class SystemModel extends AbstractUniverseModel {
      */
     public function loadStargatesData(){
         if($this->valid()){
-            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
+            $data = self::getF3()->ccpClient()->send('getUniverseSystem', $this->_id);
             if($data['stargates']){
                 foreach((array)$data['stargates'] as $stargateId){
                     /**
@@ -561,7 +561,7 @@ class SystemModel extends AbstractUniverseModel {
      */
     public function loadStationsData(){
         if($this->valid()){
-            $data = self::getF3()->ccpClient()->getUniverseSystemData($this->_id);
+            $data = self::getF3()->ccpClient()->send('getUniverseSystem', $this->_id);
             if($data['stations']){
                 foreach((array)$data['stations'] as $stationId){
                     /**

@@ -186,7 +186,7 @@ class Universe extends AbstractCron {
         switch($type){
             case 'system':
                 // load systems + dependencies (planets, star, types,...)
-                $ids = $f3->ccpClient()->getUniverseSystems();
+                $ids = $f3->ccpClient()->send('getUniverseSystems');
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     $model->loadById($id);
@@ -195,7 +195,7 @@ class Universe extends AbstractCron {
                 break;
             case 'stargate':
                 // load all stargates. Systems must be present first!
-                $ids = $f3->ccpClient()->getUniverseSystems();
+                $ids = $f3->ccpClient()->send('getUniverseSystems');
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     $model->loadById($id);
@@ -203,7 +203,7 @@ class Universe extends AbstractCron {
                 };
                 break;
             case 'station':
-                $ids = $f3->ccpClient()->getUniverseSystems();
+                $ids = $f3->ccpClient()->send('getUniverseSystems');
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     if($model->getById($id)){
@@ -216,7 +216,7 @@ class Universe extends AbstractCron {
                 break;
             case 'sovereignty':
                 // load sovereignty map data. Systems must be present first!
-                $sovData = $f3->ccpClient()->getSovereigntyMap();
+                $sovData = $f3->ccpClient()->send('getSovereigntyMap');
                 $ids = !empty($sovData = $sovData['map']) ? array_keys($sovData): [];
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id) use ($sovData) {
@@ -229,7 +229,7 @@ class Universe extends AbstractCron {
                 };
                 break;
             case 'faction_war_systems':
-                $fwSystems = $f3->ccpClient()->getFactionWarSystems();
+                $fwSystems = $f3->ccpClient()->send('getFactionWarSystems');
                 $ids = !empty($fwSystems = $fwSystems['systems']) ? array_keys($fwSystems): [];
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id) use ($fwSystems) {
@@ -243,7 +243,7 @@ class Universe extends AbstractCron {
                 break;
             case 'index_system':
                 // setup system index, Systems must be present first!
-                $ids = $f3->ccpClient()->getUniverseSystems();
+                $ids = $f3->ccpClient()->send('getUniverseSystems');
                 $modelClass = 'SystemModel';
                 $setupModel = function(Model\Universe\SystemModel &$model, int $id){
                     $model->getById($id); // no loadById() here! would take "forever" when system not exists and must be build up first...
@@ -310,8 +310,8 @@ class Universe extends AbstractCron {
          */
         $system = Model\Universe\AbstractUniverseModel::getNew('SystemModel');
 
-        $sovData = $f3->ccpClient()->getSovereigntyMap();
-        $fwSystems = $f3->ccpClient()->getFactionWarSystems();
+        $sovData = $f3->ccpClient()->send('getSovereigntyMap');
+        $fwSystems = $f3->ccpClient()->send('getFactionWarSystems');
         $fwSystems = $fwSystems['systems'];
         $ids = !empty($sovData = $sovData['map']) ? array_keys($sovData): [];
         sort($ids, SORT_NUMERIC);

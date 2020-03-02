@@ -792,7 +792,7 @@ class CharacterModel extends AbstractPathfinderModel {
      */
     public function updateCloneData(){
         if($accessToken = $this->getAccessToken()){
-            $clonesData = self::getF3()->ccpClient()->getCharacterClonesData($this->_id, $accessToken);
+            $clonesData = self::getF3()->ccpClient()->send('getCharacterClones', $this->_id, $accessToken);
             if(!isset($clonesData['error'])){
                 if(!empty($homeLocationData = $clonesData['home']['location'])){
                     // clone home location data
@@ -816,7 +816,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return array
      */
     protected function getOnlineData(string $accessToken) : array {
-        return self::getF3()->ccpClient()->getCharacterOnlineData($this->_id, $accessToken);
+        return self::getF3()->ccpClient()->send('getCharacterOnline', $this->_id, $accessToken);
     }
 
     /**
@@ -855,7 +855,7 @@ class CharacterModel extends AbstractPathfinderModel {
             // Try to pull data from API
             if($accessToken = $this->getAccessToken()){
                 if($this->isOnline($accessToken)){
-                    $locationData = self::getF3()->ccpClient()->getCharacterLocationData($this->_id, $accessToken);
+                    $locationData = self::getF3()->ccpClient()->send('getCharacterLocation', $this->_id, $accessToken);
 
                     if(!empty($locationData['system']['id'])){
                         // character is currently in-game
@@ -886,7 +886,7 @@ class CharacterModel extends AbstractPathfinderModel {
                         // get "more" data for systemId ---------------------------------------------------------------
                         if(!empty($lookupUniverseIds)){
                             // get "more" information for some Ids (e.g. name)
-                            $universeData = self::getF3()->ccpClient()->getUniverseNamesData($lookupUniverseIds);
+                            $universeData = self::getF3()->ccpClient()->send('getUniverseNames', $lookupUniverseIds);
 
                             if(!empty($universeData) && !isset($universeData['error'])){
                                 // We expect max ONE system AND/OR station data, not an array of e.g. systems
@@ -967,7 +967,7 @@ class CharacterModel extends AbstractPathfinderModel {
 
                         // check ship data for changes ----------------------------------------------------------------
                         if(!$deleteLog){
-                            $shipData = self::getF3()->ccpClient()->getCharacterShipData($this->_id, $accessToken);
+                            $shipData = self::getF3()->ccpClient()->send('getCharacterShip', $this->_id, $accessToken);
 
                             // IDs for "shipTypeId" that require more data
                             $lookupShipTypeId = 0;

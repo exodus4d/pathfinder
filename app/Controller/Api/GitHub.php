@@ -35,7 +35,7 @@ class GitHub extends Controller\Controller {
         $return->version->delta = null;
         $return->version->dev = false;
 
-        $releases = $f3->gitHubClient()->getProjectReleases('exodus4d/pathfinder', $releaseCount);
+        $releases = $f3->gitHubClient()->send('getProjectReleases', 'exodus4d/pathfinder', $releaseCount);
 
         foreach($releases as $key => &$release){
             // check version ------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ class GitHub extends Controller\Controller {
 
             // convert Markdown to HTML -> use either gitHub API (in oder to create abs, issue links)
             // -> or F3´s markdown as fallback
-            $html = $f3->gitHubClient()->markdownToHtml('exodus4d/pathfinder', $body);
+            $html = $f3->gitHubClient()->send('markdownToHtml', 'exodus4d/pathfinder', $body);
 
             if(!empty($html)){
                 $body = $html;

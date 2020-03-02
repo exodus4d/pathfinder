@@ -7,9 +7,8 @@ define([
     'app/init',
     'app/util',
     'module/base',
-    'app/lib/cache',
     'app/map/util'
-], ($, Init, Util, BaseModule, Cache, MapUtil) => {
+], ($, Init, Util, BaseModule, MapUtil) => {
     'use strict';
 
     let SystemKillboardModule = class SystemKillboardModule extends BaseModule {
@@ -99,7 +98,7 @@ define([
         getSystemKillsData(){
             // check for cached responses "short term cache"
             let cacheKey = SystemKillboardModule.getCacheKey('systemId', this._systemData.systemId);
-            let result = SystemKillboardModule.zkbCache.get(cacheKey);
+            let result = SystemKillboardModule.getCache('zkb').get(cacheKey);
             if(result){
                 // could also be an empty array!
                 return Promise.resolve(result);
@@ -125,7 +124,7 @@ define([
                             return Promise.reject(result);
                         }else{
                             // zkb result needs to be cached and becomes reduced on "load more"
-                            SystemKillboardModule.zkbCache.set(cacheKey, result);
+                            SystemKillboardModule.getCache('zkb').set(cacheKey, result);
                             return result;
                         }
                     }).then(result => resolve(result)).catch(e => {
@@ -186,15 +185,10 @@ define([
                             this._killboardEl = document.createElement('ul');
                             this._killboardEl.classList.add(this._config.systemKillboardListClass);
 
-                            let controlEl = document.createElement('div');
-                            controlEl.classList.add(Util.config.dynamicAreaClass, this._config.controlAreaClass, this._config.moduleHeadlineIconClass);
-                            controlEl.insertAdjacentHTML('beforeend', '&nbsp;&nbsp;load more');
-                            controlEl.prepend(this.newIconElement(['fa-sync']));
-
                             this._bodyEl.append(
                                 this._killboardLabelEl,
                                 this._killboardEl,
-                                controlEl
+                                this.newControlElement('load more', [this._config.moduleHeadlineIconClass])
                             );
 
                             // set a "local" copy of all indexes from cached response
@@ -228,7 +222,7 @@ define([
         showKills(chunkSize){
             if(chunkSize){
                 let cacheKey = SystemKillboardModule.getCacheKey('systemId', this._systemData.systemId);
-                let result = SystemKillboardModule.zkbCache.get(cacheKey);
+                let result = SystemKillboardModule.getCache('zkb').get(cacheKey);
 
                 if(
                     this._killboardEl.children.length < this._config.maxCountKillHistoric &&
@@ -263,7 +257,7 @@ define([
          */
         loadKillmailData(requestData, context, callback){
             let cacheKey = SystemKillboardModule.getCacheKey('killmail', requestData.killId);
-            let cacheItem = SystemKillboardModule.killmailCache.get(cacheKey);
+            let cacheItem = SystemKillboardModule.getCache('killmail').get(cacheKey);
             if(cacheItem){
                 // ... already cached -> show cache killmail
                 this[callback](cacheItem.zkb, cacheItem.killmailData, cacheItem.systemData, context.chunkSize)
@@ -275,7 +269,7 @@ define([
 
                 this.request(url).then(killmailData => {
                     let systemData = SystemKillboardModule.getSystemDataForCache(this._systemData);
-                    SystemKillboardModule.killmailCache.set(cacheKey, {zkb: context.zkb, killmailData: killmailData, systemData: systemData});
+                    SystemKillboardModule.getCache('killmail').set(cacheKey, {zkb: context.zkb, killmailData: killmailData, systemData: systemData});
 
                     this[callback](context.zkb, killmailData, systemData, context.chunkSize)
                         .then(payload => this.showKills(payload.data.chunkSize))
@@ -443,18 +437,6 @@ define([
                 url = BaseModule.Util.eveImageUrl(resourceType, resourceId, size);
             }
             return url;
-        }
-
-        /**
-         * @param text
-         * @param cls
-         * @returns {HTMLSpanElement}
-         */
-        newLabelElement(text, cls = []){
-            let labelEl = document.createElement('span');
-            labelEl.classList.add('label', 'center-block', ...cls);
-            labelEl.textContent = text || '';
-            return labelEl;
         }
 
         /**
@@ -668,7 +650,7 @@ define([
          */
         static getWsRelevantSystemsFromMaps(){
             let cacheKey = SystemKillboardModule.getCacheKey('tempSystemsData', 1);
-            let systemsData = SystemKillboardModule.zkbCache.get(cacheKey);
+            let systemsData = SystemKillboardModule.getCache('zkb').get(cacheKey);
 
             if(!systemsData){
                 // KB cache ist for all maps (not just the current one)
@@ -683,7 +665,7 @@ define([
                             ), {})
                     ), {});
 
-                SystemKillboardModule.zkbCache.set(cacheKey, systemsData);
+                SystemKillboardModule.getCache('zkb').set(cacheKey, systemsData);
             }
             return systemsData;
         }
@@ -705,7 +687,7 @@ define([
                 // system is on map! -> cache
                 systemData = BaseModule.Util.getObjVal(systemsData, String(killmailData.solar_system_id));
                 let cacheKey = SystemKillboardModule.getCacheKey('killmail', killmailData.killmail_id);
-                SystemKillboardModule.killmailCache.set(cacheKey, {
+                SystemKillboardModule.getCache('killmail').set(cacheKey, {
                     zkb: zkbData,
                     killmailData: killmailData,
                     systemData: systemData
@@ -800,19 +782,17 @@ define([
     SystemKillboardModule.label = 'Killboard';                                  // static module label (e.g. description)
     SystemKillboardModule.wsStatus = undefined;
     SystemKillboardModule.serverTime = BaseModule.Util.getServerTime();         // static Date() with current EVE server time
-    SystemKillboardModule.zkbCache = new Cache({                                // cache for "zKillboard" responses -> short term cache
-        name: 'zkb',
-        ttl: 60 * 3,
-        maxSize: 50,
-        debug: false
-    });
-    SystemKillboardModule.killmailCache = new Cache({                           // cache for "Killmail" data -> long term cache
-        name: 'ccpKillmails',
-        ttl: 60 * 30,
-        maxSize: 500,
-        debug: false
-    });
     SystemKillboardModule.wsSubscribtions = [];                                 // static container for all KB module instances (from multiple maps) for WS responses
+    SystemKillboardModule.cacheConfig = {
+        zkb: {                                                                  // cache for "zKillboard" responses -> short term cache
+            ttl: 60 * 3,
+            maxSize: 50
+        },
+        killmail: {                                                             // cache for "Killmail" data -> long term cache
+            ttl: 60 * 30,
+            maxSize: 500
+        }
+    };
 
     SystemKillboardModule.defaultConfig = {
         className: 'pf-system-killboard-module',                                // class for module
@@ -829,7 +809,6 @@ define([
         wsStatusWrapperClass: 'pf-system-killboard-wsStatusWrapper',            // class for WebSocket "status" wrapper
         wsStatusClass: 'pf-system-killboard-wsStatus',                          // class for WebSocket "status" headline
         labelRecentKillsClass: 'pf-system-killboard-label-recent',              // class for "recent kills" label
-        controlAreaClass: 'pf-module-control-area',                             // class for "control" areas
 
         minCountKills: 5,
         chunkCountKills: 5,

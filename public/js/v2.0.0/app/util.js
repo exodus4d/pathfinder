@@ -6,6 +6,7 @@ define([
     'app/init',
     'app/lib/prototypes',
     'app/lib/console',
+    'app/lib/cache',
     'app/lib/localStore',
     'conf/system_effect',
     'conf/signature_type',
@@ -20,7 +21,7 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Proto, Con, LocalStoreManager, SystemEffect, SignatureType, bootbox) => {
+], ($, Init, Proto, Con, Cache, LocalStoreManager, SystemEffect, SignatureType, bootbox) => {
 
     'use strict';
 
@@ -102,8 +103,17 @@ define([
         localStoreNames: ['default', 'character', 'map', 'module']              // Allowed name identifiers for DB names
     };
 
-    let stopTimerCache = {};                                                    // cache for stopwatch timer
+    let currentSystemDataCache = new Cache({
+        name:       'currentSystemData',
+        ttl:        -1,
+        maxSize:    20
+    });
 
+    // browser tab blink
+    let initialPageTitle = document.title;                                      // initial page title (cached)
+    let blinkTimer;                                                             // global blink timeout cache
+
+    let stopTimerCache = {};                                                    // cache for stopwatch timer
     let animationTimerCache = {};                                               // cache for table row animation timeout
 
     /*
@@ -402,22 +412,57 @@ define([
     $.fn.initMapUpdateCounter = function(){
         let counterChart = $(this);
 
-        counterChart.easyPieChart({
-            barColor: function(percent){
-                let color = '#568a89';
-                if(percent <= 30){
-                    color = '#d9534f';
-                }else if(percent <= 50){
-                    color = '#f0ad4e';
-                }
+        let gradient = [
+            [0, [217,83,79]],
+            [10, [217,83,79]],
+            [50, [240, 173, 78]],
+            [75, [79,158,79]],
+            [100, [86, 138, 137]]
+        ];
 
-                return color;
-            },
+        let gradientWidth = 500;
+
+        let getColor = percent => {
+            percent = percent || 1;
+            let colorRangeEnd = gradient.findIndex(value => percent <= value[0]);
+            let colorRange = [colorRangeEnd - 1, colorRangeEnd];
+
+            //Get the two closest colors
+            let colorFirst = gradient[colorRange[0]][1];
+            let colorSecond = gradient[colorRange[1]][1];
+
+            //Calculate ratio between the two closest colors
+            let colorFirstX = gradientWidth * (gradient[colorRange[0]][0] / 100);
+            let colorSecondX = gradientWidth * (gradient[colorRange[1]][0] / 100) - colorFirstX;
+            let weightX = gradientWidth * (percent / 100) - colorFirstX;
+            let weight = weightX / colorSecondX;
+
+            //Get the color with pickHex(thx, less.js's mix function!)
+            let result = pickHex(colorSecond, colorFirst, weight);
+            return `rgb(${result.join()})`;
+        };
+
+        let pickHex = (color1, color2, weight) => {
+            let w1 = weight;
+            let w2 = 1 - w1;
+            return [Math.round(color1[0] * w1 + color2[0] * w2),
+                Math.round(color1[1] * w1 + color2[1] * w2),
+                Math.round(color1[2] * w1 + color2[2] * w2)];
+        };
+
+        counterChart.easyPieChart({
+            barColor: percent => getColor(Number(Number(percent).toFixed(1))),
             trackColor: '#2b2b2b',
             size: 30,
             scaleColor: false,
             lineWidth: 2,
-            animate: 1000
+            animate: {
+                duration: 550,
+                enabled: true
+            },
+            easing: function (x, t, b, c, d) { // easeInOutSine - jQuery Easing
+                return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+            }
         });
     };
 
@@ -1173,6 +1218,39 @@ define([
     };
 
     /**
+     * get HTML for "delete connection" confirmation popover
+     * @returns {string}
+     */
+    let getConfirmationContent = checkOptions => {
+        let getChecklist = checkOptions => {
+            let html = '<form class="form-inline editableform popover-content-inner">';
+            html += '<div class="control-group form-group">';
+            html += '<div class="editable-input">';
+            html += '<div class="editable-checklist">';
+
+            for(let option of checkOptions){
+                html += '<div><label>';
+                html += '<input type="checkbox" name="' + option.name + '" value="' + option.value + '" ';
+                html += 'class="' + option.class + '" ' + (option.checked ? 'checked' : '') + '>';
+                html += '<span>' + option.label + '</span>';
+                html += '</label></div>';
+            }
+
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</form>';
+
+            return html;
+        };
+
+        let html = '';
+        html += getChecklist(checkOptions);
+
+        return html;
+    };
+
+    /**
      * convert XEditable Select <option> data into Select2 data format
      * -> "prepend" (empty) options get added, too
      * -> "metaData" can be used to pass custom data per <option>
@@ -1547,15 +1625,7 @@ define([
         let parts = {};
         let time1 = date1.getTime();
         let time2 = date2.getTime();
-        let diff  = 0;
-
-        if(
-            time1 >= 0 &&
-            time2 >= 0
-        ){
-            diff = (date2.getTime() - date1.getTime()) / 1000;
-        }
-
+        let diff  = (time1 >= 0 && time2 >= 0) ? (time2 - time1) / 1000 : 0;
         diff = Math.abs(Math.floor(diff));
 
         parts.days = Math.floor(diff/(24*60*60));
@@ -1664,21 +1734,62 @@ define([
 
     /**
      * trigger a notification (on screen or desktop)
-     * @param args
+     * @param config
+     * @param options
      */
-    let showNotify = (...args) => {
-        requirejs(['PNotify.loader'], Notification => {
-            Notification.showNotify(...args);
+    let showNotify = (config = {}, options = {}) => {
+        requirejs(['pnotify.loader'], Notification => {
+            // if notification is a "desktio" notification -> blink browser tab
+            if(options.desktop && config.title){
+                startTabBlink(config.title);
+            }
+
+            Notification.showNotify(config, options);
         });
+    };
+
+    /**
+     * change document.title and make the browsers tab blink
+     * @param blinkTitle
+     */
+    let startTabBlink = blinkTitle => {
+        let initBlink = (function(){
+            // count blinks if tab is currently active
+            let activeTabBlinkCount = 0;
+
+            let blink = (blinkTitle) => {
+                // number of "blinks" should be limited if tab is currently active
+                if(window.isVisible){
+                    activeTabBlinkCount++;
+                }
+
+                // toggle page title
+                document.title = (document.title === blinkTitle) ? initialPageTitle : blinkTitle;
+
+                if(activeTabBlinkCount > 10){
+                    stopTabBlink();
+                }
+            };
+
+            return () => {
+                if(!blinkTimer){
+                    blinkTimer = setInterval(blink, 1000, blinkTitle);
+                }
+            };
+        }(blinkTitle));
+
+        initBlink();
     };
 
     /**
      * stop browser tab title "blinking"
      */
     let stopTabBlink = () => {
-        requirejs(['PNotify.loader'], Notification => {
-            Notification.stopTabBlink();
-        });
+        if(blinkTimer){
+            clearInterval(blinkTimer);
+            document.title = initialPageTitle;
+            blinkTimer = null;
+        }
     };
 
     /**
@@ -2707,9 +2818,7 @@ define([
      * @param mapId
      */
     let deleteCurrentMapData = mapId => {
-        Init.currentMapData = Init.currentMapData.filter(mapData => {
-            return (mapData.config.id !== mapId);
-        });
+        Init.currentMapData = Init.currentMapData.filter(mapData => mapData.config.id !== mapId);
     };
 
     /**
@@ -3036,19 +3145,45 @@ define([
     };
 
     /**
-     * set currentSystemData as "global" variable
+     * set currentSystemData (active system)
+     * @param mapId
      * @param systemData
      */
-    let setCurrentSystemData = (systemData) => {
-        Init.currentSystemData = systemData;
+    let setCurrentSystemData = (mapId, systemData) => {
+        mapId = parseInt(mapId) || 0;
+        if(mapId && typeof systemData === 'object'){
+            currentSystemDataCache.set(`mapId_${mapId}`, systemData);
+        }else{
+            console.error('Invalid mapId %o or systemData %o');
+        }
     };
 
     /**
-     * get currentSystemData from "global" variables
+     * get currentSystemData (active system)
+     * @param mapId
      * @returns {*}
      */
-    let getCurrentSystemData = () => {
-        return Init.currentSystemData;
+    let getCurrentSystemData = mapId => {
+        mapId = parseInt(mapId) || 0;
+        if(mapId){
+            return currentSystemDataCache.get(`mapId_${mapId}`);
+        }else{
+            console.error('Invalid mapId %o');
+        }
+    };
+
+    /**
+     * delete currentSystemData (active system)
+     * @param mapId
+     * @returns {*}
+     */
+    let deleteCurrentSystemData = mapId => {
+        mapId = parseInt(mapId) || 0;
+        if(mapId){
+            return currentSystemDataCache.delete(`mapId_${mapId}`);
+        }else{
+            console.error('Invalid mapId %o');
+        }
     };
 
     /**
@@ -3217,40 +3352,32 @@ define([
      * @param doubleClickCallback
      * @param timeout
      */
-    let singleDoubleClick = (element, singleClickCallback, doubleClickCallback, timeout) => {
-        let eventName = 'mouseup.singleDouble';
-        if(!hasEvent(element, eventName)){
-            let clicks = 0;
-            // prevent default behaviour (e.g. open <a>-tag link)
-            element.off('click').on('click', function(e){
-                e.preventDefault();
-            });
+    let singleDoubleClick = (element, singleClickCallback, doubleClickCallback, timeout = Init.timer.DBL_CLICK) => {
+        element.addEventListener('click', e => {
+            if(e.detail === 1){
+                // single click -> setTimeout and check if there is a 2nd click incoming before timeout
+                let clickTimeoutId = setTimeout(element => {
+                    singleClickCallback.call(element, e);
+                    element.removeData('clickTimeoutId');
+                }, timeout, e.currentTarget);
 
-            element.off(eventName).on(eventName, function(e){
-                clicks++;
-                if(clicks === 1){
-                    setTimeout(element => {
-                        if(clicks === 1){
-                            singleClickCallback.call(element, e);
-                        }else{
-                            doubleClickCallback.call(element, e);
-                        }
-                        clicks = 0;
-                    }, timeout || Init.timer.DBL_CLICK, this);
-                }
-            });
-        }
+                e.currentTarget.setData('clickTimeoutId', clickTimeoutId);
+            }else if(e.detail === 2 ){
+                // double click -> clearTimeout, (triple, quadruple, etc. clicks are ignored)
+                doubleClickCallback.call(element, e);
+                clearTimeout(e.currentTarget.getData('clickTimeoutId'));
+                e.currentTarget.removeData('clickTimeoutId');
+            }
+        });
     };
 
     /**
      * get dataTable id
      * @param prefix
-     * @param mapId
-     * @param systemId
-     * @param tableType
+     * @param {...string} parts  e.g. 'tableType', 'mapId', 'systemId'
      * @returns {string}
      */
-    let getTableId = (prefix, tableType, mapId, systemId) => prefix + [tableType, mapId, systemId].join('-');
+    let getTableId = (prefix, ...parts) => prefix + parts.filter(Boolean).join('-');
 
     /**
      * get dataTable row id
@@ -3523,12 +3650,14 @@ define([
         getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        deleteCurrentSystemData:deleteCurrentSystemData,
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         findInViewport: findInViewport,
         initScrollSpy: initScrollSpy,
         getConfirmationTemplate: getConfirmationTemplate,
+        getConfirmationContent: getConfirmationContent,
         convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,

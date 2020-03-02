@@ -39,7 +39,7 @@ class System extends Controller\AccessController {
                 ];
 
                 foreach($destData as $data){
-                    $response =  $f3->ccpClient()->setWaypoint((int)$data['id'], $accessToken, $options);
+                    $response =  $f3->ccpClient()->send('setWaypoint', (int)$data['id'], $accessToken, $options);
 
                     if(empty($response)){
                         $return->destData[] = $data;

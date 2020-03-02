@@ -12,12 +12,6 @@ define([
 ], ($, Init, Util, bootbox, MapUtil, BaseModule) => {
     'use strict';
 
-    // cache for system routes
-    let cache = {
-        systemRoutes: {},                                                       // jump information between solar systems
-        mapConnections: {}                                                      // connection data read from UI
-    };
-
     let SystemRouteModule = class SystemRouteModule extends BaseModule {
         constructor(config = {}) {
             super(Object.assign({}, new.target.defaultConfig, config));
@@ -275,7 +269,7 @@ define([
                             let tempTableElement = this;
 
                             let confirmationSettings = {
-                                title: 'delete route',
+                                title: '---',
                                 template: Util.getConfirmationTemplate(null, {
                                     size: 'small',
                                     noTitle: true
@@ -434,7 +428,7 @@ define([
                 if(systemFromData.name !== systemToData.name){
                     // check for cached rowData
                     let cacheKey = this.getRouteDataCacheKey([mapId], systemFromData.name, systemToData.name);
-                    let rowData = this.getCacheData('systemRoutes', cacheKey);
+                    let rowData = SystemRouteModule.getCache('routes').get(cacheKey);
                     if(rowData){
                         // route data is cached (client side)
                         rowElements.push(this.addRow(rowData));
@@ -479,29 +473,7 @@ define([
          * @returns {string}
          */
         getRouteDataCacheKey(mapIds, sourceName, targetName){
-            return [mapIds.join('_'), sourceName.toLowerCase(), targetName.toLowerCase()].join('###');
-        }
-
-        /**
-         * get cache data
-         * @param cacheType
-         * @param cacheKey
-         * @returns {null}
-         */
-        getCacheData(cacheType, cacheKey){
-            let cachedData = null;
-            let currentTimestamp = Util.getServerTime().getTime();
-
-            if(
-                cache[cacheType].hasOwnProperty(cacheKey) &&
-                Math.round(
-                    ( currentTimestamp - (new Date( cache[cacheType][cacheKey].updated * 1000).getTime())) / 1000
-                ) <= this._config.routeCacheTTL
-            ){
-                cachedData = cache[cacheType][cacheKey].data;
-            }
-
-            return cachedData;
+            return `route_` + `${mapIds.join('_')}${sourceName}${targetName}`.hashCode();
         }
 
         /**
@@ -578,7 +550,7 @@ define([
                     if(rowData.route){
                         // update route cache
                         let cacheKey = this.getRouteDataCacheKey(rowData.mapIds, routeData.systemFromData.name, routeData.systemToData.name);
-                        this.setCacheData('systemRoutes', cacheKey, rowData);
+                        SystemRouteModule.getCache('routes').set(cacheKey, rowData);
 
                         this.addRow(rowData);
                     }
@@ -731,7 +703,7 @@ define([
                 let routeJumpElements = [];
                 let avgSecTemp = 0;
 
-                let connectionsData = this.getConnectionsDataFromMaps(routeData.mapIds);
+                let connectionsData = BaseModule.getConnectionsDataFromMaps(routeData.mapIds);
                 let prevRouteNodeData = null;
                 // loop all systems on this route
                 for(let i = 0; i < routeData.route.length; i++){
@@ -740,11 +712,11 @@ define([
 
                     // fake connection elements between systems -----------------------------------------------------------
                     if(prevRouteNodeData){
-                        let connectionData = this.findConnectionsData(connectionsData, prevRouteNodeData.system, systemName);
-                        if(!connectionData.hasOwnProperty('connection')){
-                            connectionData = this.getFakeConnectionData(prevRouteNodeData, routeNodeData, isWormholeSystemName(systemName) ? 'wh' : 'stargate');
+                        let connectionData = BaseModule.findConnectionsData(connectionsData, prevRouteNodeData.system, systemName);
+                        if(!connectionData){
+                            connectionData = BaseModule.getFakeConnectionData(prevRouteNodeData, routeNodeData, isWormholeSystemName(systemName) ? 'wh' : 'stargate');
                         }
-                        let connectionElement = this.getFakeConnectionElement(connectionData);
+                        let connectionElement = BaseModule.getFakeConnectionElement(connectionData);
 
                         routeJumpElements.push(connectionElement);
                     }
@@ -807,153 +779,6 @@ define([
             };
 
             return tableRowData;
-        }
-
-        /**
-         * get a connectionsData object that holds all connections for given mapIds (used as cache for route search)
-         * @param mapIds
-         * @returns {{}}
-         */
-        getConnectionsDataFromMaps(mapIds){
-            let connectionsData = {};
-            for(let mapId of mapIds){
-                let map = MapUtil.getMapInstance(mapId);
-                if(map){
-                    let cacheKey = 'map_' + mapId;
-                    let mapConnectionsData = this.getCacheData('mapConnections', cacheKey);
-
-                    if(!mapConnectionsData){
-                        mapConnectionsData = {};
-                        let connections = map.getAllConnections();
-                        if(connections.length){
-                            let connectionsData = MapUtil.getDataByConnections(connections);
-                            for(let connectionData of connectionsData){
-                                let connectionDataCacheKey = this.getConnectionDataCacheKey(connectionData.sourceName, connectionData.targetName);
-
-                                // skip double connections between same systems
-                                if(!mapConnectionsData.hasOwnProperty(connectionDataCacheKey)){
-                                    mapConnectionsData[connectionDataCacheKey] = {
-                                        map: {
-                                            id: mapId
-                                        },
-                                        connection: {
-                                            id: connectionData.id,
-                                            type: connectionData.type,
-                                            scope: connectionData.scope
-                                        },
-                                        source: {
-                                            id: connectionData.source,
-                                            name: connectionData.sourceName,
-                                            alias: connectionData.sourceAlias
-                                        },
-                                        target: {
-                                            id: connectionData.target,
-                                            name: connectionData.targetName,
-                                            alias: connectionData.targetAlias
-                                        }
-                                    };
-                                }
-                            }
-                        }
-
-                        // update cache
-                        this.setCacheData('mapConnections', cacheKey, mapConnectionsData);
-                    }
-
-                    if(connectionsData !== null){
-                        connectionsData = Object.assign({}, mapConnectionsData, connectionsData);
-                    }
-                }
-            }
-
-            return connectionsData;
-        }
-
-        /**
-         * get fake connection data (default connection type in case connection was not found on a map)
-         * @param sourceRouteNodeData
-         * @param targetRouteNodeData
-         * @param scope
-         * @returns {{connection: {id: number, type: string[], scope: string}, source: {id: number, name, alias}, target: {id: number, name, alias}}}
-         */
-        getFakeConnectionData(sourceRouteNodeData, targetRouteNodeData, scope = 'stargate'){
-            return {
-                connection: {
-                    id: 0,
-                    type: [MapUtil.getDefaultConnectionTypeByScope(scope)],
-                    scope: scope
-                },
-                source: {
-                    id: 0,
-                    name: sourceRouteNodeData.system,
-                    alias: sourceRouteNodeData.system
-                },
-                target: {
-                    id: 0,
-                    name: targetRouteNodeData.system,
-                    alias: targetRouteNodeData.system
-                }
-            };
-        }
-
-        /**
-         * get fake connection Element
-         * @param connectionData
-         * @returns {string}
-         */
-        getFakeConnectionElement(connectionData){
-            let mapId = Util.getObjVal(connectionData, 'map.id') | 0;
-            let connectionId = Util.getObjVal(connectionData, 'connection.id') | 0;
-            let scope = Util.getObjVal(connectionData, 'connection.scope');
-            let classes = MapUtil.getConnectionFakeClassesByTypes(connectionData.connection.type);
-            let disabled = !mapId || !connectionId;
-
-            let connectionElement = '<div data-mapId="' + mapId + '" data-connectionId="' + connectionId + '" ';
-            connectionElement += (disabled ? 'data-disabled' : '');
-            connectionElement += ' class="' + classes.join(' ') + '" ';
-            connectionElement += ' title="' + scope + '" data-placement="bottom"></div>';
-            return connectionElement;
-        }
-
-        /**
-         * search for a specific connection by "source"/"target"-name inside connectionsData cache
-         * @param connectionsData
-         * @param sourceName
-         * @param targetName
-         * @returns {{}}
-         */
-        findConnectionsData(connectionsData, sourceName, targetName){
-            let connectionDataCacheKey = this.getConnectionDataCacheKey(sourceName, targetName);
-            return connectionsData.hasOwnProperty(connectionDataCacheKey) ?
-                connectionsData[connectionDataCacheKey] : {};
-        }
-
-        /**
-         * get a unique cache key name for "source"/"target"-name
-         * @param sourceName
-         * @param targetName
-         * @returns {*}
-         */
-        getConnectionDataCacheKey(sourceName, targetName){
-            let key = false;
-            if(sourceName && targetName){
-                // names can be "undefined" in case system is currently on drag/drop
-                key = [sourceName.toLowerCase(), targetName.toLowerCase()].sort().join('###');
-            }
-            return key;
-        }
-
-        /**
-         * set cache data
-         * @param cacheType
-         * @param cacheKey
-         * @param data
-         */
-        setCacheData(cacheType, cacheKey, data){
-            cache[cacheType][cacheKey] = {
-                data: data,
-                updated: Util.getServerTime().getTime() / 1000
-            };
         }
 
         /**
@@ -1351,6 +1176,12 @@ define([
     SystemRouteModule.sortArea = 'b';                                           // default sortable area
     SystemRouteModule.position = 1;                                             // default sort/order position within sortable area
     SystemRouteModule.label = 'Routes';                                         // static module label (e.g. description)
+    SystemRouteModule.cacheConfig = {
+        routes: {
+            ttl: 5,
+            maxSize: 100
+        }
+    };
 
     SystemRouteModule.defaultConfig = {
         className: 'pf-system-route-module',                                    // class for module
@@ -1373,8 +1204,6 @@ define([
 
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
         rallyClass: 'pf-rally',                                                 // class for "rally point" style
-
-        routeCacheTTL: 5                                                        // route cache timer (client) in seconds
     };
 
     return SystemRouteModule;

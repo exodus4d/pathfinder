@@ -70,16 +70,16 @@ requirejs.config({
         'datatables.net-buttons': 'lib/datatables/Buttons-1.5.6/js/dataTables.buttons.min',
         'datatables.net-buttons-html': 'lib/datatables/Buttons-1.5.6/js/buttons.html5.min',
         'datatables.net-responsive': 'lib/datatables/Responsive-2.2.2/js/dataTables.responsive.min',
+        'datatables.net-rowgroup': 'lib/datatables/RowGroup-1.1.1/js/dataTables.rowGroup.min',
         'datatables.net-select': 'lib/datatables/Select-1.3.0/js/dataTables.select.min',
         'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
         // PNotify                                                      // v4.0.0 PNotify - notification core file - https://sciactive.com/pnotify
-        'PNotify.loader': './app/pnotify.loader',
+        'pnotify.loader': './app/pnotify.loader',
         'PNotify': 'lib/pnotify/PNotify',
         'PNotifyButtons': 'lib/pnotify/PNotifyButtons',
-        'PNotifyNonBlock': 'lib/pnotify/PNotifyNonBlock',
-        'PNotifyDesktop': 'lib/pnotify/PNotifyDesktop',
         'PNotifyCallbacks': 'lib/pnotify/PNotifyCallbacks',
+        'PNotifyDesktop': 'lib/pnotify/PNotifyDesktop',
         'NonBlock': 'lib/pnotify/NonBlock'                              // v1.0.8 NonBlock.js - for PNotify "nonblock" feature
     },
     shim: {
@@ -114,6 +114,9 @@ requirejs.config({
             deps: ['datatables.net-buttons']
         },
         'datatables.net-responsive': {
+            deps: ['datatables.net']
+        },
+        'datatables.net-rowgroup': {
             deps: ['datatables.net']
         },
         'datatables.net-select': {

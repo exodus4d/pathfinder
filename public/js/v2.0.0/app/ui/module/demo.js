@@ -249,7 +249,7 @@ define([                // dependencies for this module
         }
     };
 
-    DemoModule.isPlugin = true;                             // module is defined as 'plugin'
+    DemoModule.isPlugin = true;                            // module is defined as 'plugin'
     DemoModule.scope = 'system';                           // module scope controls how module gets updated and what type of data is injected
     DemoModule.sortArea = 'a';                             // default sortable area
     DemoModule.position = 10;                              // default sort/order position within sortable area

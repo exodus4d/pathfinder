@@ -233,10 +233,13 @@ em,
 }
 
 .pf-module-icon-button{
-  position: relative; // for absolut positioned [data-badge]:after elements
   cursor: pointer;
   color: $gray-light; // overwrite xEditable button style
   @include transition(color 0.15s ease-out);
+
+  &.fas {
+    position: relative; // for absolute positioned [data-badge]:after elements
+  }
 
   &:hover, &.active{
     color: $orange !important;
@@ -336,13 +339,13 @@ em,
       grid-template-columns: repeat(2, auto);
       align-items: end;
 
-      > div:nth-child(7) {
-        grid-column: span 2;
-      }
+      > .pf-editable-headline {
+        grid-column: 1;
 
-      > div:nth-child(1), > div:nth-child(8) {
         &:before {
+          content: attr(data-headline);
           display: block;
+          text-transform: capitalize;
           font-weight: bold;
           line-height: 18px;
           margin-bottom: 5px;
@@ -350,17 +353,9 @@ em,
           color: lighten($gray-light, 10%);
           padding-left: 25px;
         }
-      }
 
-      > div:nth-child(1) {
-        &:before {
-          content: 'Modules';
-        }
-      }
-
-      > div:nth-child(8) {
-        &:before {
-          content: 'Plugins';
+        + .pf-editable-headline[data-count='1'] {
+          grid-column: 2;
         }
       }
     }
@@ -381,7 +376,7 @@ em,
     justify-content: space-between;
     align-items: center;
 
-    .pf-editable-toggle-item{
+    .pf-editable-toggle-item {
       @extend %pf-bg-image-wrapper;
       width: 98px;
       height: 68px;
@@ -399,6 +394,10 @@ em,
 
       &:hover {
         background-color: $teal-lighter;
+      }
+
+      + .fas {
+        margin: 0 10px;
       }
     }
   }
@@ -598,7 +597,7 @@ select:active, select:hover {
       cursor: pointer;
     }
 
-    &:focus, &.editable-open{
+    &:focus, &.editable-open, &.cellHighlight {
       // set td as :focus even is td content is focused
       outline: 1px solid $orange-dark;
       outline-offset: -1px;
@@ -611,6 +610,10 @@ select:active, select:hover {
 
     > .label{
       font-size: 80%;
+    }
+
+    > .pf-fake-connection {
+      height: 3px;
     }
 
     &.pf-table-link-cell{
@@ -626,6 +629,10 @@ select:active, select:hover {
 
     &.pf-table-action-cell{
       cursor: pointer;
+
+      > .fas {
+        pointer-events: none; // event listeners are on parent <td> -> ignore icon in e.target
+      }
 
       // icon within <td> cell content that should be highlighted on hover
       > .pf-table-action-icon-cell{
@@ -1215,6 +1222,9 @@ table{
 // system security level ==========================================================================
 
 .pf-system-sec{
+  display: inline-block;                // fixed "blurry" text in scaled parent
+  transform: translateY(0);             // s.o.
+  -webkit-font-smoothing: antialiased;  // s.o.
   margin-right: 5px;
   cursor: -moz-grab;
   cursor: -webkit-grab;
@@ -1452,7 +1462,7 @@ table{
       color: $gray-lighter;
       padding: 1px 2px;
       position: absolute;
-      left: calc(50% - 7px);
+      left: calc(50% - 12px);
       top: -5px;
       font-family: Arial, sans-serif;
       font-size: 11px;

@@ -565,7 +565,7 @@ class Controller {
                     'routes'            => []
                 ];
 
-                $serverStatus = $client->getServerStatus();
+                $serverStatus = $client->send('getServerStatus');
                 if( !isset($serverStatus['error']) ){
                     $statusData = $serverStatus['status'];
                     // calculate time diff since last server restart
@@ -587,7 +587,7 @@ class Controller {
                     $return->error[] = (new PathfinderException($serverStatus['error'], 500))->getError();
                 }
 
-                $apiStatus = $client->getStatusForRoutes('latest');
+                $apiStatus = $client->send('getStatus', 'latest', true);
                 if( !isset($apiStatus['error']) ){
                     // find top status
                     $status = 'OK';

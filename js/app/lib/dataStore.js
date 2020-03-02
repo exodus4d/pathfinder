@@ -34,7 +34,7 @@ define([], () => {
         }
 
         get(obj, key) {
-            return this._store.has(obj) && this._store.get(obj).get(key);
+            return this._store.has(obj) && (key ? this._store.get(obj).get(key) : this._store.get(obj));
         }
 
         has(obj, key) {
@@ -45,6 +45,8 @@ define([], () => {
             let ret = false;
             if (this._store.has(obj)) {
                 ret = this._store.get(obj).delete(key);
+                // remove obj if store is empty
+                // -> 'size' property is does not exist if valueStore is WeakMap
                 if (!this._store.get(obj).size) {
                     this._store.delete(obj);
                 }

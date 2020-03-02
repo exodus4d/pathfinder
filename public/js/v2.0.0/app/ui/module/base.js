@@ -2,9 +2,11 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/map/util',
+    'app/lib/cache',
     'app/promises/promise.deferred',
     'app/promises/promise.queue'
-], ($, Init, Util, DeferredPromise, PromiseQueue) => {
+], ($, Init, Util, MapUtil, Cache, DeferredPromise, PromiseQueue) => {
     'use strict';
 
     /**
@@ -128,6 +130,34 @@ define([
         }
 
         /**
+         * label element
+         * @param text
+         * @param cls
+         * @returns {HTMLSpanElement}
+         */
+        newLabelElement(text, cls = []){
+            let labelEl = document.createElement('span');
+            labelEl.classList.add('label', 'center-block', ...cls);
+            labelEl.textContent = text || '';
+            return labelEl;
+        }
+
+        /**
+         * control button element
+         * @param text
+         * @param cls
+         * @param iconCls
+         * @returns {HTMLDivElement}
+         */
+        newControlElement(text, cls = [], iconCls = ['fa-sync']){
+            let controlEl = document.createElement('div');
+            controlEl.classList.add(...[BaseModule.Util.config.dynamicAreaClass, this._config.controlAreaClass, ...cls]);
+            controlEl.insertAdjacentHTML('beforeend', `&nbsp;&nbsp;${text}`);
+            controlEl.prepend(this.newIconElement(iconCls));
+            return controlEl;
+        }
+
+        /**
          * HTTP request handler for internal (Pathfinder) ajax calls
          * @param args
          * @returns {Promise}
@@ -245,6 +275,188 @@ define([
             }
         }
 
+        /**
+         * get a unique cache key name for "source"/"target"-name
+         * @param sourceName
+         * @param targetName
+         * @returns {string|boolean}
+         */
+        static getConnectionDataCacheKey(sourceName, targetName){
+            let key = false;
+            if(sourceName && targetName){
+                // names can be "undefined" in case system is currently in drag/drop state
+                // sort() is important -> ignore direction
+                key = `con_` + `${ [String(sourceName).toLowerCase(), String(targetName).toLowerCase()].sort() }`.hashCode();
+            }
+            return key;
+        }
+
+        /**
+         * get a connectionsData object that holds all connections for given mapIds (used as cache for route search)
+         * @param mapIds
+         * @returns {{}}
+         */
+        static getConnectionsDataFromMaps(mapIds){
+            let data = {};
+            for(let mapId of mapIds){
+                let map = MapUtil.getMapInstance(mapId);
+                if(map){
+                    let cacheKey = `map_${mapId}`;
+                    let cache = BaseModule.getCache('mapConnections');
+                    let mapConnectionsData = cache.get(cacheKey);
+
+                    if(!mapConnectionsData){
+                        mapConnectionsData = this.getConnectionsDataFromConnections(mapId, map.getAllConnections());
+                        // update cache
+                        cache.set(cacheKey, mapConnectionsData);
+                    }
+                    Object.assign(data, mapConnectionsData);
+                }
+            }
+            return data;
+        }
+
+        /**
+         * get a connectionsData object for all connections
+         * @param mapId
+         * @param connections
+         * @returns {{}}
+         */
+        static getConnectionsDataFromConnections(mapId = 0, connections = []){
+            let data = {};
+            if(connections.length){
+                let connectionsData = MapUtil.getDataByConnections(connections);
+                for(let connectionData of connectionsData){
+                    let connectionDataCacheKey = BaseModule.getConnectionDataCacheKey(connectionData.sourceName, connectionData.targetName);
+
+                    // skip double connections between same systems
+                    if(connectionDataCacheKey && !Object.keys(data).includes(connectionDataCacheKey)){
+                        data[connectionDataCacheKey] = {
+                            map: {
+                                id: mapId
+                            },
+                            connection: {
+                                id: connectionData.id,
+                                type: connectionData.type,
+                                scope: connectionData.scope,
+                                updated: connectionData.updated
+                            },
+                            source: {
+                                id: connectionData.source,
+                                name: connectionData.sourceName,
+                                alias: connectionData.sourceAlias
+                            },
+                            target: {
+                                id: connectionData.target,
+                                name: connectionData.targetName,
+                                alias: connectionData.targetAlias
+                            }
+                        };
+                    }
+                }
+            }
+            return data;
+        }
+
+        /**
+         * search for a specific connection by "source"/"target"-name inside connectionsData cache
+         * @param connectionsData
+         * @param sourceName
+         * @param targetName
+         * @returns {*}
+         */
+        static findConnectionsData(connectionsData, sourceName, targetName){
+            return this.Util.getObjVal(connectionsData, this.getConnectionDataCacheKey(sourceName, targetName));
+        }
+
+        /**
+         * get fake connection data (default connection type in case connection was not found on a map)
+         * @param sourceSystemData
+         * @param targetSystemData
+         * @param scope
+         * @param types
+         * @returns {{connection: {scope: string, id: number, type: [*]}, source: {name: number, alias: number, id: number}, target: {name: number, alias: number, id: number}}}
+         */
+        static getFakeConnectionData(sourceSystemData, targetSystemData, scope = 'stargate', types = []){
+            return {
+                connection: {
+                    id: 0,
+                    scope: scope,
+                    type: types.length ? types : [MapUtil.getDefaultConnectionTypeByScope(scope)],
+                    updated: 0
+                },
+                source: {
+                    id: 0,
+                    name: sourceSystemData.system,
+                    alias: sourceSystemData.system
+                },
+                target: {
+                    id: 0,
+                    name: targetSystemData.system,
+                    alias: targetSystemData.system
+                }
+            };
+        }
+
+        /**
+         * get fake connection Element
+         * @param connectionData
+         * @returns {string}
+         */
+        static getFakeConnectionElement(connectionData){
+            let mapId = this.Util.getObjVal(connectionData, 'map.id') || 0;
+            let connectionId = this.Util.getObjVal(connectionData, 'connection.id') || 0;
+            let scope = this.Util.getObjVal(connectionData, 'connection.scope') || '';
+            let classes = MapUtil.getConnectionFakeClassesByTypes(this.Util.getObjVal(connectionData, 'connection.type') || []);
+            let disabled = !mapId || !connectionId;
+
+            let connectionElement = '<div data-mapId="' + mapId + '" data-connectionId="' + connectionId + '" ';
+            connectionElement += (disabled ? 'data-disabled' : '');
+            connectionElement += ' class="' + classes.join(' ') + '" ';
+            connectionElement += ' title="' + scope + '" data-placement="bottom"></div>';
+            return connectionElement;
+        }
+
+        /**
+         * get static instance of in-memory Cache() store by 'name'
+         * -> not persistent across page reloads
+         * -> persistent across module instances (different and same maps)
+         * @param name
+         * @returns {Cache}
+         */
+        static getCache(name){
+            let key = `CACHE-${name}`;
+            if(!this.Util.getObjVal(this, key)){
+                let configKey = `cacheConfig.${name}`;
+                let cacheConfig = this.Util.getObjVal(this, configKey);
+                if(!cacheConfig){
+                    console.warn('Missing Cache config for %o. Expected at %o. Default config loaded…',
+                        name, `${this.name}.${configKey}`
+                    );
+                    cacheConfig = {};
+                }else{
+                    // set cache name
+                    cacheConfig.name = name;
+                }
+
+                this[key] = new Cache(cacheConfig);
+            }
+            return this[key];
+        }
+
+        static now(){
+            return new Date().getTime() / 1000;
+        }
+
+        static getOrderPrio(){
+            return this.isPlugin ?
+                this.scopeOrder.indexOf('plugin') :
+                (this.scopeOrder.indexOf(this.scope) !== -1 ?
+                        this.scopeOrder.indexOf(this.scope) :
+                        this.scopeOrder.length - 1
+                );
+        }
+
         static newDeferredPromise(){
             return new DeferredPromise();
         }
@@ -259,6 +471,14 @@ define([
     BaseModule.fullDataUpdate = false;                      // static module requires additional data (e.g. system description,...)
     BaseModule.Util = Util;                                 // static access to Pathfinders Util object
 
+    BaseModule.scopeOrder = [
+        'system',
+        'connection',
+        'global',
+        'plugin',
+        'undefined'
+    ];
+
     BaseModule.handler = [
         'render',
         'init',
@@ -268,6 +488,14 @@ define([
         'onSortableEvent'
     ];
 
+    BaseModule.cacheConfig = {
+        mapConnections: {
+            ttl: 5,
+            maxSize: 600,
+            debug: false
+        }
+    };
+
     BaseModule.defaultConfig = {
         position: 1,
         className: 'pf-base-module',                        // class for module
@@ -276,6 +504,7 @@ define([
         sortTargetAreas: ['a', 'b', 'c'],                   // sortable areas where module can be dragged into
         headline: 'Base headline',                          // module headline
         bodyClassName: 'pf-module-body',                    // class for module body [optional: can be used]
+        controlAreaClass: 'pf-module-control-area',         // class for "control" areas
 
         moduleHeadlineIconClass: 'pf-module-icon-button'    // class for toolbar icons in the head
     };

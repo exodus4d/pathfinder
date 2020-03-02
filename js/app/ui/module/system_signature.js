@@ -11,9 +11,8 @@ define([
     'app/counter',
     'app/map/map',
     'app/map/util',
-    'app/lib/cache',
     'app/ui/form_element'
-], ($, Init, Util, BaseModule, bootbox, Counter, Map, MapUtil, Cache, FormElement) => {
+], ($, Init, Util, BaseModule, bootbox, Counter, Map, MapUtil, FormElement) => {
     'use strict';
 
     let SystemSignatureModule = class SystemSignatureModule extends BaseModule {
@@ -32,13 +31,11 @@ define([
 
         /**
          * get dataTable id
-         * @param mapId
-         * @param systemId
-         * @param tableType
+         * @param {...string} parts  e.g. 'tableType', 'mapId', 'systemId'
          * @returns {string}
          */
-        getTableId(tableType, mapId, systemId){
-         return Util.getTableId(this._config.sigTableId, tableType, mapId, systemId);
+        getTableId(...parts){
+            return Util.getTableId(this._config.sigTableId, ...parts);
         }
 
         /**
@@ -1006,8 +1003,14 @@ define([
                             if(rowData.id){
                                 // delete signature -----------------------------------------------------------------------
                                 let confirmationSettings = {
-                                    title: 'Delete signature',
-                                    template: Util.getConfirmationTemplate(module.getConfirmationContent(), {
+                                    title: '---',
+                                    template: Util.getConfirmationTemplate(Util.getConfirmationContent([{
+                                        name: 'deleteConnection',
+                                        value: '1',
+                                        label: 'delete connection',
+                                        class: 'pf-editable-warn',
+                                        checked: true
+                                    }]), {
                                         size: 'small',
                                         noTitle: true
                                     }),
@@ -1883,47 +1886,6 @@ define([
         }
 
         /**
-         * get HTML for "delete connection" confirmation popover
-         * @returns {string}
-         */
-        getConfirmationContent(){
-            let checkOptions = [{
-                name: 'deleteConnection',
-                value: '1',
-                label: 'delete connection',
-                class: 'pf-editable-warn',
-                checked: true
-            }];
-
-            let getChecklist = checkOptions => {
-                let html = '<form class="form-inline editableform popover-content-inner">';
-                html += '<div class="control-group form-group">';
-                html += '<div class="editable-input">';
-                html += '<div class="editable-checklist">';
-
-                for(let option of checkOptions){
-                    html += '<div><label>';
-                    html += '<input type="checkbox" name="' + option.name + '" value="' + option.value + '" ';
-                    html += 'class="' + option.class + '" ' + (option.checked ? 'checked' : '') + '>';
-                    html += '<span>' + option.label + '</span>';
-                    html += '</label></div>';
-                }
-
-                html += '</div>';
-                html += '</div>';
-                html += '</div>';
-                html += '</form>';
-
-                return html;
-            };
-
-            let html = '';
-            html += getChecklist(checkOptions);
-
-            return html;
-        }
-
-        /**
          * open xEditable input field in "new Signature" table
          */
         focusNewSignatureEditableField(){
@@ -2723,18 +2685,12 @@ define([
                             return acc;
                         }, Object.assign({}, SystemSignatureModule.emptySignatureReaderCounterData));
 
-                        let notification = '';
-                        if(notificationCounter.added > 0){
-                            notification += notificationCounter.added + ' added<br>';
-                        }
-                        if(notificationCounter.changed > 0){
-                            notification += notificationCounter.changed + ' updated<br>';
-                        }
-                        if(notificationCounter.deleted > 0){
-                            notification += notificationCounter.deleted + ' deleted<br>';
-                        }
+                        let notification = Object.keys(notificationCounter).reduce((acc, key) => {
+                            return `${acc}${notificationCounter[key] ? `${notificationCounter[key]} ${key}<br>` : ''}`;
+                        }, '');
+
                         if(notification.length){
-                            Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
+                            Util.showNotify({title: 'Signatures updated', text: notification, type: 'success', textTrusted: true});
                         }
                     }
 
@@ -2917,7 +2873,7 @@ define([
 
             let cacheKey = [systemTypeId, ...areaIds, groupId].join('_');
 
-            let newSelectOptions = SystemSignatureModule.sigTypeOptionsCache.get(cacheKey);
+            let newSelectOptions = SystemSignatureModule.getCache('sigTypeOptions').get(cacheKey);
 
             // check for cached signature names
             if(Array.isArray(newSelectOptions)){
@@ -3014,7 +2970,7 @@ define([
                 }
 
                 // update cache (clone array) -> further manipulation to this array, should not be cached
-                SystemSignatureModule.sigTypeOptionsCache.set(cacheKey, newSelectOptions.slice(0));
+                SystemSignatureModule.getCache('sigTypeOptions').set(cacheKey, newSelectOptions.slice(0));
             }
 
             // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics..)
@@ -3120,13 +3076,12 @@ define([
     SystemSignatureModule.position = 4;                                         // default sort/order position within sortable area
     SystemSignatureModule.label = 'Signatures';                                 // static module label (e.g. description)
     SystemSignatureModule.fullDataUpdate = true;                                // static module requires additional data (e.g. system description,...)
-
-    SystemSignatureModule.sigTypeOptionsCache = new Cache({                     // cache signature names
-        name: 'sigTypeOptions',
-        ttl: 60 * 5,
-        maxSize: 100,
-        debug: false
-    });
+    SystemSignatureModule.cacheConfig = {
+        sigTypeOptions: {                                                       // cache signature names
+            ttl: 60 * 5,
+            maxSize: 100
+        }
+    };
 
     SystemSignatureModule.validSignatureNames = [                               // allowed signature type/names
         'Cosmic Anomaly',

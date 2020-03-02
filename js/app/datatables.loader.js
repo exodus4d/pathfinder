@@ -8,7 +8,8 @@ define([
     'datatables.net-select',
     'datatables.net-buttons',
     'datatables.net-buttons-html',
-    'datatables.net-responsive'
+    'datatables.net-responsive',
+    'datatables.net-rowgroup'
 ], ($, Init, Counter, DeferredPromise, TimeoutPromise) => {
 
     'use strict';

@@ -212,7 +212,7 @@ define([
             let systemsElement = $(this);
 
             let systemTable = $('<table>', {
-                id: Util.getTableId(config.tableId, 'systems', mapData.config.id, ''),
+                id: Util.getTableId(config.tableId, 'systems', mapData.config.id),
                 class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
             });
             systemsElement.append(systemTable);
@@ -469,7 +469,7 @@ define([
 
                             let confirmationSettings = {
                                 placement: 'left',
-                                title: 'Delete system',
+                                title: '---',
                                 template: Util.getConfirmationTemplate(null, {
                                     size: 'small',
                                     noTitle: true
@@ -535,7 +535,7 @@ define([
             let connectionsElement = $(this);
 
             let connectionTable = $('<table>', {
-                id: Util.getTableId(config.tableId, 'connections', mapData.config.id, ''),
+                id: Util.getTableId(config.tableId, 'connections', mapData.config.id),
                 class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
             });
             connectionsElement.append(connectionTable);
@@ -678,7 +678,7 @@ define([
 
                             let confirmationSettings = {
                                 placement: 'left',
-                                title: 'Delete connection',
+                                title: '---',
                                 template: Util.getConfirmationTemplate(null, {
                                     size: 'small',
                                     noTitle: true
@@ -686,9 +686,7 @@ define([
                                 onConfirm: function(e, target){
                                     let deleteRowElement = $(target).parents('tr');
 
-                                    // deleteSignatures(row);
                                     let connection = $().getConnectionById(mapData.config.id, rowData.id);
-
                                     MapUtil.deleteConnections([connection], () => {
                                         // callback function after ajax "delete" success
                                         // remove table row

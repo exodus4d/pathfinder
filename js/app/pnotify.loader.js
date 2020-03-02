@@ -1,7 +1,8 @@
 define([
     'PNotify',
-    'PNotifyDesktop',
+    'PNotifyButtons',
     'PNotifyCallbacks',
+    'PNotifyDesktop',
     'NonBlock'
 ], (PNotify) => {
     'use strict';
@@ -30,6 +31,9 @@ define([
         }
     };
 
+    /**
+     * default PNotify config
+     */
     let initDefaultPNotifyConfig = () => {
         PNotify.defaults.styling = 'bootstrap3';
         PNotify.defaults.icons = 'fontawesome5';
@@ -54,7 +58,6 @@ define([
             config.modules = {
                 Desktop: Object.assign({}, {desktop: true}, options.desktop)
             };
-            startTabBlink(config.title); // make browser tab blink
         }
 
         switch(config.type){
@@ -99,60 +102,7 @@ define([
 
     initDefaultPNotifyConfig();
 
-    // browser tab blink ==============================================================================================
-    // initial page title (cached)
-    let initialPageTitle = document.title;
-
-    // global blink timeout cache
-    let blinkTimer;
-
-    /**
-     * change document.title and make the browsers tab blink
-     * @param blinkTitle
-     */
-    let startTabBlink = blinkTitle => {
-        let initBlink = (function(){
-            // count blinks if tab is currently active
-            let activeTabBlinkCount = 0;
-
-            let blink = (blinkTitle) => {
-                // number of "blinks" should be limited if tab is currently active
-                if(window.isVisible){
-                    activeTabBlinkCount++;
-                }
-
-                // toggle page title
-                document.title = (document.title === blinkTitle) ? initialPageTitle : blinkTitle;
-
-                if(activeTabBlinkCount > 10){
-                    stopTabBlink();
-                }
-            };
-
-            return () => {
-                if(!blinkTimer){
-                    blinkTimer = setInterval(blink, 1000, blinkTitle);
-                }
-            };
-        }(blinkTitle));
-
-        initBlink();
-    };
-
-    /**
-     * stop blinking document.title
-     */
-    let stopTabBlink = () => {
-        if(blinkTimer){
-            clearInterval(blinkTimer);
-            document.title = initialPageTitle;
-            blinkTimer = null;
-        }
-    };
-
     return {
-        showNotify: showNotify,
-        startTabBlink: startTabBlink,
-        stopTabBlink: stopTabBlink
+        showNotify: showNotify
     };
 });

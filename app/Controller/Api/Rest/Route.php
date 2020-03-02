@@ -14,7 +14,7 @@ class Route extends AbstractRestController {
     /**
      * cache key for current Thera connections from eve-scout.com
      */
-    const CACHE_KEY_THERA_CONNECTIONS                = 'CACHED_THERA_CONNECTIONS';
+    const CACHE_KEY_THERA_JUMP_DATA = 'CACHED_THERA_JUMP_DATA';
 
     /**
      * route search depth
@@ -260,9 +260,9 @@ class Route extends AbstractRestController {
      * -> Connected wormholes pulled from eve-scout.com
      */
     private function setTheraJumpData(){
-        if(!$this->getF3()->exists(self::CACHE_KEY_THERA_CONNECTIONS, $jumpData)){
+        if(!$this->getF3()->exists(self::CACHE_KEY_THERA_JUMP_DATA, $jumpData)){
             $jumpData = [];
-            $connectionsData = $this->getF3()->eveScoutClient()->getTheraConnections();
+            $connectionsData = $this->getF3()->eveScoutClient()->send('getTheraConnections');
 
             if(!empty($connectionsData) && !isset($connectionsData['error'])){
                 /**
@@ -294,12 +294,12 @@ class Route extends AbstractRestController {
                 };
 
                 foreach((array)$connectionsData['connections'] as $connectionData){
-                    $enrichJumpData($connectionData,  'source', 'target');
-                    $enrichJumpData($connectionData,  'target', 'source');
+                    $enrichJumpData($connectionData, 'source', 'target');
+                    $enrichJumpData($connectionData, 'target', 'source');
                 }
 
                 if(!empty($jumpData)){
-                    $this->getF3()->set(self::CACHE_KEY_THERA_CONNECTIONS, $jumpData, $this->theraJumpDataCacheTime);
+                    $this->getF3()->set(self::CACHE_KEY_THERA_JUMP_DATA, $jumpData, $this->theraJumpDataCacheTime);
                 }
             }
         }
@@ -337,7 +337,7 @@ class Route extends AbstractRestController {
             if( !is_array($this->jumpArray[$systemId]) ){
                 $this->jumpArray[$systemId] = [];
             }
-            $this->jumpArray[$systemId] = array_merge($row['jumpNodes'], $this->jumpArray[$systemId]);
+            $this->jumpArray[$systemId] = array_merge((array)$row['jumpNodes'], $this->jumpArray[$systemId]);
 
             // add systemName to end (if not already there)
             if(end($this->jumpArray[$systemId]) != $systemName){
@@ -668,7 +668,7 @@ class Route extends AbstractRestController {
                 'connections' => $connections
             ];
 
-            $result = $this->getF3()->ccpClient()->getRouteData($systemFromId, $systemToId, $options);
+            $result = $this->getF3()->ccpClient()->send('getRoute', $systemFromId, $systemToId, $options);
 
             // format result ------------------------------------------------------------------------------------------
 

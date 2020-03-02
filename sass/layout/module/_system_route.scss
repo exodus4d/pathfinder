@@ -2,7 +2,6 @@
 
   .pf-system-route-table {
     width: 100%;
-    font-size: 10px;
 
     td {
       text-transform: capitalize;
@@ -14,7 +13,6 @@
       .pf-fake-connection {
         display: none; // toggled by js see .pf-table-jump-cell
         width: 12px;
-        height: 3px;
         cursor: pointer;
 
         &[data-disabled] {

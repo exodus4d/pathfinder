@@ -90,8 +90,7 @@ define([
             let name = parts[0];
             let sizeLabel;
             if(Util.getObjVal(customOptions, 'showWhSizeLabel')){
-                let wormholeSizeData = Util.getObjVal(Init, 'wormholes.' + name + '.size');
-                sizeLabel = Util.getObjVal(wormholeSizeData, 'label') || '';
+                sizeLabel = Util.getObjVal(Init, `wormholes.${name}.size.label`) || '';
             }
 
             let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
@@ -102,19 +101,17 @@ define([
 
             let classes = [securityClass, Util.config.popoverTriggerClass, Util.config.helpDefaultClass];
 
-            markup += '<span>' + name + '</span>';
+            markup += `<span>${name}</span>`;
             if(sizeLabel !== undefined){
-                markup += '<span><kbd>' + sizeLabel + '</kbd></span>';
-            }else{
-                markup += '&nbsp;&nbsp;';
+                markup += `<span><kbd>${sizeLabel}</kbd></span>`;
             }
             markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
-            markup += '<span class="' + classes.join(' ') + '" data-name="' + name + '">&nbsp;&nbsp;' + label + '</span>';
+            markup += `<span class="${classes.join(' ')}" data-name="${name}">&nbsp;&nbsp;${label}</span>`;
             if(suffix.length){
-                markup += '&nbsp;<span>' + suffix + '</span>';
+                markup += `&nbsp;<span>${suffix}</span>`;
             }
         }else{
-            markup += '<span>' + state.text + '</span>';
+            markup += `<span>${state.text}</span>`;
         }
 
         return $(markup);
@@ -203,10 +200,10 @@ define([
             }
 
             let securityClass = Util.getSecurityClassForSystem(parts[1]);
-            markup += '<span class="' + styleClass.join(' ') + '">' + parts[0] + '</span>&nbsp;&nbsp;';
-            markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
+            markup += `<span class="${styleClass.join(' ')}">${parts[0]}</span>`;
+            markup += `<span class="${securityClass}">&nbsp;&nbsp;${parts[1]}</span>`;
         }else{
-            markup += '<span>' + state.text + '</span>';
+            markup += `<span>${state.text}</span>`;
         }
 
         return $(markup);

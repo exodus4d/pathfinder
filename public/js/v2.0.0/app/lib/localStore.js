@@ -193,10 +193,10 @@ define([
         }
 
         /**
-         * set LocalStoreManager for this instance
+         * connect LocalStoreManager with instance
          * @param {LocalStoreManager} manager
          */
-        setManager(manager){
+        connect(manager){
             if(manager instanceof LocalStoreManager){
                 this._manager = manager;
             }else{
@@ -299,7 +299,7 @@ define([
         /**
          * check var for Object
          * @param obj
-         * @returns {boolean|boolean}
+         * @returns {boolean}
          */
         static isObject(obj){
             return (!!obj) && (obj.constructor === Object);
@@ -372,7 +372,7 @@ define([
                 }, {
                     name: LocalStore.buildDbName(name)
                 });
-                store.setManager(this);
+                store.connect(this);
                 this._store.set(name, store);
             }
             return this._store.get(name);

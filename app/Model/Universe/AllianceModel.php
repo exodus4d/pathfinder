@@ -85,7 +85,7 @@ class AllianceModel extends AbstractUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient()->getAllianceData($id);
+        $data = self::getF3()->ccpClient()->send('getAlliance', $id);
         if(!empty($data) && !isset($data['error'])){
             if($data['factionId']){
                 /**

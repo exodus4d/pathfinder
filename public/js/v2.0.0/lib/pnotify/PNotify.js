@@ -2037,4 +2037,3 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return PNotify_1;
 });
-//# sourceMappingURL=PNotify.js.map

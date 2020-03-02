@@ -1293,47 +1293,35 @@ define([
         let mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
 
         // Set the name of the hidden property and the change event for visibility
-        let hidden, visibilityChange;
-        if(typeof document.hidden !== 'undefined'){ // Opera 12.10 and Firefox 18 and later support
-            hidden = 'hidden';
+        let visibilityState, visibilityChange;
+        if(typeof document.visibilityState !== 'undefined'){ // Opera 12.10 and Firefox 18 and later support
+            visibilityState = 'visibilityState';
             visibilityChange = 'visibilitychange';
-        }else if(typeof document.mozHidden !== 'undefined'){
-            hidden = 'mozHidden';
-            visibilityChange = 'mozvisibilitychange';
-        }else if(typeof document.msHidden !== 'undefined'){
-            hidden = 'msHidden';
-            visibilityChange = 'msvisibilitychange';
-        }else if(typeof document.webkitHidden !== 'undefined'){
-            hidden = 'webkitHidden';
-            visibilityChange = 'webkitvisibilitychange';
         }
 
         // function is called if the tab becomes active/inactive
         let handleVisibilityChange = () => {
-            if(document[hidden]){
-                // tab is invisible
-                // globally store current visibility status
-                window.isVisible = false;
-
-                Util.getCurrentTriggerDelay( mapUpdateKey, increaseTimer );
-                Util.getCurrentTriggerDelay( mapUserUpdateKey, increaseTimer );
-            }else{
+            if(document[visibilityState] === 'visible'){
                 // tab is visible
                 // globally store current visibility status
                 window.isVisible = true;
 
-                Util.getCurrentTriggerDelay( mapUpdateKey, -increaseTimer );
-                Util.getCurrentTriggerDelay( mapUserUpdateKey, -increaseTimer );
+                Util.getCurrentTriggerDelay(mapUpdateKey, -increaseTimer);
+                Util.getCurrentTriggerDelay(mapUserUpdateKey, -increaseTimer);
 
                 // stop blinking tab from previous notifications
                 Util.stopTabBlink();
+            }else{
+                // tab is invisible
+                // globally store current visibility status
+                window.isVisible = false;
+
+                Util.getCurrentTriggerDelay(mapUpdateKey, increaseTimer);
+                Util.getCurrentTriggerDelay(mapUserUpdateKey, increaseTimer);
             }
         };
 
-        if(
-            typeof document.addEventListener !== 'undefined' &&
-            typeof document[hidden] !== 'undefined'
-        ){
+        if(visibilityState && visibilityChange){
             // the current browser supports this feature
             // Handle page visibility change
 

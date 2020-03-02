@@ -558,4 +558,3 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	return PNotifyButtons;
 });
-//# sourceMappingURL=PNotifyButtons.js.map

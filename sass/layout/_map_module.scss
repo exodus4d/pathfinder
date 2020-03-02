@@ -8,6 +8,7 @@ $mapAreaMinHeight:          300px;
 $mapAreaMaxHeight:          1000px;              // no vertical scrollbar: $mapHeight + 38px;
 
 $mapModuleMaxWidth:         floor(4 * ($mapWidth + 16) / 3);
+$mapModuleGridGap:          10px;
 $mapModuleGridRowMinHeight: 38px;
 
 #pf-map-module {
@@ -149,46 +150,49 @@ $mapModuleGridRowMinHeight: 38px;
 // Tab content grid ===================================================================================================
 .pf-map-tab-content {
   display: grid;
-  grid-gap: 10px;
+  grid-column-gap: 10px; // "row-gap" is created by margin-top of areas. Because an area could be empty (invisible)
 
   grid-template:
           "map"   max-content
-          "area1" minmax($mapModuleGridRowMinHeight, max-content)
-          "area2" minmax($mapModuleGridRowMinHeight, max-content)
-          "area3" minmax($mapModuleGridRowMinHeight, max-content) /
+          "area1" minmax(0, max-content)
+          "area2" minmax(0, max-content)
+          "area3" minmax(0, max-content) /
           1fr;
 
   @media screen and (min-width: $screen-sm){
     grid-template:
             "map   map"   max-content
-            "area1 area1" minmax($mapModuleGridRowMinHeight, min-content)
-            "area2 area3" minmax($mapModuleGridRowMinHeight, min-content) /
+            "area1 area1" minmax(0, min-content)
+            "area2 area3" minmax(0, min-content) /
             1fr 1fr;
   }
 
   @media screen and (min-width: $screen-md){
     grid-template:
             "map   map   map"   max-content
-            "area1 area1 area2" minmax($mapModuleGridRowMinHeight, max-content)
-            "area1 area1 area3" minmax($mapModuleGridRowMinHeight, 1fr) /
+            "area1 area1 area2" minmax(0, max-content)
+            "area1 area1 area3" minmax(0, 1fr) /
             1fr 1fr minmax($colMinWidth, 1fr);
   }
 
 
   @media screen and (min-width: $screen-lg){
     grid-template:
-            "map   map   map   area2" max-content
-            "area1 area1 area3 area2" minmax($mapModuleGridRowMinHeight, 1fr) /
+            "map   map   map   area2" minmax(0, max-content)
+            "area1 area1 area3 area2" minmax(0, max-content)
+            "area1 area1 area3 area2" minmax(0, 1fr) /
             1fr 1fr minmax($colMinWidth, 1fr) minmax($colMinWidth, 1fr);
   }
 
   &.active {
-    display: grid;
+    display: grid; // overwrites default display: block; of .tab-content
   }
 
   &-area {
     position: relative;
     border-radius: 5px;
+    min-height: 0; // animated for drop-zone
+    @include transition(min-height 0.3s ease);
 
     &-map {
       grid-area: map;
@@ -232,26 +236,36 @@ $mapModuleGridRowMinHeight: 38px;
       }
     }
 
-    &-a {
-      grid-area: area1;
+    &-a, &-b, &-c {
       display: grid;
       grid-gap: 10px;
       grid-auto-rows: max-content;
+
+      &:not(:empty) {
+        margin-top: $mapModuleGridGap;
+      }
+    }
+
+    &-a {
+      grid-area: area1;
     }
 
     &-b {
       grid-area: area2;
-      display: grid;
-      grid-gap: 10px;
-      grid-auto-rows: max-content;
+
+      @media screen and (min-width: $screen-lg){
+        margin-top: 0 !important;
+      }
     }
 
     &-c {
       grid-area: area3;
-      display: grid;
-      grid-gap: 10px;
-      grid-auto-rows: max-content;
     }
+  }
+
+  .pf-sortable-dropzone {
+    margin-top: $mapModuleGridGap;
+    min-height: $mapModuleGridRowMinHeight;
   }
 }
 
@@ -311,6 +325,10 @@ $mapModuleGridRowMinHeight: 38px;
   .pf-module-table {
     font-size: 11px;
     white-space: nowrap;
+  }
+
+  .dataTable {
+    font-size: 10px;
   }
 
   .pf-dynamic-area {

@@ -29,7 +29,6 @@ define([
 
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemClass: 'pf-system',                                       // class for all systems
-        systemActiveClass: 'pf-system-active',                          // class for an active system on a map
         systemSelectedClass: 'pf-system-selected',                      // class for selected systems on a map
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
@@ -116,7 +115,7 @@ define([
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
             maxConnections: 10,                     // due to isTarget is true, this is the max count of !out!-going connections
-            // isSource:true
+            //isSource:true
         },
         target: {
             filter:  filterSystemHeadEvent,
@@ -125,10 +124,10 @@ define([
             //allowLoopBack: false,                 // loopBack connections are not allowed
             cssClass: config.endpointTargetClass,
             dropOptions: {
-                hoverClass: config.systemActiveClass,
+                //hoverClass: '',
                 activeClass: 'dragActive'
             },
-            // uniqueEndpoint: false
+            //uniqueEndpoint: false
         },
         endpointTypes: Init.endpointTypes,
         connectionTypes: Init.connectionTypes
@@ -876,23 +875,23 @@ define([
      * connect two systems
      * @param map
      * @param connectionData
-     * @returns new connection
+     * @returns {Promise<any>}
      */
-    let drawConnection = (map, connectionData) => {
+    let drawConnection = (map, connectionData) => new Promise((resolve, reject) => {
         let mapContainer = $(map.getContainer());
         let mapId = mapContainer.data('id');
         let connectionId = connectionData.id || 0;
-        let connection;
         let sourceSystem = $('#' + MapUtil.getSystemId(mapId, connectionData.source));
         let targetSystem = $('#' + MapUtil.getSystemId(mapId, connectionData.target));
 
         // check if both systems exists
         // (If not -> something went wrong e.g. DB-Foreign keys for "ON DELETE",...)
-        if(
-            sourceSystem.length &&
-            targetSystem.length
-        ){
-            connection = map.connect({
+        if(!sourceSystem.length){
+            reject(new Error(`drawConnection(): source system (id: ${connectionData.source}) not found`));
+        }else if(!targetSystem.length){
+            reject(new Error(`drawConnection(): target system (id: ${connectionData.target}) not found`));
+        }else{
+            let connection = map.connect({
                 source: sourceSystem[0],
                 target: targetSystem[0],
                 scope: connectionData.scope || map.Defaults.Scope,
@@ -948,18 +947,18 @@ define([
                         }
                     }
                 }
-            }
-        }else{
-            if( !sourceSystem.length ){
-                console.warn('drawConnection(): source system (id: ' + connectionData.source + ') not found');
-            }
-            if( !targetSystem.length ){
-                console.warn('drawConnection(): target system (id: ' + connectionData.target + ') not found');
+
+                resolve({
+                    action: 'drawConnection',
+                    data: {
+                        connection: connection
+                    }
+                });
+            }else{
+                reject(new Error(`drawConnection(): connection must be instanceof jsPlumb.Connection`));
             }
         }
-
-        return connection;
-    };
+    });
 
     /**
      * compares the current data and new data of a connection and updates status
@@ -1233,168 +1232,178 @@ define([
          * @param reject
          */
         let updateMapExecutor = (resolve, reject) => {
-            // jsPlumb needs to be initialized. This is not the case when switching between map tabs right after refresh
-            let mapContainer = mapConfig.map ? $(mapConfig.map.getContainer()) : null;
-            if(mapContainer){
-                let mapId = mapConfig.config.id;
-
-                // add additional information for this map
-                if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
-                    mapContainer.data('name', mapConfig.config.name);
-                    mapContainer.data('scopeId', mapConfig.config.scope.id);
-                    mapContainer.data('typeId', mapConfig.config.type.id);
-                    mapContainer.data('typeName', mapConfig.config.type.name);
-                    mapContainer.data('icon', mapConfig.config.icon);
-                    mapContainer.data('created', mapConfig.config.created.created);
-                    mapContainer.data('updated', mapConfig.config.updated.updated);
-                }
-
-                // get map data
-                let mapData = getMapDataForSync(mapContainer, [], true);
-
-
-                if(mapData !== false){
-                    // map data available -> map not locked by update counter :)
-                    let currentSystemData = mapData.data.systems;
-                    let currentConnectionData = mapData.data.connections;
-
-                    // update systems =================================================================================
-                    for(let i = 0; i < mapConfig.data.systems.length; i++){
-                        let systemData = mapConfig.data.systems[i];
-
-                        // add system
-                        let addNewSystem = true;
-
-                        for(let k = 0; k < currentSystemData.length; k++){
-                            if(currentSystemData[k].id === systemData.id){
-                                if(currentSystemData[k].updated.updated < systemData.updated.updated){
-                                    // system changed -> update
-                                    mapContainer.getSystem(mapConfig.map, systemData);
-                                }
-
-                                addNewSystem = false;
-                                break;
-                            }
-                        }
-
-                        if(addNewSystem === true){
-                            drawSystem(mapConfig.map, systemData);
-                        }
-                    }
-
-                    // check for systems that are gone -> delete system
-                    for(let a = 0; a < currentSystemData.length; a++){
-                        let deleteThisSystem = true;
-
-                        for(let b = 0; b < mapConfig.data.systems.length; b++){
-                            let deleteSystemData = mapConfig.data.systems[b];
-
-                            if(deleteSystemData.id === currentSystemData[a].id){
-                                deleteThisSystem = false;
-                                break;
-                            }
-                        }
-
-                        if(deleteThisSystem === true){
-                            let deleteSystem = $('#' + MapUtil.getSystemId(mapContainer.data('id'), currentSystemData[a].id));
-
-                            // system not found -> delete system
-                            System.removeSystems(mapConfig.map, deleteSystem);
-                        }
-                    }
-
-                    // update connections =============================================================================
-
-                    // jsPlumb batch() is used, otherwise there are some "strange" visual bugs
-                    // when switching maps (Endpoints are not displayed correctly)
-                    mapConfig.map.batch(function(){
-
-                        for(let j = 0; j < mapConfig.data.connections.length; j++){
-                            let connectionData = mapConfig.data.connections[j];
-
-                            // add connection
-                            let addNewConnection= true;
-
-                            for(let c = 0; c < currentConnectionData.length; c++){
-                                if(currentConnectionData[c].id === connectionData.id){
-                                    // connection already exists -> check for updates
-                                    if(currentConnectionData[c].updated < connectionData.updated){
-                                        // connection changed -> update
-                                        updateConnection(currentConnectionData[c].connection, connectionData);
-                                    }
-
-                                    addNewConnection = false;
-                                    break;
-                                }else if(
-                                    currentConnectionData[c].id === 0 &&
-                                    currentConnectionData[c].source === connectionData.source &&
-                                    currentConnectionData[c].target === connectionData.target
-                                ){
-                                    // if ids don´t match -> check for unsaved connection
-                                    updateConnection(currentConnectionData[c].connection, connectionData);
-
-                                    addNewConnection = false;
-                                    break;
-                                }
-                            }
-
-                            if(addNewConnection === true){
-                                drawConnection(mapConfig.map, connectionData);
-                            }
-                        }
-
-                        // check for connections that are gone -> delete connection
-                        for(let d = 0; d < currentConnectionData.length; d++){
-                            // skip connections with id = 0 -> they might get updated before
-                            if(currentConnectionData[d].id === 0){
-                                continue;
-                            }
-
-                            let deleteThisConnection = true;
-
-                            for(let e = 0; e < mapConfig.data.connections.length;e++){
-                                let deleteConnectionData = mapConfig.data.connections[e];
-
-                                if(deleteConnectionData.id === currentConnectionData[d].id){
-                                    deleteThisConnection = false;
-                                    break;
-                                }
-                            }
-
-                            if(deleteThisConnection === true){
-                                // connection not found -> delete connection
-                                let deleteConnection = currentConnectionData[d].connection;
-
-                                if(deleteConnection){
-                                    // check if "source" and "target" still exist before remove
-                                    // this is NOT the case if the system was removed previous
-                                    if(
-                                        deleteConnection.source &&
-                                        deleteConnection.target
-                                    ){
-                                        mapConfig.map.deleteConnection(deleteConnection, {fireEvent: false});
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    // update local connection cache
-                    updateConnectionsCache(mapConfig.map);
-                }else{
-                    // map is currently logged -> queue update for this map until unlock
-                    if( mapUpdateQueue.indexOf(mapId) === -1 ){
-                        mapUpdateQueue.push(mapId);
-                    }
-                }
-            }
-
-            resolve({
+            let payload = {
                 action: 'updateMap',
                 data: {
                     mapConfig: mapConfig
                 }
-            });
+            };
+
+            // jsPlumb needs to be initialized. This is not the case when switching between map tabs right after refresh
+            let mapContainer = mapConfig.map ? mapConfig.map.getContainer() : null;
+            if(!mapContainer){
+                return resolve(payload);
+            }
+
+            let mapId = mapConfig.config.id;
+
+            // mapData == false -> map locked by update counter. Skip update
+            let mapData = getMapDataForSync(mapContainer, [], true);
+
+            if(!mapData){
+                // map is currently locked -> queue update for this map until unlock
+                if(mapUpdateQueue.indexOf(mapId) === -1){
+                    mapUpdateQueue.push(mapId);
+                }
+                return resolve(payload);
+            }
+
+            mapContainer = $(mapContainer);
+
+            // add additional information for this map
+            if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
+                mapContainer.data('name', mapConfig.config.name);
+                mapContainer.data('scopeId', mapConfig.config.scope.id);
+                mapContainer.data('typeId', mapConfig.config.type.id);
+                mapContainer.data('typeName', mapConfig.config.type.name);
+                mapContainer.data('icon', mapConfig.config.icon);
+                mapContainer.data('created', mapConfig.config.created.created);
+                mapContainer.data('updated', mapConfig.config.updated.updated);
+            }
+
+            // map data available -> map not locked by update counter :)
+            let currentSystemData = mapData.data.systems;
+            let currentConnectionData = mapData.data.connections;
+
+            // update systems =========================================================================================
+            for(let i = 0; i < mapConfig.data.systems.length; i++){
+                let systemData = mapConfig.data.systems[i];
+
+                // add system
+                let addNewSystem = true;
+
+                for(let k = 0; k < currentSystemData.length; k++){
+                    if(currentSystemData[k].id === systemData.id){
+                        if(currentSystemData[k].updated.updated < systemData.updated.updated){
+                            // system changed -> update
+                            mapContainer.getSystem(mapConfig.map, systemData);
+                        }
+
+                        addNewSystem = false;
+                        break;
+                    }
+                }
+
+                if(addNewSystem === true){
+                    drawSystem(mapConfig.map, systemData).catch(console.warn);
+                }
+            }
+
+            // check for systems that are gone -> delete system
+            for(let a = 0; a < currentSystemData.length; a++){
+                let deleteThisSystem = true;
+
+                for(let b = 0; b < mapConfig.data.systems.length; b++){
+                    let deleteSystemData = mapConfig.data.systems[b];
+
+                    if(deleteSystemData.id === currentSystemData[a].id){
+                        deleteThisSystem = false;
+                        break;
+                    }
+                }
+
+                if(deleteThisSystem === true){
+                    let deleteSystem = $('#' + MapUtil.getSystemId(mapContainer.data('id'), currentSystemData[a].id));
+
+                    // system not found -> delete system
+                    System.removeSystems(mapConfig.map, deleteSystem);
+                }
+            }
+
+            // update connections =====================================================================================
+
+            // jsPlumb setSuspendDrawing() (batch() did not work because it async 'scopes' out  updates).
+            // -> Otherwise there are some "strange" visual bugs when switching maps (Endpoints are not displayed correctly)
+            // -> needs to be "disabled" later in this method.
+            mapConfig.map.setSuspendDrawing(true);
+
+            for(let j = 0; j < mapConfig.data.connections.length; j++){
+                let connectionData = mapConfig.data.connections[j];
+
+                // add connection
+                let addNewConnection= true;
+
+                for(let c = 0; c < currentConnectionData.length; c++){
+                    if(currentConnectionData[c].id === connectionData.id){
+                        // connection already exists -> check for updates
+                        if(currentConnectionData[c].updated < connectionData.updated){
+                            // connection changed -> update
+                            updateConnection(currentConnectionData[c].connection, connectionData);
+                        }
+
+                        addNewConnection = false;
+                        break;
+                    }else if(
+                        currentConnectionData[c].id === 0 &&
+                        currentConnectionData[c].source === connectionData.source &&
+                        currentConnectionData[c].target === connectionData.target
+                    ){
+                        // if ids don´t match -> check for unsaved connection
+                        updateConnection(currentConnectionData[c].connection, connectionData);
+
+                        addNewConnection = false;
+                        break;
+                    }
+                }
+
+                if(addNewConnection === true){
+                    drawConnection(mapConfig.map, connectionData).catch(console.warn);
+                }
+            }
+
+            // check for connections that are gone -> delete connection
+            for(let d = 0; d < currentConnectionData.length; d++){
+                // skip connections with id = 0 -> they might get updated before
+                if(currentConnectionData[d].id === 0){
+                    continue;
+                }
+
+                let deleteThisConnection = true;
+
+                for(let e = 0; e < mapConfig.data.connections.length;e++){
+                    let deleteConnectionData = mapConfig.data.connections[e];
+
+                    if(deleteConnectionData.id === currentConnectionData[d].id){
+                        deleteThisConnection = false;
+                        break;
+                    }
+                }
+
+                if(deleteThisConnection === true){
+                    // connection not found -> delete connection
+                    let deleteConnection = currentConnectionData[d].connection;
+
+                    if(deleteConnection){
+                        // check if "source" and "target" still exist before remove
+                        // this is NOT the case if the system was removed previous
+                        if(
+                            deleteConnection.source &&
+                            deleteConnection.target
+                        ){
+                            mapConfig.map.deleteConnection(deleteConnection, {fireEvent: false});
+                        }
+                    }
+                }
+            }
+
+            mapConfig.map.setSuspendDrawing(false, true);
+
+            // update local connection cache
+            updateConnectionsCache(mapConfig.map);
+
+
+
+            return resolve(payload);
         };
 
         /**
@@ -1402,44 +1411,53 @@ define([
          * @param payload
          * @returns {Promise<any>}
          */
-        let filterMapByScopes = payload => {
-            let filterMapByScopesExecutor = resolve => {
-                Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
-                    let scopes = [];
-                    if(dataStore && dataStore.filterScopes){
-                        scopes = dataStore.filterScopes;
-                    }
-
-                    MapUtil.filterMapByScopes(payload.data.mapConfig.map, scopes);
-                    resolve(payload);
-                });
-            };
-
-            return new Promise(filterMapByScopesExecutor);
-        };
+        let filterMapByScopes = payload => new Promise(resolve => {
+            Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
+                let scopes = [];
+                if(dataStore && dataStore.filterScopes){
+                    scopes = dataStore.filterScopes;
+                }
+                MapUtil.filterMapByScopes(payload.data.mapConfig.map, scopes);
+                resolve(payload);
+            });
+        });
 
         /**
          * show signature overlays
          * @param payload
          * @returns {Promise<any>}
          */
-        let showInfoSignatureOverlays = payload => {
-            let showInfoSignatureOverlaysExecutor = resolve => {
-                Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
-                    if(dataStore && dataStore.mapSignatureOverlays){
-                        MapOverlay.showInfoSignatureOverlays($(payload.data.mapConfig.map.getContainer()));
-                    }
+        let showInfoSignatureOverlays = payload => new Promise(resolve => {
+            Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
+                if(dataStore && dataStore.mapSignatureOverlays){
+                    MapOverlay.showInfoSignatureOverlays($(payload.data.mapConfig.map.getContainer()));
+                }
+                resolve(payload);
+            });
+        });
 
-                    resolve(payload);
+        /**
+         * after map update is complete
+         * -> trigger update event for 'global' modules
+         * @param payload
+         * @returns {Promise<any>}
+         */
+        let afterUpdate = payload => new Promise(resolve => {
+            // in rare cases there is a bug where map is undefined (hard to reproduce
+            let map = Util.getObjVal(payload, 'data.mapConfig.map');
+            if(map){
+                let tabContentEl = map.getContainer().closest(`.${Util.config.mapTabContentClass}`);
+                $(tabContentEl).trigger('pf:updateGlobalModules', {
+                    payload: Util.getObjVal(payload, 'data.mapConfig.config.id')
                 });
-            };
-
-            return new Promise(showInfoSignatureOverlaysExecutor);
-        };
+            }
+            resolve(payload);
+        });
 
         return new Promise(updateMapExecutor)
             .then(showInfoSignatureOverlays)
-            .then(filterMapByScopes);
+            .then(filterMapByScopes)
+            .then(afterUpdate);
     };
 
     /**
@@ -1530,28 +1548,22 @@ define([
      * @param systemData
      * @returns {boolean}
      */
-    let isValidSystem = systemData => {
-        let isValid = true;
-        if(
-            !systemData.hasOwnProperty('name') ||
-            systemData.name.length === 0
-        ){
-            return false;
-        }
-
-        return isValid;
-    };
+    let isValidSystem = systemData => (Util.getObjVal(systemData, 'name') || '').length > 0;
 
     /**
      * draw a system with its data to a map
      * @param map
      * @param systemData
      * @param connectedSystem
+     * @param connectionData
+     * @returns {Promise<any>}
      */
-    let drawSystem = (map, systemData, connectedSystem) => {
-
-        // check if systemData is valid
+    let drawSystem = (map, systemData, connectedSystem, connectionData = null) => new Promise((resolve, reject) => {
         if(isValidSystem(systemData)){
+            let payloadDrawSystem = {
+                action: 'drawSystem'
+            };
+
             let mapContainer = $(map.getContainer());
 
             // get System Element by data
@@ -1575,24 +1587,37 @@ define([
             // register system to "magnetizer"
             Magnetizer.addElement(systemData.mapId, newSystem[0]);
 
+            payloadDrawSystem.data = {
+                system: newSystem
+            };
+
             // connect new system (if connection data is given)
             if(connectedSystem){
-
                 // hint: "scope + type" might be changed automatically when it gets saved
                 // -> based on jump distance,..
-                let connectionData = {
+                connectionData = Object.assign({}, {
                     source: $(connectedSystem).data('id'),
                     target: newSystem.data('id'),
                     scope: map.Defaults.Scope,
                     type: [MapUtil.getDefaultConnectionTypeByScope(map.Defaults.Scope)]
-                };
-                let connection = drawConnection(map, connectionData);
+                }, connectionData);
 
-                // store connection
-                saveConnection(connection);
+                drawConnection(map, connectionData)
+                    .then(payload => saveConnection(payload.data.connection, Boolean(connectionData.disableAutoScope)))
+                    .then(payload => {
+                        payloadDrawSystem.data = {
+                            connection: payload.data.connection
+                        };
+                        resolve(payloadDrawSystem);
+                    })
+                    .catch(reject);
+            }else{
+                resolve(payloadDrawSystem);
             }
+        }else{
+            reject(new Error(`drawSystem() failed. Invalid systemData`));
         }
-    };
+    });
 
     /**
      * make a system name/alias editable by x-editable
@@ -1656,56 +1681,69 @@ define([
     /**
      * stores a connection in database
      * @param connection
+     * @param disableAutoScope
+     * @returns {Promise<any>}
      */
-    let saveConnection = connection => {
-        if(connection instanceof jsPlumb.Connection){
-            connection.addType('state_process');
-
-            let map = connection._jsPlumb.instance;
-            let mapContainer = $(map.getContainer());
-            let mapId = mapContainer.data('id');
-
-            let connectionData = MapUtil.getDataByConnection(connection);
-            connectionData.mapId = mapId;
-
-            Util.request('PUT', 'connection', [], connectionData, {
-                connection: connection,
-                map: map,
-                mapId: mapId,
-                oldConnectionData: connectionData
-            }).then(
-                payload => {
-                    let newConnectionData = payload.data;
-
-                    if(!$.isEmptyObject(newConnectionData)){
-                        // update connection data e.g. "scope" has auto detected
-                        connection = updateConnection(payload.context.connection, newConnectionData);
-
-                        // new/updated connection should be cached immediately!
-                        updateConnectionCache(payload.context.mapId, connection);
-
-                        // connection scope
-                        let scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
-
-                        let title = 'New connection established';
-                        if(payload.context.oldConnectionData.id > 0){
-                            title = 'Connection switched';
-                        }
-
-                        Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
-                    }else{
-                        // some save errors
-                        payload.context.map.deleteConnection(payload.context.connection, {fireEvent: false});
-                    }
-                },
-                payload => {
-                    // remove this connection from map
-                    payload.context.map.deleteConnection(payload.context.connection, {fireEvent: false});
-                    Util.handleAjaxErrorResponse(payload);
-                }
-            );
+    let saveConnection = (connection, disableAutoScope = false) => new Promise((resolve, reject) => {
+        if(!(connection instanceof jsPlumb.Connection)){
+            reject(new Error(`saveConnection(): connection must be instanceof jsPlumb.Connection`));
         }
-    };
+
+        connection.addType('state_process');
+
+        let map = connection._jsPlumb.instance;
+        let mapContainer = $(map.getContainer());
+        let mapId = mapContainer.data('id');
+
+        let connectionData = MapUtil.getDataByConnection(connection);
+        connectionData.mapId = mapId;
+        connectionData.disableAutoScope = disableAutoScope;
+
+        Util.request('PUT', 'connection', [], connectionData, {
+            connection: connection,
+            map: map,
+            mapId: mapId,
+            oldConnectionData: connectionData
+        }).then(
+            payload => {
+                let newConnectionData = payload.data;
+
+                if(!$.isEmptyObject(newConnectionData)){
+                    // update connection data e.g. "scope" has auto detected
+                    connection = updateConnection(payload.context.connection, newConnectionData);
+
+                    // new/updated connection should be cached immediately!
+                    updateConnectionCache(payload.context.mapId, connection);
+
+                    // connection scope
+                    let scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
+
+                    let title = 'New connection established';
+                    if(payload.context.oldConnectionData.id > 0){
+                        title = 'Connection switched';
+                    }
+
+                    Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
+                    resolve({
+                        action: 'saveConnection',
+                        data: {
+                            connection: connection
+                        }
+                    });
+                }else{
+                    // some save errors
+                    payload.context.map.deleteConnection(payload.context.connection, {fireEvent: false});
+                    reject(new Error(`saveConnection(): response error`));
+                }
+            },
+            payload => {
+                // remove this connection from map
+                payload.context.map.deleteConnection(payload.context.connection, {fireEvent: false});
+                Util.handleAjaxErrorResponse(payload);
+                reject(new Error(`saveConnection(): request error`));
+            }
+        );
+    });
 
     /**
      * get context menu config for a map component (e.g. system, connection,..)
@@ -1742,7 +1780,7 @@ define([
                 options.hidden.push('delete_system');
             }
 
-            if( !mapContainer.find('.' + config.systemActiveClass).length){
+            if( !mapContainer.find('.' + MapUtil.config.systemActiveClass).length){
                 options.hidden.push('find_route');
             }
 
@@ -1755,7 +1793,7 @@ define([
             }
 
             // disabled menu actions
-            if(system.hasClass(config.systemActiveClass)){
+            if(system.hasClass(MapUtil.config.systemActiveClass)){
                 options.disabled.push('find_route');
             }
 
@@ -1898,6 +1936,8 @@ define([
         // map overlay will be set on "drag" start
         let mapOverlayTimer = null;
 
+        let debounceDrag = false;
+
         // make system draggable
         map.draggable(system, {
             containment: 'parent',
@@ -1907,7 +1947,7 @@ define([
             snapThreshold: MapUtil.config.mapSnapToGridDimension,       // distance for grid snapping "magnet" effect (optional)
             start: function(params){
                 let dragSystem = $(params.el);
-
+                dragSystem.css('pointer-events','none');
                 mapOverlayTimer = MapOverlayUtil.getMapOverlay(dragSystem, 'timer');
 
                 // start map update timer
@@ -1919,9 +1959,6 @@ define([
                 }else{
                     delete( params.drag.params.grid );
                 }
-
-                // stop "system click event" right after drop event is finished
-                dragSystem.addClass('no-click');
 
                 // drag system is not always selected
                 let selectedSystems = mapContainer.getSelectedSystems().get();
@@ -1938,22 +1975,25 @@ define([
                 $(selectedSystems).updateSystemZIndex();
             },
             drag: function(p){
-                // start map update timer
-                mapOverlayTimer.startMapUpdateCounter();
+                if(!debounceDrag) {
+                    requestAnimationFrame(() => {
+                        // start map update timer
+                        mapOverlayTimer.startMapUpdateCounter();
 
-                // update system positions for "all" systems that are effected by drag&drop
-                // this requires "magnet" feature to be active! (optional)
-                Magnetizer.executeAtEvent(map, p.e);
+                        // update system positions for "all" systems that are effected by drag&drop
+                        // this requires "magnet" feature to be active! (optional)
+                        Magnetizer.executeAtEvent(map, p.e);
+
+                        debounceDrag = false;
+                    });
+                }
+                debounceDrag = true;
             },
             stop: function(params){
                 let dragSystem = $(params.el);
 
                 // start map update timer
                 mapOverlayTimer.startMapUpdateCounter();
-
-                setTimeout(function(){
-                    dragSystem.removeClass('no-click');
-                }, Init.timer.DBL_CLICK + 50);
 
                 // show tooltip
                 dragSystem.toggleSystemTooltip('show', {show: true});
@@ -1975,7 +2015,7 @@ define([
 
                 // update all dragged systems -> added to DragSelection
                 params.selection.forEach(elData => {
-                    MapUtil.markAsChanged($(elData[0]));
+                    MapUtil.markAsChanged($(elData[0]).css('pointer-events','initial'));
                 });
             }
         });
@@ -2016,23 +2056,20 @@ define([
             if(!popoverClick){
                 let system = $(this);
 
-                // check if system is locked for "click" events
-                if(!system.hasClass('no-click')){
-                    // left mouse button
-                    if(e.which === 1){
-                        if(e.ctrlKey === true){
-                            // select system
-                            MapUtil.toggleSystemsSelect(map, [system]);
-                        }else{
-                            MapUtil.showSystemInfo(map, system);
-                        }
+                // left mouse button
+                if(e.which === 1){
+                    if(e.ctrlKey === true){
+                        // select system
+                        MapUtil.toggleSystemsSelect(map, [system]);
+                    }else{
+                        MapUtil.showSystemInfo(map, system);
                     }
                 }
             }
 
         };
 
-        Util.singleDoubleClick(system, single, double);
+        Util.singleDoubleClick(system[0], single, double);
     };
 
     /**
@@ -2040,10 +2077,10 @@ define([
      * @param map
      * @param newSystemData
      * @param sourceSystem
+     * @param connectionData
+     * @returns {Promise<any>}
      */
-    let saveSystemCallback = (map, newSystemData, sourceSystem) => {
-        drawSystem(map, newSystemData, sourceSystem);
-    };
+    let saveSystemCallback = (map, newSystemData, sourceSystem, connectionData = null) => drawSystem(map, newSystemData, sourceSystem, connectionData);
 
     /**
      * select all (selectable) systems on a mapElement
@@ -2193,17 +2230,8 @@ define([
                     return false;
                 }
 
-                // lock the target system for "click" events
-                // to prevent loading system information
                 let sourceSystem = $('#' + sourceId);
                 let targetSystem = $('#' + targetId);
-                sourceSystem.addClass('no-click');
-                targetSystem.addClass('no-click');
-
-                setTimeout(() => {
-                    sourceSystem.removeClass('no-click');
-                    targetSystem.removeClass('no-click');
-                }, Init.timer.DBL_CLICK + 50);
 
                 // switch connection type to "abyss" in case source OR target system belongs to "a-space"
                 if(sourceSystem.data('typeId') === 3 || targetSystem.data('typeId') === 3){
@@ -2227,7 +2255,7 @@ define([
                 }
 
                 // always save the new connection
-                saveConnection(connection);
+                saveConnection(connection).catch(console.warn);
 
                 return true;
             });
@@ -2721,7 +2749,7 @@ define([
                         selectSystem(mapContainer, data);
                         break;
                     case 'AddSystem':
-                        System.showNewSystemDialog(map, data, saveSystemCallback);
+                        System.showNewSystemDialog(map, data, typeof data.callback === 'function' ? data.callback : saveSystemCallback);
                         break;
                     default:
                         console.warn('Unknown menuAction %o event name', action);
@@ -2938,16 +2966,16 @@ define([
 
     /**
      * collect all map data from client for server or client sync
-     * @param mapContainer
+     * @param {HTMLElement} mapContainer
      * @param filter
      * @param minimal
-     * @returns {boolean}
+     * @returns {boolean|{}}
      */
     let getMapDataForSync = (mapContainer, filter = [], minimal = false) => {
         let mapData = false;
         // check if there is an active map counter that prevents collecting map data (locked map)
-        if(!MapOverlayUtil.getMapOverlayInterval(mapContainer)){
-            mapData = mapContainer.getMapDataFromClient(filter, minimal);
+        if(!MapOverlayUtil.isMapCounterOverlayActive(mapContainer)){
+            mapData = $(mapContainer).getMapDataFromClient(filter, minimal);
         }
         return mapData;
     };
@@ -2957,6 +2985,7 @@ define([
      * this function returns the "client" data NOT the "server" data for a map
      * @param filter
      * @param minimal
+     * @returns {{}}
      */
     $.fn.getMapDataFromClient = function(filter = [], minimal = false){
         let mapContainer = $(this);
@@ -3099,34 +3128,29 @@ define([
      * @param options
      * @returns {Promise<any>}
      */
-    let initMapOptions = (mapConfig, options) => {
-
-        let initMapOptionsExecutor = (resolve, reject) => {
-            let payload = {
-                action: 'initMapOptions',
-                data: {
-                    mapConfig: mapConfig
-                }
-            };
-
-            if(options.showAnimation){
-                let mapElement = $(mapConfig.map.getContainer());
-                MapUtil.setMapDefaultOptions(mapElement, mapConfig.config)
-                    .then(payload => MapUtil.visualizeMap(mapElement, 'show'))
-                    .then(payload => MapUtil.zoomToDefaultScale(mapConfig.map))
-                    .then(payload => MapUtil.scrollToDefaultPosition(mapConfig.map))
-                    .then(payload => {
-                        Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
-                    })
-                    .then(() => resolve(payload));
-            }else{
-                // nothing to do here...
-                resolve(payload);
+    let initMapOptions = (mapConfig, options) => new Promise((resolve, reject) => {
+        let payload = {
+            action: 'initMapOptions',
+            data: {
+                mapConfig: mapConfig
             }
         };
 
-        return new Promise(initMapOptionsExecutor);
-    };
+        if(options.showAnimation){
+            let mapElement = $(mapConfig.map.getContainer());
+            MapUtil.setMapDefaultOptions(mapElement, mapConfig.config)
+                .then(payload => MapUtil.visualizeMap(mapElement, 'show'))
+                .then(payload => MapUtil.zoomToDefaultScale(mapConfig.map))
+                .then(payload => MapUtil.scrollToDefaultPosition(mapConfig.map))
+                .then(payload => {
+                    Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
+                })
+                .then(() => resolve(payload));
+        }else{
+            // nothing to do here...
+            resolve(payload);
+        }
+    });
 
     /**
      * load OR updates system map
@@ -3136,6 +3160,9 @@ define([
      * @returns {Promise<any>}
      */
     let loadMap = (areaMap, mapConfig, options) => {
+        // whether map gets loaded (initialized) for the first time
+        // or just updated an existing map
+        let isFirstLoad = false;
 
         /**
          * load map promise
@@ -3150,6 +3177,7 @@ define([
 
                 if(mapConfig.map.getContainer() === undefined){
                     // map not loaded -> create & update
+                    isFirstLoad = true;
                     newMapElement(areaMap, mapConfig)
                         .then(payload => updateMap(payload.data.mapConfig))
                         .then(payload => resolve(payload));
@@ -3162,7 +3190,12 @@ define([
         };
 
         return new Promise(loadMapExecutor)
-            .then(payload => initMapOptions(payload.data.mapConfig, options));
+            .then(payload => initMapOptions(payload.data.mapConfig, options))
+            .then(payload => ({
+                action: 'loadMap',
+                data: payload.data,
+                isFirstLoad
+            }));
     };
 
     /**
@@ -3330,7 +3363,9 @@ define([
         loadMap: loadMap,
         updateUserData: updateUserData,
         getMapDataForSync: getMapDataForSync,
-        saveSystemCallback: saveSystemCallback
+        saveSystemCallback: saveSystemCallback,
+        drawConnection: drawConnection,
+        saveConnection: saveConnection
     };
 
 });

@@ -78,11 +78,9 @@ define([
          */
         newInfoPanelControlEl(mapId){
             let connectionEl = this.newConnectionElement(mapId);
-
-            let controlEl = document.createElement('div');
-            controlEl.classList.add(Util.config.dynamicAreaClass, this._config.controlAreaClass);
-            controlEl.insertAdjacentHTML('beforeend', '<i class="fas fa-fw fa-plus"></i>&nbsp;add connection&nbsp;&nbsp;<kbd>ctrl</kbd>&nbsp;+&nbsp;<kbd>click</kbd>');
-            connectionEl.append(controlEl);
+            connectionEl.append(
+                this.newControlElement('add connection&nbsp;&nbsp;<kbd>ctrl</kbd>&nbsp;+&nbsp;<kbd>click</kbd>', [], ['fa-plus'])
+            );
 
             return connectionEl;
         }
@@ -267,9 +265,12 @@ define([
             }, context => {
                 // hide loading animation
                 for(let contextData of context.connectionsData){
-                    let tableEls = this.moduleElement.querySelector('#' + this.getConnectionElementId(contextData.id))
-                        .getElementsByTagName('table');
-                    $(tableEls).hideLoadingAnimation();
+                    let connectionEl = this.moduleElement.querySelector('#' + this.getConnectionElementId(contextData.id));
+                    // connectionEl might be removed in meantime ( e.g. module removed)
+                    if(connectionEl){
+                        let tableEls = connectionEl.getElementsByTagName('table');
+                        $(tableEls).hideLoadingAnimation();
+                    }
                 }
             });
         }
@@ -351,7 +352,7 @@ define([
             let scopeLabel = MapUtil.getScopeInfoForConnection(connectionData.scope, 'label');
 
             let element = document.createElement('div');
-            element.classList.add(Util.config.dynamicAreaClass, this._config.controlAreaClass);
+            element.classList.add(BaseModule.Util.config.dynamicAreaClass, this._config.controlAreaClass);
 
             $(element).append(
                 $('<table>', {
@@ -990,7 +991,7 @@ define([
 
                                 if(rowData.active){
                                     let confirmationSettings = {
-                                        title: 'delete jump log',
+                                        title: '---',
                                         template: Util.getConfirmationTemplate(null, {
                                             size: 'small',
                                             noTitle: true
@@ -1251,7 +1252,6 @@ define([
 
         // body
         connectionInfoPanelClass: 'pf-connection-info-panel',                                   // class for connection info panels
-        controlAreaClass: 'pf-module-control-area',                                             // class for "control" areas
 
         // info table
         moduleTableClass: 'pf-module-table',                                                    // class for module tables

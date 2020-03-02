@@ -13,6 +13,7 @@ define([
     'module/system_route',
     'module/system_intel',
     'module/system_killboard',
+    'module/global_thera',
     'module/connection_info',
     'app/counter'
 ], (
@@ -30,6 +31,7 @@ define([
     SystemRouteModule,
     SystemIntelModule,
     SystemKillboardModule,
+    TheraModule,
     ConnectionInfoModule
 ) => {
     'use strict';
@@ -56,6 +58,7 @@ define([
 
         // editable 'settings' popover
         editableSettingsClass: 'pf-editable-settings',
+        editableHeadlineClass: 'pf-editable-headline',
         editableToggleClass: 'pf-editable-toggle',
         editableToggleItemClass: 'pf-editable-toggle-item',
 
@@ -64,13 +67,6 @@ define([
     };
 
     let mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
-
-    /**
-     * get all maps for a maps module
-     * @param mapModule
-     * @returns {jQuery}
-     */
-    let getMaps = mapModule => $(mapModule).find('.' + Util.config.mapClass);
 
     /**
      * get the current active mapElement
@@ -90,6 +86,12 @@ define([
      * @param tabContentWrapperEl
      */
     let setMapTabContentWrapperObserver = tabContentWrapperEl => {
+        $(tabContentWrapperEl).on('pf:renderGlobalModules', `.${Util.config.mapTabContentClass}`, function(e, data){
+            getModules()
+                .then(modules => filterModules(modules, 'global'))
+                .then(modules => renderModules(modules, e.target, data));
+        });
+
         $(tabContentWrapperEl).on('pf:renderSystemModules', `.${Util.config.mapTabContentClass}`, function(e, data){
             getModules()
                 .then(modules => filterModules(modules, 'system'))
@@ -112,6 +114,12 @@ define([
             getModules()
                 .then(modules => filterModules(modules, 'connection'))
                 .then(modules => removeModules(modules, e.target));
+        });
+
+        $(tabContentWrapperEl).on('pf:updateGlobalModules', `.${Util.config.mapTabContentClass}`, (e, data) => {
+            getModules()
+                .then(modules => filterModules(modules, 'global'))
+                .then(modules => updateModules(modules, e.target, data));
         });
 
         $(tabContentWrapperEl).on('pf:updateSystemModules', `.${Util.config.mapTabContentClass}`, (e, data) => {
@@ -141,6 +149,7 @@ define([
                 SystemRouteModule,
                 SystemIntelModule,
                 SystemKillboardModule,
+                TheraModule,
                 ConnectionInfoModule
             ];
 
@@ -361,7 +370,7 @@ define([
                 });
             };
 
-            removeModule(Module, gridArea, true).then(abc => render(Module, gridArea, defaultPosition, mapId, payload));
+            removeModule(Module, gridArea, false).then(abc => render(Module, gridArea, defaultPosition, mapId, payload));
         };
 
         return new Promise(renderModuleExecutor);
@@ -533,7 +542,7 @@ define([
     let updateSystemModulesData = (mapModule, systemData) => {
         if(systemData){
             // check if current open system is still the requested info system
-            let currentSystemData = Util.getCurrentSystemData();
+            let currentSystemData = Util.getCurrentSystemData(systemData.mapId);
 
             if(
                 currentSystemData &&
@@ -556,6 +565,7 @@ define([
     let setTabContentObserver = (tabContent, mapId) => {
 
         let defaultSortableOptions = {
+            invertSwap: true,
             animation: Init.animationSpeed.mapModule,
             handle: '.' + config.sortableHandleClass,
             draggable: '.' + config.moduleClass,
@@ -926,10 +936,11 @@ define([
             let mapId = parseInt(linkEl.dataset.mapId) || 0;
             let defaultSystemId = parseInt(linkEl.dataset.defaultSystemId) || 0;
             let tabMapData = Util.getCurrentMapData(mapId);
+            let tabContentEl = document.getElementById(config.mapTabIdPrefix + mapId);
 
-            if(tabMapData !== false){
+            // tabContentEl does not exist in case of error where all map elements got removed
+            if(tabMapData !== false && tabContentEl){
                 // load map
-                let tabContentEl = document.getElementById(config.mapTabIdPrefix + mapId);
                 let areaMap = tabContentEl.querySelector(`.${Util.getMapTabContentAreaClass('map')}`);
                 Map.loadMap(areaMap, tabMapData, {showAnimation: true}).then(payload => {
                     // "wake up" scrollbar for map and get previous state back
@@ -937,6 +948,11 @@ define([
                     let mapElement = mapConfig.map.getContainer();
                     let areaMap = mapElement.closest('.mCustomScrollbar');
                     $(areaMap).mCustomScrollbar('update');
+
+                    // show "global" map panels of map was initial loaded
+                    if(payload.isFirstLoad){
+                        MapUtil.showMapInfo(mapConfig.map);
+                    }
 
                     // if there is an already an "active" system -> setCurrentSystemData for that again
                     let activeSystemEl = mapElement.querySelector(`.${MapUtil.config.systemActiveClass}`);
@@ -973,9 +989,6 @@ define([
 
             // skip "add button"
             if(newMapId > 0){
-                // delete currentSystemData -> will be set for new map (if there is is an active system)
-                delete Init.currentSystemData;
-
                 let currentTabContentEl = document.getElementById(config.mapTabIdPrefix + oldMapId);
 
                 // disable scrollbar for map that will be hidden. "freeze" current state
@@ -991,90 +1004,81 @@ define([
      * @param options
      * @returns {Promise<any>}
      */
-    let updateTabData = (tabLinkEl, options) => {
+    let updateTabData = (tabLinkEl, options) => new Promise(resolve => {
+        // set "main" data
+        tabLinkEl.dataset.mapId = options.id;
 
-        /**
-         * update tab promise
-         * @param resolve
-         */
-        let updateTabExecutor = resolve => {
-            // set "main" data
-            tabLinkEl.dataset.mapId = options.id;
+        // add updated timestamp (not available for "add" tab
+        if(Util.getObjVal(options, 'updated.updated')){
+            tabLinkEl.dataset.updated = options.updated.updated;
+        }
 
-            // add updated timestamp (not available for "add" tab
-            if(Util.getObjVal(options, 'updated.updated')){
-                tabLinkEl.dataset.updated = options.updated.updated;
+        // change "tab" link
+        tabLinkEl.setAttribute('href', `#${config.mapTabIdPrefix}${options.id}`);
+
+        // change "map" icon
+        let mapIconEl = tabLinkEl.querySelector(`.${config.mapTabIconClass}`);
+        mapIconEl.classList.remove(...mapIconEl.classList);
+        mapIconEl.classList.add(config.mapTabIconClass, 'fas', 'fa-fw', options.icon);
+
+        // change "shared" icon
+        let mapSharedIconEl = tabLinkEl.querySelector(`.${config.mapTabSharedIconClass}`);
+        mapSharedIconEl.style.display = 'none';
+
+        // check if the map is a "shared" map
+        if(options.access){
+            if(
+                options.access.character.length > 1 ||
+                options.access.corporation.length > 1 ||
+                options.access.alliance.length > 1
+            ){
+                mapSharedIconEl.style.display = 'initial';
             }
+        }
 
-            // change "tab" link
-            tabLinkEl.setAttribute('href', `#${config.mapTabIdPrefix}${options.id}`);
+        // change map name label
+        let textEl = tabLinkEl.querySelector(`.${config.mapTabLinkTextClass}`);
+        textEl.textContent = options.name;
 
-            // change "map" icon
-            let mapIconEl = tabLinkEl.querySelector(`.${config.mapTabIconClass}`);
-            mapIconEl.classList.remove(...mapIconEl.classList);
-            mapIconEl.classList.add(config.mapTabIconClass, 'fas', 'fa-fw', options.icon);
+        // change tabClass
+        let listEl = tabLinkEl.parentNode;
 
-            // change "shared" icon
-            let mapSharedIconEl = tabLinkEl.querySelector(`.${config.mapTabSharedIconClass}`);
-            mapSharedIconEl.style.display = 'none';
+        // new tab classes
+        let tabClasses = [config.mapTabClass, options.type.classTab];
 
-            // check if the map is a "shared" map
-            if(options.access){
-                if(
-                    options.access.character.length > 1 ||
-                    options.access.corporation.length > 1 ||
-                    options.access.alliance.length > 1
-                ){
-                    mapSharedIconEl.style.display = 'initial';
-                }
-            }
+        if(options.draggable === false){
+            tabClasses.push('noSort');
+        }
 
-            // change map name label
-            let textEl = tabLinkEl.querySelector(`.${config.mapTabLinkTextClass}`);
-            textEl.textContent = options.name;
+        // check if tab was "active" before
+        if(listEl.classList.contains('active')){
+            tabClasses.push('active');
+        }
+        listEl.classList.remove(...listEl.classList);
+        listEl.classList.add(...tabClasses);
 
-            // change tabClass
-            let listEl = tabLinkEl.parentNode;
+        // set title for tooltip
+        if(options.type.name !== undefined){
+            textEl.setAttribute('title', `${options.type.name} map`);
+        }
 
-            // new tab classes
-            let tabClasses = [config.mapTabClass, options.type.classTab];
-
-            if(options.draggable === false){
-                tabClasses.push('noSort');
-            }
-
-            // check if tab was "active" before
-            if(listEl.classList.contains('active')){
-                tabClasses.push('active');
-            }
-            listEl.classList.remove(...listEl.classList);
-            listEl.classList.add(...tabClasses);
-
-            // set title for tooltip
-            if(options.type.name !== undefined){
-                textEl.setAttribute('title', `${options.type.name} map`);
-            }
-
-            let mapTooltipOptions = {
-                placement: 'bottom',
-                container: 'body',
-                trigger: 'hover',
-                delay: 150
-            };
-
-            $(listEl.querySelector('[title]')).tooltip(mapTooltipOptions).tooltip('fixTitle');
-
-            resolve({
-                action: 'update',
-                data: {
-                    mapId: options.id,
-                    mapName: options.name
-                }
-            });
+        let mapTooltipOptions = {
+            placement: 'bottom',
+            container: 'body',
+            trigger: 'hover',
+            delay: 150
         };
 
-        return new Promise(updateTabExecutor);
-    };
+        $(listEl.querySelector('[title]')).tooltip(mapTooltipOptions).tooltip('fixTitle');
+
+        resolve({
+            action: 'update',
+            data: {
+                mapId: options.id,
+                mapName: options.name
+            }
+        });
+    });
 
     /**
      * add a new tab to tab-map-module end return promise
@@ -1545,10 +1549,14 @@ define([
             setMapTabLayout(tabEl, layoutCurrent);
 
             // prepare select options for modules
-            let sourceOptions = modules.sort((a, b) => a.isPlugin - b.isPlugin).map(Module => ({
+            let modulePrioCounts = Array(BaseModule.scopeOrder.length).fill(0);
+            let sourceOptions = modules.sort((a, b) => a.getOrderPrio() - b.getOrderPrio()).map(Module => ({
                 value: Module.name,
-                text: `(${Module.scope.substring(0, 3)}) ${Module.label}`,
+                text: Module.label,
                 metaData: {
+                    scope: Module.scope,
+                    orderPrio: Module.getOrderPrio(),
+                    prioCount: ++modulePrioCounts[Module.getOrderPrio()],
                     isPlugin: Module.isPlugin
                 }
             }));
@@ -1628,6 +1636,19 @@ define([
                                 }
                             }
                         }, {passive: false});
+
+                        // add "headlines" to Modules checklist -------------------------------------------------------
+                        anchorEl.childNodes.forEach((gridItem, i) => {
+                            if(sourceOptions[i].metaData.prioCount === 1){
+                                gridItem.classList.add(config.editableHeadlineClass);
+                                gridItem.setAttribute('data-count',
+                                    modulePrioCounts[sourceOptions[i].metaData.orderPrio]
+                                );
+                                gridItem.setAttribute('data-headline',
+                                    BaseModule.scopeOrder[sourceOptions[i].metaData.orderPrio]
+                                );
+                            }
+                        });
                     });
 
                     settingsLinkEl.on('save', {sourceOptions: sourceOptions}, (e, params) => {
@@ -1644,15 +1665,23 @@ define([
                             let showModules = filterModules(modules, params.newValue.diff(oldValue), 'name');
 
                             removeModules(hideModules, tabContentEl).then(payload => {
+                                let showGlobalModules = showModules.filter(Module => Module.scope === 'global');
                                 let showSystemModules = showModules.filter(Module => Module.scope === 'system');
                                 let showConnectionModules = showModules.filter(Module => Module.scope === 'connection');
+                                if(showGlobalModules.length){
+                                    renderModules(showGlobalModules, tabContentEl, {
+                                        mapId: activeMapId,
+                                        payload: null
+                                    });
+                                }
+
                                 if(
                                     showSystemModules.length &&
-                                    Util.getCurrentSystemData()
+                                    Util.getCurrentSystemData(activeMapId)
                                 ){
                                     renderModules(showSystemModules, tabContentEl, {
                                         mapId: activeMapId,
-                                        payload: Util.getCurrentSystemData()
+                                        payload: Util.getCurrentSystemData(activeMapId)
                                     });
                                 }
 
@@ -1706,28 +1735,24 @@ define([
     /**
      * collect all data (systems/connections) for export/save from each active map in the map module
      * if no change detected -> do not attach map data to return array
-     * @param mapModule
+     * @param {HTMLElement} mapModule
      * @param filter
-     * @returns {Array}
+     * @returns {[]}
      */
     let getMapModuleDataForUpdate = (mapModule, filter = ['hasId', 'hasChanged']) => {
-        // get all active map elements for module
-        let mapElements = getMaps(mapModule);
-
         let data = [];
-        for(let i = 0; i < mapElements.length; i++){
+        [...mapModule.getElementsByClassName(Util.config.mapClass)].forEach(mapElement => {
             // get all changed (system / connection) data from this map
-            let mapData = Map.getMapDataForSync($(mapElements[i]), filter);
-            if(mapData !== false){
-                if(
-                    mapData.data.systems.length > 0 ||
-                    mapData.data.connections.length > 0
-                ){
-                    data.push(mapData);
-                }
+            let mapData = Map.getMapDataForSync(mapElement, filter);
+            if(
+                mapData && (
+                    (Util.getObjVal(mapData, 'data.systems') || []).length ||
+                    (Util.getObjVal(mapData, 'data.connections') || []).length
+                )
+            ){
+                data.push(mapData);
             }
-        }
-
+        });
         return data;
     };
 
