@@ -407,6 +407,7 @@ $mapBubbleWidth:        30px;
       cursor: grab;
       padding: 0 4px;
       white-space: nowrap;
+      backface-visibility: hidden; // fixed blurry text on system scale() -> requires display: inline-block; transform: translateY(0); for child nodes
       display: none;  // triggered by JS
       will-change: width;
 
@@ -432,6 +433,7 @@ $mapBubbleWidth:        30px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
           display: none; // hover effect
         }
 
@@ -440,6 +442,7 @@ $mapBubbleWidth:        30px;
           font-size: 6px;
           width: 10px;
           vertical-align: middle;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
         }
 
         .pf-system-body-item-name{
@@ -449,6 +452,7 @@ $mapBubbleWidth:        30px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
         }
       }
 

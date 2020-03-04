@@ -617,8 +617,8 @@ define([
                                 placement: getSystemTooltipPlacement(system),
                                 html: true,
                                 animation: true,
-                                  template: template,
-                                viewport: system.closest('.' + Util.config.mapClass)
+                                template: template,
+                                container: system.closest('.' + Util.config.mapClass)
                             };
 
                             // init new tooltip -> Do not show automatic maybe system is currently dragged

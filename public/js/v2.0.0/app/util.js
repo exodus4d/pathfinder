@@ -8,6 +8,7 @@ define([
     'app/lib/console',
     'app/lib/cache',
     'app/lib/localStore',
+    'app/lib/resize',
     'conf/system_effect',
     'conf/signature_type',
     'bootbox',
@@ -21,7 +22,7 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Proto, Con, Cache, LocalStoreManager, SystemEffect, SignatureType, bootbox) => {
+], ($, Init, Proto, Con, Cache, LocalStoreManager, ResizeManager, SystemEffect, SignatureType, bootbox) => {
 
     'use strict';
 
@@ -3272,6 +3273,12 @@ define([
     };
 
     /**
+     * get ResizeManager instance
+     * @returns {ResizeManager}
+     */
+    let getResizeManager = () => ResizeManager;
+
+    /**
      * clear session Storage
      * -> otherwise a tab refresh does not clear sessionStorage!
      */
@@ -3673,6 +3680,7 @@ define([
         formatPrice: formatPrice,
         formatMassValue: formatMassValue,
         getLocalStore: getLocalStore,
+        getResizeManager: getResizeManager,
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,

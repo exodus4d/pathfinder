@@ -213,7 +213,7 @@ define([
                     parseTime: false,
                     ymin: 0,
                     yLabelFormat: value => Math.round(value),
-                    padding: 10,
+                    padding: 8,
                     hideHover: true,
                     pointSize: 2.5,
                     lineColors: this.getInfoForGraph(graphKey, 'lineColors'),
@@ -221,28 +221,32 @@ define([
                     pointStrokeColors: ['#141519'],
                     lineWidth: 1.5,
                     grid: true,
-                    gridStrokeWidth: 0.3,
+                    gridTextColor: '#63676a',
                     gridTextSize: 10,
                     gridTextFamily: 'Arial, "Oxygen Bold"',
-                    gridTextColor: '#63676a',
-                    gridTextWeight: 'bold',
-                    behaveLikeLine: false,
+                    gridStrokeWidth: 0.3,
+                    behaveLikeLine: true,
                     goals: goals,
                     goalStrokeWidth: 1,
                     goalLineColors: ['#c2760c'],
-                    smooth: false,
-                    fillOpacity: 0.2,
-                    resize: true,
-                    redraw: true,
+                    smooth: true,
+                    fillOpacity: 0.5,
+                    //belowArea: true,
+                    areaColors: ['#c2760c', '#c2760c'],
+                    belowArea: true,
+                    //resize: true,
+                    //redraw: true,
+                    dataLabels: false,
                     eventStrokeWidth: 1,
-                    eventLineColors: ['#63676a']
+                    eventLineColors: ['#63676a'],
+                    nbYkeys2: this.getInfoForGraph(graphKey, 'nbYkeys2')
                 };
 
                 if(eventLine > 0){
                     graphConfig.events = [eventLine];
                 }
 
-                this['_aChart_' + graphKey] = Morris.Area(graphConfig);
+                this['_aChart_' + graphKey] = Morris.Line(graphConfig);
 
                 // data for info "popover" --------------------------------------------------------------------------------
                 tooltipData = {};
@@ -268,6 +272,17 @@ define([
             }
 
             return tooltipData;
+        }
+
+        beforeDestroy(){
+            super.beforeDestroy();
+
+            for(let graphKey of Object.keys(this._config.systemGraphs)){
+                if(typeof this['_aChart_' + graphKey] === 'object'){
+                    this['_aChart_' + graphKey].destroy();
+                    delete this['_aChart_' + graphKey];
+                }
+            }
         }
 
         /**
@@ -342,8 +357,9 @@ define([
         systemGraphs: {
             jumps: {
                 headline: 'Jumps',
-                units: 'jumps',
+                postUnits: 'jumps',
                 ykeys: ['y'],
+                nbYkeys2: 0,
                 labels: ['Jumps'],
                 lineColors: ['#375959'],
                 pointFillColors: ['#477372'],
@@ -351,8 +367,9 @@ define([
             },
             shipKills: {
                 headline: 'Ship/POD Kills',
-                units: 'kills',
+                postUnits: 'kills',
                 ykeys: ['y', 'z'],
+                nbYkeys2: 1,
                 labels: ['Ships', 'PODs'],
                 lineColors: ['#375959', '#477372'],
                 pointFillColors: ['#477372', '#568a89'],
@@ -360,8 +377,9 @@ define([
             },
             factionKills: {
                 headline: 'NPC Kills',
-                units: 'kills',
+                postUnits: 'kills',
                 ykeys: ['y'],
+                nbYkeys2: 0,
                 labels: ['NPCs'],
                 lineColors: ['#375959'],
                 pointFillColors: ['#477372'],

@@ -7,7 +7,8 @@ define([
     'app/init',
     'app/util',
     'app/counter',
-    'bootbox'
+    'bootbox',
+    'app/lib/resize'
 ], ($, Init, Util, Counter, bootbox) => {
 
     'use strict';
@@ -283,52 +284,61 @@ define([
                             xkey: 'x',
                             ykeys: ['y'],
                             labels: [key],
-                            units: 'ms',
-                            parseTime: false,
-                            ymin: 0,
-                            yLabelFormat: labelYFormat,
-                            padding: 8,
-                            hideHover: true,
-                            pointSize: 2.5,
                             lineColors: ['#375959'],
+                            lineWidth: 2,
+                            pointSize: 3,
                             pointFillColors: ['#477372'],
                             pointStrokeColors: ['#313335'],
-                            lineWidth: 1.5,
-                            grid: true,
-                            gridStrokeWidth: 0.3,
-                            gridTextSize: 9,
-                            gridTextFamily: 'Oxygen Bold',
-                            gridTextColor: '#63676a',
-                            behaveLikeLine: false,
+                            ymin: 0,
+                            smooth: false,
+                            hideHover: true,
+                            parseTime: false,
+                            postUnits: 'ms',
+                            yLabelFormat: labelYFormat,
                             goals: [],
                             goalStrokeWidth: 1,
                             goalLineColors: ['#66c84f'],
-                            smooth: false,
-                            fillOpacity: 0.2,
-                            resize: true
+                            grid: true,
+                            gridTextColor: '#63676a',
+                            gridTextSize: 9,
+                            gridTextFamily: 'Arial, "Oxygen Bold"',
+                            gridTextWeight: 'bold',
+                            gridStrokeWidth: 0.3,
+                            resize: true, // we use our own resize function
+                            dataLabels: false,
+                            hoverReversed: true,
+                            // Area chart specific options
+                            behaveLikeLine: true,
+                            fillOpacity: 0.5,
+                            belowArea: true,
+                            areaColors: ['#3c3f41'],
+                            // Not documented but working
+                            padding: 8,
                         });
 
                         updateLogGraph(key);
 
                         graphArea.hideLoadingAnimation();
-
                     }
                 }
-            });
-
-
-            // modal dialog is closed
-            logDialog.on('hidden.bs.modal', function(e){
-                // clear memory -> destroy all charts
-                for(let key in chartData){
-                    if(chartData.hasOwnProperty(key)){
-                        chartData[key].graph = null;
-                    }
-                }
+/*
+                Util.getResizeManager().observe(
+                    this.querySelector('.modal-dialog'),
+                    (el, contentRect) => Object.values(chartData).forEach(data => {
+                        if(data.graph) data.graph.redraw();
+                    }),
+                    {debounce: true, ms: 100}
+                );*/
             });
 
             // modal dialog before hide
             logDialog.on('hide.bs.modal', function(e){
+                Object.entries(chartData).forEach(([key, data]) => {
+                    if(data.graph){
+                        data.graph.destroy();
+                        delete chartData[key].graph;
+                    }
+                });
 
                 // destroy logTable
                 logDataTable.destroy(true);
@@ -350,12 +360,13 @@ define([
     let updateLogGraph = (key, duration) => {
 
         // check if graph data already exist
-        if(!(chartData.hasOwnProperty(key))){
-            chartData[key] = {};
-            chartData[key].data = [];
-            chartData[key].graph = null;
-            chartData[key].averageElement = null;
-            chartData[key].updateElement = null;
+        if(!chartData.hasOwnProperty(key)){
+            chartData[key] = {
+                data: [],
+                graph: null,
+                averageElement: null,
+                updateElement: null
+            };
         }
 
         // add new value
@@ -396,7 +407,7 @@ define([
         let tempChartData = getGraphData(chartData[key].data);
 
         // add new data to graph (Morris chart) - if is already initialized
-        if(chartData[key].graph !== null){
+        if(chartData[key].graph){
             let avgElement = chartData[key].averageElement;
             let updateElement = chartData[key].updateElement;
 
@@ -474,16 +485,16 @@ define([
     /**
      * init logging -> set global log events
      */
-    let init = function(){
+    let init = () => {
 
         let maxEntries = 150;
 
-        $(window).on('pf:syncStatus', function(){
+        $(window).on('pf:syncStatus', () => {
             updateSyncStatus();
         });
 
         // set global logging listener
-        $(window).on('pf:log', function(e, logKey, options){
+        $(window).on('pf:log', (e, logKey, options) => {
 
             // check required logging information
             if(
@@ -522,10 +533,7 @@ define([
             }
 
             // delete old log entries from table ---------------------------------
-            let rowCount = logData.length;
-
-            if(rowCount >= maxEntries){
-
+            if(logData.length >= maxEntries){
                 if(logDataTable){
                     logDataTable.rows(0, {order:'index'}).remove().draw(false);
                 }else{

@@ -40,8 +40,8 @@ requirejs.config({
         customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5   Custom scroll bars - http://manos.malihu.gr
         mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13  Mousewheel - https://github.com/jquery/jquery-mousewheel
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1   X-editable - in placed editing
-        morris: 'lib/morris.min',                                       // v0.5.1   Morris.js - graphs and charts
-        raphael: 'lib/raphael.min',                                     // v2.2.8   Raphaël - required for morris - https://dmitrybaranovskiy.github.io/raphael
+        morris: 'lib/morris.min',                                       // v0.6.4   Morris.js - graphs and charts - https://github.com/pierresh/morris.js
+        raphael: 'lib/raphael.min',                                     // v2.3.0   Raphaël - required for morris - https://dmitrybaranovskiy.github.io/raphael
         bootbox: 'lib/bootbox.min',                                     // v5.2.0   Bootbox.js - custom dialogs - http://bootboxjs.com
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.3.0   Inline Chart - http://benpickles.github.io/peity/
