@@ -522,16 +522,16 @@ gulp.task('task:concatJS', () => {
 
         .pipe(gulpif(CONF.JS.SOURCEMAPS, sourcemaps.init()))
         .pipe(requirejsOptimize(function(file){
-
             return {
                 name: file.stem,
                 baseUrl: 'js',
                 mainConfigFile: './js/app.js',
                 optimize: 'none',
+                useStrict: true,
                 inlineText: false,
                 removeCombined: true,
                 preserveLicenseComments: false,     // required for sourcemaps
-                findNestedDependencies: false,
+                findNestedDependencies: true,       // required for bootstrap toggles to work after minification
                 include: ['text'],
              // excludeShallow: ['app'],
              // excludeShallow: ['./js/app.js'],

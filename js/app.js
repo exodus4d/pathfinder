@@ -164,10 +164,10 @@ requirejs.config({
             deps: ['jquery']
         },
         bootstrapConfirmation: {
-            deps: ['bootstrap']
+            deps: ['bootstrap', 'bootstrap']
         },
         bootstrapToggle: {
-            deps: ['jquery']
+            deps: ['jquery', 'bootstrap']
         },
         lazyload: {
             deps: ['jquery']
