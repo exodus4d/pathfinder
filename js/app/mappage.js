@@ -572,7 +572,7 @@ define([
             initData(),
             getMapAccessData()
         ])
-        .then(([mapModule, accessData]) => Promise.all([
+        .then(([mapModule, initData, accessData]) => Promise.all([
             initMapModule(mapModule),
             initMapWorker(mapModule,accessData),
             initUnload(mapModule)

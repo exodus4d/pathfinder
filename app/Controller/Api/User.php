@@ -197,7 +197,10 @@ class User extends Controller\Controller{
      * @throws \Exception
      */
     public function logout(\Base $f3){
-        $this->logoutCharacter($f3, false, true, true, true);
+        $data = $f3->get('POST');
+        $deleteCookie = (bool)$data['deleteCookie'];
+
+        $this->logoutCharacter($f3, false, true, true, $deleteCookie, 200);
     }
 
     /**
@@ -373,7 +376,7 @@ class User extends Controller\Controller{
                     sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
                 );
 
-                $this->logoutCharacter($f3, true, true, true, true);
+                $this->logoutCharacter($f3, true, true, true, true, 200);
                 $user->erase();
             }
         }else{

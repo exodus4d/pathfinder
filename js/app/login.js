@@ -767,26 +767,36 @@ define([
         Util.showVersionInfo();
 
         // show log off message
-        let isLogOut = location.search.split('logout')[1];
-        if(isLogOut !== undefined){
+        let searchParams = new URLSearchParams(location.search); // jshint ignore:line
+        if(
+            searchParams.has('logout') ||
+            searchParams.has('logoutGraceful')
+        ){
+            let cls = 'txt-color-warning';
+            let text = [
+                'For security reasons, you were logged out automatically',
+                'Please log in again'
+            ];
+
+            if(searchParams.has('logoutGraceful')){
+                cls = 'txt-color-success';
+                text = ['You have successfully logged out'];
+            }
 
             // show logout dialog
             let options = {
                 buttons: {
                     close: {
                         label: 'close',
-                        className: ['btn-default'].join(' ')
+                        className: 'btn-default'
                     }
                 },
                 content: {
                     icon: 'fa-sign-out-alt',
-                    class: 'txt-color-warning',
+                    class: cls,
                     title: 'Logout',
                     headline: 'Logout',
-                    text: [
-                        'For security reasons, you were logged out automatically',
-                        'Please log in again'
-                    ]
+                    text: text
                 }
             };
 

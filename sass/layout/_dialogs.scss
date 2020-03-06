@@ -152,6 +152,12 @@
     }
   }
 }
+// notification dialog ========================================================
+#pf-notification-dialog{
+  h1{
+    will-change: transform;
+  }
+}
 
 // settings dialog ============================================================
 #pf-settings-dialog{

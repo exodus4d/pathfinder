@@ -302,7 +302,7 @@ define([
                     icon: 'fa-sign-in-alt',
                     btnType: 'warning',
                     action: 'Logout',
-                    data: {clearCookies: 1}
+                    data: {graceful: 1, deleteCookie: 1}
                 }
             ]));
 
@@ -725,7 +725,8 @@ define([
                         case 'Logout':
                             Util.logout({
                                 ajaxData: {
-                                    clearCookies: Util.getObjVal(data, 'clearCookies') || false
+                                    graceful: parseInt(Util.getObjVal(data, 'graceful')) || 0,
+                                    deleteCookie: parseInt(Util.getObjVal(data, 'deleteCookie')) || 0
                                 }
                             });
                             break;

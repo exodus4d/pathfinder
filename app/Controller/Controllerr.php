@@ -24,6 +24,12 @@ use Exodus4D\Pathfinder\Exception\PathfinderException;
 
 class Controller {
 
+    /**
+     * default HTTP response status for users that logged out
+     * -> if it is a "graceful" logout (e.g. user clicks "logout" button, we use 200)
+     */
+    const DEFAULT_STATUS_LOGOUT                     = 403;
+
     // cookie specific keys (names)
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
@@ -481,9 +487,17 @@ class Controller {
      * @param bool $deleteSession
      * @param bool $deleteLog
      * @param bool $deleteCookie
+     * @param int $status
      * @throws \Exception
      */
-    protected function logoutCharacter(\Base $f3, bool $all = false, bool $deleteSession = true, bool $deleteLog = true, bool $deleteCookie = false){
+    protected function logoutCharacter(
+        \Base $f3,
+        bool $all = false,
+        bool $deleteSession = true,
+        bool $deleteLog = true,
+        bool $deleteCookie = false,
+        int $status = self::DEFAULT_STATUS_LOGOUT
+    ){
         $sessionCharacterData = (array)$f3->get(Api\User::SESSION_KEY_CHARACTERS);
 
         if($sessionCharacterData){
@@ -512,7 +526,6 @@ class Controller {
         }
 
         if($f3->get('AJAX')){
-            $status = 403;
             $f3->status($status);
 
             $return = (object) [];

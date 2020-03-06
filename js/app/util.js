@@ -3506,10 +3506,7 @@ define([
         let currentUrl = document.URL;
 
         if(url !== currentUrl){
-            if(
-                params &&
-                params.length > 0
-            ){
+            if(params && params.length > 0){
                 url += '?' + params.join('&');
             }
             window.location = url;
@@ -3520,23 +3517,18 @@ define([
      * send logout request
      * @param  params
      */
-    let logout = (params) => {
-        let data = {};
-        if(
-            params &&
-            params.ajaxData
-        ){
-            data = params.ajaxData;
-        }
+    let logout = params => {
+        let data = getObjVal(params, 'ajaxData') || {};
 
         $.ajax({
             type: 'POST',
             url: Init.path.logout,
             data: data,
             dataType: 'json'
-        }).done(function(data){
-            if(data.reroute){
-                redirect(data.reroute, ['logout']);
+        }).done(function(responseData){
+            if(responseData.reroute){
+                let params = data.graceful ? 'logoutGraceful' : 'logout';
+                redirect(responseData.reroute, [params]);
             }
         }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
