@@ -507,7 +507,7 @@ class Controller {
         }
 
         if($f3->get('AJAX')){
-            $status = 403;
+            $status = 200;
             $f3->status($status);
 
             $return = (object) [];
