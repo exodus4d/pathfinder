@@ -184,7 +184,7 @@ define([], () => {
         22: 'Central Blood Raider Sparking Transmitter',
         23: 'Central Blood Raider Survey Site',
         24: 'Central Guristas Command Center',
-        25: 'Central Guristas Data Mining Center',
+        25: 'Central Guristas Data Mining Site',
         26: 'Central Guristas Sparking Transmitter',
         27: 'Central Guristas Survey Site',
         28: 'Central Sansha Command Center',

@@ -25,7 +25,6 @@ define([
     // log keys -----------------------------------------------------------------------------------------------
     let logKeyServerMapData = Init.performanceLogging.keyServerMapData;
     let logKeyServerUserData = Init.performanceLogging.keyServerUserData;
-    let locationToggle = $('#' + Util.config.headMapTrackingId);
 
     let initApp = rootEl => new Promise(resolve => {
         Page.renderPage(rootEl)
@@ -418,6 +417,7 @@ define([
         // On later releases this can be easy changed to "full update" all maps for a user
         let mapId;
         let newSystemPositions = null;
+        let locationToggle = document.getElementById(Util.config.headMapTrackingId);
         let activeMap = Util.getMapModule().getActiveMap();
 
         if(activeMap){
@@ -428,7 +428,7 @@ define([
         let updatedUserData = {
             mapIds: mapId ? [mapId] : [],
             getMapUserData: Util.getSyncType() === 'webSocket' ? 0 : 1,
-            mapTracking: locationToggle.is(':checked') ? 1 : 0, // location tracking
+            mapTracking: locationToggle ? locationToggle.checked | 0 : 0, // location tracking
             systemData: Util.getCurrentSystemData(mapId)
         };
 
