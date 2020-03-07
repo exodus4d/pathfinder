@@ -963,6 +963,14 @@
                                                 </check>
                                             </td>
                                         </tr>
+                                        <repeat group="{{ @redisInformation.errors }}"  value="{{ @redisError }}">
+                                            <tr>
+                                                <td colspan="2">{{ @redisError.label | raw}}: {{ @redisError.error }}</td>
+                                                <td class="text-right"><kbd class="txt-color txt-color-danger">error</kbd></td>
+                                                <td class="text-right"><i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-danger"></i></td>
+                                            </tr>
+                                            {{ @tplCounter('increment', 'cache_danger') }}
+                                        </repeat>
                                         <tr>
                                             <td style="padding: 0"></td>
                                             <td style="padding: 0"></td>

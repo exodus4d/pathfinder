@@ -596,7 +596,7 @@ class Config extends \Prefab {
         if($matches = (bool)preg_match('/^(\w+)\h*=\h*(.+)/', strtolower(trim($dsn)), $parts)){
             $conf['type'] = $parts[1];
             if($conf['type'] == 'redis'){
-                [$conf['host'], $conf['port'], $conf['db']] = explode(':', $parts[2]) + [1 => 6379, 2 => null];
+                [$conf['host'], $conf['port'], $conf['db'], $conf['auth']] = explode(':', $parts[2]) + [1 => 6379, 2 => null, 3 => null];
             }elseif($conf['type'] == 'folder'){
                 $conf['folder'] = $parts[2];
             }

@@ -134,6 +134,9 @@ abstract class AbstractClient extends \Prefab {
                         Config::REDIS_OPT_READ_TIMEOUT
                     )
                 ){
+                    if(!empty($poolConfig['auth'])){
+                        $client->auth($poolConfig['auth']);
+                    }
 
                     if(isset($poolConfig['tag'])){
                         $name = 'pathfinder|php|tag:' . strtolower($poolConfig['tag']) . '|pid:' . getmypid();

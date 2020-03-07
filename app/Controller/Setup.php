@@ -713,9 +713,18 @@ class Setup extends Controller {
             $dsnData = [];
 
             /**
+             * @param int    $dbNum
+             * @param string $tag
+             * @return string
+             */
+            $getDbLabel = function(int $dbNum, string $tag) : string {
+                return '<i class="fas fa-fw fa-database"></i> db(' . $dbNum . ') : ' . $tag;
+            };
+
+            /**
              * get client information for a Redis client
              * @param \Redis $client
-             * @param array $conf
+             * @param array  $conf
              * @return array
              */
             $getClientInfo = function(\Redis $client, array $conf) : array {
@@ -739,7 +748,7 @@ class Setup extends Controller {
             $getClientStats = function(\Redis $client) use ($f3) : array {
                 $redisStats = [];
 
-                if($client->isConnected()){
+                if($client->isConnected() && !$client->getLastError()){
                     $redisServerInfo = (array)$client->info('SERVER');
                     $redisClientsInfo = (array)$client->info('CLIENTS');
                     $redisMemoryInfo = (array)$client->info('MEMORY');
@@ -812,14 +821,14 @@ class Setup extends Controller {
              * @param string $tag
              * @return array
              */
-            $getDatabaseStatus = function(\Redis $client, string $tag) : array {
+            $getDatabaseStatus = function(\Redis $client, string $tag) use ($getDbLabel) : array {
                 $redisDatabases = [];
-                if($client->isConnected()){
+                if($client->isConnected() && !$client->getLastError()){
                     $dbNum = $client->getDbNum();
                     $dbSize = $client->dbSize();
                     $redisDatabases = [
                         'db_' . $dbNum => [
-                            'label'     => '<i class="fas fa-fw fa-database"></i> db(' . $dbNum . ') : ' . $tag,
+                            'label'     => $getDbLabel($dbNum, $tag),
                             'version'   => $dbSize . ' keys',
                             'check'     => $dbSize > 0,
                             'tooltip'   => 'Keys in db(' . $dbNum . ')',
@@ -847,29 +856,41 @@ class Setup extends Controller {
              * build (modify) $redisConfig with DNS $conf data
              * @param array $conf
              */
-            $buildRedisConfig = function(array $conf) use (&$redisConfig, $getClientInfo, $getClientStats, $getDatabaseStatus){
+            $buildRedisConfig = function(array $conf) use (&$redisConfig, $getDbLabel, $getClientInfo, $getClientStats, $getDatabaseStatus){
                 if($conf['type'] == 'redis'){
                     // is Redis -> group all DNS by host:port
-                    $client = new \Redis();
+                    $uid = $conf['host'] . ':' . $conf['port'];
 
+                    $client = new \Redis();
                     try{
                         $client->pconnect($conf['host'], $conf['port'], 0.3);
+                        if(!empty($conf['auth'])){
+                            $client->auth($conf['auth']);
+                        }
+
                         if(isset($conf['db'])) {
                             $client->select($conf['db']);
                         }
 
                         $conf['db'] = $client->getDbNum();
                     }catch(\RedisException $e){
-                        // connection failed
+                        // connection failed, getLastError() is called further down
                     }
 
-                    if(!array_key_exists($uid = $conf['host'] . ':' . $conf['port'], $redisConfig)){
+                    if(!array_key_exists($uid, $redisConfig)){
                         $redisConfig[$uid] = $getClientInfo($client, $conf);
                         $redisConfig[$uid]['status'] = $getClientStats($client) + $getDatabaseStatus($client, $conf['tag']);
                     }elseif(!array_key_exists($uidDb = 'db_' . $conf['db'], $redisConfig[$uid]['status'])){
                         $redisConfig[$uid]['status'] += $getDatabaseStatus($client, $conf['tag']);
                     }else{
                         $redisConfig[$uid]['status'][$uidDb]['label'] .= '; ' . $conf['tag'];
+                    }
+
+                    if($error = $client->getLastError()){
+                        $redisConfig[$uid]['errors'][] = [
+                            'label' => $getDbLabel((int)$conf['db'], $conf['tag']),
+                            'error' => $error
+                        ];
                     }
 
                     $client->close();
@@ -903,6 +924,7 @@ class Setup extends Controller {
                     'host' => $parts['host'],
                     'port' => $parts['port'],
                     'db'   => !empty($params['database']) ? (int)$params['database'] : 0,
+                    'auth' => !empty($params['auth']) ? $params['auth'] : null,
                     'tag'  => 'SESSION'
                 ];
                 $dsnData[] = $conf;
