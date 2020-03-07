@@ -10,6 +10,7 @@ let filter              = require('gulp-filter');
 let gulpif              = require('gulp-if');
 let jshint              = require('gulp-jshint');
 let sourcemaps          = require('gulp-sourcemaps');
+let zlib                = require('zlib');
 let gzip                = require('gulp-gzip');
 let brotli              = require('gulp-brotli');
 let uglifyjs            = require('uglify-es');
@@ -185,9 +186,11 @@ let gZipOptions = {
 
 let brotliOptions = {
     extension: 'br',                    // use "custom" ext: .br
-    mode: 1,                            // compression mode for UTF-8 formatted text
-    quality: 11,                        // quality [1 worst - 11 best]
-    skipLarger: true                    // use orig. files in case of *.br size > orig. size
+    skipLarger: true,                   // use orig. files in case of *.br size > orig. size
+    params: {
+        [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,        // compression mode for UTF-8 formatted text
+        [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY    // quality [1 worst - 11 best]
+    }
 };
 
 let compassOptions = {
@@ -580,7 +583,7 @@ gulp.task('task:diffJS', () => {
  * get assets filter options e.g. for gZip or Brotli assets
  * @param compression
  * @param fileExt
- * @returns {{srcModules: *[], fileFilter}}
+ * @returns {{fileFilter, srcModules: string[]}}
  */
 let getAssetFilterOptions = (compression, fileExt) => {
     return {
@@ -593,10 +596,10 @@ let getAssetFilterOptions = (compression, fileExt) => {
 };
 
 /**
- * build gZip or Brotli assets
+ * build gZip assets
  * @param config
  * @param taskName
- * @returns {JQuery.PromiseBase<never, never, never, never, never, never, never, never, never, never, never, never>}
+ * @returns {*}
  */
 let gzipAssets = (config, taskName) => {
     return gulp.src(config.srcModules, {base: 'public', since: gulp.lastRun(taskName)})
@@ -616,17 +619,17 @@ let gzipAssets = (config, taskName) => {
 };
 
 /**
- * build Brotli or Brotli assets
+ * build Brotli assets
  * @param config
  * @param taskName
- * @returns {JQuery.PromiseBase<never, never, never, never, never, never, never, never, never, never, never, never>}
+ * @returns {*}
  */
 let brotliAssets = (config, taskName) => {
     return gulp.src(config.srcModules, {base: 'public', since: gulp.lastRun(taskName)})
         .pipe(config.fileFilter)
         .pipe(debug({title: 'Brotli asses dest: ', showFiles: false}))
         .pipe(bytediff.start())
-        .pipe(brotli.compress(brotliOptions))
+        .pipe(brotli(brotliOptions))
         .pipe(bytediff.stop(data => {
             trackFile(data, {brotliFile: 'fileName', brotli: 'endSize'});
             if(fileExtension(data.fileName) ===  brotliOptions.extension){
