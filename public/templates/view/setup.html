@@ -963,6 +963,14 @@
                                                 </check>
                                             </td>
                                         </tr>
+                                        <repeat group="{{ @redisInformation.errors }}"  value="{{ @redisError }}">
+                                            <tr>
+                                                <td colspan="2">{{ @redisError.label | raw}}: {{ @redisError.error }}</td>
+                                                <td class="text-right"><kbd class="txt-color txt-color-danger">error</kbd></td>
+                                                <td class="text-right"><i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-danger"></i></td>
+                                            </tr>
+                                            {{ @tplCounter('increment', 'cache_danger') }}
+                                        </repeat>
                                         <tr>
                                             <td style="padding: 0"></td>
                                             <td style="padding: 0"></td>
@@ -1159,7 +1167,7 @@
                                                 <kbd>{{ mb_strimwidth(pathinfo(@logData.fileName, PATHINFO_FILENAME), 0, 15, '…') }}</kbd>
                                             </td>
                                             <td class="bg-color bg-color-tealDarker">{{ @logData.message }}</td>
-                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(@logData.logTypes, ', ') }}" data-placement="right" data-container="body">
+                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(', ', @logData.logTypes) }}" data-placement="right" data-container="body">
                                                 <i class="fas fa-fw fa-tag txt-color {{ @logTypeClass }}"></i>
                                             </td>
                                         </tr>

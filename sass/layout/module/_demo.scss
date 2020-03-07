@@ -1,0 +1,82 @@
+$colMinWidth:       210px;
+$rowMinHeight:      38px;
+$rowMinHeightInit:  200px;
+$rowMaxHeight:      800px;
+
+.pf-system-demo-module {
+  .pf-module-body {
+    grid-template:
+            "info     info      " min-content
+            "userData mapData   " min-content
+            "trigger  sortableJs" min-content /
+            1fr 1fr;
+
+    > .pf-dynamic-area {
+      margin: 0; // we use grid-gab
+      //overflow: scroll;
+
+      &[data-area="info"] {
+        grid-area: info;
+        max-height: $rowMaxHeight;
+      }
+
+      &[data-area="userData"] {
+        grid-area: userData;
+      }
+
+      &[data-area="mapData"] {
+        grid-area: mapData;
+      }
+
+      &[data-area="trigger"] {
+        grid-area: trigger;
+      }
+
+      &[data-area="sortableJs"] {
+        grid-area: sortableJs;
+      }
+
+      > h5 {
+        margin-bottom: 0;
+
+        + code:not(:empty) {
+          margin-top: 10px
+        }
+      }
+    }
+
+  }
+}
+
+.pf-map-tab-content-area-a {
+  .pf-system-demo-module {
+    .pf-module-body {
+      grid-template:
+              "info    userData   mapData" minmax($rowMinHeightInit, min-content)
+              "info    userData   mapData" minmax(auto, min-content)
+              "trigger sortableJs mapData" minmax($rowMinHeight, min-content) /
+            minmax($rowMinHeight, 1fr) minmax($colMinWidth, max-content) minmax($rowMinHeight, 1fr);
+
+      > .pf-dynamic-area {
+        &[data-area="userData"] {
+          max-width: 100%;
+          min-width: $colMinWidth;
+          max-height: $rowMaxHeight;
+          min-height: $rowMinHeightInit + 10px;
+          resize: both;
+
+          &:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border-style: solid;
+            border-width: 9px 9px 0 0;
+            border-color: transparent $gray transparent transparent;
+            cursor: se-resize;
+          }
+        }
+      }
+    }
+  }
+}

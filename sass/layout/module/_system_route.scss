@@ -1,0 +1,48 @@
+.pf-system-route-module {
+
+  .pf-system-route-table {
+    width: 100%;
+
+    td {
+      text-transform: capitalize;
+
+      .fa-sync, .fa-search {
+        @extend .pf-dialog-icon-button;
+      }
+
+      .pf-fake-connection {
+        display: none; // toggled by js see .pf-table-jump-cell
+        width: 12px;
+        cursor: pointer;
+
+        &[data-disabled] {
+          cursor: initial;
+        }
+
+        &[class*=' pf-map-connection-wh-size-'] {
+          width: 25px;
+        }
+
+        &:after {
+          font-size: 10px;
+        }
+
+        &.pf-map-connection-preserve-mass {
+          &:after {
+            content: "\f071";
+            font-family: "Font Awesome 5 Free";
+            font-style: normal;
+            font-weight: bold;
+            left: calc(50% - 7px);
+          }
+        }
+      }
+
+      &.pf-table-jump-cell {
+        .pf-fake-connection {
+          display: inline-block;
+        }
+      }
+    }
+  }
+}

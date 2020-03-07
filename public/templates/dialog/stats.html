@@ -124,25 +124,18 @@
                 </table>
             </div>
 
-            <div class="row">
-                <div class="col-xs-12">
-                    <div class="well well-sm">
-                        <div class="row">
-                            <div class="col-xs-6 col-sm-2 col-md-2">Map config:</div>
-                            <div class="col-xs-6 col-sm-10 col-md-10 text-right">
-                                Store user statistics&nbsp;
-                                {{#logActivityEnabled}}
-                                <kbd class="txt-color txt-color-success">enabled</kbd>
-                                {{/logActivityEnabled}}
-                                {{^logActivityEnabled}}
-                                <kbd>disabled</kbd>
-                                {{/logActivityEnabled}}
-                            </div>
-                        </div>
-                    </div>
+            <div class="flex-row flex-between well well-sm">
+                <div class="flex-col">Map config:</div>
+                <div class="flex-col">
+                    Store user statistics&nbsp;
+                    {{#logActivityEnabled}}
+                    <kbd class="txt-color txt-color-success">enabled</kbd>
+                    {{/logActivityEnabled}}
+                    {{^logActivityEnabled}}
+                    <kbd>disabled</kbd>
+                    {{/logActivityEnabled}}
                 </div>
             </div>
-
         </div>
     </div>
 </div>

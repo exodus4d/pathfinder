@@ -72,22 +72,16 @@
 
         <div id="{{mapInfoLogsId}}" class="pf-dynamic-area"></div>
 
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="well well-sm">
-                    <div class="row">
-                        <div class="col-xs-6 col-sm-2 col-md-2">Map config:</div>
-                        <div class="col-xs-6 col-sm-10 col-md-10 text-right">
-                            Save map changes to logfile&nbsp;
-                            {{#logHistoryEnabled}}
-                            <kbd class="txt-color txt-color-success">enabled</kbd>
-                            {{/logHistoryEnabled}}
-                            {{^logHistoryEnabled}}
-                            <kbd>disabled</kbd>
-                            {{/logHistoryEnabled}}
-                        </div>
-                    </div>
-                </div>
+        <div class="flex-row flex-between well well-sm">
+            <div class="flex-col">Map config:</div>
+            <div class="flex-col">
+                Save map changes to logfile&nbsp;
+                {{#logHistoryEnabled}}
+                <kbd class="txt-color txt-color-success">enabled</kbd>
+                {{/logHistoryEnabled}}
+                {{^logHistoryEnabled}}
+                <kbd>disabled</kbd>
+                {{/logHistoryEnabled}}
             </div>
         </div>
     </div>

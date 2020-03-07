@@ -1,11 +1,3 @@
-$mapHeight:             1500px;
-$mapWidth:              2500px;
-
-$mapWrapperHeight:      520px + 35px;
-$mapWrapperMinHeight:   300px;
-$mapWrapperMaxHeight:   1000px;              // no vertical scrollbar: $mapHeight + 35px;
-$mapWrapperMaxWidth:    $mapWidth + 35px;
-
 $mapOverlayTop:         8px;
 $mapOverlayRight:       25px;
 $mapOverlayBottom:      25px;
@@ -13,7 +5,7 @@ $mapOverlayLeft:        5px;
 
 $mapBubbleWidth:        30px;
 
-// start bounce mixin =================================================================================================
+// bounce mixin =================================================================================================
 @mixin bounce-up-down{
   animation-duration: 1s;
   animation-delay: 0.5s;
@@ -29,59 +21,6 @@ $mapBubbleWidth:        30px;
   60% {transform: translateY(-4px);}
 }
 
-// end bounce mixin ===================================================================================================
-#pf-map-tab-element{
-  max-width: $mapWrapperMaxWidth;
-  margin: 0 auto;
-}
-
-.pf-map-move{
-  cursor: move !important;
-}
-
-.pf-map-tab-content{
-
-  .pf-map-wrapper{
-    position: relative;
-    resize: vertical;
-    width: 100%;
-    height: $mapWrapperHeight;
-    max-width: $mapWrapperMaxWidth;
-    max-height: $mapWrapperMaxHeight;
-    min-height: $mapWrapperMinHeight;
-    overflow: hidden; // required for resizing to work with pos: absolute "overlay" elements
-    padding: 5px;
-    background: rgba($gray-darker, 0.93);
-    box-shadow:inset -3px 3px 10px 0 rgba($black, 0.3);
-    will-change: width, height;
-    @include border-bottom-radius(5px);
-    border: {
-      width: 1px;
-      style: solid;
-      color: $gray-dark;
-    }
-
-    &:before{
-      content: '';
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      border-style: solid;
-      border-width: 14px 14px 0 0 ;
-      border-color:  transparent $gray-dark transparent transparent;
-      cursor: nwse-resize;
-    }
-
-    &:focus, &:hover{
-      border: 1px solid $gray;
-
-      &:before{
-        border-color:  transparent $gray transparent transparent;
-      }
-    }
-  }
-}
-
 // map overlay ========================================================================================================
 .pf-map-overlay{
   position: absolute;
@@ -94,7 +33,7 @@ $mapBubbleWidth:        30px;
     right: $mapOverlayRight;
     bottom: $mapOverlayBottom;
     width: 36px;
-    height: 38px;
+    height: 36px;
   }
 
   &.pf-map-overlay-zoom{
@@ -309,18 +248,43 @@ $mapBubbleWidth:        30px;
   font-family: $font-family-bold;
   will-change: transform;
 
+  &.pf-map-move{
+    cursor: move !important;
+  }
+
   // jsPlumb classes ==================================================================================================
+  // gets applied to system that is currently being dragged
   .jtk-drag{
     @extend .pf-system-selected;
   }
 
+  // gets applied to "endpoints", "overlays" and <svg>´s if <svg> is hovered
   .jtk-hover:not(.jtk-overlay){
     @include bounce-up-down;    // label should not bounce
   }
 
+  // gets applied to source/target (system) if <svg> or endpoint is hovered
   .jtk-source-hover, .jtk-target-hover{
     @include bounce-up-down;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
+  }
+
+  // gets applied to *all* systems that are target for a drop of current element
+  .jtk-drag-active{
+    @include transition(box-shadow 0.12s ease-out, transform 0.08s ease-out !important);
+
+  }
+
+  // gets applied to any drop target over which the current element is hovering.
+  // When the mouse is released the element having this class will be the recipient of an on drop event
+  .jtk-drag-hover{
+
+    &.jtk-drag-active{
+      // @see .pf-system:hover style. We want the same hover style for systems that are active drop-target
+      @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+      @include transform(translate3d(0, -1px, 0) scale(1.1) !important);
+    }
+
   }
 
   // ==================================================================================================================
@@ -343,10 +307,10 @@ $mapBubbleWidth:        30px;
     @include border-radius(5px);
 
     // change border color with transition
-    @include transition( border-color 0.2s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out );
+    @include transition( border-color 0.2s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out);
     @include transform( translate3d(0, 0, 0) );
 
-    &:hover{
+    &:not(.jtk-drag-hover):hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
       @include transform(translate3d(0, -1px, 0) !important);
@@ -358,6 +322,7 @@ $mapBubbleWidth:        30px;
       font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;
       white-space: nowrap;
+      backface-visibility: hidden; // fixed blurry text on system scale() -> requires display: inline-block; transform: translateY(0); for child nodes
 
       .pf-system-head-name{
         border: none;
@@ -365,6 +330,8 @@ $mapBubbleWidth:        30px;
         min-width: 50px;
         color: $gray-lighter;
         margin-right: 2px;
+        -webkit-font-smoothing: antialiased;
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       .pf-system-head-counter{
@@ -382,11 +349,13 @@ $mapBubbleWidth:        30px;
 
       .pf-system-effect{
         font-size: 11px;
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       .fa-lock{
         font-size: 11px;
         display: none; // triggered by system-lock class
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       .pf-system-head-expand{
@@ -394,6 +363,7 @@ $mapBubbleWidth:        30px;
         color: $gray-light;
         width: 10px;
         display: none;  // triggered by JS
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       // overwrites "xEditable" style for empty values
@@ -410,6 +380,7 @@ $mapBubbleWidth:        30px;
       line-height: 10px;
       padding-right: 1px; // bring right aligned text in line with wh "effect" icon
       margin-bottom: 2px;
+      transform: translateY(0); // fixed "blurry" text in scaled parent
 
       [class^="pf-system-sec-"]{
         cursor: help;
@@ -436,6 +407,7 @@ $mapBubbleWidth:        30px;
       cursor: grab;
       padding: 0 4px;
       white-space: nowrap;
+      backface-visibility: hidden; // fixed blurry text on system scale() -> requires display: inline-block; transform: translateY(0); for child nodes
       display: none;  // triggered by JS
       will-change: width;
 
@@ -461,6 +433,7 @@ $mapBubbleWidth:        30px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
           display: none; // hover effect
         }
 
@@ -469,6 +442,7 @@ $mapBubbleWidth:        30px;
           font-size: 6px;
           width: 10px;
           vertical-align: middle;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
         }
 
         .pf-system-body-item-name{
@@ -478,6 +452,7 @@ $mapBubbleWidth:        30px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
         }
       }
 

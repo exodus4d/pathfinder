@@ -96,7 +96,9 @@ let trackTable = {
 let uglifyJsOptions = {
     warnings: true,
     toplevel: false,
-    ecma: 8
+    ecma: 8,
+    nameCache: {},          // cache mangled variable and property names across multiple invocations of minify()
+    keep_classnames: true   // pass true to prevent discarding or mangling of class names.
 };
 
 // Sourcemaps options
@@ -515,7 +517,7 @@ gulp.task('task:hintJS', () => {
  * concat/build JS files by modules
  */
 gulp.task('task:concatJS', () => {
-    let modules = ['login', 'mappage', 'setup', 'admin', 'notification', 'datatables.loader'];
+    let modules = ['login', 'mappage', 'setup', 'admin', 'pnotify.loader', 'datatables.loader', 'summernote.loader'];
     let srcModules = ['./js/app/*(' + modules.join('|') + ').js'];
 
     return gulp.src(srcModules, {base: 'js'})

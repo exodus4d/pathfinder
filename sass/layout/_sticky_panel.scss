@@ -1,0 +1,41 @@
+.pf-landing-sticky-panel{
+  position: fixed;
+  min-width: 65px;
+  border-radius: 5px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  text-shadow: #000000b8 0 1px 1px; // improve text readability
+  z-index: 100; // over "gallery slider"
+  background: {
+    color: rgba(43, 43, 43, 0.75);
+  }
+
+  h4{
+    margin: 5px 0 10px 0;
+  }
+
+  ul{
+    margin-bottom: 0;
+    margin-left: 25px;
+  }
+
+  ul + h4{
+    margin-top: 10px;
+  }
+
+  &--top{
+    top: 50px;
+  }
+
+  &--bottom{
+    bottom: 10px;
+  }
+
+  &--left{
+    left: 10px;
+  }
+
+  &--right{
+    right: 10px;
+  }
+}

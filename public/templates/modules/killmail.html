@@ -1,40 +1,69 @@
-<li class="media {{systemKillboardListEntryClass}}">
-    <a href="{{{zKillboardUrl}}}/kill/{{killmail.killmail_id}}/" target="_blank" rel="noopener">
-        <img src="{{{ccpImageServerUrl}}}/types/{{killmail.victim.ship_type_id}}/icon?size=64" class="media-object pull-left {{systemKillboardListImgShip}}" title="killmail">
+<li class="flex-row flex-between media">
+    <a class="flex-col" href="{{{zKillboardUrl}}}/kill/{{killmail.killmail_id}}/" target="_blank" rel="noopener">
+        <img class="media-object {{config.systemKillboardListImgL}}" src="{{#imgUrlType}}{{killmail.victim.ship_type_id}}{{/imgUrlType}}" title="killmail">
     </a>
 
     {{#killmail.victim.character_id}}
-    <a href="{{{zKillboardUrl}}}/character/{{killmail.victim.character_id}}/" target="_blank" rel="noopener">
-        <img src="{{{ccpImageServerUrl}}}/characters/{{killmail.victim.character_id}}/portrait?size=32" class="media-object pull-left {{systemKillboardListImgChar}}" title="pilot KB">
+    <a class="flex-col {{#isPodKill}}badge-victim{{/isPodKill}}" href="{{{zKillboardUrl}}}/character/{{killmail.victim.character_id}}/" target="_blank" rel="noopener">
+        <img class="media-object {{config.systemKillboardListImgM}}" src="{{#imgUrlChar}}{{killmail.victim.character_id}}{{/imgUrlChar}}" title="victim KB">
     </a>
     {{/killmail.victim.character_id}}
     {{^killmail.victim.character_id}}
-    <a href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" target="_blank" rel="noopener">
-        <img src="{{{ccpImageServerUrl}}}/corporations/{{killmail.victim.corporation_id}}/logo?size=32" class="media-object pull-left {{systemKillboardListImgChar}}" title="corporation KB">
+    <a class="flex-col" href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" target="_blank" rel="noopener">
+        <img class="media-object {{config.systemKillboardListImgM}}" src="{{#imgUrlCorp}}{{killmail.victim.corporation_id}}{{/imgUrlCorp}}" title="corporation KB">
     </a>
     {{/killmail.victim.character_id}}
 
-    <div class="media-body pull-right text-right">
-        <h5 class="media-heading">
-            <small>{{#dateFormat}}{{killmail.killmail_time}}{{/dateFormat}}</small>
-        </h5>
-        <h3 class="media-heading">
-            <small class="txt-color txt-color-green">{{#iskFormat}}{{zkb.totalValue}}{{/iskFormat}}</small>
-        </h3>
-    </div>
-
-    <div class="media-body">
+    <div class="flex-col flex-grow media-body">
         <h5 class="media-heading">
             <a href="{{{zKillboardUrl}}}/corporation/{{killmail.victim.corporation_id}}/" title="corporation KB" target="_blank" rel="noopener">
-                <img src="{{{ccpImageServerUrl}}}/corporations/{{killmail.victim.corporation_id}}/logo?size=32" class="{{systemKillboardListImgCorp}}">
+                <img class="{{config.systemKillboardListImgS}}" src="{{#imgUrlCorp}}{{killmail.victim.corporation_id}}{{/imgUrlCorp}}">
             </a>
         </h5>
         {{#killmail.victim.alliance_id}}
         <h5 class="media-heading">
             <a href="{{{zKillboardUrl}}}/alliance/{{killmail.victim.alliance_id}}/" title="alliance KB" target="_blank" rel="noopener">
-                <img src="{{{ccpImageServerUrl}}}/alliances/{{killmail.victim.alliance_id}}/logo?size=32" class="{{systemKillboardListImgAlly}}">
+                <img class="{{config.systemKillboardListImgS}}" src="{{#imgUrlAlly}}{{killmail.victim.alliance_id}}{{/imgUrlAlly}}">
             </a>
         </h5>
         {{/killmail.victim.alliance_id}}
+    </div>
+
+    {{#attackerFinal}}
+        <div class="flex-col badge-attacker" {{#attackerBadge}}style="--label: '{{label}}'; --color: {{color}}"{{/attackerBadge}}>
+            <img class="media-object {{config.systemKillboardListImgL}}" src="{{#imgUrlType}}{{ship_type_id}}{{/imgUrlType}}">
+        </div>
+
+        <a class="flex-col" href="{{{zKillboardUrl}}}/character/{{character_id}}/" target="_blank" rel="noopener">
+            <img class="media-object {{config.systemKillboardListImgM}}" src="{{#imgUrlChar}}{{character_id}}{{/imgUrlChar}}" title="attacker KB">
+        </a>
+
+        <div class="flex-col media-body">
+            <h5 class="media-heading">
+                <a href="{{{zKillboardUrl}}}/corporation/{{corporation_id}}/" title="corporation KB" target="_blank" rel="noopener">
+                    <img class="{{config.systemKillboardListImgS}}" src="{{#imgUrlCorp}}{{corporation_id}}{{/imgUrlCorp}}">
+                </a>
+            </h5>
+            {{#alliance_id}}
+            <h5 class="media-heading">
+                <a href="{{{zKillboardUrl}}}/alliance/{{alliance_id}}/" title="alliance KB" target="_blank" rel="noopener">
+                    <img class="{{config.systemKillboardListImgS}}" src="{{#imgUrlAlly}}{{alliance_id}}{{/imgUrlAlly}}">
+                </a>
+            </h5>
+            {{/alliance_id}}
+        </div>
+    {{/attackerFinal}}
+
+    <div class="flex-col media-body text-right">
+        <h3 class="media-heading-location">
+            {{#system.name}}
+                {{system.name}}
+            {{/system.name}}
+            {{^system.name}}
+                {{killmail.solar_system_id}}
+            {{/system.name}}
+        </h3>
+        <h3 class="media-heading-isk txt-color txt-color-green">{{#iskFormat}}{{zkb.totalValue}}{{/iskFormat}}</h3>
+        <h3 class="media-heading-date">{{#dateFormat}}{{killmail.killmail_time}}{{/dateFormat}}</h3>
     </div>
 </li>
