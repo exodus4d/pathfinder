@@ -10,7 +10,7 @@
   margin-bottom: 20px;
   background-color: $well-bg;
   border: 1px solid $well-border;
-  @include border-radius(5px);
+  border-radius: 5px;
   color: $gray-darker;
   font-family: $font-family-bold;
   blockquote {

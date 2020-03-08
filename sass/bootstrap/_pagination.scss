@@ -25,13 +25,15 @@
       > a,
       > span {
         margin-left: 0;
-        @include border-left-radius($border-radius-base);
+        border-top-left-radius: $border-radius-base;
+        border-bottom-left-radius: $border-radius-base;
       }
     }
     &:last-child {
       > a,
       > span {
-        @include border-right-radius($border-radius-base);
+        border-top-right-radius: $border-radius-base;
+        border-bottom-right-radius: $border-radius-base;
       }
     }
   }

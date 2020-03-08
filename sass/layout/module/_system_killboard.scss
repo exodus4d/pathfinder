@@ -92,7 +92,7 @@
         border: 1px solid $gray-darker;
         overflow: hidden;
         will-change: border-color;
-        @include border-radius(50%);
+        border-radius: 50%;
         @include transition(border-color 0.12s ease-out);
       }
 
@@ -108,7 +108,7 @@
         border: 1px solid $gray-darker;
         overflow: hidden;
         will-change: border-color;
-        @include border-radius(50%);
+        border-radius: 50%;
         @include transition(border-color 0.12s ease-out);
         align-self: center;
       }
@@ -125,7 +125,7 @@
         border: 1px solid $gray-darker;
         overflow: hidden;
         will-change: border-color;
-        @include border-radius(50%);
+        border-radius: 50%;
         @include transition(border-color 0.12s ease-out);
       }
 

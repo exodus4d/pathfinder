@@ -17,7 +17,7 @@
   text-align: center;
   background-color: $badge-bg;
   text-indent: initial;
-  @include border-radius($badge-border-radius);
+  border-radius: $badge-border-radius;
 
 
   // Empty badges collapse automatically (not available in IE8)

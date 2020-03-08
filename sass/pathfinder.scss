@@ -9,9 +9,8 @@
  *
  */
 
-@import "compass";
-@import "compass/reset";
-@import "compass/css3";
+// CSS Reset - https://github.com/simbo/css-reset-and-normalize
+@import "reset";
 
 // Core variables and mixins
 @import "colors";

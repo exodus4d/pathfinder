@@ -154,7 +154,7 @@ fieldset[disabled]{
   line-height: 100px;
   margin: 15px 0;
   color: $gray-darker;
-  @include border-radius(10px);
+  border-radius: 10px;
   @include transition( color 0.18s ease-out, border-color 0.18s ease-out);
 
   &:hover{

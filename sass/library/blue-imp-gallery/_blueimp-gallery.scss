@@ -47,7 +47,7 @@
   /* Set the carousel width/height ratio to 16/9: */
   padding-bottom: 56.25%;
   @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
-  @include border-radius(5px);
+  border-radius: 5px;
   -ms-touch-action: pan-y;
   touch-action: pan-y;
 }
@@ -110,7 +110,7 @@
   text-decoration: none;
   text-align: center;
   background: rgba($black, 0.2);
-  @include border-radius(5px);
+  border-radius: 5px;
   @include box-sizing(content-box);
   @include transition(color 0.09s linear);
   will-change: color;
@@ -173,7 +173,7 @@
   line-height: 35px;
   text-align: center;
   background: rgba($black, 0.2);
-  @include border-radius(5px);
+  border-radius: 5px;
   @include box-sizing(content-box);
   @include transition(color 0.09s linear);
   will-change: color;

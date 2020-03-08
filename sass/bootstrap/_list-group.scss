@@ -28,11 +28,13 @@
 
   // Round the first and last items
   &:first-child {
-    @include border-top-radius($list-group-border-radius);
+    border-top-left-radius: $list-group-border-radius;
+    border-top-right-radius: $list-group-border-radius;
   }
   &:last-child {
     margin-bottom: 0;
-    @include border-bottom-radius($list-group-border-radius);
+    border-bottom-left-radius: $list-group-border-radius;
+    border-bottom-right-radius: $list-group-border-radius;
   }
 
   // Align badges within list items

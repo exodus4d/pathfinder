@@ -22,7 +22,8 @@
 .panel-heading {
   padding: 10px 15px;
   border-bottom: 1px solid transparent;
-  @include border-top-radius(($panel-border-radius - 1));
+  border-top-left-radius: ($panel-border-radius - 1);
+  border-top-right-radius: ($panel-border-radius - 1);
 
   > .dropdown .dropdown-toggle {
     color: inherit;
@@ -46,7 +47,8 @@
   padding: 10px 15px;
   background-color: $panel-footer-bg;
   border-top: 1px solid $panel-inner-border;
-  @include border-bottom-radius(($panel-border-radius - 1));
+  border-bottom-left-radius: ($panel-border-radius - 1);
+  border-bottom-right-radius: ($panel-border-radius - 1);
 }
 
 
@@ -75,7 +77,8 @@
     &:last-child {
       .list-group-item:last-child {
         border-bottom: 0;
-        @include border-bottom-radius(($panel-border-radius - 1));
+        border-bottom-left-radius: ($panel-border-radius - 1);
+        border-bottom-right-radius: ($panel-border-radius - 1);
       }
     }
   }
@@ -120,7 +123,8 @@
   // Add border bottom radius for last one
   > .table:last-child,
   > .table-responsive:last-child > .table:last-child {
-    @include border-bottom-radius(($panel-border-radius - 1));
+    border-bottom-left-radius: ($panel-border-radius - 1);
+    border-bottom-right-radius: ($panel-border-radius - 1);
 
     > tbody:last-child,
     > tfoot:last-child {

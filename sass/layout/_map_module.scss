@@ -209,7 +209,8 @@ $mapModuleGridRowMinHeight: 38px;
       background: rgba($gray-darker, 0.93);
       box-shadow: inset -3px 3px 10px 0 rgba($black, 0.3);
       will-change: width, height;
-      @include border-top-radius(0px);
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
       border: {
         width: 1px;
         style: solid;
@@ -276,7 +277,7 @@ $mapModuleGridRowMinHeight: 38px;
   padding: 10px;
   width: 100%;
   overflow: hidden;
-  @include border-radius(5px);
+  border-radius: 5px;
   border-top-left-radius: 0;
   opacity: 0; // animated by JS
   will-change: opacity, transform, height;
@@ -344,7 +345,7 @@ $mapModuleGridRowMinHeight: 38px;
 
     &:hover {
       .fa-sync {
-        @include transform(rotateZ(720deg));
+        transform: rotateZ(720deg);
       }
     }
 

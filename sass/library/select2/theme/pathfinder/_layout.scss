@@ -111,7 +111,8 @@
 
 // hide small "arrow" for hidden select elements
 select.select2-hidden-accessible {
-  @include appearance( none );
+  -moz-appearance: none;
+  -webkit-appearance: none;
 }
 
 select[readonly].select2-hidden-accessible {

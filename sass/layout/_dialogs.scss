@@ -116,15 +116,15 @@
 
       &.finished{
           &:before{
-          @include border-image( linear-gradient(to right, $teal-dark, $teal-dark) 1 1% );
-          border-bottom: 0;
+            border-image: linear-gradient(to right, $teal-dark, $teal-dark) 1 1%;
+            border-bottom: 0;
         }
       }
 
       &.active{
 
         &:before{
-          @include border-image( linear-gradient(to right, $brand-success, $gray-light) 1 1% );
+          border-image: linear-gradient(to right, $brand-success, $gray-light) 1 1%;
           border-bottom: 0;
         }
       }

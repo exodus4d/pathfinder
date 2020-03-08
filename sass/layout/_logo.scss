@@ -10,7 +10,7 @@ $logo-stroke-width:            0px;
   path{
     will-change: fill, opacity, transform, translateZ, translateX, translateY;
     pointer-events: all;
-    @include transform( translate3d(0, 0, 0) );
+    transform: translate3d(0, 0, 0);
   }
 }
 

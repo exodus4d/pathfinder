@@ -15,7 +15,8 @@ let gzip                = require('gulp-gzip');
 let brotli              = require('gulp-brotli');
 let uglifyjs            = require('uglify-es');
 let composer            = require('gulp-uglify/composer');
-let compass             = require('gulp-compass');
+let sass                = require('gulp-sass');
+let autoprefixer        = require('gulp-autoprefixer');
 let cleanCSS            = require('gulp-clean-css');
 let bytediff            = require('gulp-bytediff');
 let debug               = require('gulp-debug');
@@ -54,7 +55,7 @@ let PATH = {
         DIST_BUILD: './public/js/vX.X.X'
     },
     CSS: {
-        SRC: './sass/**/*.scss',
+        SRC: 'sass/**/*.scss',
     }
 };
 
@@ -172,6 +173,20 @@ let CONF = {
 };
 
 // -- Plugin options ----------------------------------------------------------
+let sassOptions = {
+    errorLogToConsole: true,
+    outputStyle: 'compressed' // nested, expanded, compact, compressed
+};
+
+let autoprefixerOptions = {
+    // browsers: ['last 2 versions'], read from package.json key: "browserslist"
+    cascade: false
+};
+
+let cleanCssOptions = {
+    compatibility: '*',
+    level: 2
+};
 
 let gZipOptions = {
     append: false,                      // disables default append ext .gz
@@ -191,14 +206,6 @@ let brotliOptions = {
         [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,        // compression mode for UTF-8 formatted text
         [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY    // quality [1 worst - 11 best]
     }
-};
-
-let compassOptions = {
-    config_file: './config.rb',
-    css: 'public/css/' + CONF.TAG,      // #VERSION# will be replaced with version tag
-    sass: 'sass',
-    time: true,                         // show execution time
-    sourcemap: true
 };
 
 let compressionExt = [gZipOptions.extension, brotliOptions.extension];
@@ -669,18 +676,31 @@ gulp.task('task:renameJsDest', () => {
 });
 
 /**
- * build CSS rom SASS files (Compass)
+ * build CSS rom SASS files
+ * -> 1. node-sass
+ *    2. autoprefixer
  */
 gulp.task('task:sass', () => {
-    compassOptions.sourcemap = CONF.CSS.SOURCEMAPS;
-
-    return gulp.src( './sass/**/*.scss')
-        .pipe(compass(compassOptions))
+    return gulp.src(PATH.CSS.SRC)
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.init()))
+        .pipe(sass(sassOptions).on('error', sass.logError))
         .pipe(bytediff.start())
         .pipe(bytediff.stop(data => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
             return colors.green('Build CSS file "' + data.fileName + '"');
         }))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false, sourceRoot: '../../../sass'})))
+        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG))
+
+        .pipe(filter(['!*.map']))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.init({loadMaps: true})))
+        .pipe(autoprefixer(autoprefixerOptions))
+        .pipe(bytediff.start())
+        .pipe(bytediff.stop(data => {
+            trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
+            return colors.green('Autoprefix CSS file "' + data.fileName + '"');
+        }))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false})))
         .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG));
 });
 
@@ -688,12 +708,11 @@ gulp.task('task:sass', () => {
  * css-clean can be used to "optimize" generated CSS [optional]
  */
 gulp.task('task:cleanCss', () => {
-    return gulp.src( PATH.ASSETS.DIST +'/css/**/*.css')
-        .pipe(cleanCSS({
-            compatibility: '*',
-            level: 2
-        }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css/' + CONF.TAG));
+    return gulp.src('public/css/' + CONF.TAG + '/*.css')
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.init({loadMaps: true})))
+        .pipe(cleanCSS(cleanCssOptions))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false})))
+        .pipe(gulp.dest('./public/css/' + CONF.TAG));
 });
 
 // == Helper tasks ====================================================================================================

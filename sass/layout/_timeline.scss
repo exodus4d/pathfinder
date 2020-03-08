@@ -13,7 +13,7 @@
   left: 50%;
   margin-top: 20px;
 
-  @include background-image(linear-gradient(to bottom, $green-dark, $gray-light 25%));
+  background-image: linear-gradient(to bottom, $green-dark, $gray-light 25%);
 }
 
 .timeline > li {
@@ -60,7 +60,7 @@
   background-color: $gray-dark;
   font-size: 11px;
   @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
-  @include border-radius(5px);
+  border-radius: 5px;
 }
 
 .timeline > li > .timeline-panel:before {
@@ -99,7 +99,7 @@
   margin-left: -11px;
   background-color: $gray-light;
   z-index: 100;
-  @include border-radius(50%);
+  border-radius: 50%;
 
   > i {
     vertical-align: middle;

@@ -15,11 +15,11 @@
   @include rainbow;
 
   &.warning{
-    @include background-image(linear-gradient(to right, $brand-warning, $brand-warning 100%));
+    background-image: linear-gradient(to right, $brand-warning, $brand-warning 100%);
   }
 
   &.danger{
-    @include background-image(linear-gradient(to right, $brand-danger, $brand-danger 100%));
+    background-image: linear-gradient(to right, $brand-danger, $brand-danger 100%);
   }
 }
 
@@ -45,7 +45,7 @@
     text-align: center;
     max-width: 500px;
     padding: 20px;
-    @include transform( translate(-50%, -50%) );
+    transform: translate(-50%, -50%);
   }
 
   .pf-splash-debug{
@@ -142,7 +142,7 @@
     &:hover{
       img{
         border-color: $teal-lightest;
-        @include filter(brightness( 50% ));
+        filter: brightness( 50% );
       }
 
       &:before{
@@ -160,7 +160,7 @@
       }
       display: inline-block;
       will-change: all;
-      @include filter(brightness( 100% ));
+      filter: brightness( 100% );
       @include transition(all 0.2s ease-out);
 
 
@@ -202,11 +202,11 @@
     background: url("#{$base-url}/#{$body-background-image}") $body-background-color;
     background-repeat: no-repeat;
     background-position: 0 0;
-    @include filter(brightness(0.9))
+    filter: brightness(0.9);
   }
 
   #pf-logo-container{
-    @include transform( scale3d(0.8, 0.8, 1) ); // downscales logo
+    transform: scale3d(0.8, 0.8, 1); // downscales logo
   }
 
   #pf-header-container{
@@ -240,7 +240,7 @@
         width: 180px;
         padding: 7px;
         opacity: 0;
-        @include border-radius(5px);
+        border-radius: 5px;
         background: {
           color: rgba(43, 43, 43, 0.5);
         }
@@ -254,7 +254,7 @@
           position: absolute;
           width: calc(100% - 14px);
           height: calc(100% - 14px);
-          @include border-radius(3px);
+          border-radius: 3px;
           background: {
             repeat: no-repeat;
             position: 50% 50%;
@@ -332,7 +332,7 @@
     padding: 10px 10px 5px 10px;
     min-width: 155px;
     min-height: 184px;
-    @include border-radius(10px);
+    border-radius: 10px;
     @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
 
     .ribbon-wrapper{
@@ -344,9 +344,9 @@
       opacity: 0;
       width: 128px;
       border: 2px solid $gray-light;
-      @include border-radius(8px);
+      border-radius: 8px;
       @include transition( border-color 0.2s ease-out, box-shadow 0.2s ease-out);
-      @include transform( translate3d(0, 0, 0) );
+      transform: translate3d(0, 0, 0);
       will-change: border-color, transition;
       overflow: hidden;
       cursor: pointer;
@@ -362,7 +362,7 @@
         }
 
         .pf-character-image{
-          @include filter(grayscale(50%))
+          filter: grayscale(50%);
         }
       }
 
@@ -422,7 +422,7 @@
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
         @include transition(all 0.3s ease-out);
-        @include filter(grayscale(0%));
+        filter: grayscale(0%);
       }
     }
   }

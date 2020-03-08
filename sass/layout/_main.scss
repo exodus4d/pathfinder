@@ -932,7 +932,7 @@ table{
   opacity: 0;
   background: $gray-darker;
   z-index: 1060;
-  @include border-radius(5px);
+  border-radius: 5px;
 
   .pf-loading-overlay-wrapper{
     width: 25px;
@@ -1152,14 +1152,14 @@ table{
   text-shadow: 1px 1px 2px $gray-darkest; // improve text contrast
   background-color: $pink-darker;
 
-  @include background-image(linear-gradient(-45deg,
+  background-image: linear-gradient(-45deg,
           $purple-dark 25%,
           transparent 25%,
           transparent 50%,
           $purple-dark 50%,
           $purple-dark 75%,
           transparent 75%,
-          transparent));
+          transparent);
   background-size: 25px 25px;
   -webkit-animation: move 2.5s linear infinite;
   -moz-animation: move 2.5s linear infinite;
@@ -1469,7 +1469,7 @@ table{
       line-height: 12px;
       min-width: 14px;
       text-align: center;
-      @include border-radius(3px);
+      border-radius: 3px;
       @include box-shadow(0 3px 6px rgba(0,0,0,.3));
     }
   }
@@ -1563,7 +1563,7 @@ table{
   background-color: $gray;
   font-family: $font-family-bold;
   padding: 5px 5px;
-  @include border-radius(3px);
+  border-radius: 3px;
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 }
 
@@ -1618,7 +1618,7 @@ td.pf-popover-trigger{
   position: relative;
   background-color: $gray-dark;
   overflow: hidden;
-  @include border-radius(5px);
+  border-radius: 5px;
 
   .dl-horizontal{
     margin-bottom: 0;
