@@ -1436,7 +1436,8 @@ define([
         let setMapDefaultOptionsExecutor = (resolve, reject) => {
             // update main menu options based on the active map -----------------------------------------------
             $(document).trigger('pf:updateMenuOptions', {
-                mapConfig: mapConfig
+                menuGroup: 'mapOptions',
+                payload: mapConfig
             });
 
             // init compact system layout ---------------------------------------------------------------------

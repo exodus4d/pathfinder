@@ -243,7 +243,7 @@ class User extends Controller\Controller{
     public function saveAccount(\Base $f3){
         $data = $f3->get('POST');
 
-        $return = (object) [];
+        $return = (object)[];
         $return->error = [];
 
         $captcha = $f3->get(self::SESSION_CAPTCHA_ACCOUNT_UPDATE);
@@ -253,7 +253,7 @@ class User extends Controller\Controller{
 
         $newUserData = null;
 
-        if( isset($data['formData']) ){
+        if(isset($data['formData'])){
             $formData = $data['formData'];
 
             try{
@@ -261,18 +261,12 @@ class User extends Controller\Controller{
                     $user = $activeCharacter->getUser();
 
                     // captcha is send -> check captcha ---------------------------------------------------------------
-                    if(
-                        isset($formData['captcha']) &&
-                        !empty($formData['captcha'])
-                    ){
+                    if(isset($formData['captcha']) && !empty($formData['captcha'])){
                         if($formData['captcha'] === $captcha){
                             // change/set sensitive user data requires captcha!
 
                             // set username
-                            if(
-                                isset($formData['name']) &&
-                                !empty($formData['name'])
-                            ){
+                            if(isset($formData['name']) && !empty($formData['name'])){
                                 $user->name = $formData['name'];
                             }
 
@@ -293,7 +287,7 @@ class User extends Controller\Controller{
 
                         }else{
                             // captcha was send but not valid -> return error
-                            $captchaError = (object) [];
+                            $captchaError = (object)[];
                             $captchaError->type = 'error';
                             $captchaError->message = 'Captcha does not match';
                             $return->error[] = $captchaError;

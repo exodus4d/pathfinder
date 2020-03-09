@@ -71,9 +71,7 @@ define([
      * shows the logging dialog
      */
     let showDialog = () => {
-        // dialog content
-
-        requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache){
+        requirejs(['text!templates/dialog/task_manager.html', 'mustache'], function(templateTaskManagerDialog, Mustache){
             let data = {
                 id: config.taskDialogId,
                 dialogDynamicAreaClass: Util.config.dynamicAreaClass,

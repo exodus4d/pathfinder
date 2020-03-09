@@ -1316,7 +1316,7 @@ define([
             // "log" tab -> get "Origin", not all config options are set in mapData
             let mapDataOrigin = Util.getCurrentMapData(mapData.config.id);
 
-            requirejs(['text!templates/dialog/map_info.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
+            requirejs(['text!templates/dialog/map_info.html', 'mustache'], (template, Mustache) => {
 
                 let data = {
                     dialogSummaryContainerId: config.dialogMapInfoSummaryId,

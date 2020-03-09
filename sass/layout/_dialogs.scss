@@ -170,6 +170,7 @@
   #pf-dialog-captcha-wrapper{
     margin: 0;
     padding: 3px 0;
+    min-height: 35px; // captcha img has dynamic height. Height should not change on captcha reload
   }
 }
 

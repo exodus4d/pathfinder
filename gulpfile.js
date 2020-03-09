@@ -833,8 +833,10 @@ gulp.task('task:configProduction',
  * updates JS destination move to (final) dir
  */
 gulp.task('task:updateJsDest', gulp.series(
-    'task:gzipJsAssets',
-    'task:brotliJsAssets',
+    gulp.parallel(
+        'task:gzipJsAssets',
+        'task:brotliJsAssets'
+    ),
     'task:renameJsDest',
    // 'task:printJsSummary',
     'task:cleanJsBuild'
@@ -913,8 +915,10 @@ gulp.task(
     gulp.series(
         'task:buildCss',
        // 'task:cleanCss',
-        'task:gzipCssAssets',
-        'task:brotliCssAssets',
+        gulp.parallel(
+            'task:gzipCssAssets',
+            'task:brotliCssAssets'
+        ),
        // 'task:printJsSummary',
         'task:notifyCssDone'
     )

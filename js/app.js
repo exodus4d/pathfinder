@@ -165,7 +165,7 @@ requirejs.config({
             deps: ['bootstrap']
         },
         bootstrapToggle: {
-            deps: ['jquery']
+            deps: ['jquery', 'bootstrap']
         },
         lazyload: {
             deps: ['jquery']

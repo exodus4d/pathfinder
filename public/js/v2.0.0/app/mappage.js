@@ -8,12 +8,13 @@ define([
     'app/util',
     'app/logging',
     'app/page',
+    'app/counter',
     'app/map/worker',
     'app/map/util',
     'app/module_map',
     'app/key',
     'app/ui/form_element'
-], ($, Init, Util, Logging, Page, MapWorker, MapUtil, ModuleMap) => {
+], ($, Init, Util, Logging, Page, Counter, MapWorker, MapUtil, ModuleMap) => {
     'use strict';
 
     // main update intervals/trigger (heartbeat)
@@ -154,6 +155,27 @@ define([
                     error: error
                 }
             });
+        });
+    });
+
+    /**
+     * init DataTables plugin + dependencies + default config
+     * @returns {Promise<any>}
+     */
+    let initDataTables = () => new Promise(resolve => {
+        let payload = {
+            action: 'initDataTables',
+            data: false
+        };
+
+        require(['datatables.loader'], dtLoader => {
+            dtLoader.initDefaultConfig({
+                breakpoints: Init.breakpoints,
+                onDestroy: table => {
+                    // remove all active counters in table
+                    Counter.destroyTimestampCounter(table, true);
+                }
+            }).then(() => resolve(payload));
         });
     });
 
@@ -570,11 +592,12 @@ define([
         Promise.all([
             initApp(rootEl),
             initData(),
-            getMapAccessData()
+            getMapAccessData(),
+            initDataTables(),
         ])
         .then(([mapModule, initData, accessData]) => Promise.all([
             initMapModule(mapModule),
-            initMapWorker(mapModule,accessData),
+            initMapWorker(mapModule, accessData),
             initUnload(mapModule)
         ]))
         .then(([payloadMapModule, payloadMapWorker]) => {

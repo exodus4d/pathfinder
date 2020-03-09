@@ -65,14 +65,16 @@ define([
         systemIntelModuleClass: 'pf-system-intel-module',                       // module wrapper (intel)
     };
 
-    let menuBtnTypes = {
-        'info': {class: 'list-group-item-info'},
-        'danger': {class: 'list-group-item-danger'},
-        'warning': {class: 'list-group-item-warning'}
-    };
-
     let programStatusCounter = 0;                                               // current count down in s until next status change is possible
     let programStatusInterval = false;                                          // interval timer until next status change is possible
+
+    /**
+     * get menu button class by type
+     * -> if no type -> get default class (all buttons)
+     * @param type
+     * @returns {string}
+     */
+    let getMenuBtnClass = type => 'list-group-item' + (['info', 'danger', 'warning'].includes(type) ? `-${type}` : '');
 
     /**
      * set an DOM element to fullscreen mode
@@ -187,15 +189,21 @@ define([
 
             switch(itemConfig.type){
                 case 'button':
-                    let className = Util.getObjVal(menuBtnTypes, itemConfig.btnType + '.class') || '';
-                    className += itemConfig.class || '';
+                    let classNames = [getMenuBtnClass(), getMenuBtnClass(itemConfig.btnType)];
+                    if(itemConfig.class){
+                        classNames.push(itemConfig.class);
+                    }
 
                     item = $('<a>', {
                         id: itemConfig.id || undefined,
-                        class: 'list-group-item ' + className,
+                        class: classNames.join(' '),
                         href: itemConfig.href || undefined,
                         html: '&nbsp;&nbsp;' + itemConfig.label
                     });
+
+                    if(itemConfig.group){
+                        item.attr('data-group', itemConfig.group);
+                    }
 
                     if(itemConfig.action){
                         item.attr('data-action', itemConfig.action);
@@ -273,8 +281,10 @@ define([
                     label: 'Settings'
                 },{
                     type: 'button',
+                    class: 'loading',
                     label: 'Account',
                     icon: 'fa-user',
+                    group: 'userOptions',
                     action: 'ShowSettingsDialog'
                 }, document.fullscreenEnabled ? {
                     type: 'button',
@@ -338,6 +348,7 @@ define([
                     class: 'loading',
                     label: 'Settings',
                     icon: 'fa-cogs',
+                    group: 'mapOptions',
                     action: 'ShowMapSettings',
                     data: {tab: 'settings'}
                 },{
@@ -346,6 +357,7 @@ define([
                     class: 'loading',
                     label: 'Grid snapping',
                     icon: 'fa-th',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapSnapToGrid', toggle: true}
@@ -355,6 +367,7 @@ define([
                     class: 'loading',
                     label: 'Magnetizing',
                     icon: 'fa-magnet',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapMagnetizer', toggle: true}
@@ -364,6 +377,7 @@ define([
                     class: 'loading',
                     label: 'Signatures',
                     icon: 'fa-link',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapSignatureOverlays', toggle: true}
@@ -373,6 +387,7 @@ define([
                     class: 'loading',
                     label: 'Compact',
                     icon: 'fa-compress',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapCompact', toggle: true}
@@ -769,13 +784,23 @@ define([
             });
 
             // disable menu links based on current map config ---------------------------------------------------------
-            documentElement.on('pf:updateMenuOptions', (e, data) => {
-                let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
-                $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);
+            documentElement.on('pf:updateMenuOptions', (e, {menuGroup, payload}) => {
+                let buttonGroup = document.querySelectorAll(`.${getMenuBtnClass()}[data-group="${menuGroup}"]`);
+                // find menu buttons by menuGroup
+                switch(menuGroup){
+                    case 'mapOptions':
+                        // payload is mapConfig
+                        let hasRightMapDelete = MapUtil.checkRight('map_delete', payload);
+                        document.getElementById(Util.config.menuButtonMapDeleteId).classList.toggle('disabled', !hasRightMapDelete);
 
-                // "loading" menu options require an active map
-                // -> active map now available -> remove loading class
-                $('.' + config.pageMenuRightClass + ' .loading').removeClass('loading');
+                        // active map -> remove loading classes
+                        [...buttonGroup].forEach(button => button.classList.remove('loading'));
+                        break;
+                    case 'userOptions':
+                        // payload is boolean (true if valid character data exists)
+                        [...buttonGroup].forEach(button => button.classList.toggle('loading', !payload));
+                        break;
+                }
             });
 
             // update header links with current map data --------------------------------------------------------------
@@ -799,6 +824,15 @@ define([
 
             // changes in current userData ----------------------------------------------------------------------------
             documentElement.on('pf:changedUserData', (e, userData, changes) => {
+                // update menu buttons (en/disable)
+                if(changes.characterId){
+                    documentElement.trigger('pf:updateMenuOptions', {
+                        menuGroup: 'userOptions',
+                        payload: Boolean(Util.getObjVal(userData, 'character.id'))
+                    });
+                }
+
+                // update header
                 updateHeaderUserData(userData, changes).then();
             });
 
