@@ -210,6 +210,10 @@
   .list-unstyled.well{
     display: inline-block;
   }
+
+  h2:first-of-type{
+    margin-top: 0;
+  }
 }
 
 // add system dialog ==========================================================
