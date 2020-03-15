@@ -132,7 +132,7 @@ class Config extends \Prefab {
      * custom HTTP status codes
      */
     const
-        HTTP_422='Unprocessable Entity';
+        HTTP_422 = 'Unprocessable Entity';
 
     /**
      * all environment data
@@ -464,22 +464,6 @@ class Config extends \Prefab {
     }
 
     /**
-     * get custom $message for a a HTTP $status
-     * -> use this in addition to the very general Base::HTTP_XXX labels
-     * @param int $status
-     * @return string
-     */
-    static function getMessageFromHTTPStatus(int $status) : string {
-        switch($status){
-            case 403:
-                $message = 'Access denied: User not found'; break;
-            default:
-                $message = '';
-        }
-        return $message;
-    }
-
-    /**
      * use this function to "validate" the socket connection.
      * The result will be CACHED for a few seconds!
      * This function is intended to pre-check a Socket connection if it MIGHT exists.
@@ -569,7 +553,7 @@ class Config extends \Prefab {
     }
 
     /**
-     * get HTTP status message by HTTP return code
+     * get HTTP status by HTTP return code
      * -> either from F3 or from self::Config constants
      * @param int $code
      * @return string

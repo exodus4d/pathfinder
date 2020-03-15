@@ -53,8 +53,9 @@ define([
                 captchaImageId: config.captchaImageId,
                 formErrorContainerClass: Util.config.formErrorContainerClass,
                 ccpImageServer: Init.url.ccpImageServer,
-                roleLabel: Util.getLabelByRole(Util.getObjVal(Util.getCurrentUserData(), 'character.role')).prop('outerHTML'),
-                characterAutoLocationSelectEnabled: Boolean(Util.getObjVal(Init, 'character.autoLocationSelect'))
+                roleLabel: Util.getLabelByRole(Util.getCurrentCharacterData('role')).prop('outerHTML'),
+                characterAutoLocationSelectEnabled: Boolean(Util.getObjVal(Init, 'character.autoLocationSelect')),
+                hasRightCorporationShare: Util.hasRight('map_share', 'corporation')
             };
 
             let content = Mustache.render(template, data);

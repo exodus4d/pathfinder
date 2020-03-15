@@ -259,30 +259,31 @@ define([
      * @param errors
      */
     $.fn.showFormMessage = function(errors){
-
         let formElement = $(this);
-
         let errorMessage = [];
         let warningMessage = [];
         let infoMessage = [];
-        for(let i = 0; i < errors.length; i++){
-            if(errors[i].type === 'error'){
-                errorMessage.push( errors[i].message );
+
+        for (let error of errors) {
+            let message = `${error.text}`;
+            if(error.type === 'error'){
+                message = `${error.status} - ${message}`;
+                errorMessage.push(message);
 
                 // mark form field as invalid in case of a validation error
                 if(
-                    errors[i].field &&
-                    errors[i].field.length > 0
+                    error.field &&
+                    error.field.length > 0
                 ){
-                    let formField = formElement.find('[name="' + errors[i].field + '"]');
+                    let formField = formElement.find('[name="' + error.field + '"]');
                     let formGroup = formField.parents('.form-group').removeClass('has-success').addClass('has-error');
-                    let formHelp = formGroup.find('.help-block').text(errors[i].message);
+                    let formHelp = formGroup.find('.help-block').text(error.text);
                 }
 
-            }else if(errors[i].type === 'warning'){
-                warningMessage.push( errors[i].message );
-            }else if(errors[i].type === 'info'){
-                infoMessage.push( errors[i].message );
+            }else if(error.type === 'warning'){
+                warningMessage.push(message);
+            }else if(error.type === 'info'){
+                infoMessage.push(message);
             }
         }
 
@@ -595,10 +596,10 @@ define([
 
     /**
      * add character switch popover
-     * @param userData
      */
-    $.fn.initCharacterSwitchPopover = function(userData){
+    $.fn.initCharacterSwitchPopover = function(){
         let elements = $(this);
+        let userData = getCurrentUserData();
         let eventNamespace = 'hideCharacterPopup';
 
         requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function(template, Mustache){
@@ -1820,14 +1821,16 @@ define([
 
         // check if userData is valid
         if(userData && userData.character && userData.characters){
+            // check new vs. old userData for changes
             let changes = compareUserData(getCurrentUserData(), userData);
-            // check if there is any change
-            if(Object.values(changes).some(val => val)){
-                $(document).trigger('pf:changedUserData', [userData, changes]);
-            }
 
             Init.currentUserData = userData;
             isSet = true;
+
+            // check if there is any change
+            if(Object.values(changes).some(val => val)){
+                $(document).trigger('pf:changedUserData', [changes]);
+            }
         }else{
             console.error('Could not set userData %o. Missing or malformed obj', userData);
         }
@@ -1836,7 +1839,7 @@ define([
     };
 
     /**
-     * get currentUserData from "global" variable
+     * get currentUserData from "global" var
      * @returns {*}
      */
     let getCurrentUserData = () => {
@@ -1844,18 +1847,61 @@ define([
     };
 
     /**
+     * get currentCharacterData
+     * @see getCurrentUserData
+     * @returns {*|boolean}
+     */
+    let getCurrentCharacter = () => getObjVal(getCurrentUserData(), 'character') || false;
+
+    /**
+     * get data from currentCharacterData (e.g. id)
+     * @see getCurrentCharacter
+     * @param key
+     * @returns {*|boolean}
+     */
+    let getCurrentCharacterData = key => getObjVal(getCurrentCharacter(), key) || false;
+
+    /**
      * get either active characterID or characterId from initial page load
      * @returns {number}
      */
     let getCurrentCharacterId = () => {
-        let currentCharacterId = parseInt(getObjVal(getCurrentUserData(), 'character.id')) || 0;
-
+        let currentCharacterId = parseInt(getCurrentCharacterData('id')) || 0;
         if(!currentCharacterId){
             // no active character... -> get default characterId from initial page load
             currentCharacterId = parseInt(document.body.getAttribute('data-character-id'));
         }
-
         return currentCharacterId;
+    };
+
+    /**
+     * get information for the current mail user
+     * @param option
+     * @returns {boolean}
+     */
+    let getCurrentUserInfo = option => {
+        let currentUserData = getCurrentUserData();
+        let userInfo = false;
+
+        if(currentUserData){
+            // user data is set -> user data will be set AFTER the main init request!
+            let characterData = currentUserData.character;
+            if(characterData){
+                if(option === 'privateId'){
+                    userInfo = characterData.id;
+                }
+
+                if(option === 'allianceId' && characterData.alliance){
+                    userInfo = characterData.alliance.id;
+                }
+
+                if(option === 'corporationId' && characterData.corporation){
+                    userInfo = characterData.corporation.id;
+                }
+            }
+        }
+
+        return userInfo;
     };
 
     /**
@@ -1884,6 +1930,29 @@ define([
             charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString(),
             characterLogHistory: oldHistoryLogStamps.toString() !== newHistoryLogStamps.toString()
         };
+    };
+
+    /**
+     * checks if currentCharacter has a role that matches a specific right
+     * @param right
+     * @param objKey
+     * @returns {boolean}
+     */
+    let hasRight = (right, objKey) => {
+        let hasRight = false;
+        let objectRights = getCurrentCharacterData(`${objKey}.rights`) || [];
+        let objectRight = objectRights.find(objectRight => objectRight.right.name === right);
+        if(objectRight){
+            let characterRole = getCurrentCharacterData('role');
+            if(
+                characterRole.name === 'SUPER' ||
+                objectRight.role.name === 'MEMBER' ||
+                objectRight.role.name === characterRole.name
+            ){
+                hasRight = true;
+            }
+        }
+        return hasRight;
     };
 
     /**
@@ -2021,31 +2090,36 @@ define([
      * global ajax error handler -> handles .fail() requests
      * @param payload
      */
-    let handleAjaxErrorResponse = (payload) => {
+    let handleAjaxErrorResponse = payload => {
         // handle only request errors
-        if(payload.action === 'request'){
-            let jqXHR = payload.data.jqXHR;
-            let reason = '';
-
-            if(jqXHR.responseJSON){
-                // ... valid JSON response
-                let response = jqXHR.responseJSON;
-
-                if(response.error && response.error.length > 0){
-                    // build error notification reason from errors
-                    reason = response.error.map(error => error.message ? error.message : error.status).join('\n');
-
-                    // check if errors might belong to a HTML form -> check "context"
-                    if(payload.context.formElement){
-                        // show form messages e.g. validation errors
-                        payload.context.formElement.showFormMessage(response.error);
-                    }
-                }
-            }else{
-                reason = 'Invalid JSON response';
-            }
-            showNotify({title: jqXHR.status + ': ' + payload.name, text: reason, type: 'error'});
+        if(payload.action !== 'request'){
+            console.error('Unhandled HTTP response error. Invalid payload %o', payload);
+            return;
         }
+
+        let jqXHR = payload.data.jqXHR;
+        let title = `${jqXHR.status}: ${jqXHR.statusText} - ${payload.name}`;
+        let reason = '';
+
+        if(jqXHR.responseJSON){
+            // ... valid JSON response
+            let response = jqXHR.responseJSON;
+
+            if(response.error && response.error.length > 0){
+                // build error notification reason from errors
+                reason = response.error.map(error => error.text || error.status).join('\n');
+
+                // check if errors might belong to a HTML form -> check "context"
+                if(payload.context.formElement){
+                    // show form messages e.g. validation errors
+                    payload.context.formElement.showFormMessage(response.error);
+                }
+            }
+        }else{
+            reason = 'Invalid JSON response';
+        }
+
+        showNotify({title: title, text: reason, type: 'error'});
     };
 
     /**
@@ -2821,43 +2895,6 @@ define([
     let deleteCurrentMapData = mapId => {
         Init.currentMapData = Init.currentMapData.filter(mapData => mapData.config.id !== mapId);
     };
-
-    /**
-     * get the current log data for the current user character
-     * @returns {boolean}
-     */
-    let getCurrentCharacterLog = () => getObjVal(getCurrentUserData(), 'character.log') || false;
-
-    /**
-     * get information for the current mail user
-     * @param option
-     * @returns {boolean}
-     */
-    let getCurrentUserInfo = option => {
-        let currentUserData = getCurrentUserData();
-        let userInfo = false;
-
-        if(currentUserData){
-            // user data is set -> user data will be set AFTER the main init request!
-            let characterData = currentUserData.character;
-            if(characterData){
-                if(option === 'privateId'){
-                    userInfo = characterData.id;
-                }
-
-                if(option === 'allianceId' && characterData.alliance){
-                    userInfo = characterData.alliance.id;
-                }
-
-                if(option === 'corporationId' && characterData.corporation){
-                    userInfo = characterData.corporation.id;
-                }
-            }
-        }
-
-        return userInfo;
-    };
-
 
     /**
      * get "nearBy" systemData based on a jump radius around a currentSystem
@@ -3646,13 +3683,14 @@ define([
         deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
+        getCurrentCharacter: getCurrentCharacter,
+        getCurrentCharacterData: getCurrentCharacterData,
         getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
         deleteCurrentSystemData:deleteCurrentSystemData,
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
-        getCurrentCharacterLog: getCurrentCharacterLog,
         findInViewport: findInViewport,
         initScrollSpy: initScrollSpy,
         getConfirmationTemplate: getConfirmationTemplate,
@@ -3674,6 +3712,7 @@ define([
         getLocalStore: getLocalStore,
         getResizeManager: getResizeManager,
         clearSessionStorage: clearSessionStorage,
+        hasRight: hasRight,
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,
         getTableId: getTableId,

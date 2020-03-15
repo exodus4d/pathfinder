@@ -46,7 +46,7 @@ requirejs.config({
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6   Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.3.0   Inline Chart - http://benpickles.github.io/peity/
         hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.10.0  Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
-        select2: 'lib/select2.min',                                     // v4.0.3   Drop Down customization - https://select2.github.io
+        select2: 'lib/select2.min',                                     // v4.0.13  Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1   SVG line animation plugin - http://lazylinepainter.info
         blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3  Image Gallery - https://github.com/blueimp/Gallery

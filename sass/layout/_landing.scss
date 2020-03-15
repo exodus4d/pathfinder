@@ -767,6 +767,10 @@
     padding-right: 8px; // overwrite default
   }
 
+  .table{
+    text-align: left;
+  }
+
   .pf-setup-body-cronjob{
     .panel-footer{
       display: flex; // align multiple error/warning/.. elements

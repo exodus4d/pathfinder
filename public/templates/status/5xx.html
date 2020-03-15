@@ -12,8 +12,8 @@
 
             Status: '{{ @errorData->status }}'<br>
 
-            <check if="{{ @errorData->message }}">
-                Message: {{ @errorData->message }}
+            <check if="{{ @errorData->text }}">
+                Message: {{ @errorData->text }}
             </check>
         </p>
     </div>

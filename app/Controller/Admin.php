@@ -203,7 +203,7 @@ class Admin extends Controller{
                     // character has access to that corporation -> create/update/delete rights...
                     if($corporationRightsData = (array)$settings['rights']){
                         // get existing corp rights
-                        foreach($corporation->getRights(['addInactive' => true]) as $corporationRight){
+                        foreach($corporation->getRights($corporation::RIGHTS, ['addInactive' => true]) as $corporationRight){
                             $corporationRightData = $corporationRightsData[$corporationRight->rightId->_id];
                             if(
                                 $corporationRightData &&

@@ -2005,60 +2005,26 @@ define([
      */
     let checkRight = (right, mapConfig) => {
         let hasAccess = false;
-        let currentUserData = Util.getCurrentUserData();
-        if(currentUserData){
-            // ...there is an active user
-            let currentCharacterData = Util.getObjVal(currentUserData, 'character');
-            if(currentCharacterData){
-                // ... there is an active character
-                let currentCharacterRole = Util.getObjVal(currentCharacterData, 'role');
-                if(currentCharacterRole){
-                    // ... active character has a role assigned
+        let mapType = Util.getObjVal(mapConfig, 'type.name');
+        let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
 
-                    let mapType = Util.getObjVal(mapConfig, 'type.name');
-                    let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
-
-                    // this is either Ally/Corp or Character Id
-                    let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
-
-                    // check whether character has map access
-                    let hasMapAccess = mapAccess.some((accessObj) => {
-                        return (accessObj.id === accessObjectId);
-                    });
-
-                    if(hasMapAccess){
-                        // ... this should ALWAYS be be true!
-                        switch(mapType){
-                            case 'private':
-                                hasAccess = true;
-                                break;
-                            case 'corporation':
-                                let objectRights = Util.getObjVal(currentCharacterData, mapType + '.rights') || [];
-
-                                let objectRight = objectRights.find((objectRight) => {
-                                    return objectRight.right.name === right;
-                                });
-
-                                if(objectRight){
-                                    // ... Ally/Corp has the right we are looking for assigned with a required role
-                                    if(
-                                        currentCharacterRole.name === 'SUPER' ||
-                                        objectRight.role.name === 'MEMBER' ||
-                                        objectRight.role.name === currentCharacterRole.name
-                                    ){
-                                        hasAccess = true;
-                                    }
-                                }
-                                break;
-                            case 'alliance':
-                                hasAccess = true;
-                                break;
-                        }
-                    }
-                }
+        // check whether character has map access
+        let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
+        let hasMapAccess = mapAccess.some(accessObj => accessObj.id === accessObjectId);
+        if(hasMapAccess){
+            // ... this should ALWAYS be be true!
+            switch(mapType){
+                case 'private':
+                    hasAccess = true;
+                    break;
+                case 'corporation':
+                    hasAccess = Util.hasRight(right, mapType);
+                    break;
+                case 'alliance':
+                    hasAccess = true;
+                    break;
             }
         }
-
         return hasAccess;
     };
 

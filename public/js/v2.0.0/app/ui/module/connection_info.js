@@ -632,7 +632,7 @@ define([
                     // get current ship data ----------------------------------------------------------
                     massShipCell.parent().toggle(showShip);
                     if(showShip){
-                        shipData = Util.getObjVal(Util.getCurrentCharacterLog(), 'ship');
+                        shipData = Util.getObjVal(Util.getCurrentCharacterData('log'), 'ship');
                         if(shipData){
                             if(shipData.mass){
                                 massShip = parseInt(shipData.mass);

@@ -140,7 +140,7 @@ class User extends Controller\Controller{
             }else{
                 $characterError = (object) [];
                 $characterError->type = 'warning';
-                $characterError->message = 'This can happen through "invalid cookies(SSO)", "login restrictions", "ESI problems".';
+                $characterError->text = 'This can happen through "invalid cookies(SSO)", "login restrictions", "ESI problems".';
                 $return->error[] = $characterError;
             }
         }
@@ -184,7 +184,7 @@ class User extends Controller\Controller{
         }else{
             $captchaError = (object) [];
             $captchaError->type = 'error';
-            $captchaError->message = 'Could not create captcha image';
+            $captchaError->text = 'Could not create captcha image';
             $return->error[] = $captchaError;
         }
 
@@ -225,7 +225,7 @@ class User extends Controller\Controller{
             }else{
                 $error = (object) [];
                 $error->type = 'error';
-                $error->message = $response['error'];
+                $error->text = $response['error'];
                 $return->error[] = $error;
             }
         }
@@ -289,7 +289,7 @@ class User extends Controller\Controller{
                             // captcha was send but not valid -> return error
                             $captchaError = (object)[];
                             $captchaError->type = 'error';
-                            $captchaError->message = 'Captcha does not match';
+                            $captchaError->text = 'Captcha does not match';
                             $return->error[] = $captchaError;
                         }
                     }
@@ -377,7 +377,7 @@ class User extends Controller\Controller{
             // captcha not valid -> return error
             $captchaError = (object) [];
             $captchaError->type = 'error';
-            $captchaError->message = 'Captcha does not match';
+            $captchaError->text = 'Captcha does not match';
             $return->error[] = $captchaError;
         }
 

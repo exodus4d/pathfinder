@@ -1570,7 +1570,7 @@ class Setup extends Controller {
 
             // setup tables
             foreach($this->databases[$dbAlias]['models'] as $modelClass){
-                $checkTables[] = call_user_func($modelClass . '::setup', $db);
+                $checkTables[] = call_user_func(Config::withNamespace($modelClass) . '::setup', $db);
             }
         }
         return $checkTables;

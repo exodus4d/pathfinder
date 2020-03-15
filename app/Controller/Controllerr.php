@@ -487,7 +487,7 @@ class Controller {
      * @param bool $deleteSession
      * @param bool $deleteLog
      * @param bool $deleteCookie
-     * @param int $status
+     * @param int $statusCode
      * @throws \Exception
      */
     protected function logoutCharacter(
@@ -496,7 +496,7 @@ class Controller {
         bool $deleteSession = true,
         bool $deleteLog = true,
         bool $deleteCookie = false,
-        int $status = self::DEFAULT_STATUS_LOGOUT
+        int $statusCode = self::DEFAULT_STATUS_LOGOUT
     ){
         $sessionCharacterData = (array)$f3->get(Api\User::SESSION_KEY_CHARACTERS);
 
@@ -526,11 +526,11 @@ class Controller {
         }
 
         if($f3->get('AJAX')){
-            $f3->status($status);
+            $f3->status($statusCode);
 
             $return = (object) [];
             $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
-            $return->error[] = $this->getErrorObject($status, Config::getMessageFromHTTPStatus($status));
+            $return->error[] = $this->getErrorObject($statusCode, Config::getHttpStatusByCode($statusCode), 'Access denied: User not found');
 
             echo json_encode($return);
         }else{
@@ -639,18 +639,18 @@ class Controller {
 
     /**
      * @param int $code
-     * @param string $message
      * @param string $status
+     * @param string $text
      * @param null $trace
      * @return \stdClass
      */
-    protected function getErrorObject(int $code, string $message = '', string $status = '', $trace = null): \stdClass{
+    protected function getErrorObject(int $code, string $status = '', string $text = '', $trace = null) : \stdClass {
         $object = (object) [];
         $object->type = 'error';
         $object->code = $code;
         $object->status = empty($status) ? @constant('Base::HTTP_' . $code) : $status;
-        if(!empty($message)){
-            $object->message = $message;
+        if(!empty($text)){
+            $object->text = $text;
         }
         if(!empty($trace)){
             $object->trace = $trace;
@@ -660,15 +660,15 @@ class Controller {
 
     /**
      * @param string $title
-     * @param string $message
+     * @param string $text
      * @param string $type
      * @return \stdClass
      */
-    protected function getNotificationObject(string $title, $message = '', $type = 'danger') : \stdClass {
+    protected function getNotificationObject(string $title, $text = '', $type = 'danger') : \stdClass {
         $notification = (object) [];
         $notification->type = in_array($type, self::NOTIFICATION_TYPES) ? $type : 'danger';
         $notification->title = $title;
-        $notification->message = $message;
+        $notification->text = $text;
         return $notification;
     }
 
@@ -762,7 +762,7 @@ class Controller {
 
                 if(count($matches) === 2){
                     $error->field = $matches[1][1];
-                    $error->message = 'Value "' . $matches[0][1] . '" already exists';
+                    $error->text = 'Value "' . $matches[0][1] . '" already exists';
                 }
             }
 

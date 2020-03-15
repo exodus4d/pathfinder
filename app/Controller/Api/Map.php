@@ -260,11 +260,11 @@ class Map extends Controller\AccessController {
 
         // get SSO error messages that should be shown immediately ----------------------------------------------------
         // -> e.g. errors while character switch from previous HTTP requests
-        if($f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR, $message)){
+        if($f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR, $text)){
             $ssoError = (object) [];
             $ssoError->type = 'error';
             $ssoError->title = 'Login failed';
-            $ssoError->message = $message;
+            $ssoError->text = $text;
             $return->error[] = $ssoError;
             $f3->clear(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
         }elseif($validInitData){
@@ -392,7 +392,7 @@ class Map extends Controller\AccessController {
                                 }else{
                                     $maxSystemsError = (object) [];
                                     $maxSystemsError->type = 'error';
-                                    $maxSystemsError->message = 'Map has to many systems (' . $systemCount . ').'
+                                    $maxSystemsError->text = 'Map has to many systems (' . $systemCount . ').'
                                         .' Max system count is ' . $defaultConfig['max_systems'] . ' for ' . $mapType->name . ' maps.';
                                     $return->error[] = $maxSystemsError;
                                 }
@@ -400,20 +400,20 @@ class Map extends Controller\AccessController {
                                 // systems || connections missing
                                 $missingConfigError = (object) [];
                                 $missingConfigError->type = 'error';
-                                $missingConfigError->message = 'Map data not valid (systems || connections) missing';
+                                $missingConfigError->text = 'Map data not valid (systems || connections) missing';
                                 $return->error[] = $missingConfigError;
                             }
                         }else{
                             $unknownMapScope= (object) [];
                             $unknownMapScope->type = 'error';
-                            $unknownMapScope->message = 'Map scope unknown!';
+                            $unknownMapScope->text = 'Map scope unknown!';
                             $return->error[] = $unknownMapScope;
                         }
                     }else{
                         // map config || systems/connections missing
                         $missingConfigError = (object) [];
                         $missingConfigError->type = 'error';
-                        $missingConfigError->message = 'Map data not valid (config || data) missing';
+                        $missingConfigError->text = 'Map data not valid (config || data) missing';
                         $return->error[] = $missingConfigError;
                     }
 
@@ -422,234 +422,15 @@ class Map extends Controller\AccessController {
             }else{
                 $unknownMapType = (object) [];
                 $unknownMapType->type = 'error';
-                $unknownMapType->message = 'Map type unknown!';
+                $unknownMapType->text = 'Map type unknown!';
                 $return->error[] = $unknownMapType;
             }
         }else{
             // map data missing
             $missingDataError = (object) [];
             $missingDataError->type = 'error';
-            $missingDataError->message = 'Map data missing';
+            $missingDataError->text = 'Map data missing';
             $return->error[] = $missingDataError;
-        }
-
-        echo json_encode($return);
-    }
-
-    /**
-     * save a new map or update an existing map
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function save(\Base $f3){
-        $formData = (array)$f3->get('POST.formData');
-
-        $return = (object) [];
-        $return->error = [];
-
-        if( isset($formData['id']) ){
-            $activeCharacter = $this->getCharacter();
-
-            /**
-             * @var $map Pathfinder\MapModel
-             */
-            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
-            $map->getById( (int)$formData['id'] );
-
-            if(
-                $map->dry() ||
-                $map->hasAccess($activeCharacter)
-            ){
-                try{
-                    // new map
-                    $map->setData($formData);
-                    $map = $map->save($activeCharacter);
-
-                    $mapDefaultConf = Config::getMapsDefaultConfig();
-
-                    // save global map access. Depends on map "type"
-                    if($map->isPrivate()){
-
-                        // share map between characters -> set access
-                        if(isset($formData['mapCharacters'])){
-                            // remove character (re-add later)
-                            $accessCharacters = array_diff($formData['mapCharacters'], [$activeCharacter->_id]);
-
-                            // avoid abuse -> respect share limits
-                            $maxShared = max($mapDefaultConf['private']['max_shared'] - 1, 0);
-                            $accessCharacters = array_slice($accessCharacters, 0, $maxShared);
-
-                            // clear map access. In case something has removed from access list
-                            $map->clearAccess();
-
-                            if($accessCharacters){
-                                /**
-                                 * @var $tempCharacter Pathfinder\CharacterModel
-                                 */
-                                $tempCharacter = Pathfinder\AbstractPathfinderModel::getNew('CharacterModel');
-
-                                foreach($accessCharacters as $characterId){
-                                    $tempCharacter->getById( (int)$characterId );
-
-                                    if(
-                                        !$tempCharacter->dry() &&
-                                        $tempCharacter->shared == 1 // check if map shared is enabled
-                                    ){
-                                        $map->setAccess($tempCharacter);
-                                    }
-
-                                    $tempCharacter->reset();
-                                }
-                            }
-                        }
-
-                        // the current character itself should always have access
-                        // just in case he removed himself :)
-                        $map->setAccess($activeCharacter);
-                    }elseif($map->isCorporation()){
-                        $corporation = $activeCharacter->getCorporation();
-
-                        if($corporation){
-                            // the current user has to have a corporation when
-                            // working on corporation maps!
-
-                            // share map between corporations -> set access
-                            if(isset($formData['mapCorporations'])){
-                                // remove character corporation (re-add later)
-                                $accessCorporations = array_diff($formData['mapCorporations'], [$corporation->_id]);
-
-                                // avoid abuse -> respect share limits
-                                $maxShared = max($mapDefaultConf['corporation']['max_shared'] - 1, 0);
-                                $accessCorporations = array_slice($accessCorporations, 0, $maxShared);
-
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
-
-                                if($accessCorporations){
-                                    /**
-                                     * @var $tempCorporation Pathfinder\CorporationModel
-                                     */
-                                    $tempCorporation = Pathfinder\AbstractPathfinderModel::getNew('CorporationModel');
-
-                                    foreach($accessCorporations as $corporationId){
-                                        $tempCorporation->getById( (int)$corporationId );
-
-                                        if(
-                                            !$tempCorporation->dry() &&
-                                            $tempCorporation->shared == 1 // check if map shared is enabled
-                                        ){
-                                            $map->setAccess($tempCorporation);
-                                        }
-
-                                        $tempCorporation->reset();
-                                    }
-                                }
-                            }
-
-                            // the corporation of the current user should always have access
-                            $map->setAccess($corporation);
-                        }
-                    }elseif($map->isAlliance()){
-                        $alliance = $activeCharacter->getAlliance();
-
-                        if($alliance){
-                            // the current user has to have a alliance when
-                            // working on alliance maps!
-
-                            // share map between alliances -> set access
-                            if(isset($formData['mapAlliances'])){
-                                // remove character alliance (re-add later)
-                                $accessAlliances = array_diff($formData['mapAlliances'], [$alliance->_id]);
-
-                                // avoid abuse -> respect share limits
-                                $maxShared = max($mapDefaultConf['alliance']['max_shared'] - 1, 0);
-                                $accessAlliances = array_slice($accessAlliances, 0, $maxShared);
-
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
-
-                                if($accessAlliances){
-                                    /**
-                                     * @var $tempAlliance Pathfinder\AllianceModel
-                                     */
-                                    $tempAlliance = Pathfinder\AbstractPathfinderModel::getNew('AllianceModel');
-
-                                    foreach($accessAlliances as $allianceId){
-                                        $tempAlliance->getById( (int)$allianceId );
-
-                                        if(
-                                            !$tempAlliance->dry() &&
-                                            $tempAlliance->shared == 1 // check if map shared is enabled
-                                        ){
-                                            $map->setAccess($tempAlliance);
-                                        }
-
-                                        $tempAlliance->reset();
-                                    }
-                                }
-                            }
-
-                            // the alliance of the current user should always have access
-                            $map->setAccess($alliance);
-                        }
-                    }
-                    // reload the same map model (refresh)
-                    // this makes sure all data is up2date
-                    $map->getById($map->_id, 0);
-
-                    // broadcast map Access -> and send map Data
-                    $this->broadcastMapAccess($map);
-
-                    $return->mapData = $map->getData();
-                }catch(Exception\ValidationException $e){
-                    $return->error[] = $e->getError();
-                }
-            }else{
-                // map access denied
-                $captchaError = (object) [];
-                $captchaError->type = 'error';
-                $captchaError->message = 'Access denied';
-                $return->error[] = $captchaError;
-            }
-        }else{
-            // map id field missing
-            $idError = (object) [];
-            $idError->type = 'error';
-            $idError->message = 'Map id missing';
-            $return->error[] = $idError;
-        }
-
-        echo json_encode($return);
-    }
-
-    /**
-     * delete a map and all dependencies
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function delete(\Base $f3){
-        $mapData = (array)$f3->get('POST.mapData');
-        $mapId = (int)$mapData['id'];
-        $return = (object) [];
-        $return->deletedMapIds = [];
-
-        if($mapId){
-            $activeCharacter = $this->getCharacter();
-
-            /**
-             * @var $map Pathfinder\MapModel
-             */
-            $map = Pathfinder\AbstractPathfinderModel::getNew('MapModel');
-            $map->getById($mapId);
-
-            if($map->hasAccess($activeCharacter)){
-                $map->setActive(false);
-                $map->save($activeCharacter);
-                $return->deletedMapIds[] = $mapId;
-
-                // broadcast map delete
-                $this->broadcastMapDeleted($mapId);
-            }
         }
 
         echo json_encode($return);
@@ -665,7 +446,7 @@ class Map extends Controller\AccessController {
         $mapAccess =  [
             'id' => $map->_id,
             'name' => $map->name,
-            'characterIds' => array_map(function ($data){
+            'characterIds' => array_map(function($data){
                 return $data->id;
             }, $map->getCharactersData())
         ];
@@ -673,15 +454,7 @@ class Map extends Controller\AccessController {
         $this->getF3()->webSocket()->write('mapAccess', $mapAccess);
 
         // map has (probably) active connections that should receive map Data
-        $this->broadcastMap($map);
-    }
-
-    /**
-     * broadcast map delete information to clients
-     * @param int $mapId
-     */
-    protected function broadcastMapDeleted(int $mapId){
-        $this->getF3()->webSocket()->write('mapDeleted', $mapId);
+        $this->broadcastMap($map, true);
     }
 
     /**

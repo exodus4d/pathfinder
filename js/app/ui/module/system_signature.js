@@ -1243,7 +1243,7 @@ define([
          * @returns {*}
          */
         enrichParsedSignatureData(signatureData){
-            let characterData = Util.getObjVal(Util.getCurrentUserData(), 'character');
+            let characterData = Util.getCurrentCharacter();
             let timestamp = Math.floor((new Date()).getTime() / 1000);
 
             for(let i = 0; i < signatureData.length; i++){

@@ -91,7 +91,8 @@ class CorporationModel extends AbstractPathfinderModel {
         'map_update',
         'map_delete',
         'map_import',
-        'map_export'
+        'map_export',
+        'map_share'
     ];
 
     /**
@@ -303,15 +304,16 @@ class CorporationModel extends AbstractPathfinderModel {
 
     /**
      * get all corporation rights
+     * @param array $names
      * @param array $options
      * @return CorporationRightModel[]
      * @throws \Exception
      */
-    public function getRights($options = []) : array {
+    public function getRights($names = self::RIGHTS, $options = []) : array {
         $corporationRights = [];
         // get available rights
         $right = self::getNew('RightModel');
-        if($rights = $right->find(['active = ? AND name IN (?)', 1, self::RIGHTS])){
+        if($rights = $right->find(['active = ? AND name IN (?)', 1, $names])){
             // get already stored rights
             if( !$options['addInactive'] ){
                 $this->filter('corporationRights', ['active = ?', 1]);

@@ -77,11 +77,11 @@ class AccessController extends Controller {
 
     /**
      * broadcast MapModel to clients
-     * @see broadcastMapData()
      * @param Pathfinder\MapModel $map
+     * @param bool                $noCache
      */
-    protected function broadcastMap(Pathfinder\MapModel $map) : void {
-        $this->broadcastMapData($this->getFormattedMapData($map));
+    protected function broadcastMap(Pathfinder\MapModel $map, bool $noCache = false) : void {
+        $this->broadcastMapData($this->getFormattedMapData($map, $noCache));
     }
 
 
@@ -99,18 +99,13 @@ class AccessController extends Controller {
     /**
      * get formatted Map Data
      * @param Pathfinder\MapModel $map
-     * @return array
-     * @throws \Exception
-     */
-
-    /**
-     * @param Pathfinder\MapModel $map
+     * @param bool                $noCache
      * @return array|null
      */
-    protected function getFormattedMapData(Pathfinder\MapModel $map) : ?array {
+    protected function getFormattedMapData(Pathfinder\MapModel $map, bool $noCache = false) : ?array {
         $data = null;
         try{
-            $mapData = $map->getData();
+            $mapData = $map->getData($noCache);
             $data = [
                 'config' => $mapData->mapData,
                 'data' => [

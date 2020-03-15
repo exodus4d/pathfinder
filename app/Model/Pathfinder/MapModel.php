@@ -217,14 +217,13 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * get data
      * -> this includes system and connection data as well
-     * @return \stdClass
-     * @throws \Exception
+     * @param bool $noCache
+     * @return mixed|object|null
+     * @throws Exception\ConfigException
      */
-    public function getData(){
+    public function getData(bool $noCache = false){
         // check if there is cached data
-        $mapDataAll = $this->getCacheData();
-
-        if(is_null($mapDataAll)){
+        if($noCache || is_null($mapDataAll = $this->getCacheData())){
             // no cached map data found
 
             $mapData                                        = (object) [];
@@ -702,99 +701,134 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * set map access for an object (character, corporation or alliance)
      * @param $obj
+     * @return bool
      * @throws \Exception
      */
-    public function setAccess($obj){
-
+    public function setAccess($obj) : bool {
         $newAccessGranted = false;
 
         if($obj instanceof CharacterModel){
-            // private map
-
             // check whether the user has already map access
-            $this->has('mapCharacters', ['active = 1 AND characterId = :characterId', ':characterId' => $obj->id]);
-            $result = $this->findone(['id = :id', ':id' => $this->id]);
-
-            if($result === false){
+            $result = $this->relFindOne('mapCharacters', self::getFilter('characterId', $obj->_id));
+            if(!$result){
                 // grant access for the character
                 $characterMap = self::getNew('CharacterMapModel');
                 $characterMap->characterId = $obj;
                 $characterMap->mapId = $this;
-                $characterMap->save();
-
-                $newAccessGranted = true;
+                if($characterMap->save()){
+                    $newAccessGranted = true;
+                }
             }
         }elseif($obj instanceof CorporationModel){
-
             // check whether the corporation already has map access
-            $this->has('mapCorporations', ['active = 1 AND corporationId = :corporationId', ':corporationId' => $obj->id]);
-            $result = $this->findone(['id = :id', ':id' => $this->id]);
-
-            if($result === false){
+            $result = $this->relFindOne('mapCorporations', self::getFilter('corporationId', $obj->_id));
+            if(!$result){
                 // grant access for this corporation
                 $corporationMap = self::getNew('CorporationMapModel');
                 $corporationMap->corporationId = $obj;
                 $corporationMap->mapId = $this;
-                $corporationMap->save();
-
-                $newAccessGranted = true;
+                if($corporationMap->save()){
+                    $newAccessGranted = true;
+                }
             }
         }elseif($obj instanceof AllianceModel){
-
             // check whether the alliance already has map access
-            $this->has('mapAlliances', ['active = 1 AND allianceId = :allianceId', ':allianceId' => $obj->id]);
-            $result = $this->findone(['id = :id', ':id' => $this->id]);
-
-            if($result === false){
+            $result = $this->relFindOne('mapAlliances', self::getFilter('allianceId', $obj->_id));
+            if(!$result){
                 $allianceMap = self::getNew('AllianceMapModel');
                 $allianceMap->allianceId = $obj;
                 $allianceMap->mapId = $this;
-                $allianceMap->save();
-
-                $newAccessGranted = true;
+                if($allianceMap->save()){
+                    $newAccessGranted = true;
+                }
             }
         }
+        return $newAccessGranted;
+    }
 
-        if($newAccessGranted){
-            // mark this map as updated
-            $this->setUpdated();
+    /**
+     * @param $stack
+     * @return array
+     */
+    public function compareAccess($stack) : array {
+        $result = [];
+        if($this->valid()){
+            if($this->isPrivate()){
+                $result = $this->mapCharacters ? $this->mapCharacters->compare($stack, 'characterId') : ['new' => $stack];
+            }elseif($this->isCorporation()){
+                $result = $this->mapCorporations ? $this->mapCorporations->compare($stack, 'corporationId') : ['new' => $stack];
+            }elseif($this->isAlliance()){
+                $result = $this->mapAlliances ? $this->mapAlliances->compare($stack, 'allianceId') : ['new' => $stack];
+            }
         }
+        return $result;
+    }
 
+    /**
+     * @param int $id
+     * @return int
+     */
+    public function removeFromAccess(int $id) : int {
+        $count = 0;
+        if($id && $this->valid()){
+            $result = null;
+            if($this->isPrivate()){
+                $result = $this->relFindOne('mapCharacters', self::getFilter('characterId', $id));
+            }elseif($this->isCorporation()){
+                $result = $this->relFindOne('mapCorporations', self::getFilter('corporationId', $id));
+            }elseif($this->isAlliance()){
+                $result = $this->relFindOne('mapAlliances', self::getFilter('allianceId', $id));
+            }
+
+            if($result && $result->erase()){
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * clear map access for entities that do not match the map "mapType"
+     * @return int
+     */
+    public function clearAccessByType() : int {
+        $count = 0;
+        if($this->valid()){
+            if($this->isPrivate()){
+                $count = $this->clearAccess(['corporation', 'alliance']);
+            }elseif($this->isCorporation()){
+                $count = $this->clearAccess(['character', 'alliance']);
+            }elseif($this->isAlliance()){
+                $count = $this->clearAccess(['character', 'corporation']);
+            }
+        }
+        return $count;
     }
 
     /**
      * clear access for a given type of objects
      * @param array $clearKeys
+     * @return int
      */
-    public function clearAccess($clearKeys = ['character', 'corporation', 'alliance']){
+    public function clearAccess($clearKeys = ['character', 'corporation', 'alliance']) : int {
+        $count = 0;
         foreach($clearKeys as $key){
+            $field = null;
             switch($key){
-                case 'character':
-                    foreach((array)$this->mapCharacters as $characterMapModel){
-                        /**
-                         * @var CharacterMapModel $characterMapModel
-                         */
-                        $characterMapModel->erase();
+                case 'character': $field = 'mapCharacters'; break;
+                case 'corporation': $field = 'mapCorporations'; break;
+                case 'alliance': $field = 'mapAlliances'; break;
+            }
+
+            if($this->$field){
+                foreach((array)$this->$field as $model){
+                    if($model->erase()){
+                        $count++;
                     }
-                    break;
-                case 'corporation':
-                    foreach((array)$this->mapCorporations as $corporationMapModel){
-                        /**
-                         * @var CorporationMapModel $corporationMapModel
-                         */
-                        $corporationMapModel->erase();
-                    }
-                    break;
-                case 'alliance':
-                    foreach((array)$this->mapAlliances as $allianceMapModel){
-                        /**
-                         * @var AllianceMapModel $allianceMapModel
-                         */
-                        $allianceMapModel->erase();
-                    }
-                    break;
+                }
             }
         }
+        return $count;
     }
 
     /**
@@ -1428,17 +1462,6 @@ class MapModel extends AbstractMapTrackingModel {
          * @var $mapModel MapModel
          */
         $mapModel = parent::save($characterModel);
-
-        // check if map type has changed and clear access objects
-        if( !$mapModel->dry() ){
-            if( $mapModel->isPrivate() ){
-                $mapModel->clearAccess(['corporation', 'alliance']);
-            }elseif( $mapModel->isCorporation() ){
-                $mapModel->clearAccess(['character', 'alliance']);
-            }elseif( $mapModel->isAlliance() ){
-                $mapModel->clearAccess(['character', 'corporation']);
-            }
-        }
 
         return $mapModel;
     }

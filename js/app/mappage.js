@@ -451,7 +451,7 @@ define([
             mapIds: mapId ? [mapId] : [],
             getMapUserData: Util.getSyncType() === 'webSocket' ? 0 : 1,
             mapTracking: locationToggle ? locationToggle.checked | 0 : 0, // location tracking
-            systemData: Util.getCurrentSystemData(mapId)
+            systemData: mapId ? Util.getCurrentSystemData(mapId) : []
         };
 
         if(newSystemPositions){
@@ -540,7 +540,8 @@ define([
         // clear both main update request trigger timer
         clearUpdateTimeouts();
 
-        let reason = status + ' ' + jqXHR.status + ': ' + error;
+        let reason = `${status} ${jqXHR.status}`;
+        let firstError = error;
         let errorData = [];
         let redirect = false;   // redirect user to other page e.g. login
         let reload = true;      // reload current page (default: true)
@@ -552,6 +553,7 @@ define([
                 responseObj.error &&
                 responseObj.error.length > 0
             ){
+                firstError = responseObj.error[0].status;
                 errorData = responseObj.error;
             }
 
@@ -569,7 +571,7 @@ define([
         console.error(' ↪ %s Error response: %o', jqXHR.url, errorData);
         $(document).trigger('pf:shutdown', {
             status: jqXHR.status,
-            reason: reason,
+            reason: `${reason}: ${firstError}`,
             error: errorData,
             redirect: redirect,
             reload: reload

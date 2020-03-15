@@ -46,7 +46,7 @@ class System extends Controller\AccessController {
                     }else{
                         $error = (object) [];
                         $error->type = 'error';
-                        $error->message = $response['error'];
+                        $error->text = $response['error'];
                         $return->error[] = $error;
                     }
                 }

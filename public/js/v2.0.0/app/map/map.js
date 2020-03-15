@@ -194,7 +194,7 @@ define([
             currentUserIsHere &&
             !userWasHere &&
             Boolean(Util.getObjVal(Init, 'character.autoLocationSelect')) &&
-            Boolean(Util.getObjVal(Util.getCurrentUserData(), 'character.selectLocation'))
+            Boolean(Util.getCurrentCharacterData('selectLocation'))
         ){
             Util.triggerMenuAction(map.getContainer(), 'SelectSystem', {systemId: system.data('id'), forceSelect: false});
         }
@@ -2794,7 +2794,7 @@ define([
                 let mapElement = $(this);
                 let mapOverlay = MapOverlayUtil.getMapOverlay(mapElement, 'local');
                 let currentMapData = Util.getCurrentMapData(mapId);
-                let currentCharacterLog = Util.getCurrentCharacterLog();
+                let currentCharacterLog = Util.getCurrentCharacterData('log');
                 let clearLocal = true;
 
                 if(
@@ -2891,7 +2891,7 @@ define([
                 let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
 
                 // get current character log data
-                let characterLogSystemId = Util.getObjVal(Util.getCurrentCharacterLog(), 'system.id') || 0;
+                let characterLogSystemId = Util.getObjVal(Util.getCurrentCharacterData('log'), 'system.id') || 0;
 
                 // data for header update
                 let headerUpdateData = {

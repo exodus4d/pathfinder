@@ -38,8 +38,6 @@ define([], () => {
             updateUserData: '/api/map/updateUserData',                      // ajax URL - main map user data trigger
             updateUnloadData: '/api/map/updateUnloadData',                  // post URL - for my sync onUnload
             // map API
-            saveMap: '/api/map/save',                                       // ajax URL - save/update map
-            deleteMap: '/api/map/delete',                                   // ajax URL - delete map
             importMap: '/api/map/import',                                   // ajax URL - import map
             getMapConnectionData: '/api/map/getConnectionData',             // ajax URL - get connection data
             getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
@@ -138,6 +136,18 @@ define([], () => {
                 class: 'fa-hat-wizard',
                 label: 'hat wizard',
                 unicode: '&#xf6e8;'
+            },{
+                class: 'fa-cross',
+                label: 'cross',
+                unicode: '&#xf654;'
+            }, {
+                class: 'fa-cannabis',
+                label: 'cannabis',
+                unicode: '&#xf55f;'
+            }, {
+                class: 'fa-spider',
+                label: 'spider',
+                unicode: '&#xf717;'
             }, {
                 class: 'fa-plane',
                 label: 'plane',

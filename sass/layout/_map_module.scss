@@ -59,8 +59,9 @@ $mapModuleGridRowMinHeight: 38px;
       @media screen and (min-width: $screen-lg){
         grid-template-areas:
                 "area2 map   map   map"
+                "area2 area1 area1 area3"
                 "area2 area1 area1 area3";
-        grid-template-columns: minmax($colMinWidth, 1fr) 1fr minmax($colMinWidth, 1fr) 1fr;
+        grid-template-columns: minmax($colMinWidth, 1fr) 1fr 1fr minmax($colMinWidth, 1fr);
       }
     }
   }

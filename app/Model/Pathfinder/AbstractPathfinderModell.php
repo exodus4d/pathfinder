@@ -55,21 +55,6 @@ abstract class AbstractPathfinderModel extends AbstractModel {
     }
 
     /**
-     * set "updated" field to current timestamp
-     * this is useful to mark a row as "changed"
-     */
-    protected function setUpdated(){
-        if($this->_id > 0){
-            $this->db->exec(
-                ["UPDATE " . $this->table . " SET updated=NOW() WHERE id=:id"],
-                [
-                    [':id' => $this->_id]
-                ]
-            );
-        }
-    }
-
-    /**
      * get old and new value from field, in case field is configured with 'activity-log'
      * @return array
      */

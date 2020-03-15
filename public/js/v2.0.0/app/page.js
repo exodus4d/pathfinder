@@ -823,17 +823,17 @@ define([
             });
 
             // changes in current userData ----------------------------------------------------------------------------
-            documentElement.on('pf:changedUserData', (e, userData, changes) => {
+            documentElement.on('pf:changedUserData', (e, changes) => {
                 // update menu buttons (en/disable)
                 if(changes.characterId){
                     documentElement.trigger('pf:updateMenuOptions', {
                         menuGroup: 'userOptions',
-                        payload: Boolean(Util.getObjVal(userData, 'character.id'))
+                        payload: Boolean(Util.getCurrentCharacterData('id'))
                     });
                 }
 
                 // update header
-                updateHeaderUserData(userData, changes).then();
+                updateHeaderUserData(changes).then();
             });
 
             // shutdown the program -> show dialog --------------------------------------------------------------------
@@ -873,7 +873,7 @@ define([
                 // add error information (if available)
                 if(data.error && data.error.length){
                     for(let error of data.error){
-                        options.content.textSmaller.push(error.message);
+                        options.content.textSmaller.push(error.text);
                     }
                 }
 
@@ -929,7 +929,7 @@ define([
                 //modalElement.find('form').filter((i, form) => $(form).data('bs.validator')).validator('destroy');
 
                 // destroy all popovers
-                modalElement.find('.' + Util.config.popoverTriggerClass).popover('destroy');
+                modalElement.destroyPopover(true);
 
                 // destroy all Select2
                 modalElement.find('.' + Util.config.select2Class)
@@ -1050,18 +1050,17 @@ define([
 
     /**
      * update all header elements with current userData
-     * @param userData
      * @param changes
-     * @returns {Promise<[any, any, any, any, any, any, any, any, any, any]>}
+     * @returns {Promise<[]>}
      */
-    let updateHeaderUserData = (userData, changes) => {
+    let updateHeaderUserData = changes => {
         let updateTasks = [];
 
         if(changes.characterLogLocation){
-            updateTasks.push(updateMapTrackingToggle(Boolean(Util.getObjVal(userData, 'character.logLocation'))));
+            updateTasks.push(updateMapTrackingToggle(Boolean(Util.getCurrentCharacterData('logLocation'))));
         }
         if(changes.charactersIds){
-            updateTasks.push(updateHeaderCharacterSwitch(userData, changes.characterId));
+            updateTasks.push(updateHeaderCharacterSwitch(changes.characterId));
         }
         if(
             changes.characterSystemId ||
@@ -1070,7 +1069,7 @@ define([
             changes.characterStructureId ||
             changes.characterLogHistory
         ){
-            updateTasks.push(updateHeaderCharacterLocation(userData, changes.characterShipType));
+            updateTasks.push(updateHeaderCharacterLocation(changes.characterShipType));
         }
 
         return Promise.all(updateTasks);
@@ -1099,22 +1098,21 @@ define([
     };
 
     /**
-     * @param userData
      * @param changedCharacter
      * @returns {Promise<any>}
      */
-    let updateHeaderCharacterSwitch = (userData, changedCharacter) => {
+    let updateHeaderCharacterSwitch = changedCharacter => {
         let executor = resolve => {
             let userInfoElement = $('.' + config.headUserCharacterClass);
             // toggle element
             animateHeaderElement(userInfoElement, userInfoElement => {
                 if(changedCharacter){
                     // current character changed
-                    userInfoElement.find('span').text(Util.getObjVal(userData, 'character.name'));
-                    userInfoElement.find('img').attr('src', Util.eveImageUrl('characters', Util.getObjVal(userData, 'character.id')));
+                    userInfoElement.find('span').text(Util.getCurrentCharacterData('name'));
+                    userInfoElement.find('img').attr('src', Util.eveImageUrl('characters', Util.getCurrentCharacterData('id')));
                 }
                 // init "character switch" popover
-                userInfoElement.initCharacterSwitchPopover(userData);
+                userInfoElement.initCharacterSwitchPopover();
 
                 resolve({
                     action: 'updateHeaderCharacterSwitch',
@@ -1127,28 +1125,26 @@ define([
     };
 
     /**
-     *
-     * @param userData
      * @param changedShip
      * @returns {Promise<any>}
      */
-    let updateHeaderCharacterLocation = (userData, changedShip) => {
+    let updateHeaderCharacterLocation = changedShip => {
         let executor = resolve => {
             let userLocationElement = $('#' + Util.config.headUserLocationId);
             let breadcrumbHtml = '';
-            let logData = Util.getObjVal(userData, 'character.log');
+            let logData = Util.getCurrentCharacterData('log');
             let logDataAll = [];
 
             if(logData){
-                let shipData = Util.getObjVal(userData, 'character.log.ship');
+                let shipData = Util.getObjVal(logData, 'ship');
                 let shipTypeId = Util.getObjVal(shipData, 'typeId') || 0;
                 let shipTypeName = Util.getObjVal(shipData, 'typeName') || '';
 
-                let stationData = Util.getObjVal(userData, 'character.log.station');
+                let stationData = Util.getObjVal(logData, 'station');
                 let stationId = Util.getObjVal(stationData, 'id') || 0;
                 let stationName = Util.getObjVal(stationData, 'name') || '';
 
-                let structureData = Util.getObjVal(userData, 'character.log.structure');
+                let structureData = Util.getObjVal(logData, 'structure');
                 let structureTypeId = Util.getObjVal(structureData, 'type.id') || 0;
                 let structureTypeName = Util.getObjVal(structureData, 'type.name') || '';
                 let structureId = Util.getObjVal(structureData, 'id') || 0;
@@ -1157,7 +1153,7 @@ define([
                 logDataAll.push(logData);
 
                 // check for log history data as well
-                let logHistoryData = Util.getObjVal(userData, 'character.logHistory');
+                let logHistoryData = Util.getCurrentCharacterData('logHistory');
                 if(logHistoryData){
                     // check if there are more history log entries than max visual limit
                     if(logHistoryData.length > config.headMaxLocationHistoryBreadcrumbs){

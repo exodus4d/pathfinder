@@ -2,6 +2,7 @@
   background-color: $gray-dark;
   border: 1px solid $border-color;
   border-radius: $border-radius;
+
   outline: 0;
   height: 32px;
   padding: 6px 16px;
@@ -19,10 +20,13 @@
     div[class^='col-']:first-child{
       padding-left: 0;          // overwrite default padding for "selected" option(s) in custom Bootstrap col layout
     }
+
+    > .fas {
+      margin-left: 8px; // arrow icon for e.g. wormhole "selected" option
+    }
   }
 
   .select2-selection__clear {
-    color: $remove-color;
     cursor: pointer;
     float: right;
     font-weight: bold;
@@ -40,14 +44,19 @@
 
   .select2-selection__arrow {
     background-color: $gray-dark;
+
     border: none;
-    border-left: none;
+    border-left: 1px solid transparent;
     border-top-right-radius: $border-radius;
     border-bottom-right-radius: $border-radius;
+
     height: 30px;
+
     position: absolute;
+
     top: 1px;
     right: 1px;
+
     width: 20px;
 
 

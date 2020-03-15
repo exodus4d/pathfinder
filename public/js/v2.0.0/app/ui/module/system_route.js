@@ -732,7 +732,7 @@ define([
                     let systemSecClass = this._config.systemSecurityClassPrefix + tempSystemSec.replace('.', '-');
 
                     // check for wormhole
-                    let icon = 'fas fa-square';
+                    let icon = 'fas fa-square-full';
                     if(isWormholeSystemName(systemName)){
                         icon = 'fas fa-dot-circle';
                     }

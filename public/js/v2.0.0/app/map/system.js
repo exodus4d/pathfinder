@@ -186,7 +186,7 @@ define([
             systemData = options.systemData;
         }else{
             // ... check for current active system (characterLog) -----------------------------------------------------
-            let currentCharacterLog = Util.getCurrentCharacterLog();
+            let currentCharacterLog = Util.getCurrentCharacterData('log');
             if(currentCharacterLog !== false){
                 // set system from 'characterLog' data as pre-selected system
                 systemData = Util.getObjVal(currentCharacterLog, 'system');

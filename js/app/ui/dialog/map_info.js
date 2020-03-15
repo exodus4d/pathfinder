@@ -193,8 +193,8 @@ define([
             });
         });
 
-        mapElement.initTooltips();
         mapElement.hideLoadingAnimation();
+        mapElement.initTooltips({container: '.modal'});
     };
 
     /**
@@ -218,14 +218,6 @@ define([
             systemsElement.append(systemTable);
 
             systemsElement.showLoadingAnimation(config.loadingOptions);
-
-            systemTable.on('init.dt', function(){
-                systemsElement.hideLoadingAnimation();
-
-                // init table tooltips
-                let tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
-                tooltipElements.tooltip();
-            });
 
             let systemsDataTable = systemTable.DataTable({
                 pageLength: 20,
@@ -514,6 +506,9 @@ define([
                     }
                 ],
                 initComplete: function(settings){
+                    systemsElement.hideLoadingAnimation();
+                    systemsElement.initTooltips({container: '.modal'});
+
                     Counter.initTableCounter(this, ['updated:name']);
                 }
             });
@@ -541,15 +536,6 @@ define([
             connectionsElement.append(connectionTable);
 
             connectionsElement.showLoadingAnimation(config.loadingOptions);
-
-            // table init complete
-            connectionTable.on('init.dt', function(){
-                connectionsElement.hideLoadingAnimation();
-
-                // init table tooltips
-                let tooltipElements = connectionsElement.find('[data-toggle="tooltip"]');
-                tooltipElements.tooltip();
-            });
 
             // connections table ------------------------------------------------------------------------------------------
             let connectionDataTable = connectionTable.dataTable({
@@ -701,6 +687,9 @@ define([
                     }
                 ],
                 initComplete: function(settings){
+                    connectionsElement.hideLoadingAnimation();
+                    connectionsElement.initTooltips({container: '.modal'});
+
                     Counter.initTableCounter(this, ['updated:name']);
                 }
             });
@@ -720,17 +709,6 @@ define([
         usersElement.append(userTable);
 
         usersElement.showLoadingAnimation(config.loadingOptions);
-
-        // table init complete
-        userTable.on('init.dt', function(){
-            usersElement.hideLoadingAnimation();
-
-            // init table tooltips
-            let tooltipElements = usersElement.find('[data-toggle="tooltip"]');
-            tooltipElements.tooltip({
-                container: usersElement.parent()
-            });
-        });
 
         // users table ------------------------------------------------------------------------------------------------
         // prepare users data for dataTables
@@ -941,7 +919,11 @@ define([
                         }
                     }
                 }
-            ]
+            ],
+            initComplete: function(settings){
+                usersElement.hideLoadingAnimation();
+                usersElement.initTooltips({container: '.modal'});
+            }
         });
 
     };

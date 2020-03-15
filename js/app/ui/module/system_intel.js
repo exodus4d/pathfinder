@@ -807,13 +807,13 @@ define([
             // -> add a modal button for pre-fill modal with it
             // -> systemId must match systemId from current character log
             let currentUserData = Util.getCurrentUserData();
+            let characterStructureId = Util.getCurrentCharacterData('log.structure.id') || 0;
+            let characterStructureName = Util.getCurrentCharacterData('log.structure.name') || '';
+            let characterStructureTypeId = Util.getCurrentCharacterData('log.structure.type.id') || 0;
+            let characterStructureTypeName = Util.getCurrentCharacterData('log.structure.type.name') || '';
             let isCurrentLocation = false;
-            let characterStructureId = Util.getObjVal(currentUserData, 'character.log.structure.id') || 0;
-            let characterStructureName = Util.getObjVal(currentUserData, 'character.log.structure.name') || '';
-            let characterStructureTypeId = Util.getObjVal(currentUserData, 'character.log.structure.type.id') || 0;
-            let characterStructureTypeName = Util.getObjVal(currentUserData, 'character.log.structure.type.name') || '';
 
-            if(this._systemData.id === Util.getObjVal(currentUserData, 'character.log.system.id')){
+            if(this._systemData.id ===  Util.getCurrentCharacterData('log.system.id')){
                 isCurrentLocation = true;
             }
 
