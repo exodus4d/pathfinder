@@ -381,20 +381,20 @@ define([
                 }
             };
 
-            let tableApiStructure = $(structureTableEl).DataTable($.extend(true, {}, module.getDataTableDefaults(module), structureDataTableOptions));
+            this._tableApiStructure = $(structureTableEl).DataTable($.extend(true, {}, module.getDataTableDefaults(module), structureDataTableOptions));
 
             // "Responsive" Datatables Plugin
-            new $.fn.dataTable.Responsive(tableApiStructure);
+            new $.fn.dataTable.Responsive(this._tableApiStructure);
 
-            tableApiStructure.on('responsive-resize', function(e, tableApi, columns){
+            this._tableApiStructure.on('responsive-resize', function(e, tableApi, columns){
                 // rowGroup length changes as well -> trigger draw() updates rowGroup length (see drawCallback())
                 tableApi.draw();
             });
 
             // "Select" Datatables Plugin
-            tableApiStructure.select();
+            this._tableApiStructure.select();
 
-            tableApiStructure.on('user-select', function(e, tableApi, type, cell, originalEvent){
+            this._tableApiStructure.on('user-select', function(e, tableApi, type, cell, originalEvent){
                 let rowData = tableApi.row(cell.index().row).data();
                 if(Util.getObjVal(rowData, 'rowGroupData.id') !== corporationId){
                     e.preventDefault();
@@ -402,7 +402,7 @@ define([
             });
 
             // "Buttons" Datatables Plugin
-            let buttons = new $.fn.dataTable.Buttons(tableApiStructure, {
+            let buttons = new $.fn.dataTable.Buttons(this._tableApiStructure, {
                 dom: {
                     container: {
                         tag: 'h5',
@@ -489,7 +489,7 @@ define([
                 ]
             });
 
-            tableApiStructure.buttons().container().appendTo(module.moduleElement.querySelector('.' + module._config.headClassName));
+            this._tableApiStructure.buttons().container().appendTo(module.moduleElement.querySelector('.' + module._config.headClassName));
         }
 
         /**
@@ -723,11 +723,11 @@ define([
                 }
             };
 
-            let tableApiStation = $(stationTableEl).DataTable($.extend(true, {}, module.getDataTableDefaults(module), stationDataTableOptions));
+            this._tableApiStation = $(stationTableEl).DataTable($.extend(true, {}, module.getDataTableDefaults(module), stationDataTableOptions));
 
-            new $.fn.dataTable.Responsive(tableApiStation);
+            new $.fn.dataTable.Responsive(this._tableApiStation);
 
-            tableApiStation.on('responsive-resize', function(e, tableApi, columns){
+            this._tableApiStation.on('responsive-resize', function(e, tableApi, columns){
                 // rowGroup length changes as well -> trigger draw() updates rowGroup length (see drawCallback())
                 tableApi.draw();
             });
@@ -1284,20 +1284,26 @@ define([
         update(systemData){
             return super.update(systemData).then(systemData => new Promise(resolve => {
                 // update structure table data ------------------------------------------------------------------------
-                let structureContext = {
-                    tableApi: $(this.moduleElement.querySelector('.' + this._config.systemStructuresTableClass)).DataTable(),
-                    removeMissing: true
-                };
+                if(this._tableApiStructure){
+                    let structureContext = {
+                        tableApi: this._tableApiStructure,
+                        removeMissing: true
+                    };
 
-                this.callbackUpdateTableRows(structureContext, Util.getObjVal(systemData, 'structures'));
+                    this.callbackUpdateTableRows(structureContext, Util.getObjVal(systemData, 'structures'));
+                }else{
+                    console.warn('DataTable "structures" not initialized. Can not update "intel" module');
+                }
 
                 // update station table data --------------------------------------------------------------------------
-                let stationContext = {
-                    tableApi: $(this.moduleElement.querySelector('.' + this._config.systemStationsTableClass)).DataTable(),
-                    removeMissing: false
-                };
+                if(this._tableApiStation){
+                    let stationContext = {
+                        tableApi: this._tableApiStation,
+                        removeMissing: false
+                    };
 
-                this.callbackUpdateTableRows(stationContext, Util.getObjVal(systemData, 'stations'), 'stations');
+                    this.callbackUpdateTableRows(stationContext, Util.getObjVal(systemData, 'stations'), 'stations');
+                }
 
                 $(this.moduleElement).hideLoadingAnimation();
 

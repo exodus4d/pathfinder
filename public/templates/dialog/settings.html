@@ -186,7 +186,7 @@
                     {{#corporation}}
                         <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Corporation/{{id}}_64.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
 
-                        {{#hasRightCorporationShareUpdate}}
+                        {{#hasRightCorporationShare}}
                             <div class="form-group">
                                 <div class="col-sm-9">
                                     <label class="control-label" for="corporationSharing">
@@ -196,13 +196,13 @@
                                 </div>
                                 <div class="col-sm-3"></div>
                             </div>
-                        {{/hasRightCorporationShareUpdate}}
-                        {{^hasRightCorporationShareUpdate}}
+                        {{/hasRightCorporationShare}}
+                        {{^hasRightCorporationShare}}
                             <div class="alert alert-info">
                                 <span class="txt-color txt-color-info">Restricted</span>
                                 <small>You don´t have the required roles.</small>
                             </div>
-                        {{/hasRightCorporationShareUpdate}}
+                        {{/hasRightCorporationShare}}
                     {{/corporation}}
 
                     {{#alliance}}

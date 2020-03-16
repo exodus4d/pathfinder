@@ -60,6 +60,17 @@ define([
     };
 
     /**
+     * inverse of Array.filter(),
+     * [1,2,3,4,5].not(val => val === 3)    => [1, 2, 4, 5]
+     * [1,2,3,4,5].filter(val => val === 3) => [3]
+     * @param callback
+     * @returns {*[]}
+     */
+    Array.prototype.not = function(callback) {
+        return this.filter((...args) => !callback(...args));
+    };
+
+    /**
      * compares two arrays if all elements in a are also in b
      * element order is ignored
      * @param a

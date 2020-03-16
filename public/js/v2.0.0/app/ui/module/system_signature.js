@@ -2885,6 +2885,7 @@ define([
                 newSelectOptions = [];
                 // get new Options ----------
                 // get all possible "static" signature names by the selected groupId
+                // -> for groupId == 5 (wormholes) this give you "wandering" whs
                 let tempSelectOptions = Util.getSignatureTypeNames(systemTypeId, areaIds, groupId);
 
                 // format options into array with objects advantages: keep order, add more options (whs), use optgroup
@@ -2903,7 +2904,7 @@ define([
                     if(newSelectOptionsCount > 0){
                         if(groupId === 5){
                             // "wormhole" selected => multiple <optgroup> available
-                            newSelectOptions.push({ text: 'Wandering', children: fixSelectOptions});
+                            newSelectOptions.push({text: 'Wandering', children: fixSelectOptions});
                         }else{
                             newSelectOptions = fixSelectOptions;
                         }
@@ -2927,7 +2928,7 @@ define([
                     }
 
                     if(frigateWHData.length > 0){
-                        newSelectOptions.push({ text: 'Frigate', children: frigateWHData});
+                        newSelectOptions.push({text: 'Frigate', children: frigateWHData});
                     }
 
                     // add potential drifter holes (k-space only)
@@ -2944,7 +2945,7 @@ define([
                         }
 
                         if(drifterWHData.length > 0){
-                            newSelectOptions.push({ text: 'Drifter', children: drifterWHData});
+                            newSelectOptions.push({text: 'Drifter', children: drifterWHData});
                         }
                     }
 
@@ -2978,21 +2979,46 @@ define([
                 // add static WH(s) for this system
                 if(statics){
                     let staticWHData = [];
+                    let filterOptionCallback = text => option => option.text !== text;
+
                     for(let wormholeName of statics){
                         let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
                         let staticWHName = wormholeData.name + ' - ' + wormholeData.security;
+
+                        // filter staticWHName from existing options -> prevent duplicates in <optgroup>
+                        SystemSignatureModule.filterGroupedOptions(newSelectOptions, filterOptionCallback(staticWHName));
 
                         newSelectOptionsCount++;
                         staticWHData.push({value: newSelectOptionsCount, text: staticWHName});
                     }
 
                     if(staticWHData.length > 0){
-                        newSelectOptions.unshift({ text: 'Static', children: staticWHData});
+                        newSelectOptions.unshift({text: 'Static', children: staticWHData});
                     }
                 }
             }
 
             return newSelectOptions;
+        }
+
+        /**
+         * filter out some options from nested select options
+         * @param obj
+         * @param callback
+         * @param key
+         */
+        static filterGroupedOptions(obj, callback = () => true, key = 'children'){
+            for(let [i, val] of Object.entries(obj)){
+                // pre-check if filter callback will some, prevents unnecessary cloning
+                if(
+                    typeof val === 'object' &&
+                    val.hasOwnProperty(key) &&
+                    val[key].not(callback).length
+                ){
+                    // clone object, apply filter to key prop
+                    obj[i] = Object.assign({}, obj[i], {[key]: val[key].filter(callback)});
+                }
+            }
         }
 
         /**

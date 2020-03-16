@@ -411,7 +411,7 @@ define([
             });
 
             let localTable = table.DataTable({
-                pageLength: 5,
+                pageLength: 3, // default page length, smaller then max page length (4) if map is vertical resized to min. 
                 paging: true,
                 pagingType: 'simple',
                 lengthChange: false,
