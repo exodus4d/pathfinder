@@ -88,6 +88,7 @@ class CorporationModel extends AbstractPathfinderModel {
      * corp rights that can be stored to a corp
      */
     const RIGHTS = [
+        'map_create',
         'map_update',
         'map_delete',
         'map_import',

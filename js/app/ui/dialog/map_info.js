@@ -99,14 +99,7 @@ define([
 
         // map type
         let mapTypes = MapUtil.getMapTypes();
-        let mapType = null;
-
-        for(let i = 0; i < mapTypes.length; i++){
-            if(mapTypes[i].id === mapData.config.type.id){
-                mapType = mapTypes[i];
-                break;
-            }
-        }
+        let mapType = mapTypes.find(data => data.id === mapData.config.type.id);
 
         // check max map limits (e.g. max systems per map) ------------------------------------------------------------
         let percentageSystems = (100 / mapType.defaultConfig.max_systems) * countSystems;

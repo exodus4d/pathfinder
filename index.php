@@ -8,6 +8,8 @@ session_name('pathfinder_session');
 $composerAutoloader = 'vendor/autoload.php';
 if(file_exists($composerAutoloader)){
     require_once($composerAutoloader);
+}else{
+    die("Couldn't find '$composerAutoloader'. Did you run `composer install`?");
 }
 
 $f3 = \Base::instance();

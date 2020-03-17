@@ -3509,6 +3509,23 @@ define([
     };
 
     /**
+     * filter object by allowed keys
+     * -> returns a NEW object. Does not change the source obj
+     * ({one: 'A', two: 'B'}).filterKeys(['one']) => {one: "A"}
+     * @param obj
+     * @param allowedKeys
+     * @returns {{}}
+     */
+    let filterObjByKeys = (obj, allowedKeys = []) => {
+        return Object.keys(obj)
+            .filter(key => allowedKeys.includes(key))
+            .reduce((objAcc, key) => {
+                objAcc[key] = obj[key];
+                return objAcc;
+            }, {});
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3723,6 +3740,7 @@ define([
         isValidHtml: isValidHtml,
         isDomElement: isDomElement,
         arrayToObject: arrayToObject,
+        filterObjByKeys: filterObjByKeys,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

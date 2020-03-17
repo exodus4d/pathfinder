@@ -82,6 +82,12 @@ class RightModel extends AbstractPathfinderModel {
             'name' => 'map_share',
             'label' => 'share',
             'description' => 'Map share right'
+        ],
+        [
+            'id' => 6,
+            'name' => 'map_create',
+            'label' => 'create',
+            'description' => 'Map create right'
         ]
     ];
 

@@ -75,44 +75,47 @@ define([
 
     /**
      * get all available map Types
-     * optional they can be filtered by current access level of a user
-     * @param {bool} filterByUser
+     * optional they can be filtered by current access level of current character
+     * @param {bool} filterByCharacter
+     * @param {string} filterRight
      * @returns {Array}
      */
-    let getMapTypes = (filterByUser) => {
+    let getMapTypes = (filterByCharacter, filterRight) => {
         let mapTypes = Object.assign({}, Init.mapTypes);
 
-        if(filterByUser === true){
+        if(filterByCharacter === true){
             let authorizedMapTypes = [];
-            let checkMapTypes = ['private', 'corporation', 'alliance'];
+            let checkMapTypes = [
+                {type: 'private',       hasRight: false, selector: 'id'},
+                {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
+                {type: 'alliance',      hasRight: true,  selector: 'alliance.id'}
+            ];
 
-            for(let i = 0; i < checkMapTypes.length; i++){
-                let objectId = Util.getCurrentUserInfo(checkMapTypes[i] + 'Id');
-                if(objectId > 0){
-                    // check if User could add new map with a mapType
-                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, checkMapTypes[i] + '.id'));
-                    let maxCountObject = Util.getObjVal(mapTypes, checkMapTypes[i] + '.defaultConfig.max_count');
+            checkMapTypes.forEach(data => {
+                // check if current character is e.g. in alliance
+                if(Util.getCurrentCharacterData(data.selector)){
+                    // check if User could add new map with a mapType -> check map limit
+                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, data.selector));
+                    let maxCountObject = Util.getObjVal(mapTypes, `${data.type}.defaultConfig.max_count`);
                     if(currentObjectMapData.length < maxCountObject){
-                        authorizedMapTypes.push(checkMapTypes[i]);
+                        // check if character has the "right" for creating a map with this type
+                        if((data.hasRight && filterRight) ? Util.hasRight(filterRight, data.type) : true){
+                            authorizedMapTypes.push(data.type);
+                        }
                     }
                 }
-            }
+            });
 
-            for(let mapType in mapTypes){
-                if(authorizedMapTypes.indexOf(mapType) < 0){
-                    delete( mapTypes[mapType] );
-                }
-            }
+            mapTypes = Util.filterObjByKeys(mapTypes, authorizedMapTypes);
         }
 
-        // convert to array
-        let mapTypesFlat = [];
-        for(let mapType in mapTypes){
-            mapTypes[mapType].name = mapType;
-            mapTypesFlat.push(mapTypes[mapType]);
-        }
+        // add "name" to mapType data
+        Object.entries(mapTypes).forEach(([mapType, data]) => {
+            data.name = mapType;
+        });
 
-        return mapTypesFlat;
+        // obj to array
+        return Object.keys(mapTypes).map(mapType => mapTypes[mapType]);
     };
 
     /**

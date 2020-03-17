@@ -119,14 +119,17 @@ define([
                 let hasRightMapImport = MapUtil ? MapUtil.checkRight('map_import', mapData.config) : true;
                 let hasRightMapShare  = MapUtil ? MapUtil.checkRight('map_share', mapData.config)  : true;
 
-                // available map "types" for a new or existing map
-                let mapTypes = MapUtil.getMapTypes(true);
+                // available map "type" options data
+                // -> for "new" map tab
+                let mapTypesCreate = MapUtil.getMapTypes(true, 'map_create');
+                // -> for "edit" map tab
+                let mapTypesUpdate = MapUtil.getMapTypes(true, 'map_update');
 
                 // render main dialog ---------------------------------------------------------------------------------
                 let mapDialogData = {
                     id: config.newMapDialogId,
                     mapData: mapData,
-                    type: mapTypes,
+                    type: mapTypesCreate,
 
                     hasRightMapUpdate,
                     hasRightMapExport,
@@ -273,7 +276,6 @@ define([
                 let mapFormData = {
                     select2Class: Util.config.select2Class,
                     scope: MapUtil.getMapScopes(),
-                    type: mapTypes,
                     icon: MapUtil.getMapIcons(),
                     formErrorContainerClass: Util.config.formErrorContainerClass,
                     formWarningContainerClass: Util.config.formWarningContainerClass,
@@ -282,6 +284,7 @@ define([
 
                 // render "new map" tab content -----------------------------------------------------------------------
                 let mapFormDataNew = Object.assign({}, mapFormData, {
+                    type: mapTypesCreate,
                     hasRightMapForm: hasRightMapCreate,
                     nameInputId: config.newNameInputId,
                     iconSelectId: config.newIconSelectId,
@@ -300,6 +303,7 @@ define([
                 // render "edit map" tab content ----------------------------------------------------------------------
                 if(!hideEditTab){
                     let mapFormDataEdit = Object.assign({}, mapFormData, {
+                        type: mapTypesUpdate,
                         hasRightMapForm: hasRightMapUpdate,
                         nameInputId: config.editNameInputId,
                         iconSelectId: config.editIconSelectId,
@@ -361,7 +365,10 @@ define([
                                             formData[key] = (formData[key].length ? '#' : '') + formData[key];
                                     });
 
-                                    MapOverlayUtil.getMapOverlay($(mapData.map.getContainer()), 'timer').startMapUpdateCounter();
+                                    if(mapData){
+                                        // no map data found -> probably new user
+                                        MapOverlayUtil.getMapOverlay(mapData.map.getContainer(), 'timer').startMapUpdateCounter();
+                                    }
 
                                     let method = formData.id ? 'PATCH' : 'PUT';
 
@@ -427,8 +434,8 @@ define([
 
                     form.showFormMessage([{type: 'info', text: 'Creating new maps or change settings may take a few seconds'}]);
 
-                    if(mapData === false){
-                        // no map data found (probably new user
+                    if(!mapData){
+                        // no map data found -> probably new user
                         form.showFormMessage([{type: 'warning', text: 'No maps found. Create a new map before you can start'}]);
                     }
 
@@ -438,7 +445,7 @@ define([
                         // tab exists
 
                         // export map data ----------------------------------------------------------------------------
-                        downloadTabElement.find('#' + config.buttonExportId).on('click', { mapData: mapData }, function(e){
+                        downloadTabElement.find('#' + config.buttonExportId).on('click', {mapData}, function(e){
 
                             let exportForm = $('#' + config.dialogMapExportFormId);
                             let validExportForm = exportForm.isValidForm();
