@@ -149,7 +149,7 @@ define([
 
 
                         markup += '<div class="col-xs-3">' + parts[0] + '</div>';
-                        markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right"></i></div>';
+                        markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i></div>';
                         markup += '<div class="col-xs-3 ' + securityClass + '">' + label + '</div>';
                         markup += '<div class="col-xs-4 text-right">' + suffix + '</div>';
                         break;
@@ -247,7 +247,7 @@ define([
 
         let defaultConfig = {
             dropdownParent: selectElement.parents('.modal-body'),
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '100%',
             maxSelectionLength: 1
         };
@@ -293,7 +293,7 @@ define([
     $.fn.initStatusSelect = function(options){
 
         let defaultConfig = {
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '100%',
             iconClass: 'fa-circle'
         };
@@ -784,7 +784,7 @@ define([
      */
     $.fn.initSignatureGroupSelect = function(options){
         let defaultConfig = {
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '110px',
             dropdownParent: this.parents('.popover-content')
         };
@@ -880,7 +880,7 @@ define([
      */
     $.fn.initSignatureConnectionSelect = function(options){
         let defaultConfig = {
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '140px',
             dropdownParent: this.parents('.popover-content')
         };

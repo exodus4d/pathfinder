@@ -1389,6 +1389,8 @@ define([
         });
 
         let initScrollbar = (resultsWrapper) => {
+            resultsWrapper.css('maxHeight', '300px');
+
             // default 'mousewheel' event set by select2 needs to be disabled
             // in order to make mCustomScrollbar mouseWheel enable works correctly
             $(resultsWrapper).find('ul.select2-results__options').off('mousewheel');
@@ -1397,6 +1399,8 @@ define([
             let lazyLoadImagesOffset = 240;
 
             resultsWrapper.mCustomScrollbar({
+              //setHeight: 400,
+                scrollInertia: 200,
                 mouseWheel: {
                     enable: true,
                     scrollAmount: 'auto',
@@ -1411,12 +1415,14 @@ define([
                 scrollbarPosition: 'inside',
                 autoDraggerLength: true,
                 autoHideScrollbar: false,
+                alwaysShowScrollbar: 0, // 0, 1, 2
                 advanced: {
                     updateOnContentResize: true
                 },
+                //live: true, // could not get this to work
                 callbacks: {
                     alwaysTriggerOffsets: false,    // only trigger callback.onTotalScroll() once
-                    onTotalScrollOffset: 300,       // trigger callback.onTotalScroll() 100px before end
+                    onTotalScrollOffset: 100,       // trigger callback.onTotalScroll() 100px before end
                     onInit: function(){
                         // disable page scroll -> otherwise page AND customScrollbars will scroll
                         // -> this is because the initPassiveEvents() delegates the mouseWheel events
@@ -1433,10 +1439,14 @@ define([
                     onTotalScroll: function(){
                         // we want to "trigger" Select2´s 'scroll' event
                         // in order to make its "infinite scrolling" function working
-                        this.mcs.content.find(':first-child').trigger('scroll');
+                        // -> look for "--load-more" anker (last list item)
+                        //    add "no-margin" class in order to reduce offset to the list
+                        let loadMoreLi = this.mcs.content.find('.select2-results__option--load-more');
+                        loadMoreLi.addClass('no-margin');
+                        this.mcs.content.find('> :first-child').trigger('scroll');
+                        setTimeout(() => loadMoreLi.removeClass('no-margin'), 20);
                     },
                     whileScrolling: function(){
-
                         // lazy load for images -> reduce number of calculations by % 10
                         if(0 === this.mcs.top % 10){
                             let scroller = $(this).find('.mCSB_container');
@@ -1461,7 +1471,7 @@ define([
             if($(selectElement).data('select2')){
                 let resultsOptions = $(selectElement).data('select2').$results;
                 if(resultsOptions.length){
-                    let resultsWrapper = resultsOptions.parents('.select2-results');
+                    let resultsWrapper = resultsOptions.closest('.select2-results');
                     if(resultsWrapper.length){
                         wrapper = resultsWrapper;
                     }

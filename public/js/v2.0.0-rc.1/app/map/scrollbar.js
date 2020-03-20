@@ -15,10 +15,10 @@ define([
 
     let defaultConfig = {
         axis: 'yx',
-        theme: 'light-3' ,
+        theme: 'light-3',
         scrollInertia: 200,
         autoExpandScrollbar: false,
-        scrollButtons:{
+        scrollButtons: {
             enable: true,
             scrollAmount: 30,
             scrollType: 'stepless'

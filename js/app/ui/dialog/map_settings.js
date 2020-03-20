@@ -130,6 +130,7 @@ define([
                     id: config.newMapDialogId,
                     mapData: mapData,
                     type: mapTypesCreate,
+                    select2Class: Util.config.select2Class,
 
                     hasRightMapUpdate,
                     hasRightMapExport,
@@ -419,7 +420,8 @@ define([
                     // make <select>s to Select2 fields
                     mapInfoDialog.find(
                         '#' + config.dialogMapNewContainerId + ' .' + Util.config.select2Class + ', ' +
-                        '#' + config.dialogMapEditContainerId + ' .' + Util.config.select2Class
+                        '#' + config.dialogMapEditContainerId + ' .' + Util.config.select2Class + ', ' +
+                        '#' + config.dialogMapDownloadContainerId + ' .' + Util.config.select2Class
                     ).select2({
                         minimumResultsForSearch: -1,
                         width: '100%'

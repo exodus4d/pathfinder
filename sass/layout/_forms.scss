@@ -8,15 +8,17 @@ input, select{
     border-color: $teal-lighter;
   }
 
-  &:-webkit-autofill {
-    background-color: $gray-dark !important;
+  // Change Autocomplete styles in Chrome
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus, {
+    border: 1px solid $input-border;
+    -webkit-text-fill-color: $input-color;
+    transition: background-color 5000s ease-in-out 0s;
+    font-family: "Oxygen Bold", Arial, sans-serif;
+    font-weight: bold;
+    font-size: 12px;
     @include box-shadow(0 0 0 50px $gray-dark inset !important);
-    -webkit-text-fill-color: $gray-lighter;
-  }
-
-  &:-webkit-autofill:focus {
-    @include box-shadow(0 0 0 50px $gray-dark inset !important);
-    -webkit-text-fill-color: $gray-lighter;
   }
 
   &[disabled]{
@@ -25,7 +27,6 @@ input, select{
 
   &.pf-select2{
     height: 32px; // supposed to be select2 field (before initialization)
-    padding: 6px 12px;
   }
 }
 

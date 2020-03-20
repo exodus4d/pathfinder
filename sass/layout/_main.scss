@@ -86,7 +86,7 @@ em,
 }
 
 .no-margin{
-  margin: 0;
+  margin: 0 !important;
 }
 
 // show/hide by [data-attr] value =================================================================
@@ -413,14 +413,8 @@ select:active, select:hover {
 }
 
 // select2 custom template ========================================================================
-.select2-results{
-  // <optgroup> options
-  .select2-results__options--nested{
-    .select2-results__option{
-      padding-left: 10px;  // more padding for nested options
-    }
-  }
-
+.select2-results,
+.select2-container--pathfinder {
   [class*="col-"]{
     // smaller and less padding
     padding-left: 3px;
@@ -434,28 +428,22 @@ select:active, select:hover {
       padding-right: 0;
     }
   }
-
-  .clearfix.pf-result-image [class*="col-"]{
-    line-height: 22px;  // options with images need more height
-  }
 }
 
 .select2{
   ::-webkit-search-cancel-button{
     -webkit-appearance: none !important;
   }
-
-  .select2-selection__choice__remove{
-    float: left;
-  }
-
-  .select2-selection--multiple{
-    input{
-      box-shadow: none !important;
-    }
-  }
 }
 
+.select2-results.mCustomScrollbar{
+  overflow-y: scroll;
+
+  .select2-results__option--load-more{
+    position: absolute;
+    margin-top: 50px; // margin gets removed on totalScroll -> enables ajax select options to load next page
+  }
+}
 // global dataTable styles ========================================================================
 .dataTables_wrapper{
 
