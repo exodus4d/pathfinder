@@ -20,12 +20,6 @@
       "Exodus4D\\Pathfinder\\": "app/"
     }
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/exodus4d/pathfinder_esi"
-    }
-  ],
   "require": {
     "php-64bit": ">=7.2",
     "ext-pdo": "*",
