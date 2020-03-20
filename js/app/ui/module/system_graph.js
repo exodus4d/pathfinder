@@ -95,7 +95,7 @@ define([
          */
         getGraphsData(){
             $(this.moduleElement).find('.' + this._config.systemGraphClass).showLoadingAnimation();
-            return this.request('GET', 'systemgraph', this._systemData.id, {
+            return this.request('GET', 'SystemGraph', this._systemData.id, {
                 systemIds: [this._systemData.systemId]
             });
         }

@@ -345,7 +345,7 @@ define([
                                 let processLockPromise = null;
 
                                 node.editable({
-                                    url: Init.path.api + '/signaturehistory',
+                                    url: Init.path.api + '/SignatureHistory',
                                     ajaxOptions: {
                                         processData: false,
                                         type: 'PUT',
@@ -368,7 +368,7 @@ define([
                                     title: 'historical records',
                                     name: 'history',
                                     pk: module._systemData.id,
-                                    source: Init.path.api + '/signaturehistory/' + module._systemData.id,
+                                    source: Init.path.api + '/SignatureHistory/' + module._systemData.id,
                                     sourceOptions: {
                                         type: 'GET',
                                         data: {
@@ -1071,7 +1071,7 @@ define([
 
                                     // submit all xEditable fields
                                     formFields.editable('submit', {
-                                        url: Init.path.api + '/signature',
+                                        url: Init.path.api + '/Signature',
                                         ajaxOptions: {
                                             processData: false, // we need to "process" data in beforeSend()
                                             type: 'PUT',
@@ -1363,7 +1363,7 @@ define([
 
                 Util.request(
                     'POST',
-                    'signature',
+                    'Signature',
                     [],
                     {
                         signatures: signatureData,
@@ -1435,7 +1435,7 @@ define([
 
             let processRequestPromise = tableApi.newProcess('request');
 
-            Util.request('DELETE', 'signature', signatureIds, data, {
+            Util.request('DELETE', 'Signature', signatureIds, data, {
                     tableApi: tableApi,
                     processRequestPromise: processRequestPromise
                 },
@@ -3146,7 +3146,7 @@ define([
                     let requestData = {};
                     requestData[params.name] = params.value;
 
-                    Util.request('PATCH', 'signature', params.pk, requestData)
+                    Util.request('PATCH', 'Signature', params.pk, requestData)
                         .then(payload => resolve(payload.data))
                         .catch(payload => reject(payload.data.jqXHR));
                 }else{

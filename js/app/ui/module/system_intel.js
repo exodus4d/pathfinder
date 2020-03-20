@@ -342,7 +342,7 @@ define([
                                         // tableApi.rows(deleteRowElement).remove().draw();
 
                                         $(module.moduleElement).showLoadingAnimation();
-                                        Util.request('DELETE', 'structure', rowData.id, {},
+                                        Util.request('DELETE', 'Structure', rowData.id, {},
                                             {
                                                 tableApi: tableApi
                                             },
@@ -477,7 +477,7 @@ define([
                         action: function(e, tableApi, node, config){
                             $(module.moduleElement).showLoadingAnimation();
 
-                            Util.request('GET', 'system', module._systemData.id, {mapId: module._systemData.mapId},
+                            Util.request('GET', 'System', module._systemData.id, {mapId: module._systemData.mapId},
                                 {
                                     tableApi: tableApi,
                                     removeMissing: true
@@ -907,7 +907,7 @@ define([
                                         });
                                     }
 
-                                    this.request(method, 'structure', ids, data,
+                                    this.request(method, 'Structure', ids, data,
                                         {
                                             tableApi: tableApi
                                         },
@@ -1088,7 +1088,7 @@ define([
             let saveStructureData = (structureData, context) => {
                 $(this.moduleElement).showLoadingAnimation();
 
-                this.request('POST', 'structure', [], structureData, context, () => $(this.moduleElement).hideLoadingAnimation())
+                this.request('POST', 'Structure', [], structureData, context, () => $(this.moduleElement).hideLoadingAnimation())
                     .then(
                         payload => this.callbackUpdateTableRows(payload.context, payload.data),
                         Util.handleAjaxErrorResponse

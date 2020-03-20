@@ -447,7 +447,7 @@ define([
             }
 
             if(connectionIds.length > 0){
-                Util.request('DELETE', 'connection', connectionIds, {
+                Util.request('DELETE', 'Connection', connectionIds, {
                     mapId: mapContainer.data('id')
                 }, {
                     connections: connections

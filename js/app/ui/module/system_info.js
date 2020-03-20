@@ -512,7 +512,7 @@ define([
                                             // ... valid -> save()
                                             descriptionArea.showLoadingAnimation();
 
-                                            Util.request('PATCH', 'system', systemId, {
+                                            Util.request('PATCH', 'System', systemId, {
                                                 description: description
                                             }, {
                                                 descriptionArea: descriptionArea

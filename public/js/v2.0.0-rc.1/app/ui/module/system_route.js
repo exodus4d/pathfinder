@@ -510,7 +510,7 @@ define([
         getRouteData(requestData, callback){
             $(this.moduleElement).showLoadingAnimation();
 
-            this.request('POST', 'route', [], requestData, this, context => {
+            this.request('POST', 'Route', [], requestData, this, context => {
                 $(this.moduleElement).hideLoadingAnimation();
             })
                 .then(payload => payload.context[callback](payload.data.routesData))

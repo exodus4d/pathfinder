@@ -754,6 +754,9 @@ define([
      * main init "landing" page
      */
     $(() => {
+        // passive event listener
+        Util.initPassiveEvents();
+
         // clear sessionStorage
         Util.clearSessionStorage();
 

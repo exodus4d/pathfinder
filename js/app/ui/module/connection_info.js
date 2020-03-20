@@ -256,7 +256,7 @@ define([
                 $(tableEls).showLoadingAnimation();
             }
 
-            return this.request('GET', 'connection', connectionIds, {
+            return this.request('GET', 'Connection', connectionIds, {
                 mapId: mapId,
                 addData : ['signatures', 'logs'],
                 // filterData : ['logs'] // do not exclude connections with NO "logs" -> sig data will be used as well
@@ -1003,7 +1003,7 @@ define([
 
                                             $(connectionElement.getElementsByTagName('table')).showLoadingAnimation();
 
-                                            module.request('DELETE', 'log', rowData.id, {}, {
+                                            module.request('DELETE', 'Log', rowData.id, {}, {
                                                 connectionElement: connectionElement
                                             }, module.requestAlways)
                                                 .then(
@@ -1025,7 +1025,7 @@ define([
                                             active: 1
                                         };
 
-                                        module.request('PATCH', 'log', rowData.id, requestData, {
+                                        module.request('PATCH', 'Log', rowData.id, requestData, {
                                             connectionElement: connectionElement
                                         }, module.requestAlways)
                                             .then(
@@ -1178,7 +1178,7 @@ define([
 
                                     let method = formData.id ? 'PATCH' : 'PUT';
 
-                                    this.request(method, 'log', formData.id, formData, {
+                                    this.request(method, 'Log', formData.id, formData, {
                                         connectionElement: connectionElement,
                                         formElement: form
                                     }, this.requestAlways)

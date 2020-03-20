@@ -1699,7 +1699,7 @@ define([
         connectionData.mapId = mapId;
         connectionData.disableAutoScope = disableAutoScope;
 
-        Util.request('PUT', 'connection', [], connectionData, {
+        Util.request('PUT', 'Connection', [], connectionData, {
             connection: connection,
             map: map,
             mapId: mapId,

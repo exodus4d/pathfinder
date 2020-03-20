@@ -254,7 +254,7 @@ define([
 
                 let renderPromises = [];
                 if(requestSystemData){
-                    renderPromises.push(Util.request('GET', 'system', data.payload.id, {mapId: data.mapId}));
+                    renderPromises.push(Util.request('GET', 'System', data.payload.id, {mapId: data.mapId}));
                 }
                 renderPromises.push(render(dataStore));
 

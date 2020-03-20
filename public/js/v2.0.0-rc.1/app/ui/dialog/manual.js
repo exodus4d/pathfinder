@@ -30,7 +30,7 @@ define([
                 dialogNavigationClass: config.dialogNavigationClass,
                 dialogNavLiClass: config.dialogNavigationListItemClass,
                 scrollspyId: config.mapManualScrollspyId,
-                pieChartClass : Init.classes.pieChart.pieChartMapCounterClass,
+                pieChartClass : Init.classes.pieChart.class,
                 mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass
             };
 

@@ -135,7 +135,7 @@ define([
             // show loading animation
             dialogElement.find('[data-type="spinner"]').addClass('in');
 
-            Util.request('GET', 'system', systemId, {mapId: mapId, isCcpId: 1}, {dialogElement: dialogElement})
+            Util.request('GET', 'System', systemId, {mapId: mapId, isCcpId: 1}, {dialogElement: dialogElement})
                 .then(payload => updateDialog(payload.context.dialogElement, payload.data))
                 .catch(payload => updateDialog(payload.context.dialogElement));
         };
@@ -259,7 +259,7 @@ define([
 
                             this.find('.modal-content').showLoadingAnimation();
 
-                            Util.request('PUT', 'system', [], formData, {
+                            Util.request('PUT', 'System', [], formData, {
                                 systemDialog: systemDialog,
                                 formElement: form,
                                 map: map,
@@ -666,7 +666,7 @@ define([
         let mapContainer = $( map.getContainer() );
         let systemIds = systems.map(system => $(system).data('id'));
 
-        Util.request('DELETE', 'system', systemIds, {
+        Util.request('DELETE', 'System', systemIds, {
             mapId: mapContainer.data('id')
         }, {
             map: map,

@@ -373,7 +373,7 @@ define([
 
                                     let method = formData.id ? 'PATCH' : 'PUT';
 
-                                    Util.request(method, 'map', formData.id, formData, {
+                                    Util.request(method, 'Map', formData.id, formData, {
                                         formElement: form // for error form messages
                                     }, context => {
                                         // always do
@@ -756,7 +756,7 @@ define([
                     let dialogContent = mapDeleteDialog.find('.modal-content');
                     dialogContent.showLoadingAnimation();
 
-                    Util.request('DELETE', 'map', mapId, {}, {}).then(
+                    Util.request('DELETE', 'Map', mapId, {}, {}).then(
                         payload => {
                             Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
                         },

@@ -654,7 +654,7 @@ define([
                         $(this.moduleElement).hideLoadingAnimation();
                         resolve(cacheEntry.value);
                     }else{
-                        this.request('GET', 'systemThera', [], {}, this, context => {
+                        this.request('GET', 'SystemThera', [], {}, this, context => {
                             $(this.moduleElement).hideLoadingAnimation();
                         }).then(payload => {
                             let cacheEntry = {
