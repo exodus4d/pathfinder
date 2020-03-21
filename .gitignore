@@ -47,7 +47,6 @@ Temporary Items
 # project files
 # ========================
 .idea
-.sass-cache
 .usage
 *.gz
 composer-dev.lock

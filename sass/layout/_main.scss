@@ -118,7 +118,12 @@ em,
   }
 }
 
-// scroll bar (webkit only) =======================================================================
+// scroll bar =====================================================================================
+html{
+  scrollbar-width: thin;            // Firefox
+  scrollbar-color: #717171 #222223; // Firefox
+}
+
 ::-webkit-scrollbar {
   display: none;  // hides the scrollbar but is still scrollable
   width: 16px;
@@ -437,8 +442,6 @@ select:active, select:hover {
 }
 
 .select2-results.mCustomScrollbar{
-  overflow-y: scroll;
-
   .select2-results__option--load-more{
     position: absolute;
     margin-top: 50px; // margin gets removed on totalScroll -> enables ajax select options to load next page
@@ -1971,6 +1974,13 @@ code {
   border: none;
   padding: 9px 10px;
 
+  .ui-pnotify-icon{
+    float: left;
+
+    > span{
+      display: block;
+    }
+  }
   .ui-pnotify-title{
     margin-bottom: 0;   // overwrite default "alert" style
   }

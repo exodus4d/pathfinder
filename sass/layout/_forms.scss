@@ -84,6 +84,15 @@ fieldset[disabled]{
   }
 }
 
+// fix for ugly <select> boxes (Firefox) ==============================================================================
+@supports (-moz-appearance:none) {
+  select {
+    -moz-appearance: none !important;
+    background: $gray-dark url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAMAAABPT11nAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRFiIiIAAAA/v9K/QAAAAJ0Uk5T/wDltzBKAAAAHElEQVR42mJggAFGGMUIZjGCGIwMYIIRCgACDAABOwAVoypkGgAAAABJRU5ErkJggg==') right center no-repeat !important;
+    background-position: calc(100% - 5px) center !important;
+    padding-right: 16px !important;
+  }
+}
 
 // form fields with icons groups (stacked icons) ======================================================================
 .input-icon-left:not(.input-icon-right){

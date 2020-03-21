@@ -10,7 +10,7 @@
 
   .select2-selection__rendered {
     color: $gray-lighter;
-    line-height: 32px;
+    line-height: 30px; // + 1px border == 32px
     font-family: 'Oxygen Bold';
     padding-left: 15px;
 
