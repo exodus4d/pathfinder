@@ -952,14 +952,11 @@ class Setup extends Controller {
     protected function checkSystemConfig(\Base $f3): array {
         $systemConf = [];
         if(function_exists('exec')){
-            $gitOut = $composerOut = $rubyOut = $rubyGemsOut = $compassOut = $nodeOut = $npmOut = [];
-            $gitStatus = $composerStatus = $rubyStatus = $rubyGemsStatus = $compassStatus = $nodeStatus = $npmStatus = 1;
+            $gitOut = $composerOut = $nodeOut = $npmOut = [];
+            $gitStatus = $composerStatus = $nodeStatus = $npmStatus = 1;
 
             exec('git --version', $gitOut, $gitStatus);
             exec('composer -V', $composerOut, $composerStatus);
-            exec('ruby -v', $rubyOut, $rubyStatus);
-            exec('gem -v', $rubyGemsOut, $rubyGemsStatus);
-            exec('compass -v', $compassOut, $compassStatus);
             exec('node -v', $nodeOut, $nodeStatus);
             exec('npm -v', $npmOut, $npmStatus);
 
@@ -979,24 +976,6 @@ class Setup extends Controller {
                     'version' => $composerOut[0] ? 'installed' : 'missing',
                     'check' => $composerStatus == 0,
                     'tooltip' => 'Composer # composer -V : ' . $composerOut[0]
-                ],
-                'Ruby' => [
-                    'label' => 'Ruby',
-                    'version' => $rubyOut[0] ? 'installed' : 'missing',
-                    'check' => $rubyStatus == 0,
-                    'tooltip' => 'Ruby # ruby -v : ' . $rubyOut[0]
-                ],
-                'rubyGems' => [
-                    'label' => 'Ruby gem',
-                    'version' => $normalizeVersion($rubyGemsOut[0]) ?: 'missing',
-                    'check' => $rubyGemsStatus == 0,
-                    'tooltip' => 'gem # gem -v'
-                ],
-                'compass' => [
-                    'label' => 'Compass',
-                    'version' => $compassOut[0] ? 'installed' : 'missing',
-                    'check' => $compassStatus == 0,
-                    'tooltip' => 'Compass # compass -v : ' . $compassOut[0]
                 ],
                 'node' => [
                     'label' => 'NodeJs',
