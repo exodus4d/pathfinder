@@ -25,14 +25,21 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
 ***
 
 ### Project structure
-
-```
+<pre>
  ─╮
-  ├─ app/              [0755] → "PATHFINDER" root
-  │  ├─ config.ini            → config "f3" framework
+  ├─ app/              [0755] → PHP root
+  │  ├─ Controller/           → controller classes for app/ajax endpoints (see routes.ini)
+  │  ├─ Cron/                 → controller classes cronjob endpoints (see cron.ini)
+  │  ├─ Data/                 → classes for data handling
+  │  ├─ Db/                   → classes for DB handling
+  │  ├─ Exception/            → custom exceptions
+  │  ├─ Lib/                  → libs
+  │  ├─ Model/                → ORM
+  │  ├─ config.ini            → config - F3 core config: <a href="//fatfreeframework.com/3.7/quick-reference#SystemVariables" title="Fat-Free Framework - SystemVariables">SystemVariables</a>
   │  ├─ cron.ini              → config - cronjobs
   │  ├─ environment.ini       → config - system environment
   │  ├─ pathfinder.ini        → config - pathfinder
+  │  ├─ plugin.ini            → config - custom plugins
   │  ├─ requirements.ini      → config - system requirements
   │  └─ routes.ini            → config - routes
   ├─ export/           [0755] → static data
@@ -45,8 +52,6 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
   │  ├─ lib/                  → 3rd party libs
   │  └─ app.js                → require.js config
   ├─ logs/             [0777] → log files
-  │  └─ …
-  ├─ node_modules/            → node.js modules (not used for production)
   │  └─ …
   ├─ public/           [0755] → static resources
   │  ├─ css/                  → CSS dist/build folder (minified)
@@ -65,11 +70,10 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
   
   ├─ .jshintrc                → "JSHint" config (not used for production)
   ├─ composer.json            → "Composer" package definition
-  ├─ config.rb                → "Compass" config (not used for production)
   ├─ gulpfile.js              → "Gulp" task config (not used for production)
   ├─ package.json             → "Node.js" dependency config (not used for production)
   └─ README.md                → This file :) (not used for production)
-```
+</pre>
 
 ***
 
