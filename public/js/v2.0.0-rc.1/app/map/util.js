@@ -88,7 +88,7 @@ define([
             let checkMapTypes = [
                 {type: 'private',       hasRight: false, selector: 'id'},
                 {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
-                {type: 'alliance',      hasRight: true,  selector: 'alliance.id'}
+                {type: 'alliance',      hasRight: false,  selector: 'alliance.id'}
             ];
 
             checkMapTypes.forEach(data => {
