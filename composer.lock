@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85c9124aaf89aef356645c98d2623ed1",
+    "content-hash": "335a3680cd2d074fd048b76d16a6f4d2",
     "packages": [
         {
             "name": "bcosca/fatfree-core",
@@ -823,16 +823,16 @@
         },
         {
             "name": "exodus4d/pathfinder_esi",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/exodus4d/pathfinder_esi.git",
-                "reference": "1fead0df4674c82c359d33b02eafe03dc74dc47e"
+                "reference": "3fbd58eaa86c472f91b8c3a0fdb029d9fd903525"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/exodus4d/pathfinder_esi/zipball/1fead0df4674c82c359d33b02eafe03dc74dc47e",
-                "reference": "1fead0df4674c82c359d33b02eafe03dc74dc47e",
+                "url": "https://api.github.com/repos/exodus4d/pathfinder_esi/zipball/3fbd58eaa86c472f91b8c3a0fdb029d9fd903525",
+                "reference": "3fbd58eaa86c472f91b8c3a0fdb029d9fd903525",
                 "shasum": ""
             },
             "require": {
@@ -860,7 +860,7 @@
             ],
             "description": "ESI API library for Pathfinder",
             "homepage": "https://github.com/exodus4d/pathfinder_esi",
-            "time": "2020-03-20T13:49:26+00:00"
+            "time": "2020-03-22T14:23:42+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",

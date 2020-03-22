@@ -707,7 +707,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return RoleModel
      * @throws \Exception
      */
-    protected function requestRole() : RoleModel {
+    protected function getRole() : RoleModel {
         $role = null;
 
         // check config files for hardcoded character roles
@@ -730,11 +730,12 @@ class CharacterModel extends AbstractPathfinderModel {
         // check in-game roles
         if(
             is_null($role) &&
-            !empty($rolesData = $this->requestRoles())
+            !empty($rolesData = $this->requestRoles()) &&
+            !empty($roles = $rolesData['roles'])
         ){
             // roles that grant admin access for this character
-            $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $rolesData);
-            if( !empty($adminRoles) ){
+            $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $roles);
+            if(!empty($adminRoles)){
                 $role = RoleModel::getCorporationManagerRole();
             }
         }
@@ -748,26 +749,16 @@ class CharacterModel extends AbstractPathfinderModel {
     }
 
     /**
-     * request all corporation roles granted to this character
+     * get all character roles grouped by 'role type'
+     * -> 'role types' are 'roles', 'rolesAtBase', 'rolesAtHq', 'rolesAtOther'
      * @return array
-     * @throws \Exception
      */
     protected function requestRoles() : array {
         $rolesData = [];
-
-        // check if character has accepted all admin scopes (one of them is required for "role" request)
-        if( $this->hasAdminScopes() ){
-            if( $accessToken = $this->getAccessToken() ){
-                // check if corporation exists (should never fail)
-                if( $corporation = $this->getCorporation() ){
-                    $characterRolesData = $corporation->getCharactersRoles($accessToken);
-                    if( !empty($characterRolesData[$this->_id]) ){
-                        $rolesData = $characterRolesData[$this->_id];
-                    }
-                }
-            }
+        $response = self::getF3()->ccpClient()->send('getCharacterRoles', $this->_id, $this->getAccessToken());
+        if(!empty($response) && !isset($response['error'])){
+            $rolesData = $response;
         }
-
         return $rolesData;
     }
 
@@ -807,7 +798,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @throws \Exception
      */
     public function updateRoleData(){
-        $this->roleId = $this->requestRole();
+        $this->roleId = $this->getRole();
     }
 
     /**
@@ -1098,7 +1089,7 @@ class CharacterModel extends AbstractPathfinderModel {
 
             if($logHistoryData = $this->getLogsHistory()){
                 // skip logging if no relevant fields changed
-                list($historyEntryPrev) = $logHistoryData;
+                [$historyEntryPrev] = $logHistoryData;
                 if($historyLogPrev = $historyEntryPrev['log']){
                     if(
                         $historyLog['system']['id']     === $historyLogPrev['system']['id'] &&
