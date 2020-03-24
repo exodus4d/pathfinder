@@ -189,8 +189,10 @@
 
 }
  // header --------------------------------------------------------------------
+$headerHeight: 355px;
+
 #pf-landing-top{
-  height: 355px;
+  height: $headerHeight;
   border-bottom: 1px solid $gray-dark;
   position: relative;
 
@@ -216,9 +218,22 @@
 
     #pf-header-canvas{
       position: absolute;
-      visibility: hidden; // triggered by js
       top: 0;
       left: 0;
+
+      &.fade.in{
+        cursor: none;
+
+        ~ .container{
+          cursor: none;
+        }
+      }
+
+      ~ .container{
+        position: relative;
+        margin-top: 10px;
+        max-height: $headerHeight - 10px;
+      }
     }
 
     #pf-logo-container{
@@ -264,11 +279,6 @@
       }
 
     }
-  }
-
-  .container{
-    position: relative;
-    margin-top: 10px;
   }
 }
 

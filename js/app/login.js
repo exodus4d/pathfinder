@@ -8,9 +8,9 @@ define([
     'app/util',
     'app/render',
     'blueImpGallery',
+    'layout/header_login',
     'bootbox',
     'lazyload',
-    'layout/header_login',
     'layout/logo',
     'layout/demo_map',
     'dialog/account_settings',
@@ -18,8 +18,8 @@ define([
     'dialog/manual',
     'dialog/changelog',
     'dialog/credit',
-    'dialog/api_status',
-], ($, Init, Util, Render, Gallery, bootbox) => {
+    'dialog/api_status'
+], ($, Init, Util, Render, Gallery, HeaderLogin, bootbox) => {
 
     'use strict';
 
@@ -850,9 +850,7 @@ define([
         // draw header logo
         $('#' + config.logoContainerId).drawLogo(() => {
             // init header animation
-            $('#' + config.headerContainerId).initHeader(() => {
-
-            });
+            HeaderLogin.init(document.getElementById(config.headerContainerId));
         }, false);
 
     });

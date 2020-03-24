@@ -60,10 +60,6 @@ requirejs.config({
         'summernote.loader': './app/summernote.loader',                 // v0.8.10  Summernote WYSIWYG editor -https://summernote.org
         'summernote': 'lib/summernote/summernote.min',
 
-        // header animation
-        easePack: 'lib/EasePack.min',
-        tweenLite: 'lib/TweenLite.min',
-
         // DataTables                                                   // v1.10.18 DataTables - https://datatables.net
         'datatables.loader': './app/datatables.loader',
         'datatables.net': 'lib/datatables/DataTables-1.10.18/js/jquery.dataTables.min',
