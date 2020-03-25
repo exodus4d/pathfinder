@@ -566,7 +566,7 @@ define([
             let streams = this._filterStreams || [];
             return !!(streams.includes('all') ||
                 (streams.includes('system') && this._systemData.systemId === killmailData.solar_system_id) ||
-                (streams.includes('map') && MapUtil.getSystemData(this._mapId, 'systemId', killmailData.solar_system_id)));
+                (streams.includes('map') && MapUtil.getSystemData(this._mapId, killmailData.solar_system_id, 'systemId')));
 
         }
 
@@ -591,7 +591,11 @@ define([
                     this._killboardEl.prepend(this._listStreamHeadline);
                 }
 
-                this.renderKillmail(zkbData, killmailData, null, 0, 'top')
+                // get systemData for killmailData
+                // -> systemData should exist if KM belongs to any system on any map
+                let systemData = MapUtil.getSystemData(this._mapId, killmailData.solar_system_id, 'systemId') || null;
+
+                this.renderKillmail(zkbData, killmailData, systemData, 0, 'top')
                     .catch(e => console.warn(e));
             }
         }
