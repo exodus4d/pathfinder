@@ -7,8 +7,9 @@ define([
     'app/init',
     'app/util',
     'app/map/overlay/util',
-    'app/map/util'
-], ($, Init, Util, MapOverlayUtil, MapUtil) => {
+    'app/map/util',
+    'app/lib/cron'
+], ($, Init, Util, MapOverlayUtil, MapUtil, Cron) => {
     'use strict';
 
     /**
@@ -17,7 +18,7 @@ define([
      * @returns {*}
      */
     let getMapObjectFromOverlayIcon = overlayIcon => {
-        return MapUtil.getMapInstance(Util.getMapElementFromOverlay(overlayIcon).data('id'));
+        return MapUtil.getMapInstance(MapOverlayUtil.getMapElementFromOverlay(overlayIcon).data('id'));
     };
 
     /**
@@ -107,119 +108,120 @@ define([
         let type = 'info_signature';
         connectionsData = Util.arrayToObject(connectionsData);
 
-        map.batch(() => {
-            map.getAllConnections().forEach(connection => {
-                let connectionId    = connection.getParameter('connectionId');
-                let sourceEndpoint  = connection.endpoints[0];
-                let targetEndpoint  = connection.endpoints[1];
+        map.setSuspendDrawing(true);
 
-                let connectionData = connectionsData.hasOwnProperty(connectionId) ? connectionsData[connectionId] : undefined;
-                let signatureTypeData = MapUtil.getConnectionDataFromSignatures(connection, connectionData);
+        map.getAllConnections().forEach(connection => {
+            let connectionId    = connection.getParameter('connectionId');
+            let sourceEndpoint  = connection.endpoints[0];
+            let targetEndpoint  = connection.endpoints[1];
 
-                let sizeLockedBySignature = false;
+            let connectionData = Util.getObjVal(connectionsData, `${connectionId}`);
+            let signatureTypeData = MapUtil.getConnectionDataFromSignatures(connection, connectionData);
 
-                if(connection.scope === 'wh'){
-                    if(!connection.hasType(type)){
-                        connection.addType(type);
-                    }
+            let sizeLockedBySignature = false;
 
-                    let overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
+            if(connection.scope === 'wh'){
+                if(!connection.hasType(type)){
+                    connection.addType(type);
+                }
 
-                    // Arrow overlay needs to be cleared() (removed) if 'info_signature' gets removed!
-                    // jsPlumb does not handle overlay updates for Arrow overlays... so we need to re-apply the the overlay manually
-                    if(overlayArrow.path && !overlayArrow.path.isConnected){
-                        connection.canvas.appendChild(overlayArrow.path);
-                    }
+                let overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
 
-                    // since there "could" be multiple sig labels on each endpoint,
-                    // there can only one "primary label picked up for wormhole jump mass detection!
-                    let primLabel;
+                // Arrow overlay needs to be cleared() (removed) if 'info_signature' gets removed!
+                // jsPlumb does not handle overlay updates for Arrow overlays... so we need to re-apply the the overlay manually
+                if(overlayArrow.path && !overlayArrow.path.isConnected){
+                    connection.canvas.appendChild(overlayArrow.path);
+                }
 
-                    let overlayType = 'diamond'; // not specified
-                    let arrowDirection = 1;
+                // since there "could" be multiple sig labels on each endpoint,
+                // there can only one "primary label picked up for wormhole jump mass detection!
+                let primeLabel;
 
-                    if(connectionData && connectionData.signatures){
-                        // signature data found for current connection
-                        let sourceLabel =  signatureTypeData.source.labels;
-                        let targetLabel =  signatureTypeData.target.labels;
+                let overlayType = 'diamond'; // not specified
+                let arrowDirection = 1;
 
-                        // add arrow (connection) overlay that points from "XXX" => "K162" ----------------------------
-                        if(
-                            (sourceLabel.includes('K162') && targetLabel.includes('K162')) ||
-                            (sourceLabel.length === 0 && targetLabel.length === 0) ||
-                            (
-                                sourceLabel.length > 0 && targetLabel.length > 0 &&
-                                !sourceLabel.includes('K162') && !targetLabel.includes('K162')
-                            )
-                        ){
-                            // unknown direction -> show default 'diamond' overlay
-                            overlayType = 'diamond';
-                        }else if(
-                            (sourceLabel.includes('K162')) ||
-                            (sourceLabel.length === 0 && !targetLabel.includes('K162'))
-                        ){
-                            // convert default arrow direction
-                            overlayType = 'arrow';
-                            arrowDirection = -1;
+                if(connectionData && connectionData.signatures){
+                    // signature data found for current connection
+                    let sourceLabel =  signatureTypeData.source.labels;
+                    let targetLabel =  signatureTypeData.target.labels;
 
-                            primLabel = targetLabel.find(label => label !== 'K162');
-                        }else{
-                            // default arrow direction is fine
-                            overlayType = 'arrow';
+                    // add arrow (connection) overlay that points from "XXX" => "K162" ----------------------------
+                    if(
+                        (sourceLabel.includes('K162') && targetLabel.includes('K162')) ||
+                        (sourceLabel.length === 0 && targetLabel.length === 0) ||
+                        (
+                            sourceLabel.length > 0 && targetLabel.length > 0 &&
+                            !sourceLabel.includes('K162') && !targetLabel.includes('K162')
+                        )
+                    ){
+                        // unknown direction -> show default 'diamond' overlay
+                        overlayType = 'diamond';
+                    }else if(
+                        (sourceLabel.includes('K162')) ||
+                        (sourceLabel.length === 0 && !targetLabel.includes('K162'))
+                    ){
+                        // convert default arrow direction
+                        overlayType = 'arrow';
+                        arrowDirection = -1;
 
-                            primLabel = sourceLabel.find(label => label !== 'K162');
-                        }
-                    }
-
-                    // class changes must be done on "connection" itself not on "overlayArrow"
-                    // -> because Arrow might not be rendered to map at this point (if it does not exist already)
-                    if(overlayType === 'arrow'){
-                        connection.updateClasses(
-                            MapOverlayUtil.config.connectionArrowOverlaySuccessClass,
-                            MapOverlayUtil.config.connectionArrowOverlayDangerClass
-                        );
+                        primeLabel = targetLabel.find(label => label !== 'K162');
                     }else{
-                        connection.updateClasses(
-                            MapOverlayUtil.config.connectionArrowOverlayDangerClass,
-                            MapOverlayUtil.config.connectionArrowOverlaySuccessClass
-                        );
-                    }
+                        // default arrow direction is fine
+                        overlayType = 'arrow';
 
-                    overlayArrow.updateFrom(getConnectionArrowOverlayParams(overlayType, arrowDirection));
-
-                    // update/add endpoint overlays -------------------------------------------------------------------
-                    updateEndpointOverlaySignatureLabel(sourceEndpoint, signatureTypeData.source);
-                    updateEndpointOverlaySignatureLabel(targetEndpoint, signatureTypeData.target);
-
-                    // fix/overwrite existing jump mass connection type -----------------------------------------------
-                    // if a connection type for "jump mass" (e.g. S, M, L, XL) is set for this connection
-                    // we should check/compare it with the current primary signature label from signature mapping
-                    // and change it if necessary
-                    if(Init.wormholes.hasOwnProperty(primLabel)){
-                        // connection size from mapped signature
-                        sizeLockedBySignature = true;
-
-                        let wormholeData = Object.assign({}, Init.wormholes[primLabel]);
-                        // get 'connection mass type' from wormholeData
-                        let massType = Util.getObjVal(wormholeData, 'size.type');
-
-                        if(massType && !connection.hasType(massType)){
-                            MapOverlayUtil.getMapOverlay(connection.canvas, 'timer').startMapUpdateCounter();
-                            MapUtil.setConnectionJumpMassType(connection, wormholeData.size.type);
-                            MapUtil.markAsChanged(connection);
-                        }
-                    }
-                }else{
-                    // connection is not 'wh' scope
-                    if(connection.hasType(type)){
-                        connection.removeType(type);
+                        primeLabel = sourceLabel.find(label => label !== 'K162');
                     }
                 }
 
-                // lock/unlock connection for manual size changes (from contextmenu)
-                connection.setParameter('sizeLocked', sizeLockedBySignature);
-            });
+                // class changes must be done on "connection" itself not on "overlayArrow"
+                // -> because Arrow might not be rendered to map at this point (if it does not exist already)
+                if(overlayType === 'arrow'){
+                    connection.updateClasses(
+                        MapOverlayUtil.config.connectionArrowOverlaySuccessClass,
+                        MapOverlayUtil.config.connectionArrowOverlayDangerClass
+                    );
+                }else{
+                    connection.updateClasses(
+                        MapOverlayUtil.config.connectionArrowOverlayDangerClass,
+                        MapOverlayUtil.config.connectionArrowOverlaySuccessClass
+                    );
+                }
+
+                overlayArrow.updateFrom(getConnectionArrowOverlayParams(overlayType, arrowDirection));
+
+                // update/add endpoint overlays -------------------------------------------------------------------
+                updateEndpointOverlaySignatureLabel(sourceEndpoint, signatureTypeData.source);
+                updateEndpointOverlaySignatureLabel(targetEndpoint, signatureTypeData.target);
+
+                // fix/overwrite existing jump mass connection type -----------------------------------------------
+                // if a connection type for "jump mass" (e.g. S, M, L, XL) is set for this connection
+                // we should check/compare it with the current primary signature label from signature mapping
+                // and change it if necessary
+                if(Init.wormholes.hasOwnProperty(primeLabel)){
+                    // connection size from mapped signature
+                    sizeLockedBySignature = true;
+
+                    // get 'connection mass type' from wormholeData
+                    let massType = Util.getObjVal(Object.assign({}, Init.wormholes[primeLabel]), 'size.type');
+
+                    if(massType && !connection.hasType(massType)){
+                        MapOverlayUtil.getMapOverlay(connection.canvas, 'timer').startMapUpdateCounter();
+                        MapUtil.setConnectionJumpMassType(connection, massType);
+                        MapUtil.markAsChanged(connection);
+                    }
+                }
+            }else{
+                // connection is not 'wh' scope
+                if(connection.hasType(type)){
+                    connection.removeType(type);
+                }
+            }
+
+            // lock/unlock connection for manual size changes (from contextmenu)
+            connection.setParameter('sizeLocked', sizeLockedBySignature);
         });
+
+        map.setSuspendDrawing(false, true);
     };
 
     /**
@@ -291,21 +293,23 @@ define([
         let map = MapUtil.getMapInstance(mapId);
         let type = 'info_signature';
 
-        map.batch(() => {
-            map.getAllConnections().forEach(connection => {
-                let overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
+        map.setSuspendDrawing(true);
 
-                if(overlayArrow){
-                    overlayArrow.cleanup();
-                }
+        map.getAllConnections().forEach(connection => {
+            let overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
 
-                if(connection.hasType(type)){
-                    connection.removeType(type, {}, true);
-                }
-            });
+            if(overlayArrow){
+                overlayArrow.cleanup();
+            }
 
-            map.selectEndpoints().removeOverlay(MapOverlayUtil.config.endpointOverlayId);
+            if(connection.hasType(type)){
+                connection.removeType(type, {}, true);
+            }
         });
+
+        map.selectEndpoints().removeOverlay(MapOverlayUtil.config.endpointOverlayId);
+
+        map.setSuspendDrawing(false, true);
     };
 
     /**
@@ -321,9 +325,9 @@ define([
             trigger: 'active',
             class: 'pf-map-overlay-filter',
             iconClass: ['fas', 'fa-fw', 'fa-filter'],
-            onClick: function(e){
+        onClick: function(e){
                 // clear all filter
-                let mapElement = Util.getMapElementFromOverlay(this);
+                let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                 let map = getMapObjectFromOverlayIcon(this);
 
                 MapUtil.storeLocalData('map', mapElement.data('id'), 'filterScopes', []);
@@ -349,7 +353,7 @@ define([
             iconClass: ['fas', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
-                    let mapElement = Util.getMapElementFromOverlay(this);
+                    let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                     mapElement.find('.' + MapOverlayUtil.config.systemHeadClass).each(function(){
                         let systemHead = $(this);
                         // init popover if not already exists
@@ -373,7 +377,7 @@ define([
                     });
                 },
                 out: function(e){
-                    let mapElement = Util.getMapElementFromOverlay(this);
+                    let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                     mapElement.find('.' + MapOverlayUtil.config.systemHeadClass).popover('hide');
                 }
             }
@@ -484,108 +488,96 @@ define([
      * @param mapOverlayTimer
      * @param percent
      * @param value
-     * @returns {*}
      */
-    let setMapUpdateCounter = (mapOverlayTimer, percent, value) => {
+    let setMapUpdateCounter = (mapOverlayTimer, percent, value = '') => {
         // check if counter already exists
-        let counterChart = MapOverlayUtil.getMapCounter(mapOverlayTimer);
-
-        if(counterChart.length === 0){
+        if(!MapOverlayUtil.getMapCounter(mapOverlayTimer)){
             // create new counter
+            let chartEl = Object.assign(document.createElement('div'), {
+                className: `${Init.classes.pieChart.class} ${Init.classes.pieChart.pieChartMapCounterClass}`
+            });
 
-            counterChart = $('<div>', {
-                class: [Init.classes.pieChart.class, Init.classes.pieChart.pieChartMapCounterClass].join(' ')
-            }).attr('data-percent', percent).append(
-                $('<span>', {
-                    text: value
-                })
-            );
+            let chartInnerEl = Object.assign(document.createElement('span'), {
+                textContent: value
+            });
+            let iconEl = Object.assign(document.createElement('i'), {
+                className: ['fas', 'fa-fw', 'fa-lock'].join(' ')
+            });
 
-            mapOverlayTimer.append(counterChart);
+            chartInnerEl.append(iconEl);
+            chartEl.append(chartInnerEl);
+            mapOverlayTimer.append(chartEl);
 
             // init counter
-            counterChart.initMapUpdateCounter();
+            $(chartEl).initMapUpdateCounter();
 
             // set tooltip
-            mapOverlayTimer.attr('data-placement', 'left');
-            mapOverlayTimer.attr('title', 'update counter');
-            mapOverlayTimer.tooltip();
+            mapOverlayTimer.dataset.placement = 'left';
+            mapOverlayTimer.setAttribute('title', 'update counter');
+            $(mapOverlayTimer).tooltip();
         }
-
-        return counterChart;
     };
 
     /**
      * start the map update counter or reset
      */
     $.fn.startMapUpdateCounter = function(){
-        let mapOverlayTimer = $(this);
-        let counterChart = MapOverlayUtil.getMapCounter(mapOverlayTimer);
-
-        let maxSeconds = MapOverlayUtil.config.logTimerCount;
-
-        let counterChartLabel = counterChart.find('span');
-
-        let percentPerCount = 100 / maxSeconds;
-
-        // update counter
-        let updateChart = tempSeconds => {
-            let pieChart = counterChart.data('easyPieChart');
-
-            if(pieChart !== undefined){
-                counterChart.data('easyPieChart').update( percentPerCount * tempSeconds);
-            }
-            counterChartLabel.text(tempSeconds);
-        };
-
-        // main timer function is called on any counter update
-        let timer = mapUpdateCounter => {
-            // decrease timer
-            let currentSeconds = counterChart.data('currentSeconds');
-            currentSeconds--;
-            counterChart.data('currentSeconds', currentSeconds);
-
-            if(currentSeconds >= 0){
-                // update counter
-                updateChart(currentSeconds);
-            }else{
-                // hide counter and reset
-                clearInterval(mapUpdateCounter);
-
-                mapOverlayTimer.velocity('transition.whirlOut', {
-                    duration: Init.animationSpeed.mapOverlay,
-                    complete: function(){
-                        counterChart.data('interval', false);
-                        Util.getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
-                    }
-                });
-            }
-        };
-
-        // get current seconds (in case the timer is already running)
-        let currentSeconds = counterChart.data('currentSeconds');
-
-        // start values for timer and chart
-        counterChart.data('currentSeconds', maxSeconds);
-        updateChart(maxSeconds);
-
-        if(
-            currentSeconds === undefined ||
-            currentSeconds < 0
-        ){
-            // start timer
-            let mapUpdateCounter = setInterval(() => {
-                timer(mapUpdateCounter);
-            }, 1000);
-
-            // store counter interval
-            counterChart.data('interval', mapUpdateCounter);
-
-            // show overlay
-            if(mapOverlayTimer.is(':hidden')){
-                mapOverlayTimer.velocity('stop').velocity('transition.whirlIn', { duration: Init.animationSpeed.mapOverlay });
-            }
+        if(!this.length){
+            console.warn('startMapUpdateCounter() failed. Missing DOM node');
+            return;
         }
+        let mapOverlayTimer = this[0];
+        let counterChart = MapOverlayUtil.getMapCounter(mapOverlayTimer);
+        let pieChart = $(counterChart).data('easyPieChart');
+
+        if(!pieChart){
+            console.warn('startMapUpdateCounter() failed. easyPieChart not initialized');
+            return;
+        }
+
+        let updateChart = (percent = 0) => {
+            if(pieChart){
+                pieChart.update(percent);
+            }
+        };
+
+        let task = counterChart.getData('counterTask');
+        if(!task){
+            let tabContentEl = mapOverlayTimer.closest(`.${Util.config.mapTabContentClass}`);
+            let mapId = parseInt(tabContentEl.dataset.mapId) || 0;
+            task = Cron.new(`mapUpdateCounter_${mapId}`, {
+                precision: 'secondTenths',
+                isParallel: true,
+                targetRunCount: 10 * MapOverlayUtil.config.logTimerCount
+            });
+
+            task.task = (timer, task) => {
+                // debounce 80% (reduce repaint)
+                if(task.runCount % 5 === 0){
+                    let progress = Math.round(task.targetProgress);
+                    updateChart(100 - progress);
+                }
+
+                if(task.targetAchieved){
+                    $(mapOverlayTimer).velocity('transition.whirlOut', {
+                        duration: Init.animationSpeed.mapOverlay,
+                        complete: function(){
+                            MapOverlayUtil.getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
+                        }
+                    });
+                }
+            };
+
+            counterChart.setData('counterTask', task);
+        }
+
+        // task is not connected if: 'targetAchieved'  or not started
+        if(!task.isConnected()){
+            $(mapOverlayTimer).velocity('stop').velocity('transition.whirlIn', { duration: Init.animationSpeed.mapOverlay });
+        }
+        updateChart(100);
+        task.reset();
+        task.start();
     };
 
     /**
@@ -836,36 +828,35 @@ define([
             });
 
             // add all overlay elements
-            for(let prop in options){
-                if(options.hasOwnProperty(prop)){
-                    let icon = $('<i>', {
-                        class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
-                    }).attr('title', options[prop].title).tooltip({
-                        placement: 'bottom',
-                        container: 'body',
-                        delay: 150
-                    });
+            Object.entries(options).forEach(([key, option]) => {
+                let icon = $('<i>', {
+                    class: option.iconClass.concat(['pull-right', option.class]).join(' ')
+                }).attr('title', option.title).tooltip({
+                    placement: 'bottom',
+                    container: 'body',
+                    delay: 150
+                });
 
-                    // add "hover" action for some icons
-                    if(
-                        options[prop].trigger === 'hover' ||
-                        options[prop].trigger === 'refresh'
-                    ){
-                        icon.hoverIntent(options[prop].hoverIntent);
-                    }
-
-                    // add "click" handler for some icons
-                    if(options[prop].hasOwnProperty('onClick')){
-                        icon.on('click', options[prop].onClick);
-                    }
-
-                    mapOverlayInfo.append(icon);
+                // add "hover" action for some icons
+                if(
+                    option.trigger === 'hover' ||
+                    option.trigger === 'refresh'
+                ){
+                    icon.hoverIntent(option.hoverIntent);
                 }
-            }
+
+                // add "click" handler for some icons
+                if(option.hasOwnProperty('onClick')){
+                    icon.on('click', option.onClick);
+                }
+
+                mapOverlayInfo.append(icon);
+            });
+
             parentElement.append(mapOverlayInfo);
 
             // reset map update timer
-            setMapUpdateCounter(mapOverlayTimer, 100, MapOverlayUtil.config.logTimerCount);
+            setMapUpdateCounter(mapOverlayTimer[0], 100);
         });
     };
 

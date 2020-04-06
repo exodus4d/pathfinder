@@ -1,5 +1,43 @@
-define([], () => {
+define([
+    'app/lib/dataStore'
+], (DataStore) => {
     'use strict';
+
+    // DOM node data store ============================================================================================
+    window.dataStore = new DataStore();
+
+    /**
+     * @param key
+     * @param value
+     * @returns {HTMLElement}
+     */
+    HTMLElement.prototype.setData = function(key, value){
+        return window.dataStore.set(this, key, value);
+    };
+
+    /**
+     * @param key
+     * @returns {*}
+     */
+    HTMLElement.prototype.getData = function(key){
+        return window.dataStore.get(this, key);
+    };
+
+    /**
+     * @param key
+     * @returns {*}
+     */
+    HTMLElement.prototype.hasData = function(key){
+        return window.dataStore.has(this, key);
+    };
+
+    /**
+     * @param key
+     * @returns {*}
+     */
+    HTMLElement.prototype.removeData = function(key){
+        return window.dataStore.remove(this, key);
+    };
 
     /**
      * Array diff
@@ -19,6 +57,17 @@ define([], () => {
      */
     Array.prototype.intersect = function(a){
         return this.filter(i => a.includes(i));
+    };
+
+    /**
+     * inverse of Array.filter(),
+     * [1,2,3,4,5].not(val => val === 3)    => [1, 2, 4, 5]
+     * [1,2,3,4,5].filter(val => val === 3) => [3]
+     * @param callback
+     * @returns {*[]}
+     */
+    Array.prototype.not = function(callback) {
+        return this.filter((...args) => !callback(...args));
     };
 
     /**
@@ -65,14 +114,9 @@ define([], () => {
      * @returns {number}
      */
     String.prototype.hashCode = function(){
-        let hash = 0, i, chr;
-        if(this.length === 0) return hash;
-        for(i = 0; i < this.length; i++){
-            chr   = this.charCodeAt(i);
-            hash  = ((hash << 5) - hash) + chr;
-            hash |= 0; // Convert to 32bit integer
-        }
-        return hash;
+        let hash = this.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+        // make positive
+        return (hash + 2147483647) + 1;
     };
 
     String.prototype.trimLeftChars = function(charList){

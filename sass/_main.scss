@@ -127,48 +127,54 @@ input[type="color"]:focus,
  * Headers
  */
 
-h1 {
-	letter-spacing:-1px;
-	font-size:$font-size-h1;
-	margin:10px 0;
-}h1 small {
-	font-size:$font-size-h4;
-	font-weight:300;
-	letter-spacing:-1px;
+.h1, .h2, .h3, .h4, .h5, .h6 {
+	display: inline-block;
 }
 
-h2 {
-  font-size: $font-size-h2;
-  margin: 20px 0;
-  line-height: normal;
+h1, .h1 {
+	letter-spacing: -1px;
+	font-size: $font-size-h1;
+	margin: 10px 0;
+
+	small, .small {
+		font-size: $font-size-h4;
+		font-weight: 300;
+		letter-spacing: -1px;
+	}
 }
 
-h3 {
+h2, .h2 {
+	font-size: $font-size-h2;
+	margin: 20px 0;
+	line-height: normal;
+}
+
+h3, .h3 {
 	display: block;
 	font-size: $font-size-h3;
 	font-weight: 400;
 	margin: 20px 0;
-	line-height:normal;
+	line-height: normal;
 }
 
-h4 {
-	line-height:normal;
-    margin: 20px 0 10px 0;
+h4, .h4 {
+	line-height: normal;
+	margin: 20px 0 10px 0;
 }
 
-h5 {
+h5, .h5 {
 	font-size: $font-size-h5;
 	font-weight: 300;
 	margin-top: 0;
-    margin-bottom: 10px;
-	line-height:normal;
+	margin-bottom: 10px;
+	line-height: normal;
 }
 
-h6 {
+h6, .h6 {
 	font-size: $font-size-h6;
 	margin: 10px 0;
-	font-weight:bold;
-	line-height:normal;
+	font-weight: bold;
+	line-height: normal;
 }
 
 .row-seperator-header {
@@ -270,7 +276,7 @@ h6 {
 .input-group-addon {
   padding: 6px 10px;
   will-change: background-color, border-color;
-  @include border-radius(0);
+  border-radius: 0;
   @include transition(all ease-out .15s);
 }
 
@@ -601,7 +607,7 @@ input[type="email"]{
 	height: 18px;
 	background: $gray-light;
 	@include box-shadow( 0 1px 0 transparent, 0 0 0 1px $gray-light inset);
-	@include border-radius($progressbar-radius);
+	border-radius: $progressbar-radius;
 }
 
 .progress-bar {
@@ -1022,7 +1028,7 @@ input[type="email"]{
 .btn {
   font-family: $font-family-bold;
   will-change: background-color, border-color;
-  @include border-radius(2px);
+  border-radius: 2px;
   //@include transition( all 0.06s linear );
   @include transition( color 0.18s ease-in-out, background-color 0.18s ease-in-out, border-color 0.18s ease-in-out, box-shadow 0.18s ease-in-out );
   //@include box-shadow(0 1px 3px 0 rgba(red($black), green($black), blue($black), 0.12), 0 1px 2px 0 rgba(red($black), green($black), blue($black), 0.24));

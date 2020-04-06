@@ -75,10 +75,10 @@ define([
         // Due to "complex" table headers, they are already rendered and part of the stats.html file
         let table = dialogElement.find('#' + config.statsTableId);
 
-        let  statsTable = table.DataTable({
-            dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"f>>' +
-                '<"row"<"col-xs-12"tr>>' +
-                '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+        let statsTable = table.DataTable({
+            dom: '<"flex-row flex-between"<"flex-col"l><"flex-col"B><"flex-col"fS>>' +
+                '<"flex-row"<"flex-col flex-grow"tr>>' +
+                '<"flex-row flex-between"<"flex-col"i><"flex-col"p>>',
             buttons: {
                 name: 'tableTools',
                 buttons: [
@@ -772,7 +772,7 @@ define([
      * show activity stats dialog
      */
     $.fn.showStatsDialog = function(){
-        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
+        requirejs(['text!templates/dialog/stats.html', 'mustache'], (template, Mustache) => {
             // get current statistics map settings
             let logActivityEnabled = false;
             let activeMap = Util.getMapModule().getActiveMap();

@@ -6,45 +6,33 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'bootbox',
-    'layout/logo'
+    'bootbox'
 ], ($, Init, Util, bootbox) => {
     'use strict';
 
     let config = {
-        // jump info dialog
-        creditsDialogClass: 'pf-credits-dialog',                                // class for credits dialog
-        creditsDialogLogoContainerId: 'pf-logo-container'                       // id for logo element
+        creditsDialogClass: 'pf-credits-dialog'
     };
 
     /**
      * show jump info dialog
      */
-    $.fn.showCreditsDialog = function(callback, enableHover){
-
+    $.fn.showCreditsDialog = function(){
         requirejs(['text!templates/dialog/credit.html', 'mustache'], (template, Mustache) => {
-
             let data = {
-                logoContainerId: config.creditsDialogLogoContainerId,
-                version: Util.getVersion()
+                version: Util.getVersion(),
+                imgSrcBackground: `${Util.imgRoot()}header/pf-header-780.webp`,
+                imgSrcPatreon: `${Util.imgRoot()}misc/donate_patreon.png`,
+                imgSrcPaypal: `${Util.imgRoot()}misc/donate_paypal.png`,
             };
 
             let content = Mustache.render(template, data);
 
-            let creditDialog = bootbox.dialog({
+            bootbox.dialog({
                 className: config.creditsDialogClass,
                 title: 'Licence',
                 message: content
             });
-
-            // after modal is shown =======================================================================
-            creditDialog.on('shown.bs.modal', function(e){
-
-                // load Logo svg
-                creditDialog.find('#' + config.creditsDialogLogoContainerId).drawLogo(callback, enableHover);
-            });
-
         });
-
     };
 });

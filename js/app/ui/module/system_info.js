@@ -6,426 +6,448 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/map/util'
-], ($, Init, Util, MapUtil) => {
+    'app/map/util',
+    'module/base'
+], ($, Init, Util, MapUtil, BaseModule) => {
     'use strict';
 
-    let config = {
-        // module info
-        modulePosition: 2,
-        moduleName: 'systemInfo',
+    let SystemInfoModule = class SystemInfoModule extends BaseModule {
+        constructor(config = {}) {
+            super(Object.assign({}, new.target.defaultConfig, config));
+        }
 
-        // system info module
-        moduleTypeClass: 'pf-system-info-module',                               // class for this module
+        /**
+         * custom header for this module
+         * @returns {*}
+         */
+        newHeaderElement(){
+            let headEl = this.newHeadElement();
 
-        // headline toolbar
-        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
-        textActionIconCopyClass: 'pf-module-icon-button-copy',                  // class for text action "copy"
-
-        // breadcrumb
-        constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" name
-        regionLinkClass: 'pf-system-info-region',                               // class for "region" name
-        typeLinkClass: 'pf-system-info-type',                                   // class for "type" name
-
-        // info col/table
-        systemInfoSectionClass: 'pf-system-info-section',                       // class for system info section
-        systemInfoTableClass: 'pf-module-table',                                // class for system info table
-        systemInfoNameClass: 'pf-system-info-name',                             // class for "name" information element
-        systemInfoEffectClass: 'pf-system-info-effect',                         // class for "effect" information element
-        systemInfoPlanetsClass: 'pf-system-info-planets',                       // class for "planets" information element
-        systemInfoStatusLabelClass: 'pf-system-info-status-label',              // class for "status" information element
-        systemInfoStatusAttributeName: 'data-status',                           // attribute name for status label
-        systemInfoWormholeClass: 'pf-system-info-wormhole-',                    // class prefix for static wormhole element
-
-        // description field
-        descriptionSectionClass: 'pf-system-description-section',               // class for system description section
-        descriptionAreaClass: 'pf-system-info-description-area',                // class for description area
-        addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
-        descriptionTextareaElementClass: 'pf-system-info-description',          // class for description textarea element (Summernote)
-
-        // sovereignty col/table
-        systemSovSectionClass: 'pf-system-sov-section',                         // class for system sov. section
-        systemSovTableClass: 'pf-module-table',                                 // class for system sov. table
-        systemSovFwContestedRowClass: 'pf-system-sov-fw-contested-row',         // class for "contested" sov. table row
-        systemSovFwOccupationRowClass: 'pf-system-sov-fw-occupation-row',       // class for "-occupation" sov. table row
-        systemSovFwContestedClass: 'pf-system-sov-fw-contested',
-        systemSovFwPercentageClass: 'pf-system-sov-fw-percentage',
-        systemSovFwOccupationClass: 'pf-system-sov-fw-occupation',
-        systemSovFwOccupationImageClass: 'pf-system-sov-fw-occupation-image',
-        systemSovFwStatusIconClass: 'pf-system-sov-fw-status-icon',
-
-        // fonts
-        fontTriglivianClass: 'pf-triglivian',                                   // class for "Triglivian" names (e.g. Abyssal systems)
-
-        // Summernote
-        defaultBgColor: '#e2ce48'
-    };
-
-    // max character length for system description
-    let maxDescriptionLength = 9000;
-
-    /**
-     * update trigger function for this module
-     * compare data and update module
-     * @param moduleElement
-     * @param systemData
-     */
-    let updateModule = (moduleElement, systemData) => {
-        let systemId = moduleElement.data('id');
-        let updated = moduleElement.data('updated');
-
-        if(
-            systemId === systemData.id &&
-            updated !== systemData.updated.updated
-        ){
-            let setUpdated = true;
-
-            // created/updated tooltip --------------------------------------------------------------------------------
-            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
-
-            let tooltipData = {
-                created: systemData.created,
-                updated: systemData.updated
-            };
-
-            nameRowElement.addCharacterInfoTooltip( tooltipData );
-
-            // update system status -----------------------------------------------------------------------------------
-            let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
-            let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
-
-            if(systemStatusId !== systemData.status.id){
-                // status changed
-                let currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
-                let newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
-                let newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
-                systemStatusLabelElement.removeClass(currentStatusClass).addClass(newStatusClass).text(newStatusLabel);
-
-                // set new status attribute
-                systemStatusLabelElement.attr( config.systemInfoStatusAttributeName, systemData.status.id);
+            let headAliasEl = this.newHeadlineElement(this._systemData.alias || this._systemData.name);
+            headAliasEl.setAttribute('title', 'alias');
+            headAliasEl.classList.add('pull-right');
+            if(this._systemData.security === 'A'){
+                headAliasEl.classList.add(this._config.fontTriglivianClass);
             }
 
-            // update description textarea ----------------------------------------------------------------------------
-            let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
-            if(descriptionTextareaElement.length){
-                let description = descriptionTextareaElement.html();
-                if(description !== systemData.description){
-                    // description has changed
-                    if(typeof descriptionTextareaElement.data().summernote === 'object'){
-                        // "Summernote" editor is currently open
-                        setUpdated = false;
-                    }else{
-                        // not open
-                        let newDescription = systemData.description;
-                        if( !Util.isValidHtml(newDescription) ){
-                            // try to convert raw text into valid html
-                            newDescription = newDescription.replace(/(\r\n|\n|\r)/g, '<br>');
-                            newDescription = '<p>' + newDescription + '</p>';
-                        }
+            let iconEl = this.newIconElement(['fa-fw', 'fa-angle-double-right']);
 
-                        descriptionTextareaElement.html(newDescription);
+            let headSysTypeEl = this.newHeadlineElement();
+            let sysTypeEl = document.createElement('span');
+            sysTypeEl.setAttribute('title', 'type');
+            sysTypeEl.classList.add(this._config.typeLinkClass);
+            sysTypeEl.textContent = MapUtil.getSystemTypeInfo(this._systemData.type.id, 'name');
+            headSysTypeEl.append(sysTypeEl, iconEl);
+
+            let headSysRegionEl = this.newHeadlineElement();
+            let sysRegionEl = document.createElement('span');
+            sysRegionEl.setAttribute('title', 'region');
+            sysRegionEl.classList.add(this._config.regionLinkClass);
+            if(this._systemData.security === 'A'){
+                sysRegionEl.classList.add(this._config.fontTriglivianClass);
+            }
+            sysRegionEl.textContent = this._systemData.region.name;
+            headSysRegionEl.append(sysRegionEl, iconEl.cloneNode());
+
+            let headSysConstellationEl = this.newHeadlineElement();
+            let sysConstellationEl = document.createElement('span');
+            sysConstellationEl.classList.add(this._config.constellationLinkClass, this._config.linkClass, Util.config.popoverTriggerClass);
+            if(this._systemData.security === 'A'){
+                sysConstellationEl.classList.add(this._config.fontTriglivianClass);
+            }
+            sysConstellationEl.textContent = this._systemData.constellation.name;
+            sysConstellationEl.setAttribute('popup-ajax', Init.path.getConstellationData + '/' + this._systemData.constellation.id);
+            headSysConstellationEl.append(sysConstellationEl, iconEl.cloneNode());
+
+            let headSysNameEl = this.newHeadlineElement();
+            let sysNameEl = document.createElement('span');
+            sysNameEl.setAttribute('title', 'system');
+            if(this._systemData.security === 'A'){
+                sysNameEl.classList.add(this._config.fontTriglivianClass);
+            }
+            sysNameEl.textContent = this._systemData.name;
+            let iconCopyEl = this.newIconElement(['fa-fw', 'fa-copy', this._config.moduleHeadlineIconClass, this._config.textActionIconCopyClass]);
+            iconCopyEl.setAttribute('title', 'copy url');
+            iconCopyEl.dataset.copy = MapUtil.getMapDeeplinkUrl(this._systemData.mapId, this._systemData.id);
+            headSysNameEl.append(sysNameEl, iconCopyEl);
+            if(this._systemData.locked){
+                let iconLockedEl = this.newIconElement(['fa-fw', 'fa-lock', this._config.moduleHeadlineIconClass]);
+                iconLockedEl.setAttribute('title', 'locked');
+                headSysNameEl.append(iconLockedEl);
+            }
+            for(let linkData of this.getThirdPartySystemLinks(['dotlan', 'eveeye', 'anoik'])){
+                if(linkData.showInModuleHead){
+                    let headSysLinkEl = document.createElement('a');
+                    headSysLinkEl.classList.add('pf-bg-icon-inline');
+                    headSysLinkEl.style.setProperty('--bg-image', `url("${Util.imgRoot()}icons/logo_${linkData.page}.png")`);
+                    headSysLinkEl.setAttribute('title', linkData.title);
+                    headSysLinkEl.setAttribute('href', linkData.url);
+                    headSysLinkEl.setAttribute('target', '_blank');
+                    headSysLinkEl.setAttribute('rel', 'noopener');
+                    headSysNameEl.append(headSysLinkEl);
+                }
+            }
+
+            headEl.append(
+                this.newHandlerElement(),
+                headAliasEl,
+                headSysTypeEl,
+                headSysRegionEl,
+                headSysConstellationEl,
+                headSysNameEl
+            );
+            return headEl;
+        }
+
+        /**
+         * update module
+         * @param systemData
+         * @returns {Promise}
+         */
+        update(systemData){
+            return super.update(systemData).then(systemData => new Promise(resolve => {
+                if(
+                    this._systemData.id === systemData.id &&
+                    this._updated !== systemData.updated.updated
+                ){
+                    let setUpdated = true;
+
+                    // created/updated tooltip ------------------------------------------------------------------------
+                    let nameRowElement = $(this.moduleElement).find('.' + this._config.systemInfoNameClass);
+                    let tooltipData = {
+                        created: systemData.created,
+                        updated: systemData.updated
+                    };
+                    nameRowElement.addCharacterInfoTooltip(tooltipData);
+
+                    // update system status ---------------------------------------------------------------------------
+                    let systemStatusLabelElement = $(this.moduleElement).find('.' + this._config.systemInfoStatusLabelClass);
+                    let systemStatusId = parseInt(systemStatusLabelElement.attr('data-status'));
+
+                    if(systemStatusId !== systemData.status.id){
+                        // status changed
+                        let currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
+                        let newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
+                        let newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
+                        systemStatusLabelElement.removeClass(currentStatusClass).addClass(newStatusClass).text(newStatusLabel);
+
+                        // set new status attribute
+                        systemStatusLabelElement.attr('data-status', systemData.status.id);
+                    }
+
+                    // update description textarea --------------------------------------------------------------------
+                    let descriptionTextareaElement = $(this.moduleElement).find('.' + this._config.descriptionTextareaElementClass);
+                    if(descriptionTextareaElement.length){
+                        let description = descriptionTextareaElement.html();
+                        if(description !== systemData.description){
+                            // description has changed
+                            if(typeof descriptionTextareaElement.data().summernote === 'object'){
+                                // "Summernote" editor is currently open
+                                setUpdated = false;
+                            }else{
+                                // not open
+                                let newDescription = systemData.description;
+                                if(!Util.isValidHtml(newDescription)){
+                                    // try to convert raw text into valid html
+                                    newDescription = newDescription.replace(/(\r\n|\n|\r)/g, '<br>');
+                                    newDescription = '<p>' + newDescription + '</p>';
+                                }
+
+                                descriptionTextareaElement.html(newDescription);
+                            }
+                        }
+                    }
+
+                    if(setUpdated){
+                        this._updated = systemData.updated.updated;
                     }
                 }
-            }
 
-            // update faction warfare rows ----------------------------------------------------------------------------
-            let fwContestedRow = moduleElement.find('.' + config.systemSovFwContestedRowClass);
-            let fwOccupationRow = moduleElement.find('.' + config.systemSovFwOccupationRowClass);
-            if(systemData.factionWar){
-                let contested       = String(Util.getObjVal(systemData.factionWar, 'contested') || '');
-                let percentage      = parseInt(Util.getObjVal(systemData.factionWar, 'victoryPercentage')) || 0;
-                let occupierFaction = Util.getObjVal(systemData.factionWar, 'occupierFaction');
+                $(this.moduleElement).hideLoadingAnimation();
 
-                let statusColor = 'red';
-                if(occupierFaction){
-                    // system is "occupied" by hostile "occupierFaction" (stable)
-                    // -> hide percent
-                    statusColor = '#d9534f';
-                    percentage += '%';
-                }else if('uncontested' === contested){
-                    // system is "uncontested" and owned by default ownerFaction (stable)
-                    // -> hide percent
-                    statusColor = '#4f9e4f';
-                    percentage = 'stable';
-                }else if('contested' === contested){
-                    // system is "contested", 0%-99% percentage
-                    statusColor = '#e28a0d';
-                    percentage += '%';
-                }else if(
-                    'vulnerable' === contested ||
-                    'captured' === contested
-                ){
-                    // system is "vulnerable", 100% percentage
-                    // -> "captured" state is might be the same?!
-                    statusColor = '#d747d6';
-                    percentage = '100%';
-                }
-
-                fwContestedRow.find('.' + config.systemSovFwStatusIconClass)[0].style.setProperty('--color', statusColor);
-                fwContestedRow.find('.' + config.systemSovFwContestedClass).text(contested);
-                fwContestedRow.find('.' + config.systemSovFwPercentageClass).text(percentage);
-                fwContestedRow.show();
-
-                let occupierFactionImage = Util.eveImageUrl('factions', (occupierFaction ? occupierFaction.id : 0), 64);
-                let occupierFactionName = occupierFaction ? occupierFaction.name : '';
-
-                fwOccupationRow.find('.' + config.systemSovFwOccupationImageClass)[0].style.setProperty('--bg-image', 'url(\'' + occupierFactionImage + '\')');
-                fwOccupationRow.find('.' + config.systemSovFwOccupationClass).text(occupierFactionName);
-                if(occupierFaction){
-                    fwOccupationRow.show();
-                }
-            }else{
-                fwContestedRow.hide();
-                fwOccupationRow.hide();
-            }
-
-            if(setUpdated){
-                moduleElement.data('updated', systemData.updated.updated);
-            }
+                resolve({
+                    action: 'update',
+                    data: {
+                        module: this
+                    }
+                });
+            }));
         }
 
-        moduleElement.find('.' + config.descriptionAreaClass).hideLoadingAnimation();
-        moduleElement.find('.' + config.systemSovSectionClass + ' .' + Util.config.dynamicAreaClass).hideLoadingAnimation();
-    };
+        /**
+         * render module
+         * @param mapId
+         * @param systemData
+         * @returns {HTMLElement}
+         */
+        render(mapId, systemData){
+            this._systemData = systemData;
 
-    /**
-     * @param pages
-     * @param systemData
-     */
-    let getThirdPartySystemLinks = (pages, systemData) => {
-        let links = [];
-        let isWormhole = MapUtil.getSystemTypeInfo(Util.getObjVal(systemData, 'type.id'), 'name') === 'w-space';
-        let systemName = Util.getObjVal(systemData, 'name') || '';
-        let regionName = Util.getObjVal(systemData, 'region.name') || '';
+            let rowEl = document.createElement('div');
+            rowEl.classList.add(this._config.bodyClassName, 'grid');
 
-        let setDestination = e => {
-            e.preventDefault();
-            e.stopPropagation();
-            Util.setDestination('set_destination', 'system', {id: systemData.systemId, name: systemData.name});
-        };
+            let colInfoEl, colSovEl, colDescEl;
 
-        for(let i = 0; i < pages.length; i++){
-            let link = null;
-            let showInModuleHead = true;
-            let domain = Util.getObjVal(Init, 'url.' + pages[i]);
-            if(domain){
-                // linkOut url
-                let url = false;
-                switch(pages[i]){
-                    case 'dotlan':
-                        let systemNameTemp = systemName.replace(/ /g, '_');
-                        let regionNameTemp = regionName.replace(/ /g, '_');
-                        if(isWormhole){
-                            url = domain + '/system/' + systemNameTemp;
-                        }else{
-                            url = domain + '/map/' + regionNameTemp + '/' + systemNameTemp;
-                        }
-                        break;
-                    case 'eveeye':
-                        if(!isWormhole){
-                            url = domain + '/?m=' + encodeURIComponent(regionName) + '&s=' + encodeURIComponent(systemName);
-                            url += '&t=eswkc&o=thera,con_svc,node_sov,sub_sec,sector_fac,tag_mk';
-                        }
-                        break;
-                    case 'anoik':
-                        if(isWormhole){
-                            url = domain + '/systems/' + systemName;
-                        }
-                        break;
-                }
+            colInfoEl = document.createElement('div');
+            colInfoEl.classList.add(this._config.systemInfoSectionClass);
+            rowEl.append(colInfoEl);
 
-                if(url){
-                    let urlObj = new URL(url);
-                    link = {
-                        title: urlObj.hostname,
-                        url: url
-                    };
-                }
-            }else{
-                // custom callback
-                let action = false;
-                let title = false;
-                switch(pages[i]){
-                    case 'eve':
-                        action = setDestination;
-                        title = 'set destination';
-                        showInModuleHead = false;
-                        break;
-                }
+            colSovEl = document.createElement('div');
+            colSovEl.classList.add(this._config.systemSovSectionClass, 'pf-dynamic-area');
+            rowEl.append(colSovEl);
 
-                if(action){
-                    link = {
-                        title: title|| pages[i],
-                        action: action
-                    };
-                }
-            }
+            colDescEl = document.createElement('div');
+            colDescEl.classList.add(this._config.descriptionSectionClass);
+            rowEl.append(colDescEl);
 
+            this.moduleElement.append(rowEl);
 
-            if(link){
-                links.push(Object.assign({}, link, {
-                    page: pages[i],
-                    showInModuleHead: showInModuleHead
-                }));
-            }
+            require(['text!templates/modules/system_info.html', 'mustache', 'summernote.loader'], (template, Mustache, Summernote) => {
+                SystemInfoModule.Mustache = Mustache;
+                SystemInfoModule.Summernote = Summernote;
+
+                template = new DOMParser().parseFromString(template, 'text/html');
+                SystemInfoModule.tplInfoSection = template.getElementById('tplInfoSection').innerHTML;
+                SystemInfoModule.tplSovSection = template.getElementById('tplSovSection').innerHTML;
+                SystemInfoModule.tplDescSection = template.getElementById('tplDescSection').innerHTML;
+
+                // optional parse() for cache parsed templates
+                SystemInfoModule.Mustache.parse(SystemInfoModule.tplInfoSection);
+                SystemInfoModule.Mustache.parse(SystemInfoModule.tplSovSection);
+                SystemInfoModule.Mustache.parse(SystemInfoModule.tplDescSection);
+
+                this.renderInfoSection(colInfoEl, SystemInfoModule.tplInfoSection);
+                this.renderSovSection(colSovEl, SystemInfoModule.tplSovSection);
+                this.renderDescSection(colDescEl, SystemInfoModule.tplDescSection);
+
+                this.setModuleObserver();
+            });
+
+            return this.moduleElement;
         }
 
-        return links;
-    };
-
-    /**
-     * get module element
-     * @param parentElement
-     * @param mapId
-     * @param systemData
-     */
-    let getModule = (parentElement, mapId, systemData) => {
-        let moduleElement = $('<div>');
-
-        // store systemId -> module can be updated with the correct data
-        moduleElement.data('id', systemData.id);
-
-        // system "sovereignty" data
-        // "primary" data is eigther "alliance" -> 0.0 space
-        //          or "faction" -> Empire Regions (LS, HS)
-        let sovereigntyDefault = {
-            row1Label: 'Sov.',
-            row1Val: '???',
-            row1Img: undefined,
-            row1ImgTitle: undefined,
-            row2Label: undefined,
-            row2Val: undefined,
-            row3Label: undefined,
-            row3Val: undefined
-        };
-
-        let sovereigntyPrimary;
-        let sovereigntySecondary;
-
-        if(systemData.sovereignty){
-            let sovDataFact = Util.getObjVal(systemData.sovereignty, 'faction');
-            let sovDataAlly = Util.getObjVal(systemData.sovereignty, 'alliance');
-            let sovDataCorp = Util.getObjVal(systemData.sovereignty, 'corporation');
-
-            if(sovDataFact){
-                sovereigntyPrimary = {
-                    row1Val: 'Faction',
-                    row1Img: Util.eveImageUrl('factions', sovDataFact.id, 64),
-                    row1ImgTitle: sovDataFact.name,
-                    row2Val: sovDataFact.name
+        /**
+         * render 'sovereignty' section
+         * @param parentEl
+         * @param template
+         */
+        renderInfoSection(parentEl, template){
+            if(SystemInfoModule.Mustache && parentEl && template){
+                let data = {
+                    config: this._config,
+                    system: this._systemData,
+                    systemStatusClass: Util.getStatusInfoForSystem(this._systemData.status.id, 'class'),
+                    systemStatusLabel: Util.getStatusInfoForSystem(this._systemData.status.id, 'label'),
+                    systemNameClass: this._systemData.security === 'A' ? this._config.fontTriglivianClass : '',
+                    systemSecurityClass: Util.getSecurityClassForSystem(this._systemData.security),
+                    trueSec: this._systemData.trueSec.toFixed(1),
+                    trueSecClass: Util.getTrueSecClassForSystem(this._systemData.trueSec),
+                    systemEffectName: MapUtil.getEffectInfoForSystem(this._systemData.effect, 'name'),
+                    systemEffectClass: MapUtil.getEffectInfoForSystem(this._systemData.effect, 'class'),
+                    systemPlanetCount: this._systemData.planets ? this._systemData.planets.length : 0,
+                    systemStaticData: (Util.getObjVal(this._systemData, 'statics') || []).reduce((acc, wormholeName) => {
+                        acc.push(Object.assign({}, Init.wormholes[wormholeName]));
+                        return acc;
+                    }, []),
+                    systemShatteredClass: Util.getSecurityClassForSystem('SH'),
+                    popoverTriggerClass: Util.config.popoverTriggerClass
                 };
-            }else{
-                if(sovDataAlly){
-                    sovereigntyPrimary = {
-                        row1Val: 'Alliance',
-                        row1Img: Util.eveImageUrl('alliances', sovDataAlly.id, 64),
-                        row1ImgTitle: sovDataAlly.name,
-                        row2Val: '<' + sovDataAlly.ticker + '>',
-                        row3Label: 'Ally',
-                        row3Val: sovDataAlly.name
-                    };
-                }
-                if(sovDataCorp){
-                    sovereigntySecondary = {
-                        row1Label: 'Corp',
-                        row1Val: sovDataCorp.name,
-                        row1Img: Util.eveImageUrl('corporations', sovDataCorp.id, 64)
-                    };
-                }
+                parentEl.innerHTML = SystemInfoModule.Mustache.render(template, data);
+
+                this.setInfoSectionObserver(parentEl);
             }
         }
 
-        // system "static" wh data
-        let staticsData = [];
-        if(
-            systemData.statics &&
-            systemData.statics.length > 0
-        ){
-            for(let wormholeName of systemData.statics){
-                let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                staticsData.push(wormholeData);
-            }
-        }
-
-        let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
-        let effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
-
-        let data = {
-            system: systemData,
-            sovereigntyPrimary: sovereigntyPrimary ? Object.assign({}, sovereigntyDefault, sovereigntyPrimary) : undefined,
-            sovereigntySecondary: sovereigntySecondary ? Object.assign({}, sovereigntyDefault, sovereigntySecondary) : undefined,
-            static: staticsData,
-            moduleHeadlineIconClass: config.moduleHeadlineIconClass,
-            textActionIconCopyClass: config.textActionIconCopyClass,
-            infoSectionClass: config.systemInfoSectionClass,
-            descriptionSectionClass: config.descriptionSectionClass,
-            sovSectionClass: config.systemSovSectionClass,
-            infoTableClass: config.systemInfoTableClass,
-            sovTableClass: config.systemSovTableClass,
-            nameInfoClass: config.systemInfoNameClass,
-            effectInfoClass: config.systemInfoEffectClass,
-            planetsInfoClass: config.systemInfoPlanetsClass,
-            wormholePrefixClass: config.systemInfoWormholeClass,
-            statusInfoClass: config.systemInfoStatusLabelClass,
-            popoverTriggerClass: Util.config.popoverTriggerClass,
-
-            // sovereignty table
-            sovFwContestedRowClass: config.systemSovFwContestedRowClass,
-            sovFwOccupationRowClass: config.systemSovFwOccupationRowClass,
-            sovFwContestedInfoClass: config.systemSovFwContestedClass,
-            sovFwPercentageInfoClass: config.systemSovFwPercentageClass,
-            sovFwOccupationInfoClass: config.systemSovFwOccupationClass,
-            sovFwOccupationImageClass: config.systemSovFwOccupationImageClass,
-            sovFwStatusIconClass: config.systemSovFwStatusIconClass,
-
-            systemUrl: MapUtil.getMapDeeplinkUrl(mapId, systemData.id),
-            systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
-            systemStatusId: systemData.status.id,
-            systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
-            systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),
-            securityClass: Util.getSecurityClassForSystem(systemData.security),
-            trueSec: systemData.trueSec.toFixed(1),
-            trueSecClass: Util.getTrueSecClassForSystem( systemData.trueSec ),
-            effectName: effectName,
-            effectClass: effectClass,
-            descriptionAreaClass: config.descriptionAreaClass,
-            descriptionButtonClass: config.addDescriptionButtonClass,
-            descriptionTextareaClass: config.descriptionTextareaElementClass,
-            summernoteClass: Util.config.summernoteClass,
-            systemNameClass: () => {
-                return (val, render) => {
-                    return  render(val) === 'A' ? config.fontTriglivianClass : '';
+        /**
+         * render 'sovereignty' section
+         * @param parentEl
+         * @param template
+         */
+        renderSovSection(parentEl, template){
+            if(SystemInfoModule.Mustache && parentEl && template){
+                // system "sovereignty" data
+                // "primary" data is either "alliance" -> 0.0 space
+                //           or "faction" -> Empire Regions (LS, HS)
+                let sovereigntyDefault = {
+                    row1Label: 'Sov.',
+                    row1Val: '???',
+                    row1Img: undefined,
+                    row1ImgTitle: undefined,
+                    row2Label: undefined,
+                    row2Val: undefined,
+                    row3Label: undefined,
+                    row3Val: undefined
                 };
-            },
-            formatUrl: () => {
-                return (val, render) => render(val).replace(/ /g, '_');
-            },
-            planetCount: systemData.planets ? systemData.planets.length : 0,
 
-            shatteredClass: Util.getSecurityClassForSystem('SH'),
+                let sovereigntyPrimary;
+                let sovereigntySecondary;
 
-            ajaxConstellationInfoUrl: Init.path.getConstellationData,
+                if(this._systemData.sovereignty){
+                    let sovDataFact = Util.getObjVal(this._systemData.sovereignty, 'faction');
+                    let sovDataAlly = Util.getObjVal(this._systemData.sovereignty, 'alliance');
+                    let sovDataCorp = Util.getObjVal(this._systemData.sovereignty, 'corporation');
 
-            systemConstellationLinkClass: config.constellationLinkClass,
-            systemRegionLinkClass: config.regionLinkClass,
-            systemTypeLinkClass: config.typeLinkClass,
-            systemUrlLinkClass: config.textActionIconCopyClass,
-            ccpImageServerUrl: Init.url.ccpImageServer,
-            thirdPartyLinks: getThirdPartySystemLinks(['dotlan', 'eveeye', 'anoik', 'eve'], systemData)
-        };
+                    if(sovDataFact){
+                        sovereigntyPrimary = {
+                            row1Val: 'Faction',
+                            row1Img: Util.eveImageUrl('factions', sovDataFact.id, 64),
+                            row1ImgTitle: sovDataFact.name,
+                            row2Val: sovDataFact.name
+                        };
+                    }else{
+                        if(sovDataAlly){
+                            sovereigntyPrimary = {
+                                row1Val: 'Alliance',
+                                row1Img: Util.eveImageUrl('alliances', sovDataAlly.id, 64),
+                                row1ImgTitle: sovDataAlly.name,
+                                row2Val: '<' + sovDataAlly.ticker + '>',
+                                row3Label: 'Ally',
+                                row3Val: sovDataAlly.name
+                            };
+                        }
+                        if(sovDataCorp){
+                            sovereigntySecondary = {
+                                row1Label: 'Corp',
+                                row1Val: sovDataCorp.name,
+                                row1Img: Util.eveImageUrl('corporations', sovDataCorp.id, 64)
+                            };
+                        }
+                    }
+                }
 
-        requirejs(['text!templates/modules/system_info.html', 'mustache', 'summernote.loader'], (template, Mustache, Summernote) => {
-            let content = Mustache.render(template, data);
-            moduleElement.append(content);
+                let data = {
+                    config: this._config,
+                    sovereigntyPrimary: sovereigntyPrimary ? Object.assign({}, sovereigntyDefault, sovereigntyPrimary) : undefined,
+                    sovereigntySecondary: sovereigntySecondary ? Object.assign({}, sovereigntyDefault, sovereigntySecondary) : undefined,
+                };
 
-            let sovSectionArea = moduleElement.find('.' + config.systemSovSectionClass + ' .' + Util.config.dynamicAreaClass);
-            let descriptionArea = moduleElement.find('.' + config.descriptionAreaClass);
-            let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
-            let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
+                // show only if sov data exists
+                if(data.sovereigntyPrimary){
+                    parentEl.innerHTML = SystemInfoModule.Mustache.render(template, data);
 
-            // lock "description" field until first update
+                    this.setSovSectionObserver(parentEl);
+                }else{
+                    parentEl.parentNode.classList.add(this._config.bodyClassName + '-small');
+                    parentEl.remove();
+                }
+            }
+        }
+
+        /**
+         * render 'description' section
+         * @param parentEl
+         * @param template
+         */
+        renderDescSection(parentEl, template){
+            if(SystemInfoModule.Mustache && parentEl && template){
+                let data = {
+                    config: this._config,
+                    summernoteClass: Util.config.summernoteClass
+                };
+                parentEl.innerHTML = SystemInfoModule.Mustache.render(template, data);
+
+                this.setDescSectionObserver(parentEl);
+            }
+        }
+
+        /**
+         * init module
+         */
+        init(){
+            super.init();
+        }
+
+        /**
+         * set module observer
+         */
+        setModuleObserver(){
+            // init copy system deeplink URL
+            $(this.moduleElement).find('.' + this._config.textActionIconCopyClass).on('click', function(){
+                let mapUrl = $(this).attr('data-copy');
+                Util.copyToClipboard(mapUrl).then(payload => {
+                    if(payload.data){
+                        Util.showNotify({title: 'Copied to clipboard', text: mapUrl, type: 'success'});
+                    }
+                });
+            });
+
+            // init constellation popover
+            $(this.moduleElement).find('[popup-ajax]').popover({
+                html: true,
+                trigger: 'hover',
+                placement: 'top',
+                delay: 200,
+                container: 'body',
+                content: function(){
+                    //return details_in_popup(this);
+                    let popoverElement = $(this);
+                    let popover = popoverElement.data('bs.popover');
+
+                    $.ajax({
+                        url: popoverElement.attr('popup-ajax'),
+                        success: function(data){
+                            popover.options.content = Util.getSystemsInfoTable(data.systemsData);
+                            // reopen popover (new content size)
+                            popover.show();
+                        }
+                    });
+                    return 'Loading...';
+                }
+            });
+
+            // init tooltips
+            $(this.moduleElement).initTooltips({
+                placement: 'top'
+            });
+        }
+
+        /**
+         * observer 'info' section
+         * @param parentEl
+         */
+        setInfoSectionObserver(parentEl){
+            // init system effect popover
+            $(parentEl).find('.' + this._config.systemInfoEffectClass).addSystemEffectTooltip(
+                this._systemData.security,
+                this._systemData.effect, {
+                    placement: 'left'
+                });
+
+            // init planets popover
+            $(parentEl).find('.' + this._config.systemInfoPlanetsClass).addSystemPlanetsTooltip(
+                this._systemData.planets, {
+                placement: 'left'
+            });
+
+            // init static wormhole popover
+            MapUtil.initWormholeInfoTooltip($(parentEl), '[data-name]', {
+                placement: 'left'
+            });
+        }
+
+        /**
+         * observer 'sovereignty' section
+         * @param parentEl
+         */
+        setSovSectionObserver(parentEl){
+            // "lock" area until first update
+            $(parentEl).showLoadingAnimation();
+        }
+
+        /**
+         * observer 'description' section
+         * @param parentEl
+         */
+        setDescSectionObserver(parentEl){
+            let descriptionArea = $(parentEl).find('.' + this._config.descriptionAreaClass);
+            let descriptionButton = $(parentEl).find('.' + this._config.addDescriptionButtonClass);
+            let descriptionTextareaElement = $(parentEl).find('.' + this._config.descriptionTextareaElementClass);
+            let maxDescriptionLength = this._config.maxDescriptionLength;
+            let systemId = this._systemData.id;
+            let saveCallback = this.update.bind(this);
+
+            // "lock" area until first update
             descriptionArea.showLoadingAnimation();
-            sovSectionArea.showLoadingAnimation();
 
             // WYSIWYG init on button click ---------------------------------------------------------------------------
             descriptionButton.on('click', function(e){
@@ -437,7 +459,7 @@ define([
                 // content has changed
                 let descriptionChanged = false;
 
-                Summernote.initSummernote(descriptionTextareaElement, {
+                SystemInfoModule.Summernote.initSummernote(descriptionTextareaElement, {
                     height: 75,                 // set editor height
                     minHeight: 75,              // set minimum height of editor
                     maxHeight: 500,             // set maximum height of editor
@@ -473,12 +495,12 @@ define([
                                         let validDescription = true;
                                         let description = '';
 
-                                        if( context.$note.summernote('isEmpty') ){
+                                        if(context.$note.summernote('isEmpty')){
                                             // ... isEmpty -> clear empty default tags as well
                                             context.$note.summernote('code', '');
                                         }else{
                                             description = context.$note.summernote('code');
-                                            if( !Util.isValidHtml(description) ){
+                                            if(!Util.isValidHtml(description)){
                                                 // ... not valid HTML
                                                 validDescription = false;
                                                 context.layoutInfo.editable.addClass('has-error');
@@ -490,7 +512,7 @@ define([
                                             // ... valid -> save()
                                             descriptionArea.showLoadingAnimation();
 
-                                            Util.request('PATCH', 'system', systemData.id, {
+                                            Util.request('PATCH', 'System', systemId, {
                                                 description: description
                                             }, {
                                                 descriptionArea: descriptionArea
@@ -500,7 +522,7 @@ define([
                                             }).then(
                                                 payload => {
                                                     context.$note.summernote('destroy');
-                                                    updateModule(moduleElement, payload.data);
+                                                    saveCallback(payload.data);
                                                 },
                                                 Util.handleAjaxErrorResponse
                                             );
@@ -522,13 +544,14 @@ define([
 
                             // set default background color
                             // -> could not figure out how to set by API as default color
-                            context.toolbar.find('.note-current-color-button').attr('data-backcolor', config.defaultBgColor)
-                                .find('.note-recent-color').css('background-color', config.defaultBgColor);
+                            let defaultBgColor = '#e2ce48';
+                            context.toolbar.find('.note-current-color-button').attr('data-backcolor', defaultBgColor)
+                                .find('.note-recent-color').css('background-color', defaultBgColor);
                         },
                         onChange: function(contents){
                             descriptionChanged = true;
                         },
-                        onPaste: function (e) {
+                        onPaste: function(e){
                             let bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
                             e.preventDefault();
 
@@ -543,94 +566,128 @@ define([
                     }
                 });
             });
+        }
 
-            // init system effect popover -----------------------------------------------------------------------------
-            moduleElement.find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
+        /**
+         * get 3rd party system link configuration
+         * @param pages
+         * @returns {[]}
+         */
+        getThirdPartySystemLinks(pages){
+            let links = [];
+            let isWormhole = MapUtil.getSystemTypeInfo(Util.getObjVal(this._systemData, 'type.id'), 'name') === 'w-space';
+            let systemName = Util.getObjVal(this._systemData, 'name') || '';
+            let regionName = Util.getObjVal(this._systemData, 'region.name') || '';
 
-            // init planets popover -----------------------------------------------------------------------------------
-            moduleElement.find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
+            for(let i = 0; i < pages.length; i++){
+                let link = null;
+                let showInModuleHead = true;
+                let domain = Util.getObjVal(Init, 'url.' + pages[i]);
+                if(domain){
+                    // linkOut url
+                    let url = false;
+                    switch(pages[i]){
+                        case 'dotlan':
+                            let systemNameTemp = systemName.replace(/ /g, '_');
+                            let regionNameTemp = regionName.replace(/ /g, '_');
+                            if(isWormhole){
+                                url = domain + '/system/' + systemNameTemp;
+                            }else{
+                                url = domain + '/map/' + regionNameTemp + '/' + systemNameTemp;
+                            }
+                            break;
+                        case 'eveeye':
+                            if(!isWormhole){
+                                url = domain + '/?m=' + encodeURIComponent(regionName) + '&s=' + encodeURIComponent(systemName);
+                                url += '&t=eswkc&o=thera,con_svc,node_sov,sub_sec,sector_fac,tag_mk';
+                            }
+                            break;
+                        case 'anoik':
+                            if(isWormhole){
+                                url = domain + '/systems/' + systemName;
+                            }
+                            break;
+                    }
 
-            // init static wormhole information -----------------------------------------------------------------------
-            for(let staticData of staticsData){
-                let staticRowElement = moduleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
-                staticRowElement.addWormholeInfoTooltip(staticData);
+                    if(url){
+                        let urlObj = new URL(url);
+                        link = {
+                            title: urlObj.hostname,
+                            url: url
+                        };
+                    }
+                }
+
+                if(link){
+                    links.push(Object.assign({}, link, {
+                        page: pages[i],
+                        showInModuleHead: showInModuleHead
+                    }));
+                }
             }
 
-            // copy system deeplink URL -------------------------------------------------------------------------------
-            moduleElement.find('.' + config.textActionIconCopyClass).on('click', function(){
-                let mapUrl = $(this).attr('data-url');
-                Util.copyToClipboard(mapUrl).then(payload => {
-                    if(payload.data){
-                        Util.showNotify({title: 'Copied to clipboard', text: mapUrl, type: 'success'});
-                    }
-                });
-            });
+            return links;
+        }
 
-            // constellation popover ----------------------------------------------------------------------------------
-            moduleElement.find('a.popup-ajax').popover({
-                html: true,
-                trigger: 'hover',
-                placement: 'top',
-                delay: 200,
-                container: 'body',
-                content: function(){
-                    return details_in_popup(this);
-                }
-            });
+        beforeDestroy(){
+            super.beforeDestroy();
 
-            let details_in_popup = popoverElement => {
-                popoverElement = $(popoverElement);
-                let popover = popoverElement.data('bs.popover');
-
-                $.ajax({
-                    url: popoverElement.data('url'),
-                    success: function(data){
-                        popover.options.content = Util.getSystemsInfoTable(data.systemsData);
-                        // reopen popover (new content size)
-                        popover.show();
-                    }
-                });
-                return 'Loading...';
-            };
-
-            // 3rd party click callbacks ------------------------------------------------------------------------------
-            moduleElement.on('click', '[data-link]', e => {
-                for(let link of data.thirdPartyLinks){
-                    if(
-                        e.target.dataset.link === link.page &&
-                        typeof link.action === 'function'
-                    ){
-                        link.action(e);
-                        break;
-                    }
-                }
-            });
-
-            // init tooltips ------------------------------------------------------------------------------------------
-            let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
-            tooltipElements.tooltip({
-                container: 'body',
-                placement: 'top'
-            });
-        });
-
-        return moduleElement;
+            let descriptionTextareaEl = this.moduleElement.querySelector(`.${this._config.descriptionTextareaElementClass}`);
+            if(descriptionTextareaEl && $(descriptionTextareaEl).summernote){
+                $(descriptionTextareaEl).summernote('destroy');
+            }
+        }
     };
 
-    /**
-     * efore module destroy callback
-     * @param moduleElement
-     */
-    let beforeDestroy = moduleElement => {
-        moduleElement.find('.' +  config.descriptionTextareaElementClass).summernote('destroy');
+    SystemInfoModule.isPlugin = false;                                          // module is defined as 'plugin'
+    SystemInfoModule.scope = 'system';                                          // module scope controls how module gets updated and what type of data is injected
+    SystemInfoModule.sortArea = 'a';                                            // default sortable area
+    SystemInfoModule.position = 2;                                              // default sort/order position within sortable area
+    SystemInfoModule.label = 'Information';                                     // static module label (e.g. description)
+    SystemInfoModule.fullDataUpdate = true;                                     // static module requires additional data (e.g. system description,...)
 
-        moduleElement.destroyPopover(true);
+    SystemInfoModule.defaultConfig = {
+        className: 'pf-system-info-module',                                     // class for module
+        sortTargetAreas: ['a', 'b', 'c'],                                       // sortable areas where module can be dragged into
+
+        // headline toolbar
+        textActionIconCopyClass: 'pf-module-icon-button-copy',                  // class for text action "copy"
+
+        // breadcrumb
+        constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" name
+        regionLinkClass: 'pf-system-info-region',                               // class for "region" name
+        typeLinkClass: 'pf-system-info-type',                                   // class for "type" name
+
+        // info area
+        systemInfoSectionClass: 'pf-system-info-section',                       // class for system info section
+        systemInfoTableClass: 'pf-module-table',                                // class for system info table
+        systemInfoNameClass: 'pf-system-info-name',                             // class for "name" information element
+        systemInfoEffectClass: 'pf-system-info-effect',                         // class for "effect" information element
+        systemInfoPlanetsClass: 'pf-system-info-planets',                       // class for "planets" information element
+        systemInfoStatusLabelClass: 'pf-system-info-status-label',              // class for "status" information element
+
+        // sovereignty area
+        systemSovSectionClass: 'pf-system-sov-section',                         // class for system sov. section
+        systemSovTableClass: 'pf-module-table',                                 // class for system sov. table
+        systemSovFwContestedRowClass: 'pf-system-sov-fw-contested-row',         // class for "contested" sov. table row
+        systemSovFwOccupationRowClass: 'pf-system-sov-fw-occupation-row',       // class for "-occupation" sov. table row
+        systemSovFwContestedClass: 'pf-system-sov-fw-contested',
+        systemSovFwPercentageClass: 'pf-system-sov-fw-percentage',
+        systemSovFwOccupationClass: 'pf-system-sov-fw-occupation',
+        systemSovFwOccupationImageClass: 'pf-system-sov-fw-occupation-image',
+        systemSovFwStatusIconClass: 'pf-system-sov-fw-status-icon',
+
+        // description area
+        descriptionSectionClass: 'pf-system-description-section',               // class for system description section
+        descriptionAreaClass: 'pf-system-info-description-area',                // class for description area
+        addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
+        descriptionTextareaElementClass: 'pf-system-info-description',          // class for description textarea element (Summernote)
+        maxDescriptionLength: 9000,                                             // max character length for system description
+
+        // fonts
+        fontTriglivianClass: 'pf-triglivian',                                   // class for "Triglivian" names (e.g. Abyssal systems)
+        linkClass: 'pf-link'
     };
 
-    return {
-        config: config,
-        getModule: getModule,
-        updateModule: updateModule,
-        beforeDestroy: beforeDestroy
-    };
+    return SystemInfoModule;
 });

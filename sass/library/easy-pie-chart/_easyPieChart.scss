@@ -1,11 +1,11 @@
 // global pie chart styles
 .pf-pie-chart {
   position: relative !important;
-  display:table-cell;
+  display: table-cell;
   text-align: center;
   vertical-align: middle;
 
-  span{
+  span {
     display: inline-block;
   }
 
@@ -17,7 +17,7 @@
 }
 
 // pie chart map timer
-.pf-pie-chart-map-timer{
+.pf-pie-chart-map-timer {
   width: 36px;
   height: 36px;
   margin: 3px;
@@ -27,12 +27,9 @@
     left: 3px;
   }
 
-  span{
+  span {
     font-size: 10px;
-    &:after {
-      content: 's';
-      margin-left: 1px;
-    }
+    color: $gray;
   }
 
 }

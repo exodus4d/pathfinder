@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'datatables.loader'
-], ($, Init, Util) => {
+], ($, Init, Util, dtLoader) => {
 
     'use strict';
 
@@ -73,21 +73,23 @@ define([
 
         setPageObserver();
 
-        let temp = $('.dataTable').dataTable({
-            pageLength: 100,
-            paging: true,
-            ordering: true,
-            autoWidth: false,
-            hover: false,
-            language: {
-                emptyTable:  'No entries',
-                zeroRecords: 'No entries found',
-                lengthMenu:  'Show _MENU_ entries',
-                info:        'Showing _START_ to _END_ of _TOTAL_ entries'
-            },
-            data: null      // use DOM data overwrites [] default -> data.loader.js
+        dtLoader.initDefaultConfig({
+            breakpoints: Init.breakpoints
+        }).then(() => {
+            let temp = $('.dataTable').dataTable({
+                pageLength: 100,
+                paging: true,
+                ordering: true,
+                autoWidth: false,
+                hover: false,
+                language: {
+                    emptyTable:  'No entries',
+                    zeroRecords: 'No entries found',
+                    lengthMenu:  'Show _MENU_ entries',
+                    info:        'Showing _START_ to _END_ of _TOTAL_ entries'
+                },
+                data: null      // use DOM data overwrites [] default -> data.loader.js
+            });
         });
-
-
     });
 });

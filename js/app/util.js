@@ -6,11 +6,13 @@ define([
     'app/init',
     'app/lib/prototypes',
     'app/lib/console',
+    'app/lib/cache',
+    'app/lib/localStore',
+    'app/lib/resize',
     'conf/system_effect',
     'conf/signature_type',
-    'bootbox',
-    'localForage',
     'lazyload',
+    'bootbox',
     'velocity',
     'velocityUI',
     'customScrollbar',
@@ -20,7 +22,19 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Proto, Con, SystemEffect, SignatureType, bootbox, localforage) => {
+], (
+    $,
+    Init,
+    Proto,
+    Con,
+    Cache,
+    LocalStoreManager,
+    ResizeManager,
+    SystemEffect,
+    SignatureType,
+    LazyLoad,
+    bootbox
+) => {
 
     'use strict';
 
@@ -63,8 +77,11 @@ define([
 
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
-        mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
-        mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
+        mapTabBarIdPrefix: 'pf-map-tab-bar-',                                   // id prefix map tab bar lists <ul>
+        mapTabBarClass: 'pf-map-tab-bar',                                       // class for map tab bar lists <ul>
+        mapTabContentClass: 'pf-map-tab-content',                               // class for map tab content
+        mapTabContentAreaClass: 'pf-map-tab-content-area',                      // class for map tab content grid areas
+        mapTabContentAreaAliases: ['map', 'a', 'b', 'c'],
         mapClass: 'pf-map' ,                                                    // class for all maps
 
         // util
@@ -93,14 +110,24 @@ define([
         helpClass: 'pf-help',                                                   // class for "help" tooltip elements
 
         // fonts
-        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
+        fontTriglivianClass: 'pf-triglivian',                                   // class for "Triglivian" names (e.g. Abyssal systems)
+
+        // LocalStore
+        localStoreNames: ['default', 'character', 'map', 'module']              // Allowed name identifiers for DB names
     };
 
+    let currentSystemDataCache = new Cache({
+        name:       'currentSystemData',
+        ttl:        -1,
+        maxSize:    20
+    });
+
+    // browser tab blink
+    let initialPageTitle = document.title;                                      // initial page title (cached)
+    let blinkTimer;                                                             // global blink timeout cache
+
     let stopTimerCache = {};                                                    // cache for stopwatch timer
-
     let animationTimerCache = {};                                               // cache for table row animation timeout
-
-    let localStorage;                                                           // cache for "localForage" singleton
 
     /*
      *  ===============================================================================================================
@@ -114,22 +141,14 @@ define([
     $.fn.showLoadingAnimation = function(options){
         return this.each(function(){
             let loadingElement = $(this);
-            let iconSize = 'fa-lg';
+            let iconSize = getObjVal(options, 'icon.size') || 'fa-lg';
 
             // disable all events
-            loadingElement.css('pointer-events', 'none');
-
-            if(options){
-                if(options.icon){
-                    if(options.icon.size){
-                        iconSize = options.icon.size;
-                    }
-                }
-            }
+            //loadingElement.css('pointer-events', 'none');
 
             let overlay = $('<div>', {
                 class: config.ajaxOverlayClass
-            }).append(
+            }).css('pointer-events', 'none').append(
                 $('<div>', {
                     class: [config.ajaxOverlayWrapperClass].join(' ')
                 }).append(
@@ -151,20 +170,21 @@ define([
     };
 
     /**
-     * removes a loading indicator
+     * removes loading overlay(s)
      */
     $.fn.hideLoadingAnimation = function(){
         return this.each(function(){
-            let loadingElement = $(this);
-            let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
-            if(overlay.length){
+            let parentEl = $(this);
+            let overlays = parentEl.find('.' + config.ajaxOverlayClass);
+            if(overlays.length){
+                overlays.css('pointer-events', 'auto');
                 // important: "stop" is required to stop "show" animation
                 // -> otherwise "complete" callback is not fired!
-                overlay.velocity('stop').velocity('reverse', {
+                overlays.velocity('stop').velocity('reverse', {
                     complete: function(){
-                        $(this).remove();
-                        // enable all events
-                        loadingElement.css('pointer-events', 'auto');
+                        this.forEach(overlay => {
+                            overlay.remove();
+                        });
                     }
                 });
             }
@@ -251,30 +271,31 @@ define([
      * @param errors
      */
     $.fn.showFormMessage = function(errors){
-
         let formElement = $(this);
-
         let errorMessage = [];
         let warningMessage = [];
         let infoMessage = [];
-        for(let i = 0; i < errors.length; i++){
-            if(errors[i].type === 'error'){
-                errorMessage.push( errors[i].message );
+
+        for (let error of errors) {
+            let message = `${error.text}`;
+            if(error.type === 'error'){
+                message = `${error.status} - ${message}`;
+                errorMessage.push(message);
 
                 // mark form field as invalid in case of a validation error
                 if(
-                    errors[i].field &&
-                    errors[i].field.length > 0
+                    error.field &&
+                    error.field.length > 0
                 ){
-                    let formField = formElement.find('[name="' + errors[i].field + '"]');
+                    let formField = formElement.find('[name="' + error.field + '"]');
                     let formGroup = formField.parents('.form-group').removeClass('has-success').addClass('has-error');
-                    let formHelp = formGroup.find('.help-block').text(errors[i].message);
+                    let formHelp = formGroup.find('.help-block').text(error.text);
                 }
 
-            }else if(errors[i].type === 'warning'){
-                warningMessage.push( errors[i].message );
-            }else if(errors[i].type === 'info'){
-                infoMessage.push( errors[i].message );
+            }else if(error.type === 'warning'){
+                warningMessage.push(message);
+            }else if(error.type === 'info'){
+                infoMessage.push(message);
             }
         }
 
@@ -405,22 +426,57 @@ define([
     $.fn.initMapUpdateCounter = function(){
         let counterChart = $(this);
 
-        counterChart.easyPieChart({
-            barColor: function(percent){
-                let color = '#568a89';
-                if(percent <= 30){
-                    color = '#d9534f';
-                }else if(percent <= 50){
-                    color = '#f0ad4e';
-                }
+        let gradient = [
+            [0, [217,83,79]],
+            [10, [217,83,79]],
+            [50, [240, 173, 78]],
+            [75, [79,158,79]],
+            [100, [86, 138, 137]]
+        ];
 
-                return color;
-            },
+        let gradientWidth = 500;
+
+        let getColor = percent => {
+            percent = percent || 1;
+            let colorRangeEnd = gradient.findIndex(value => percent <= value[0]);
+            let colorRange = [colorRangeEnd - 1, colorRangeEnd];
+
+            //Get the two closest colors
+            let colorFirst = gradient[colorRange[0]][1];
+            let colorSecond = gradient[colorRange[1]][1];
+
+            //Calculate ratio between the two closest colors
+            let colorFirstX = gradientWidth * (gradient[colorRange[0]][0] / 100);
+            let colorSecondX = gradientWidth * (gradient[colorRange[1]][0] / 100) - colorFirstX;
+            let weightX = gradientWidth * (percent / 100) - colorFirstX;
+            let weight = weightX / colorSecondX;
+
+            //Get the color with pickHex(thx, less.js's mix function!)
+            let result = pickHex(colorSecond, colorFirst, weight);
+            return `rgb(${result.join()})`;
+        };
+
+        let pickHex = (color1, color2, weight) => {
+            let w1 = weight;
+            let w2 = 1 - w1;
+            return [Math.round(color1[0] * w1 + color2[0] * w2),
+                Math.round(color1[1] * w1 + color2[1] * w2),
+                Math.round(color1[2] * w1 + color2[2] * w2)];
+        };
+
+        counterChart.easyPieChart({
+            barColor: percent => getColor(Number(Number(percent).toFixed(1))),
             trackColor: '#2b2b2b',
             size: 30,
             scaleColor: false,
             lineWidth: 2,
-            animate: 1000
+            animate: {
+                duration: 550,
+                enabled: true
+            },
+            easing: function (x, t, b, c, d) { // easeInOutSine - jQuery Easing
+                return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+            }
         });
     };
 
@@ -429,23 +485,35 @@ define([
      * @param  {object} options
      * @returns {*}
      */
-    $.fn.initTooltips = function(options){
-        options = (typeof options === 'object') ? options : {};
-
-        let defaultOptions = {
-            container:  this,
-            delay: 100
+    $.fn.initTooltips = function(options= {}){
+        let containerSelectors = ['.modal', '.popover'];
+        let getContainer = (el, selectors = containerSelectors) => {
+            for(let i = 0; i < selectors.length; i++){
+                let checkContainer = el.closest(containerSelectors[i]);
+                if(checkContainer){
+                    return checkContainer;
+                }
+            }
         };
-        options = $.extend(defaultOptions, options);
 
         return this.each(function(){
             let tooltipElements = $(this).find('[title]');
-            tooltipElements.tooltip('destroy').tooltip(options);
+            if(tooltipElements.length){
+                let tooltipOptions = Object.assign({}, options);
+                if(!options.hasOwnProperty('container')){
+                    // check if current this is a modal/(child of modal) element
+                    let container = getContainer(this);
+                    if(container){
+                        tooltipOptions.container = container;
+                    }
+                }
+                tooltipElements.tooltip('destroy').tooltip(tooltipOptions);
+            }
         });
     };
 
     /**
-     * destroy popover elements
+     * destroy tooltips from element
      * @param recursive
      * @returns {*}
      */
@@ -540,10 +608,10 @@ define([
 
     /**
      * add character switch popover
-     * @param userData
      */
-    $.fn.initCharacterSwitchPopover = function(userData){
+    $.fn.initCharacterSwitchPopover = function(){
         let elements = $(this);
+        let userData = getCurrentUserData();
         let eventNamespace = 'hideCharacterPopup';
 
         requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function(template, Mustache){
@@ -606,7 +674,6 @@ define([
                             title: 'select character',
                             trigger: 'manual',
                             placement: 'bottom',
-                            container: 'body',
                             content: content,
                             animation: false
                         }).data('bs.popover').tip().addClass(config.popoverClass);
@@ -816,26 +883,6 @@ define([
         });
     };
 
-    /**
-     * get all mapTabElements (<a> tags)
-     * or search for a specific tabElement within mapModule
-     * @param mapId
-     * @returns {JQuery|*|{}|T}
-     */
-    $.fn.getMapTabElements = function(mapId){
-        let mapModule = $(this);
-        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
-
-        if(mapId){
-            // search for a specific tab element
-            mapTabElements = mapTabElements.filter(function(i, el){
-                return ( $(el).data('mapId') === mapId );
-            });
-        }
-
-        return mapTabElements;
-    };
-
     /*
      *  ===============================================================================================================
      *   Util functions that are global available for all modules
@@ -844,11 +891,9 @@ define([
 
     /**
      * get current Pathfinder version number
-     * @returns {*|jQuery}
+     * @returns {string}
      */
-    let getVersion = () => {
-        return $('body').data('version');
-    };
+    let getVersion = () => document.body.dataset.version;
 
     /**
      * show current program version information in browser console
@@ -856,18 +901,24 @@ define([
     let showVersionInfo = () => Con.showVersionInfo(getVersion());
 
     /**
+     * get image root dir
+     * @returns {string}
+     */
+    let imgRoot = () => `/public/img/${getVersion()}/`;
+
+    /**
      * get CCP image URLs for
      * @param resourceType 'alliances'|'corporations'|'characters'|'types'
-     * @param $resourceId
+     * @param resourceId
      * @param size
      * @param resourceVariant
      * @returns {boolean}
      */
-    let eveImageUrl = (resourceType, $resourceId, size = 32, resourceVariant = undefined) => {
+    let eveImageUrl = (resourceType, resourceId, size = 32, resourceVariant = undefined) => {
         let url = false;
         if(
             typeof resourceType === 'string' &&
-            typeof $resourceId === 'number' &&
+            typeof resourceId === 'number' &&
             typeof size === 'number'
         ){
             resourceType = resourceType.toLowerCase();
@@ -885,7 +936,7 @@ define([
                 }
             }
 
-            url = [Init.url.ccpImageServer, resourceType, $resourceId, resourceVariant].join('/');
+            url = [Init.url.ccpImageServer, resourceType, resourceId, resourceVariant].join('/');
 
             let params = {size: size};
             let searchParams = new URLSearchParams(params); // jshint ignore:line
@@ -907,7 +958,7 @@ define([
         const supportedPassiveTypes = [
             'scroll', 'wheel',
             'touchstart', 'touchmove', 'touchenter', 'touchend', 'touchleave',
-            'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
+            //'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
         ];
         const getDefaultPassiveOption = (passive, eventName) => {
             if(passive !== undefined) return passive;
@@ -970,15 +1021,6 @@ define([
     };
 
     /**
-     * init utility prototype functions
-     */
-    let initPrototypes = () => {
-
-
-        initPassiveEvents();
-    };
-
-    /**
      * filter elements from elements array that are not within viewport
      * @param elements
      * @returns {[]}
@@ -1024,8 +1066,18 @@ define([
      * @param scrollElement
      * @param settings
      */
-    let initScrollSpy = (navElement, scrollElement = window, settings = {}) => {
-        let timeout, current;
+    let initScrollSpy = (navElement, scrollElement = document, settings = {}) => {
+        settings = Object.assign({}, {
+            clsOnScroll: 'on-scroll'
+        }, settings);
+        let requestAnimationId, scrollId, current;
+
+        if(!navElement){
+            console.warn('initScrollSpy() failed. navElement undefined');
+            return;
+        }
+
+        let scrollDomNode = () => scrollElement === document ? document.body : scrollElement;
 
         let contents = Array.from(navElement.querySelectorAll('.page-scroll')).map(link => ({
             link: link,
@@ -1123,18 +1175,30 @@ define([
             current = active;
         };
 
+        let onScrollClassHandler = () => {
+            if(scrollId){
+                clearTimeout(scrollId);
+            }
+            scrollDomNode().classList.add(settings.clsOnScroll);
+            scrollId = setTimeout(() => scrollDomNode().classList.remove(settings.clsOnScroll), 80);
+        };
+
         let scrollHandler = () => {
             // If there's a timer, cancel it
-            if(timeout){
-                window.cancelAnimationFrame(timeout);
+            if(requestAnimationId){
+                window.cancelAnimationFrame(requestAnimationId);
             }
-            timeout = window.requestAnimationFrame(detect);
+            requestAnimationId = window.requestAnimationFrame(() => {
+                detect();
+                // apply 'onScroll' class -> can be used by other elements
+                onScrollClassHandler();
+            });
         };
 
         // Find the currently active content
         detect();
 
-        scrollElement.addEventListener('scroll', scrollHandler, false);
+        scrollElement.addEventListener('scroll', scrollHandler, {passive: true});
 
         // set click observer for links
         let clickHandler = function(e){
@@ -1190,6 +1254,39 @@ define([
         html += getContent(content);
         html += '</div>';
         html += '</div>';
+        return html;
+    };
+
+    /**
+     * get HTML for "delete connection" confirmation popover
+     * @returns {string}
+     */
+    let getConfirmationContent = checkOptions => {
+        let getChecklist = checkOptions => {
+            let html = '<form class="form-inline editableform popover-content-inner">';
+            html += '<div class="control-group form-group">';
+            html += '<div class="editable-input">';
+            html += '<div class="editable-checklist">';
+
+            for(let option of checkOptions){
+                html += '<div><label>';
+                html += '<input type="checkbox" name="' + option.name + '" value="' + option.value + '" ';
+                html += 'class="' + option.class + '" ' + (option.checked ? 'checked' : '') + '>';
+                html += '<span>' + option.label + '</span>';
+                html += '</label></div>';
+            }
+
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</form>';
+
+            return html;
+        };
+
+        let html = '';
+        html += getChecklist(checkOptions);
+
         return html;
     };
 
@@ -1283,6 +1380,23 @@ define([
     };
 
     /**
+     * set default configuration for "Tooltip" plugin
+     * @param containerEl
+     */
+    let initDefaultTooltipConfig = containerEl => {
+        $.fn.tooltip.Constructor.DEFAULTS.container = containerEl;
+        $.fn.tooltip.Constructor.DEFAULTS.delay = 100;
+    };
+
+    /**
+     * set default configuration for "Popover" plugin
+     * @param containerEl
+     */
+    let initDefaultPopoverConfig = containerEl => {
+        $.fn.popover.Constructor.DEFAULTS.container = containerEl;
+    };
+
+    /**
      * set default configuration for "Confirmation" popover plugin
      */
     let initDefaultConfirmationConfig = () => {
@@ -1313,6 +1427,8 @@ define([
         });
 
         let initScrollbar = (resultsWrapper) => {
+            resultsWrapper.css('maxHeight', '300px');
+
             // default 'mousewheel' event set by select2 needs to be disabled
             // in order to make mCustomScrollbar mouseWheel enable works correctly
             $(resultsWrapper).find('ul.select2-results__options').off('mousewheel');
@@ -1321,6 +1437,8 @@ define([
             let lazyLoadImagesOffset = 240;
 
             resultsWrapper.mCustomScrollbar({
+              //setHeight: 400,
+                scrollInertia: 200,
                 mouseWheel: {
                     enable: true,
                     scrollAmount: 'auto',
@@ -1335,12 +1453,14 @@ define([
                 scrollbarPosition: 'inside',
                 autoDraggerLength: true,
                 autoHideScrollbar: false,
+                alwaysShowScrollbar: 0, // 0, 1, 2
                 advanced: {
                     updateOnContentResize: true
                 },
+                //live: true, // could not get this to work
                 callbacks: {
                     alwaysTriggerOffsets: false,    // only trigger callback.onTotalScroll() once
-                    onTotalScrollOffset: 300,       // trigger callback.onTotalScroll() 100px before end
+                    onTotalScrollOffset: 100,       // trigger callback.onTotalScroll() 100px before end
                     onInit: function(){
                         // disable page scroll -> otherwise page AND customScrollbars will scroll
                         // -> this is because the initPassiveEvents() delegates the mouseWheel events
@@ -1348,33 +1468,22 @@ define([
                     },
                     onUpdate: function(a){
                         // whenever the scroll content updates -> init lazyLoad for potential images
-                        $('.' + config.select2ImageLazyLoadClass).lazyload({
+                        new LazyLoad({
                             container: this,
+                            elements_selector: `.${config.select2ImageLazyLoadClass}`,
                             threshold: lazyLoadImagesOffset,
-                            event: 'pf:lazyLoad'
+                            use_native: true
                         });
                     },
                     onTotalScroll: function(){
                         // we want to "trigger" Select2´s 'scroll' event
                         // in order to make its "infinite scrolling" function working
-                        this.mcs.content.find(':first-child').trigger('scroll');
-                    },
-                    whileScrolling: function(){
-
-                        // lazy load for images -> reduce number of calculations by % 10
-                        if(0 === this.mcs.top % 10){
-                            let scroller = $(this).find('.mCSB_container');
-                            let scrollerBox = scroller.closest('.mCustomScrollBox');
-
-                            scrollerBox.find('.' + config.select2ImageLazyLoadClass).filter(function(){
-                                let $this = $(this);
-                                if($this.attr('src') === $this.attr('data-original')) return false;
-                                let scrollerTop = scroller.position().top;
-                                let scrollerHeight = scrollerBox.height();
-                                let offset = $this.closest('div').position();
-                                return (offset.top - lazyLoadImagesOffset < scrollerHeight - scrollerTop);
-                            }).trigger('pf:lazyLoad');
-                        }
+                        // -> look for "--load-more" anker (last list item)
+                        //    add "no-margin" class in order to reduce offset to the list
+                        let loadMoreLi = this.mcs.content.find('.select2-results__option--load-more');
+                        loadMoreLi.addClass('no-margin');
+                        this.mcs.content.find('> :first-child').trigger('scroll');
+                        setTimeout(() => loadMoreLi.removeClass('no-margin'), 20);
                     }
                 }
             });
@@ -1385,7 +1494,7 @@ define([
             if($(selectElement).data('select2')){
                 let resultsOptions = $(selectElement).data('select2').$results;
                 if(resultsOptions.length){
-                    let resultsWrapper = resultsOptions.parents('.select2-results');
+                    let resultsWrapper = resultsOptions.closest('.select2-results');
                     if(resultsWrapper.length){
                         wrapper = resultsWrapper;
                     }
@@ -1424,7 +1533,9 @@ define([
     /**
      * set default configuration for "xEditable" plugin
      */
-    let initDefaultEditableConfig = () => {
+    let initDefaultEditableConfig = containerEl => {
+        $.fn.editable.defaults.container = containerEl;
+
         // use fontAwesome buttons template
         $.fn.editableform.buttons =
             '<div class="btn-group">'+
@@ -1516,11 +1627,10 @@ define([
      * @returns {Date}
      */
     let getServerTime = () => {
-
         // Server is running with GMT/UTC (EVE Time)
         let localDate = new Date();
 
-        let serverDate = new Date(
+        return new Date(
             localDate.getUTCFullYear(),
             localDate.getUTCMonth(),
             localDate.getUTCDate(),
@@ -1528,8 +1638,6 @@ define([
             localDate.getUTCMinutes(),
             localDate.getUTCSeconds()
         );
-
-        return serverDate;
     };
 
     /**
@@ -1552,15 +1660,7 @@ define([
         let parts = {};
         let time1 = date1.getTime();
         let time2 = date2.getTime();
-        let diff  = 0;
-
-        if(
-            time1 >= 0 &&
-            time2 >= 0
-        ){
-            diff = (date2.getTime() - date1.getTime()) / 1000;
-        }
-
+        let diff  = (time1 >= 0 && time2 >= 0) ? (time2 - time1) / 1000 : 0;
         diff = Math.abs(Math.floor(diff));
 
         parts.days = Math.floor(diff/(24*60*60));
@@ -1669,22 +1769,65 @@ define([
 
     /**
      * trigger a notification (on screen or desktop)
-     * @param customConfig
-     * @param settings
+     * @param config
+     * @param options
      */
-    let showNotify = (customConfig, settings) => {
-        requirejs(['notification'], Notification => {
-            Notification.showNotify(customConfig, settings);
+    let showNotify = (config = {}, options = {}) => {
+        requirejs(['pnotify.loader'], Notification => {
+            // if notification is a "desktio" notification -> blink browser tab
+            if(options.desktop && config.title){
+                options.desktop = {
+                    icon: `${imgRoot()}misc/notification.png`
+                };
+                startTabBlink(config.title);
+            }
+
+            Notification.showNotify(config, options);
         });
+    };
+
+    /**
+     * change document.title and make the browsers tab blink
+     * @param blinkTitle
+     */
+    let startTabBlink = blinkTitle => {
+        let initBlink = (function(){
+            // count blinks if tab is currently active
+            let activeTabBlinkCount = 0;
+
+            let blink = (blinkTitle) => {
+                // number of "blinks" should be limited if tab is currently active
+                if(window.isVisible){
+                    activeTabBlinkCount++;
+                }
+
+                // toggle page title
+                document.title = (document.title === blinkTitle) ? initialPageTitle : blinkTitle;
+
+                if(activeTabBlinkCount > 10){
+                    stopTabBlink();
+                }
+            };
+
+            return () => {
+                if(!blinkTimer){
+                    blinkTimer = setInterval(blink, 1000, blinkTitle);
+                }
+            };
+        }(blinkTitle));
+
+        initBlink();
     };
 
     /**
      * stop browser tab title "blinking"
      */
     let stopTabBlink = () => {
-        requirejs(['notification'], Notification => {
-            Notification.stopTabBlink();
-        });
+        if(blinkTimer){
+            clearInterval(blinkTimer);
+            document.title = initialPageTitle;
+            blinkTimer = null;
+        }
     };
 
     /**
@@ -1714,14 +1857,16 @@ define([
 
         // check if userData is valid
         if(userData && userData.character && userData.characters){
+            // check new vs. old userData for changes
             let changes = compareUserData(getCurrentUserData(), userData);
-            // check if there is any change
-            if(Object.values(changes).some(val => val)){
-                $(document).trigger('pf:changedUserData', [userData, changes]);
-            }
 
             Init.currentUserData = userData;
             isSet = true;
+
+            // check if there is any change
+            if(Object.values(changes).some(val => val)){
+                $(document).trigger('pf:changedUserData', [changes]);
+            }
         }else{
             console.error('Could not set userData %o. Missing or malformed obj', userData);
         }
@@ -1730,7 +1875,7 @@ define([
     };
 
     /**
-     * get currentUserData from "global" variable
+     * get currentUserData from "global" var
      * @returns {*}
      */
     let getCurrentUserData = () => {
@@ -1738,18 +1883,61 @@ define([
     };
 
     /**
+     * get currentCharacterData
+     * @see getCurrentUserData
+     * @returns {*|boolean}
+     */
+    let getCurrentCharacter = () => getObjVal(getCurrentUserData(), 'character') || false;
+
+    /**
+     * get data from currentCharacterData (e.g. id)
+     * @see getCurrentCharacter
+     * @param key
+     * @returns {*|boolean}
+     */
+    let getCurrentCharacterData = key => getObjVal(getCurrentCharacter(), key) || false;
+
+    /**
      * get either active characterID or characterId from initial page load
      * @returns {number}
      */
     let getCurrentCharacterId = () => {
-        let currentCharacterId = parseInt(getObjVal(getCurrentUserData(), 'character.id')) || 0;
-
+        let currentCharacterId = parseInt(getCurrentCharacterData('id')) || 0;
         if(!currentCharacterId){
             // no active character... -> get default characterId from initial page load
             currentCharacterId = parseInt(document.body.getAttribute('data-character-id'));
         }
-
         return currentCharacterId;
+    };
+
+    /**
+     * get information for the current mail user
+     * @param option
+     * @returns {boolean}
+     */
+    let getCurrentUserInfo = option => {
+        let currentUserData = getCurrentUserData();
+        let userInfo = false;
+
+        if(currentUserData){
+            // user data is set -> user data will be set AFTER the main init request!
+            let characterData = currentUserData.character;
+            if(characterData){
+                if(option === 'privateId'){
+                    userInfo = characterData.id;
+                }
+
+                if(option === 'allianceId' && characterData.alliance){
+                    userInfo = characterData.alliance.id;
+                }
+
+                if(option === 'corporationId' && characterData.corporation){
+                    userInfo = characterData.corporation.id;
+                }
+            }
+        }
+
+        return userInfo;
     };
 
     /**
@@ -1778,6 +1966,29 @@ define([
             charactersIds: oldCharactersIds.toString() !== newCharactersIds.toString(),
             characterLogHistory: oldHistoryLogStamps.toString() !== newHistoryLogStamps.toString()
         };
+    };
+
+    /**
+     * checks if currentCharacter has a role that matches a specific right
+     * @param right
+     * @param objKey
+     * @returns {boolean}
+     */
+    let hasRight = (right, objKey) => {
+        let hasRight = false;
+        let objectRights = getCurrentCharacterData(`${objKey}.rights`) || [];
+        let objectRight = objectRights.find(objectRight => objectRight.right.name === right);
+        if(objectRight){
+            let characterRole = getCurrentCharacterData('role');
+            if(
+                characterRole.name === 'SUPER' ||
+                objectRight.role.name === 'MEMBER' ||
+                objectRight.role.name === characterRole.name
+            ){
+                hasRight = true;
+            }
+        }
+        return hasRight;
     };
 
     /**
@@ -1915,31 +2126,36 @@ define([
      * global ajax error handler -> handles .fail() requests
      * @param payload
      */
-    let handleAjaxErrorResponse = (payload) => {
+    let handleAjaxErrorResponse = payload => {
         // handle only request errors
-        if(payload.action === 'request'){
-            let jqXHR = payload.data.jqXHR;
-            let reason = '';
-
-            if(jqXHR.responseJSON){
-                // ... valid JSON response
-                let response = jqXHR.responseJSON;
-
-                if(response.error && response.error.length > 0){
-                    // build error notification reason from errors
-                    reason = response.error.map(error => error.message ? error.message : error.status).join('\n');
-
-                    // check if errors might belong to a HTML form -> check "context"
-                    if(payload.context.formElement){
-                        // show form messages e.g. validation errors
-                        payload.context.formElement.showFormMessage(response.error);
-                    }
-                }
-            }else{
-                reason = 'Invalid JSON response';
-            }
-            showNotify({title: jqXHR.status + ': ' + payload.name, text: reason, type: 'error'});
+        if(payload.action !== 'request'){
+            console.error('Unhandled HTTP response error. Invalid payload %o', payload);
+            return;
         }
+
+        let jqXHR = payload.data.jqXHR;
+        let title = `${jqXHR.status}: ${jqXHR.statusText} - ${payload.name}`;
+        let reason = '';
+
+        if(jqXHR.responseJSON){
+            // ... valid JSON response
+            let response = jqXHR.responseJSON;
+
+            if(response.error && response.error.length > 0){
+                // build error notification reason from errors
+                reason = response.error.map(error => error.text || error.status).join('\n');
+
+                // check if errors might belong to a HTML form -> check "context"
+                if(payload.context.formElement){
+                    // show form messages e.g. validation errors
+                    payload.context.formElement.showFormMessage(response.error);
+                }
+            }
+        }else{
+            reason = 'Invalid JSON response';
+        }
+
+        showNotify({title: title, text: reason, type: 'error'});
     };
 
     /**
@@ -2092,15 +2308,6 @@ define([
     };
 
     /**
-     * get mapElement from overlay or any child of that
-     * @param mapOverlay
-     * @returns {jQuery}
-     */
-    let getMapElementFromOverlay = mapOverlay => {
-        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
-    };
-
-    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -2114,6 +2321,32 @@ define([
 
         return mapModule;
     };
+
+    /**
+     * get all map tab link elements (<a> tags)
+     * or search for a specific tabElement within mapModule
+     * @param mapModule
+     * @param mapId
+     * @returns {NodeListOf<HTMLElementTagNameMap[string]>}
+     */
+    let getMapTabLinkElements = (mapModule, mapId) => {
+        let selector = `.${config.mapTabBarClass}  > li > a`;
+        if(mapId){
+            selector += `[data-map-id="${mapId}"]`;
+        }
+
+        return mapModule.querySelectorAll(selector);
+    };
+
+    /**
+     * get clas for tab content areas (drapable sections)
+     * @param alias
+     * @returns {string}
+     */
+    let getMapTabContentAreaClass = alias => [
+        config.mapTabContentAreaClass,
+        config.mapTabContentAreaAliases.includes(alias) ? alias : undefined
+    ].filter(Boolean).join('-');
 
     /**
      *
@@ -2696,45 +2929,7 @@ define([
      * @param mapId
      */
     let deleteCurrentMapData = mapId => {
-        Init.currentMapData = Init.currentMapData.filter(mapData => {
-            return (mapData.config.id !== mapId);
-        });
-    };
-
-    /**
-     * get the current log data for the current user character
-     * @returns {boolean}
-     */
-    let getCurrentCharacterLog = () => getObjVal(getCurrentUserData(), 'character.log') || false;
-
-    /**
-     * get information for the current mail user
-     * @param option
-     * @returns {boolean}
-     */
-    let getCurrentUserInfo = option => {
-        let currentUserData = getCurrentUserData();
-        let userInfo = false;
-
-        if(currentUserData){
-            // user data is set -> user data will be set AFTER the main init request!
-            let characterData = currentUserData.character;
-            if(characterData){
-                if(option === 'privateId'){
-                    userInfo = characterData.id;
-                }
-
-                if(option === 'allianceId' && characterData.alliance){
-                    userInfo = characterData.alliance.id;
-                }
-
-                if(option === 'corporationId' && characterData.corporation){
-                    userInfo = characterData.corporation.id;
-                }
-            }
-        }
-
-        return userInfo;
+        Init.currentMapData = Init.currentMapData.filter(mapData => mapData.config.id !== mapId);
     };
 
     /**
@@ -3024,19 +3219,45 @@ define([
     };
 
     /**
-     * set currentSystemData as "global" variable
+     * set currentSystemData (active system)
+     * @param mapId
      * @param systemData
      */
-    let setCurrentSystemData = (systemData) => {
-        Init.currentSystemData = systemData;
+    let setCurrentSystemData = (mapId, systemData) => {
+        mapId = parseInt(mapId) || 0;
+        if(mapId && typeof systemData === 'object'){
+            currentSystemDataCache.set(`mapId_${mapId}`, systemData);
+        }else{
+            console.error('Invalid mapId %o or systemData %o');
+        }
     };
 
     /**
-     * get currentSystemData from "global" variables
+     * get currentSystemData (active system)
+     * @param mapId
      * @returns {*}
      */
-    let getCurrentSystemData = () => {
-        return Init.currentSystemData;
+    let getCurrentSystemData = mapId => {
+        mapId = parseInt(mapId) || 0;
+        if(mapId){
+            return currentSystemDataCache.get(`mapId_${mapId}`);
+        }else{
+            console.error('Invalid mapId %o');
+        }
+    };
+
+    /**
+     * delete currentSystemData (active system)
+     * @param mapId
+     * @returns {*}
+     */
+    let deleteCurrentSystemData = mapId => {
+        mapId = parseInt(mapId) || 0;
+        if(mapId){
+            return currentSystemDataCache.delete(`mapId_${mapId}`);
+        }else{
+            console.error('Invalid mapId %o');
+        }
     };
 
     /**
@@ -3112,18 +3333,23 @@ define([
     };
 
     /**
-     * get localForage instance (singleton) for offline client site storage
-     * @returns {localforage}
+     * get LocalStore instance for offline client data store
+     * @param name
+     * @returns {LocalStore}
      */
-    let getLocalStorage = function(){
-        if(localStorage === undefined){
-            localStorage = localforage.createInstance({
-                driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE],
-                name: 'Pathfinder local storage'
-            });
+    let getLocalStore = name => {
+        if(config.localStoreNames.includes(name)){
+            return LocalStoreManager.getStore(name);
+        }else{
+            throw new RangeError('Invalid LocalStore name. Allowed names: ' + config.localStoreNames.join('|'));
         }
-        return localStorage;
     };
+
+    /**
+     * get ResizeManager instance
+     * @returns {ResizeManager}
+     */
+    let getResizeManager = () => ResizeManager;
 
     /**
      * clear session Storage
@@ -3206,40 +3432,32 @@ define([
      * @param doubleClickCallback
      * @param timeout
      */
-    let singleDoubleClick = (element, singleClickCallback, doubleClickCallback, timeout) => {
-        let eventName = 'mouseup.singleDouble';
-        if(!hasEvent(element, eventName)){
-            let clicks = 0;
-            // prevent default behaviour (e.g. open <a>-tag link)
-            element.off('click').on('click', function(e){
-                e.preventDefault();
-            });
+    let singleDoubleClick = (element, singleClickCallback, doubleClickCallback, timeout = Init.timer.DBL_CLICK) => {
+        element.addEventListener('click', e => {
+            if(e.detail === 1){
+                // single click -> setTimeout and check if there is a 2nd click incoming before timeout
+                let clickTimeoutId = setTimeout(element => {
+                    singleClickCallback.call(element, e);
+                    element.removeData('clickTimeoutId');
+                }, timeout, e.currentTarget);
 
-            element.off(eventName).on(eventName, function(e){
-                clicks++;
-                if(clicks === 1){
-                    setTimeout(element => {
-                        if(clicks === 1){
-                            singleClickCallback.call(element, e);
-                        }else{
-                            doubleClickCallback.call(element, e);
-                        }
-                        clicks = 0;
-                    }, timeout || Init.timer.DBL_CLICK, this);
-                }
-            });
-        }
+                e.currentTarget.setData('clickTimeoutId', clickTimeoutId);
+            }else if(e.detail === 2 ){
+                // double click -> clearTimeout, (triple, quadruple, etc. clicks are ignored)
+                doubleClickCallback.call(element, e);
+                clearTimeout(e.currentTarget.getData('clickTimeoutId'));
+                e.currentTarget.removeData('clickTimeoutId');
+            }
+        });
     };
 
     /**
      * get dataTable id
      * @param prefix
-     * @param mapId
-     * @param systemId
-     * @param tableType
+     * @param {...string} parts  e.g. 'tableType', 'mapId', 'systemId'
      * @returns {string}
      */
-    let getTableId = (prefix, tableType, mapId, systemId) => prefix + [tableType, mapId, systemId].join('-');
+    let getTableId = (prefix, ...parts) => prefix + parts.filter(Boolean).join('-');
 
     /**
      * get dataTable row id
@@ -3327,6 +3545,23 @@ define([
     };
 
     /**
+     * filter object by allowed keys
+     * -> returns a NEW object. Does not change the source obj
+     * ({one: 'A', two: 'B'}).filterKeys(['one']) => {one: "A"}
+     * @param obj
+     * @param allowedKeys
+     * @returns {{}}
+     */
+    let filterObjByKeys = (obj, allowedKeys = []) => {
+        return Object.keys(obj)
+            .filter(key => allowedKeys.includes(key))
+            .reduce((objAcc, key) => {
+                objAcc[key] = obj[key];
+                return objAcc;
+            }, {});
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -3361,10 +3596,7 @@ define([
         let currentUrl = document.URL;
 
         if(url !== currentUrl){
-            if(
-                params &&
-                params.length > 0
-            ){
+            if(params && params.length > 0){
                 url += '?' + params.join('&');
             }
             window.location = url;
@@ -3375,23 +3607,18 @@ define([
      * send logout request
      * @param  params
      */
-    let logout = (params) => {
-        let data = {};
-        if(
-            params &&
-            params.ajaxData
-        ){
-            data = params.ajaxData;
-        }
+    let logout = params => {
+        let data = getObjVal(params, 'ajaxData') || {};
 
         $.ajax({
             type: 'POST',
             url: Init.path.logout,
             data: data,
             dataType: 'json'
-        }).done(function(data){
-            if(data.reroute){
-                redirect(data.reroute, ['logout']);
+        }).done(function(responseData){
+            if(responseData.reroute){
+                let params = data.graceful ? 'logoutGraceful' : 'logout';
+                redirect(responseData.reroute, [params]);
             }
         }).fail(function(jqXHR, status, error){
             let reason = status + ' ' + error;
@@ -3453,9 +3680,12 @@ define([
         config: config,
         getVersion: getVersion,
         showVersionInfo: showVersionInfo,
+        imgRoot: imgRoot,
         eveImageUrl: eveImageUrl,
-        initPrototypes: initPrototypes,
+        initPassiveEvents: initPassiveEvents,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
+        initDefaultTooltipConfig: initDefaultTooltipConfig,
+        initDefaultPopoverConfig: initDefaultPopoverConfig,
         initDefaultConfirmationConfig: initDefaultConfirmationConfig,
         initDefaultSelect2Config: initDefaultSelect2Config,
         initDefaultEditableConfig: initDefaultEditableConfig,
@@ -3480,8 +3710,9 @@ define([
         isXHRAborted: isXHRAborted,
         triggerMenuAction: triggerMenuAction,
         getLabelByRole: getLabelByRole,
-        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
+        getMapTabLinkElements: getMapTabLinkElements,
+        getMapTabContentAreaClass: getMapTabContentAreaClass,
         getSystemEffectMultiplierByAreaId: getSystemEffectMultiplierByAreaId,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
@@ -3506,15 +3737,18 @@ define([
         deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
+        getCurrentCharacter: getCurrentCharacter,
+        getCurrentCharacterData: getCurrentCharacterData,
         getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        deleteCurrentSystemData:deleteCurrentSystemData,
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
-        getCurrentCharacterLog: getCurrentCharacterLog,
         findInViewport: findInViewport,
         initScrollSpy: initScrollSpy,
         getConfirmationTemplate: getConfirmationTemplate,
+        getConfirmationContent: getConfirmationContent,
         convertXEditableOptionsToSelect2: convertXEditableOptionsToSelect2,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
         getCharacterDataBySystemId: getCharacterDataBySystemId,
@@ -3529,8 +3763,10 @@ define([
         openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         formatMassValue: formatMassValue,
-        getLocalStorage: getLocalStorage,
+        getLocalStore: getLocalStore,
+        getResizeManager: getResizeManager,
         clearSessionStorage: clearSessionStorage,
+        hasRight: hasRight,
         getBrowserTabId: getBrowserTabId,
         singleDoubleClick: singleDoubleClick,
         getTableId: getTableId,
@@ -3541,6 +3777,7 @@ define([
         isValidHtml: isValidHtml,
         isDomElement: isDomElement,
         arrayToObject: arrayToObject,
+        filterObjByKeys: filterObjByKeys,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

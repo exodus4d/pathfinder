@@ -46,23 +46,36 @@
 
 {* header *}
 <header id="pf-landing-top">
+    <picture class="pf-header-bg">
+        <source type="image/webp" media="(max-width:  480px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-480.webp">
+        <source type="image/jpeg" media="(max-width:  480px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-480.jpg">
+        <source type="image/webp" media="(max-width:  780px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-780.webp">
+        <source type="image/jpeg" media="(max-width:  780px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-780.jpg">
+        <source type="image/webp" media="(max-width: 1200px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-1200.webp">
+        <source type="image/jpeg" media="(max-width: 1200px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-1200.jpg">
+        <source type="image/webp" media="(max-width: 1600px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-1600.webp">
+        <source type="image/jpeg" media="(max-width: 1600px)" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-1600.jpg">
+        <source type="image/webp" media="" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-3840.webp">
+        <source type="image/jpeg" media="" srcset="{{ @tplResource->getPath('image') }}/header/pf-header-3840.jpg">
+        <img src="{{ @tplResource->getPath('image') }}/header/pf-header-3840.jpg">
+    </picture>
+
+    <canvas id="pf-header-canvas" class="hidden-xs fade" width="100%" height="480"></canvas>
 
     {* Admin login panel *}
     <include href="templates/ui/admin_panel.html"/>
 
-    <div id="pf-header-container">
-        <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
-        <div class="container">
-            <div id="pf-logo-container"></div>
+    <div id="pf-header-container" class="container flex-row flex-between">
+        <div id="pf-logo-container" class="flex-col">
+            <svg>
+                <use xlink:href="#pf-svg-logo"/>
+            </svg>
+        </div>
 
-            <div id="pf-header-preview-container" class="hidden-xs hidden-sm">
-                <div id="pf-header-preview-intel" class="pf-header-preview-element pull-left"></div>
-                <div id="pf-header-preview-map" class="pf-header-preview-element pull-left"></div>
-                <div id="pf-header-preview-scope" class="pf-header-preview-element pull-left"></div>
-                <div id="pf-header-preview-signature" class="pf-header-preview-element pull-left"></div>
-                <div id="pf-header-preview-data" class="pf-header-preview-element pull-left"></div>
-                <div id="pf-header-preview-gameplay" class="pf-header-preview-element pull-left"></div>
-            </div>
+        <div id="pf-header-preview-container" class="flex-col hidden-xs hidden-sm">
+            <div id="pf-header-preview-signature" class="pf-header-preview-element pull-left" style="--bg-image: url('{{ @tplResource->getPath('image') }}/sso/signature.png');"></div>
+            <div id="pf-header-preview-data" class="pf-header-preview-element pull-left" style="--bg-image: url('{{ @tplResource->getPath('image') }}/sso/data.png');"></div>
+            <div id="pf-header-preview-gameplay" class="pf-header-preview-element pull-left" style="--bg-image: url('{{ @tplResource->getPath('image') }}/sso/gameplay.png');"></div>
         </div>
     </div>
 </header>
@@ -135,6 +148,7 @@
     <section id="pf-landing-gallery">
 
         {* carousel *}
+        {*
         <div class="container">
             <div class="row text-center">
                 <div id="pf-landing-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
@@ -147,6 +161,7 @@
                 </div>
             </div>
         </div>
+        *}
 
         <div id="pf-landing-gallery-thumb-container" class="container">
 
@@ -162,14 +177,14 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/login_1.jpg" data-description="Character login" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/login_1.jpg" width="160" height="160" alt="Account settings">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/login_1.jpg" data-description="Character login" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=login_1,alt=Account settings"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/settings_1.jpg" data-description="Map access" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/settings_1.jpg" width="160" height="160" alt="Map access">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/settings_1.jpg" data-description="Map access" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=settings_1,alt=Map access"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/taskmanager_1.jpg" data-description="Task-Manager" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/taskmanager_1.jpg" width="160" height="160" alt="Task-Manager">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/taskmanager_1.jpg" data-description="Task-Manager" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=taskmanager_1,alt=Task-Manager"/>
                     </a>
                 </div>
                 <div class="col-xs-12 col-sm-9 col-md-4 col-lg-4">
@@ -220,14 +235,14 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_2.jpg" data-description="Map selection" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_2.jpg" width="160" height="160" alt="Map selection">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/map_2.jpg" data-description="Map selection" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=map_2,alt=Map selection"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_3.jpg" data-description="Context menu" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_3.jpg" width="160" height="160" alt="Context menu">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/map_3.jpg" data-description="Context menu" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=map_3,alt=Context menu"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_1.jpg" data-description="Map information dialog" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_1.jpg" width="160" height="160" alt="Map information dialog">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/map_1.jpg" data-description="Map information dialog" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=map_1,alt=Map information dialog"/>
                     </a>
                 </div>
 
@@ -301,11 +316,11 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/system_1.jpg" data-description="System description" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/system_1.jpg" width="160" height="160" alt="System description">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/system_1.jpg" data-description="System description" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=system_1,alt=System description"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/system_2.jpg" data-description="System information" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/system_2.jpg" width="160" height="160" alt="System information">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/system_2.jpg" data-description="System information" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=system_2,alt=System information"/>
                     </a>
                 </div>
 
@@ -340,11 +355,11 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/signatures_1.jpg" data-description="Signature table" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/signatures_1.jpg" width="160" height="160" alt="Signature table">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/signatures_1.jpg" data-description="Signature table" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=signatures_1,alt=Signature table"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/signatures_2.jpg" data-description="Signature reader dialog" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/signatures_2.jpg" width="160" height="160" alt="Signature reader dialog">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/signatures_2.jpg" data-description="Signature reader dialog" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=signatures_2,alt=Signature reader dialog"/>
                     </a>
                 </div>
 
@@ -378,11 +393,11 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/kb_1.jpg" data-description="Killboard diagram" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/kb_1.jpg" width="160" height="160" alt="Killboard diagram">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/kb_1.jpg" data-description="Killboard diagram" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=kb_1,alt=Killboard diagram"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/kb_2.jpg" data-description="Killboard" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/kb_2.jpg" width="160" height="160" alt="Killboard">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/kb_2.jpg" data-description="Killboard" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=kb_2,alt=Killboard"/>
                     </a>
                 </div>
 
@@ -411,11 +426,11 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_1.jpg" data-description="Routes table" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_1.jpg" width="160" height="160" alt="Routes">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/route_1.jpg" data-description="Routes table" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=route_1,alt=Routes"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_2.jpg" data-description="Add/filter routes dialog" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_2.jpg" width="160" height="160" alt="Add Route">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/route_2.jpg" data-description="Add/filter routes dialog" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=route_2,alt=Add Route"/>
                     </a>
                 </div>
 
@@ -457,8 +472,8 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/connection_1.jpg" data-description="Jump mass log" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/connection_1.jpg" width="160" height="160" alt="Jump mass log">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/connection_1.jpg" data-description="Jump mass log" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=connection_1,alt=Jump mass log"/>
                     </a>
                 </div>
 
@@ -474,8 +489,8 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/intel_1.jpg" data-description="Intel structures" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/intel_1.jpg" width="160" height="160" alt="Intel structures">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/intel_1.jpg" data-description="Intel structures" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=intel_1,alt=Intel structures"/>
                     </a>
                 </div>
 
@@ -497,8 +512,8 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_1.jpg" data-description="System statistics" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_1.jpg" width="160" height="160" alt="System statistics">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/statistics_1.jpg" data-description="System statistics" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=statistics_1,alt=System statistics"/>
                     </a>
                 </div>
 
@@ -519,8 +534,8 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2" id="pf-landing-feature-user-statistics">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_2.jpg" data-description="User statistics" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_2.jpg" width="160" height="160" alt="User statistics">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/statistics_2.jpg" data-description="User statistics" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=statistics_2,alt=User statistics"/>
                     </a>
                 </div>
 
@@ -547,8 +562,8 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/log_1.jpg" data-description="Log file viewer" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/log_1.jpg" width="160" height="160" alt="Log file viewer">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/log_1.jpg" data-description="Log file viewer" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=log_1,alt=Log file viewer"/>
                     </a>
                 </div>
 
@@ -569,8 +584,8 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/discord_1.jpg" data-description="Discord/Slack Notification" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/discord_1.jpg" width="160" height="160" alt="DiscordSlack Notification">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/discord_1.jpg" data-description="Discord/Slack Notification" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=discord_1,alt=DiscordSlack Notification"/>
                     </a>
                 </div>
 
@@ -719,8 +734,8 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/admin_1.jpg" data-description="Member administration" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/admin_1.jpg" width="160" height="160" alt="Member administration">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/admin_1.jpg" data-description="Member administration" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=admin_1,alt=Member administration"/>
                     </a>
                 </div>
 
@@ -737,8 +752,8 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/admin_2.jpg" data-description="Map settings" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/admin_2.jpg" width="160" height="160" alt="Map settings">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/admin_2.jpg" data-description="Map settings" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=admin_2,alt=Map settings"/>
                     </a>
                 </div>
 
@@ -784,8 +799,8 @@
 
             <div class="row">
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_settings.jpg" data-description="Server settings" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_settings.jpg" width="160" height="160" alt="Statistics">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/install_settings.jpg" data-description="Server settings" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=install_settings,alt=Member management"/>
                     </a>
                 </div>
 
@@ -806,8 +821,8 @@
                 <div class="clearfix visible-sm"></div>
 
                 <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_db.jpg" data-description="Database settings" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_db.jpg" width="160" height="160" alt="Signature table">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/install_db.jpg" data-description="Database settings" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=install_db,alt=Roles"/>
                     </a>
                 </div>
 
@@ -869,17 +884,18 @@
                 </div>
 
                 <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center pf-animate-on-visible pf-animate">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-medium pf-landing-about-me" data-original="{{ @tplImage->eveSrcUrl('characters', 1946320202, 256) }}" width="256" height="256" alt="Exodus 4D">
+                    <set srcChar="{{ @tplImage->eveSrcUrl('characters', 1946320202, 256) }}" />
+                    <include href="templates/modules/lazy_image.html" with="src={{ @srcChar }},alt=PhpStorm on 4k resolution,size=256"/>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/development_1.jpg" data-description="PhpStorm on 4k resolution" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-medium" data-original="public/img/landing/thumbs/development_1.jpg" width="256" height="256" alt="PhpStorm on 4k resolution">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/development_1.jpg" data-description="PhpStorm on 4k resolution" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=development_1,alt=PhpStorm on 4k resolution,size=256"/>
                     </a>
-                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/development_2.jpg" data-description="Database diagram on 4k resolution" data-gallery="#pf-gallery">
-                        <img class="pf-landing-image-preview pf-landing-image-preview-medium" data-original="public/img/landing/thumbs/development_2.jpg" width="256" height="256" alt="Database diagram on 4k resolution">
+                    <a class="pf-animate-on-visible pf-animate" href="{{ @tplResource->getPath('image') }}/gallery/development_2.jpg" data-description="Database diagram on 4k resolution" data-gallery="#pf-gallery">
+                        <include href="templates/modules/lazy_image.html" with="image=development_2,alt=Database diagram on 4k resolution,size=256"/>
                     </a>
                 </div>
 
@@ -1044,3 +1060,8 @@
 
 {* hidden dialog *}
 <include href="templates/dialog/gallery.html" />
+
+<div class="pf-svg-wrapper">
+    <include href="{{ 'img/' . @PATHFINDER.VERSION . '/svg/logo_inline.svg' }}"/>
+    <include href="{{ 'img/' . @PATHFINDER.VERSION . '/svg/ccp_sso.svg' }}"/>
+</div>

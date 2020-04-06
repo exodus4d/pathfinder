@@ -25,7 +25,8 @@
 
     > .hidden + .popover-footer,      // first content child is .hidden -> border radius to footer
     > .popover-footer:first-child {   // no content -> border radius to footer
-      @include border-top-radius(($border-radius-large - 1));
+      border-top-left-radius: ($border-radius-large - 1);
+      border-top-right-radius: ($border-radius-large - 1);
     }
   }
 
@@ -34,12 +35,13 @@
     padding: 8px 14px;                    // same as popover-title
     background-color: $popover-title-bg;
     border-top: 1px solid darken($popover-bg, 5%);
-    @include border-bottom-radius(($border-radius-large - 1));
+    border-bottom-left-radius: ($border-radius-large - 1);
+    border-bottom-right-radius: ($border-radius-large - 1);
   }
 
   // image in popover
   img{
-    @include border-radius(3px);
+    border-radius: 3px;
   }
 
   h4{

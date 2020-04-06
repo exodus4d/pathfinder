@@ -18,14 +18,6 @@ define([
         zoomMax: 1.5,
         zoomMin: 0.5,
 
-        // local storage
-        characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
-        mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
-        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
-
-        mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
-
-        mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapCompactClass: 'pf-compact',                                  // class for map compact system UI
 
@@ -83,44 +75,47 @@ define([
 
     /**
      * get all available map Types
-     * optional they can be filtered by current access level of a user
-     * @param {bool} filterByUser
+     * optional they can be filtered by current access level of current character
+     * @param {bool} filterByCharacter
+     * @param {string} filterRight
      * @returns {Array}
      */
-    let getMapTypes = (filterByUser) => {
+    let getMapTypes = (filterByCharacter, filterRight) => {
         let mapTypes = Object.assign({}, Init.mapTypes);
 
-        if(filterByUser === true){
+        if(filterByCharacter === true){
             let authorizedMapTypes = [];
-            let checkMapTypes = ['private', 'corporation', 'alliance'];
+            let checkMapTypes = [
+                {type: 'private',       hasRight: false, selector: 'id'},
+                {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
+                {type: 'alliance',      hasRight: false,  selector: 'alliance.id'}
+            ];
 
-            for(let i = 0; i < checkMapTypes.length; i++){
-                let objectId = Util.getCurrentUserInfo(checkMapTypes[i] + 'Id');
-                if(objectId > 0){
-                    // check if User could add new map with a mapType
-                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, checkMapTypes[i] + '.id'));
-                    let maxCountObject = Util.getObjVal(mapTypes, checkMapTypes[i] + '.defaultConfig.max_count');
+            checkMapTypes.forEach(data => {
+                // check if current character is e.g. in alliance
+                if(Util.getCurrentCharacterData(data.selector)){
+                    // check if User could add new map with a mapType -> check map limit
+                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, data.selector));
+                    let maxCountObject = Util.getObjVal(mapTypes, `${data.type}.defaultConfig.max_count`);
                     if(currentObjectMapData.length < maxCountObject){
-                        authorizedMapTypes.push(checkMapTypes[i]);
+                        // check if character has the "right" for creating a map with this type
+                        if((data.hasRight && filterRight) ? Util.hasRight(filterRight, data.type) : true){
+                            authorizedMapTypes.push(data.type);
+                        }
                     }
                 }
-            }
+            });
 
-            for(let mapType in mapTypes){
-                if(authorizedMapTypes.indexOf(mapType) < 0){
-                    delete( mapTypes[mapType] );
-                }
-            }
+            mapTypes = Util.filterObjByKeys(mapTypes, authorizedMapTypes);
         }
 
-        // convert to array
-        let mapTypesFlat = [];
-        for(let mapType in mapTypes){
-            mapTypes[mapType].name = mapType;
-            mapTypesFlat.push(mapTypes[mapType]);
-        }
+        // add "name" to mapType data
+        Object.entries(mapTypes).forEach(([mapType, data]) => {
+            data.name = mapType;
+        });
 
-        return mapTypesFlat;
+        // obj to array
+        return Object.keys(mapTypes).map(mapType => mapTypes[mapType]);
     };
 
     /**
@@ -194,23 +189,48 @@ define([
      * @param mapData
      * @param value
      * @param key
-     * @returns {any}
+     * @returns {{}|boolean}
      */
     let getSystemDataFromMapData = (mapData, value, key = 'id') => {
-        return mapData ? mapData.data.systems.find(system => system[key] === value) || false : false;
+        return (Util.getObjVal(mapData, `data.systems`) || [])
+            .find(systemData => systemData[key] === value) || false;
     };
 
     /**
-     * get system data by mapId system data selector
+     * get system data by mapId + system data selector
      * -> e.g. value = 2 and key = 'id'
      * -> e.g. value = 30002187 and key = 'systemId' => looks for 'Amarr' CCP systemId
      * @param mapId
      * @param value
      * @param key
-     * @returns {any}
+     * @returns {{}|boolean}
      */
     let getSystemData = (mapId, value, key = 'id') => {
         return getSystemDataFromMapData(Util.getCurrentMapData(mapId), value, key);
+    };
+
+    /**
+     * get connection data from mapData
+     * @see getConnectionData
+     * @param mapData
+     * @param value
+     * @param key
+     * @returns {{}|boolean}
+     */
+    let getConnectionDataFromMapData = (mapData, value, key = 'id') => {
+        return (Util.getObjVal(mapData, `data.connections`) || [])
+            .find(connectionData => connectionData[key] === value) || false;
+    };
+
+    /**
+     * get connection data by mapId + connection data selector
+     * @param mapId
+     * @param value
+     * @param key
+     * @returns {{}|boolean}
+     */
+    let getConnectionData = (mapId, value, key = 'id') => {
+        return getConnectionDataFromMapData(Util.getCurrentMapData(mapId), value, key);
     };
 
     /**
@@ -220,14 +240,7 @@ define([
      * @returns {string}
      */
     let getSystemTypeInfo = (systemTypeId, option) => {
-        let systemTypeInfo = '';
-        $.each(Init.systemType, function(prop, data){
-            if(systemTypeId === data.id){
-                systemTypeInfo = data[option];
-                return;
-            }
-        });
-        return systemTypeInfo;
+        return (Object.values(Init.systemType).find(data => data.id === systemTypeId) || {})[option] || '';
     };
 
     /**
@@ -237,11 +250,7 @@ define([
      * @returns {string}
      */
     let getEffectInfoForSystem = (effect, option) => {
-        let effectInfo = '';
-        if( Init.classes.systemEffects.hasOwnProperty(effect) ){
-            effectInfo = Init.classes.systemEffects[effect][option];
-        }
-        return effectInfo;
+        return Util.getObjVal(Init.classes.systemEffects, `${effect}.${option}`) || '';
     };
 
     /**
@@ -438,7 +447,7 @@ define([
             }
 
             if(connectionIds.length > 0){
-                Util.request('DELETE', 'connection', connectionIds, {
+                Util.request('DELETE', 'Connection', connectionIds, {
                     mapId: mapContainer.data('id')
                 }, {
                     connections: connections
@@ -486,13 +495,16 @@ define([
     let getConnectionDataFromSignatures = (connection, connectionData) => {
         let signatureTypeData = {
             source: {
+                ids: [],
                 names: [],
                 labels: []
             },
             target: {
+                ids: [],
                 names: [],
                 labels: []
-            }
+            },
+            hash: false     // unique hash key build from all relevant signature for connection
         };
 
         if(
@@ -500,7 +512,7 @@ define([
             connectionData &&
             connectionData.signatures   // signature data is required...
         ){
-            let SystemSignatures = require('module/system_signature');
+            let SystemSignatureModule = require('module/system_signature');
 
             let sourceEndpoint      = connection.endpoints[0];
             let targetEndpoint      = connection.endpoints[1];
@@ -509,41 +521,50 @@ define([
             let sourceId            = sourceSystem.data('id');
             let targetId            = targetSystem.data('id');
 
+            // in case connection is currently "dragged" between systems, sourceId and/or targetId is undefined
+            if(!sourceId || !targetId){
+                return signatureTypeData;
+            }
+
+            let hash = [];
             // ... collect overlay/label data from signatures
             for(let signatureData of connectionData.signatures){
-                // ... typeId is required to get a valid name
-                if(signatureData.typeId > 0){
+                hash.push(Util.getObjVal(signatureData, 'updated.updated'));
 
-                    // whether "source" or "target" system is relevant for current connection and current signature...
-                    let tmpSystem = null;
-                    let tmpSystemType = null;
+                // whether "source" or "target" system is relevant for current connection and current signature...
+                let tmpSystem = null;
+                let tmpSystemType = null;
 
-                    if(signatureData.system.id === sourceId){
-                        // relates to "source" endpoint
-                        tmpSystemType = 'source';
-                        tmpSystem = sourceSystem;
-                    }else if(signatureData.system.id === targetId){
-                        // relates to "target" endpoint
-                        tmpSystemType = 'target';
-                        tmpSystem = targetSystem;
-                    }
+                if(signatureData.system.id === sourceId){
+                    // relates to "source" endpoint
+                    tmpSystemType = 'source';
+                    tmpSystem = sourceSystem;
+                }else if(signatureData.system.id === targetId){
+                    // relates to "target" endpoint
+                    tmpSystemType = 'target';
+                    tmpSystem = targetSystem;
+                }
 
-                    // ... get endpoint label for source || target system
-                    if(tmpSystem && tmpSystem){
-                        // ... get all  available signature type (wormholes) names
-                        let availableSigTypeNames = SystemSignatures.getSignatureTypeOptionsBySystem(tmpSystem, 5);
-                        let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
+                signatureTypeData[tmpSystemType].ids.push(signatureData.id);
+                signatureTypeData[tmpSystemType].names.push(signatureData.name.toUpperCase());
 
-                        if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){
-                            let label = flattenSigTypeNames[signatureData.typeId];
-                            // shorten label, just take the ingame name
-                            label = label.substr(0, label.indexOf(' '));
-                            signatureTypeData[tmpSystemType].names.push(signatureData.name);
-                            signatureTypeData[tmpSystemType].labels.push(label);
-                        }
+                // ... typeId is required to get a valid labels
+                // ... get endpoint label for source || target system
+                if(signatureData.typeId > 0 && tmpSystem && tmpSystem){
+                    // ... get all  available signature type (wormholes) names
+                    let availableSigTypeNames = SystemSignatureModule.getSignatureTypeOptionsBySystem(tmpSystem, 5);
+                    let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
+
+                    if(flattenSigTypeNames.hasOwnProperty(signatureData.typeId)){
+                        let label = flattenSigTypeNames[signatureData.typeId];
+                        // shorten label, just take the ingame name
+                        label = label.substr(0, label.indexOf(' '));
+                        signatureTypeData[tmpSystemType].labels.push(label);
                     }
                 }
             }
+            // ... build unique hash
+            signatureTypeData.hash = hash.join().hashCode();
         }
 
         return signatureTypeData;
@@ -609,7 +630,7 @@ define([
      * @param element
      * @returns {*}
      */
-    let getTabContentElementByMapElement = element => $(element).closest('.' + config.mapTabContentClass);
+    let getTabContentElementByMapElement = element => $(element).closest('.' + Util.config.mapTabContentClass);
 
     /**
      * checks if there is an "active" connection on a map
@@ -629,64 +650,66 @@ define([
      */
     let filterMapByScopes = (map, scopes) => {
         if(map){
-            map.batch(() => {
-                let mapElement = $(map.getContainer());
-                let allSystems = mapElement.getSystems();
-                let allConnections = map.getAllConnections();
+            map.setSuspendDrawing(true);
 
-                if(scopes && scopes.length){
-                    // filter connections -------------------------------------------------------------------------------------
-                    let visibleSystems = [];
-                    let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
+            let mapElement = $(map.getContainer());
+            let allSystems = mapElement.getSystems();
+            let allConnections = map.getAllConnections();
 
-                    for(let connection of allConnections){
-                        if(visibleConnections.indexOf(connection) >= 0){
-                            setConnectionVisible(connection, true);
-                            // source/target system should always be visible -> even if filter scope not matches system type
-                            if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
-                                visibleSystems.push(connection.endpoints[0].element);
-                            }
-                            if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
-                                visibleSystems.push(connection.endpoints[1].element);
-                            }
-                        }else{
-                            setConnectionVisible(connection, false);
-                        }
-                    }
+            if(scopes && scopes.length){
+                // filter connections -------------------------------------------------------------------------------------
+                let visibleSystems = [];
+                let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
 
-                    // filter systems -----------------------------------------------------------------------------------------
-                    let visibleTypeIds = [];
-                    if(scopes.indexOf('wh') >= 0){
-                        visibleTypeIds.push(1);
-                    }
-                    if(scopes.indexOf('abyssal') >= 0){
-                        visibleTypeIds.push(4);
-                    }
-
-                    for(let system of allSystems){
-                        if(
-                            visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
-                            visibleSystems.indexOf(system) >= 0
-                        ){
-                            setSystemVisible(system, map, true);
-                        }else{
-                            setSystemVisible(system, map, false);
-                        }
-                    }
-
-                    MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'show');
-                }else{
-                    // clear filter
-                    for(let system of allSystems){
-                        setSystemVisible(system, map, true);
-                    }
-                    for(let connection of allConnections){
+                for(let connection of allConnections){
+                    if(visibleConnections.indexOf(connection) >= 0){
                         setConnectionVisible(connection, true);
+                        // source/target system should always be visible -> even if filter scope not matches system type
+                        if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
+                            visibleSystems.push(connection.endpoints[0].element);
+                        }
+                        if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
+                            visibleSystems.push(connection.endpoints[1].element);
+                        }
+                    }else{
+                        setConnectionVisible(connection, false);
                     }
-
-                    MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'hide');
                 }
-            });
+
+                // filter systems -----------------------------------------------------------------------------------------
+                let visibleTypeIds = [];
+                if(scopes.indexOf('wh') >= 0){
+                    visibleTypeIds.push(1);
+                }
+                if(scopes.indexOf('abyssal') >= 0){
+                    visibleTypeIds.push(4);
+                }
+
+                for(let system of allSystems){
+                    if(
+                        visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
+                        visibleSystems.indexOf(system) >= 0
+                    ){
+                        setSystemVisible(system, map, true);
+                    }else{
+                        setSystemVisible(system, map, false);
+                    }
+                }
+
+                MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'show');
+            }else{
+                // clear filter
+                for(let system of allSystems){
+                    setSystemVisible(system, map, true);
+                }
+                for(let connection of allConnections){
+                    setConnectionVisible(connection, true);
+                }
+
+                MapOverlayUtil.getMapOverlay(mapElement, 'info').updateOverlayIcon('filter', 'hide');
+            }
+
+            map.setSuspendDrawing(false, true);
         }
     };
 
@@ -753,11 +776,11 @@ define([
                 'height': scrollableHeight ? scaledHeight + 'px' : (wrapperHeight) + 'px',
             });
 
-            let mapWrapperElement = mapContainer.closest('.mCustomScrollbar');
+            let areaMap = mapContainer.closest('.mCustomScrollbar');
             if(scrollableWidth && scrollableHeight){
-                mapWrapperElement.mCustomScrollbar('update');
+                areaMap.mCustomScrollbar('update');
             }else{
-                mapWrapperElement.mCustomScrollbar('scrollTo', '#' + mapContainer.attr('id'), {
+                areaMap.mCustomScrollbar('scrollTo', '#' + mapContainer.attr('id'), {
                     scrollInertia: 0,
                     scrollEasing: 'linear',
                     timeout: 0,
@@ -800,17 +823,19 @@ define([
      */
     let setSystemActive = (map, system) => {
         // deselect all selected systems on map
-        let mapContainer = $( map.getContainer() );
-        mapContainer.find('.' + config.systemClass).removeClass(config.systemActiveClass);
+        let mapContainer = map.getContainer();
+        [...mapContainer.getElementsByClassName(config.systemClass)]
+            .forEach(systemEl =>
+                systemEl.classList.remove(config.systemActiveClass)
+            );
 
         // set current system active
         system.addClass(config.systemActiveClass);
 
-        // collect all required data from map module to update the info element
-        // store them global and assessable for each module
+        // collect all required systemData from map module -> cache
         let systemData = system.getSystemData();
         systemData.mapId = parseInt(system.attr('data-mapid')) || 0;
-        Util.setCurrentSystemData(systemData);
+        Util.setCurrentSystemData(systemData.mapId, systemData);
     };
 
     /**
@@ -921,20 +946,22 @@ define([
      * @param connections
      */
     let setConnectionsActive = (map, connections) => {
-        map.batch(() => {
-            // set all inactive
-            for(let connection of getConnectionsByType(map, 'state_active')){
-                if(!connections.includes(connection)){
-                    removeConnectionType(connection, 'state_active');
-                }
-            }
+        map.setSuspendDrawing(true);
 
-            for(let connection of connections){
-                if(!connection.hasType('state_active')){
-                    addConnectionType(connection, 'state_active');
-                }
+        // set all inactive
+        for(let connection of getConnectionsByType(map, 'state_active')){
+            if(!connections.includes(connection)){
+                removeConnectionType(connection, 'state_active');
             }
-        });
+        }
+
+        for(let connection of connections){
+            if(!connection.hasType('state_active')){
+                addConnectionType(connection, 'state_active');
+            }
+        }
+
+        map.setSuspendDrawing(false, true);
     };
 
     /**
@@ -977,19 +1004,36 @@ define([
     let toggleConnectionActive = (map, connections) => {
         let selectedConnections = [];
         let deselectedConnections = [];
-        map.batch(() => {
-            for(let connection of connections){
-                if(connection.hasType('state_active')){
-                    removeConnectionType(connection, 'state_active');
-                    deselectedConnections.push(connection);
-                }else{
-                    addConnectionType(connection, 'state_active');
-                    selectedConnections.push(connection);
-                }
+
+        map.setSuspendDrawing(true);
+
+        for(let connection of connections){
+            if(connection.hasType('state_active')){
+                removeConnectionType(connection, 'state_active');
+                deselectedConnections.push(connection);
+            }else{
+                addConnectionType(connection, 'state_active');
+                selectedConnections.push(connection);
             }
-        });
+        }
+
+        map.setSuspendDrawing(false, true);
 
         updateConnectionInfo(map, selectedConnections, deselectedConnections);
+    };
+
+    /**
+     * show global map info panels
+     * @param map
+     */
+    let showMapInfo = map => {
+        // get parent Tab Content and fire update event
+        let mapContainer = $(map.getContainer());
+
+        getTabContentElementByMapElement(mapContainer).trigger('pf:renderGlobalModules', {
+            mapId: parseInt(mapContainer.data('id')),
+            payload: null
+        });
     };
 
     /**
@@ -1001,7 +1045,13 @@ define([
         setSystemActive(map, system);
 
         // get parent Tab Content and fire update event
-        getTabContentElementByMapElement(system).trigger('pf:drawSystemModules');
+        let mapContainer = $(map.getContainer());
+        let mapId = parseInt(mapContainer.data('id')) || 0;
+
+        getTabContentElementByMapElement(mapContainer).trigger('pf:renderSystemModules', {
+            mapId: mapId,
+            payload: Util.getCurrentSystemData(mapId)
+        });
     };
 
     /**
@@ -1015,9 +1065,9 @@ define([
         // get parent Tab Content and fire update event
         let mapContainer = $(map.getContainer());
 
-        getTabContentElementByMapElement(mapContainer).trigger('pf:drawConnectionModules', {
-            connections: connections,
-            mapId: parseInt(mapContainer.data('id'))
+        getTabContentElementByMapElement(mapContainer).trigger('pf:renderConnectionModules', {
+            mapId: parseInt(mapContainer.data('id')),
+            payload: connections
         });
     };
 
@@ -1046,9 +1096,11 @@ define([
     let showFindRouteDialog = (mapContainer, systemToData) => {
         // get parent Tab Content and fire update event
         getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
-            task: 'showFindRouteDialog',
-            systemToData: systemToData,
-            mapId: parseInt(mapContainer.data('id'))
+            mapId: parseInt(mapContainer.data('id')),
+            payload: {
+                task: 'showFindRouteDialog',
+                systemToData: systemToData
+            }
         });
     };
 
@@ -1059,9 +1111,11 @@ define([
      */
     let findRoute = (mapContainer, systemToData) => {
         getTabContentElementByMapElement(mapContainer).trigger('pf:updateRouteModules', {
-            task: 'findRoute',
-            systemToData: systemToData,
-            mapId: parseInt(mapContainer.data('id'))
+            mapId: parseInt(mapContainer.data('id')),
+            payload: {
+                task: 'findRoute',
+                systemToData: systemToData
+            }
         });
     };
 
@@ -1237,10 +1291,12 @@ define([
     let setUniqueConnectionType = (connection, type, types) => {
         type = types.includes(type) ? [type] : [];
 
-        connection._jsPlumb.instance.batch(() => {
-            removeConnectionTypes(connection, types.diff(type));
-            addConnectionTypes(connection, type);
-        });
+        connection._jsPlumb.instance.setSuspendDrawing(true);
+
+        removeConnectionTypes(connection, types.diff(type));
+        addConnectionTypes(connection, type);
+
+        connection._jsPlumb.instance.setSuspendDrawing(false, true);
     };
 
     /**
@@ -1265,84 +1321,6 @@ define([
         }
 
         return scopeInfo;
-    };
-
-    /**
-     * store local data for current user (IndexDB)
-     * @param key
-     * @param value
-     */
-    let storeLocaleCharacterData = (key, value) => {
-        if(key.length && value){
-            let userData = Util.getCurrentUserData();
-            if(
-                userData &&
-                userData.character
-            ){
-                storeLocalData('character', userData.character.id, key, value);
-            }
-        }
-    };
-
-    /**
-     * get key prefix for local storage data
-     * @param type
-     * @returns {boolean}
-     */
-    let getLocalStoragePrefixByType = (type) => {
-        let prefix = false;
-        switch(type){
-            case 'character':   prefix = config.characterLocalStoragePrefix; break;
-            case 'map':   prefix = config.mapLocalStoragePrefix; break;
-            default:   prefix = config.mapLocalStoragePrefix;
-        }
-        return prefix;
-    };
-
-    /**
-     * get stored local data from client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @returns {*}
-     */
-    let getLocaleData = (type, objectId) => {
-        if(objectId > 0){
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.getLocalStorage().getItem(storageKey);
-        }else{
-            console.warn('Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * store local config data to client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     * @param value
-     */
-    let storeLocalData = (type, objectId, key, value) => {
-        if(objectId > 0){
-            // get current map config
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data){
-                // This code runs once the value has been loaded
-                // from the offline store.
-                data = (data === null) ? {} : data;
-                // set/update value
-                data[this.key] = this.value;
-                Util.getLocalStorage().setItem(this.storageKey, data);
-            }.bind({
-                key: key,
-                value: value,
-                storageKey: storageKey
-            })).catch(function(err){
-                // This code runs if there were any errors
-                console.error('Map local storage can not be accessed!');
-            });
-        }else{
-            console.warn('storeLocalData(): Local storage requires object id > 0');
-        }
     };
 
     /**
@@ -1461,7 +1439,8 @@ define([
         let setMapDefaultOptionsExecutor = (resolve, reject) => {
             // update main menu options based on the active map -----------------------------------------------
             $(document).trigger('pf:updateMenuOptions', {
-                mapConfig: mapConfig
+                menuGroup: 'mapOptions',
+                payload: mapConfig
             });
 
             // init compact system layout ---------------------------------------------------------------------
@@ -1531,11 +1510,10 @@ define([
             // -> implementation would be difficult...
             if(map.getZoom() === 1){
                 let mapElement = $(map.getContainer());
-                let promiseStore = getLocaleData('map', mapElement.data('id'));
-                promiseStore.then(data => {
+                Util.getLocalStore('map').getItem(mapElement.data('id')).then(data => {
                     if(data && data.scrollOffset){
-                        let mapWrapper = mapElement.parents('.' + config.mapWrapperClass);
-                        Scrollbar.scrollToPosition(mapWrapper, [data.scrollOffset.y, data.scrollOffset.x]);
+                        let areaMap = mapElement.closest('.' + Util.getMapTabContentAreaClass('map'));
+                        Scrollbar.scrollToPosition(areaMap, [data.scrollOffset.y, data.scrollOffset.x]);
                     }
 
                     resolve(payload);
@@ -1557,8 +1535,7 @@ define([
 
         let zoomToDefaultScaleExecutor = resolve => {
             let mapElement = $(map.getContainer());
-            let promiseStore = getLocaleData('map', mapElement.data('id'));
-            promiseStore.then(data => {
+            Util.getLocalStore('map').getItem(mapElement.data('id')).then(data => {
                 if(data && data.mapZoom){
                     setZoom(map, data.mapZoom);
                 }
@@ -1571,32 +1548,6 @@ define([
         };
 
         return new Promise(zoomToDefaultScaleExecutor);
-    };
-
-    /**
-     * delete local map configuration by key (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     */
-    let deleteLocalData = (type, objectId, key) => {
-        if(objectId > 0){
-            // get current map config
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data){
-                if(
-                    data &&
-                    data.hasOwnProperty(key)
-                ){
-                    delete data[key];
-                    Util.getLocalStorage().setItem(this.storageKey, data);
-                }
-            }.bind({
-                storageKey: storageKey
-            }));
-        }else{
-            console.warn('deleteLocalData(): Local storage requires object id > 0');
-        }
     };
 
     /**
@@ -1650,8 +1601,7 @@ define([
                         // check if desktop notification was already send
                         let mapId = system.data('mapid');
                         let systemId = system.data('id');
-                        let promiseStore = getLocaleData('map', mapId);
-                        promiseStore.then(function(data){
+                        Util.getLocalStore('map').getItem(mapId).then(function(data){
                             // This code runs once the value has been loaded
                             // from the offline store.
                             let rallyPokeData = {};
@@ -1669,7 +1619,7 @@ define([
                                 rallyPokeData[this.systemId] !== rallyUpdated // already send to that system but in the past
                             ){
                                 rallyPokeData[this.systemId] = rallyUpdated;
-                                storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
+                                Util.getLocalStore('map').setItem(`${this.mapId}.rallyPoke`, rallyPokeData);
 
                                 notificationOptions.type = 'info';
                                 Util.showNotify(notificationOptions, {
@@ -1686,7 +1636,7 @@ define([
                     }
 
                     // update active "route" module -> add rally point row --------------------------------------------
-                    let mapContainer = system.parents('.' + config.mapClass);
+                    let mapContainer = system.parents('.' + Util.config.mapClass);
                     findRoute(mapContainer, {
                         systemId: system.data('systemId'),
                         name: system.data('name'),
@@ -1711,28 +1661,27 @@ define([
      * set map "shortcut" events
      */
     $.fn.setMapShortcuts = function(){
-        return this.each((i, mapWrapper) => {
-            mapWrapper = $(mapWrapper);
-            let mapElement = mapWrapper.find('.' + config.mapClass);
+        return this.each((i, areaMap) => {
+            areaMap = $(areaMap);
+            let mapElement = areaMap.find('.' + Util.config.mapClass);
 
             // dynamic require Map module -> otherwise there is a require(), loop
             let Map = require('app/map/map');
             let System = require('app/map/system');
-            let map = Map.getMapInstance( mapElement.data('id'));
+            let map = Map.getMapInstance(mapElement.data('id'));
 
-            mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
+            areaMap.watchKey('mapSystemAdd', areaMap => {
                 System.showNewSystemDialog(map, {position: {x: 0, y: 0}}, Map.saveSystemCallback);
             },{focus: true});
 
-            mapWrapper.watchKey('mapSystemsSelect', (mapWrapper) => {
+            areaMap.watchKey('mapSystemsSelect', areaMap => {
                 mapElement.selectAllSystems();
             },{focus: true});
 
-            mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
+            areaMap.watchKey('mapSystemsDelete', areaMap => {
                 let selectedSystems = mapElement.getSelectedSystems();
                 $.fn.showDeleteSystemDialog(map, selectedSystems);
             },{focus: true});
-
         });
     };
 
@@ -1810,7 +1759,7 @@ define([
             for(let i = 0; i < services.length; i++){
                 let icon = getServiceIcon(services[i]);
                 if(icon){
-                    content += '<img class="' + Util.config.popoverListIconClass + '" src="/public/img/icons/client/ui/window/' + icon + '.png" alt="' + services[i] + '">';
+                    content += `<img class="${Util.config.popoverListIconClass}" src="${Util.imgRoot()}icons/client/ui/window/${icon}.png" alt="${services[i]}">`;
                 }
             }
             return content;
@@ -2059,60 +2008,26 @@ define([
      */
     let checkRight = (right, mapConfig) => {
         let hasAccess = false;
-        let currentUserData = Util.getCurrentUserData();
-        if(currentUserData){
-            // ...there is an active user
-            let currentCharacterData = Util.getObjVal(currentUserData, 'character');
-            if(currentCharacterData){
-                // ... there is an active character
-                let currentCharacterRole = Util.getObjVal(currentCharacterData, 'role');
-                if(currentCharacterRole){
-                    // ... active character has a role assigned
+        let mapType = Util.getObjVal(mapConfig, 'type.name');
+        let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
 
-                    let mapType = Util.getObjVal(mapConfig, 'type.name');
-                    let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
-
-                    // this is either Ally/Corp or Character Id
-                    let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
-
-                    // check whether character has map access
-                    let hasMapAccess = mapAccess.some((accessObj) => {
-                        return (accessObj.id === accessObjectId);
-                    });
-
-                    if(hasMapAccess){
-                        // ... this should ALWAYS be be true!
-                        switch(mapType){
-                            case 'private':
-                                hasAccess = true;
-                                break;
-                            case 'corporation':
-                                let objectRights = Util.getObjVal(currentCharacterData, mapType + '.rights') || [];
-
-                                let objectRight = objectRights.find((objectRight) => {
-                                    return objectRight.right.name === right;
-                                });
-
-                                if(objectRight){
-                                    // ... Ally/Corp has the right we are looking for assigned with a required role
-                                    if(
-                                        currentCharacterRole.name === 'SUPER' ||
-                                        objectRight.role.name === 'MEMBER' ||
-                                        objectRight.role.name === currentCharacterRole.name
-                                    ){
-                                        hasAccess = true;
-                                    }
-                                }
-                                break;
-                            case 'alliance':
-                                hasAccess = true;
-                                break;
-                        }
-                    }
-                }
+        // check whether character has map access
+        let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
+        let hasMapAccess = mapAccess.some(accessObj => accessObj.id === accessObjectId);
+        if(hasMapAccess){
+            // ... this should ALWAYS be be true!
+            switch(mapType){
+                case 'private':
+                    hasAccess = true;
+                    break;
+                case 'corporation':
+                    hasAccess = Util.hasRight(right, mapType);
+                    break;
+                case 'alliance':
+                    hasAccess = true;
+                    break;
             }
         }
-
         return hasAccess;
     };
 
@@ -2182,6 +2097,40 @@ define([
     };
 
     /**
+     * calculate the x/y coordinates for a new system - relative to current map scroll offset
+     * @param mapContainer
+     * @param maxResults
+     * @returns {[{x: number, y: number}]}
+     */
+    let newSystemPositionsByMapOffset = (mapContainer, maxResults = 1) => {
+        let scrollPosition = {
+            x: Math.abs(parseInt(mapContainer.attr('data-scroll-left')) || 0),
+            y: Math.abs(parseInt(mapContainer.attr('data-scroll-top')) || 0)
+        };
+
+        // space new positions from map top (e.g. used for tooltips)
+        scrollPosition.y = Math.max(scrollPosition.y, 30);
+
+        // default position -> current map section top/left
+        let positions = [scrollPosition];
+
+        // check default position for overlapping
+        let dimensions = newSystemPositionByCoordinates(mapContainer, {
+            center: [scrollPosition.x, scrollPosition.y],
+            minX: scrollPosition.x,
+            minY: scrollPosition.y
+        }, maxResults, true);
+
+        if(dimensions.length){
+            positions = dimensions.map(dim => ({
+                x: parseInt(dim.left) || 0,
+                y: parseInt(dim.top) || 0
+            }));
+        }
+        return positions;
+    };
+
+    /**
      *
      * @param mapContainer
      */
@@ -2190,30 +2139,8 @@ define([
 
         if(mapContainer){
             let mapId = mapContainer.data('id');
-            let scrollPosition = {
-                x: Math.abs(parseInt(mapContainer.attr('data-scroll-left')) || 0),
-                y: Math.abs(parseInt(mapContainer.attr('data-scroll-top')) || 0)
-            };
 
-            // space new positions from map top (e.g. used for tooltips)
-            scrollPosition.y = Math.max(scrollPosition.y, 30);
-
-            // default position -> current map section top/left -------------------------------------------------------
-            positions.defaults = [scrollPosition];
-
-            // check default position for overlapping -----------------------------------------------------------------
-            let dimensions = newSystemPositionByCoordinates(mapContainer, {
-                center: [scrollPosition.x, scrollPosition.y],
-                minX: scrollPosition.x,
-                minY: scrollPosition.y
-            }, 2, true);
-
-            if(dimensions.length){
-                positions.defaults = dimensions.map(dim => ({
-                    x: parseInt(dim.left) || 0,
-                    y: parseInt(dim.top) || 0
-                }));
-            }
+            positions.defaults = newSystemPositionsByMapOffset(mapContainer, 2);
 
             // -> calc possible coordinates for new system that should be used based on current user location ---------
             let currentLocationData = Util.getCurrentLocationData();
@@ -2269,6 +2196,8 @@ define([
         getInfoForSystem: getInfoForSystem,
         getSystemDataFromMapData: getSystemDataFromMapData,
         getSystemData: getSystemData,
+        getConnectionDataFromMapData: getConnectionDataFromMapData,
+        getConnectionData: getConnectionData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         markAsChanged: markAsChanged,
@@ -2279,6 +2208,7 @@ define([
         toggleConnectionType: toggleConnectionType,
         toggleConnectionActive: toggleConnectionActive,
         setSystemActive: setSystemActive,
+        showMapInfo: showMapInfo,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         showFindRouteDialog: showFindRouteDialog,
@@ -2287,6 +2217,7 @@ define([
         getConnectionsByType: getConnectionsByType,
         getEndpointsDataByConnection: getEndpointsDataByConnection,
         getDataByConnection: getDataByConnection,
+        getDataByConnections: getDataByConnections,
         searchConnectionsBySystems: searchConnectionsBySystems,
         searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
         getConnectionInfo: getConnectionInfo,
@@ -2298,7 +2229,6 @@ define([
         setConnectionMassStatusType: setConnectionMassStatusType,
         setConnectionJumpMassType: setConnectionJumpMassType,
         getScopeInfoForConnection: getScopeInfoForConnection,
-        getDataByConnections: getDataByConnections,
         deleteConnections: deleteConnections,
         getConnectionDataFromSignatures: getConnectionDataFromSignatures,
         getEndpointOverlaySignatureLocation: getEndpointOverlaySignatureLocation,
@@ -2309,10 +2239,6 @@ define([
         changeZoom: changeZoom,
         setZoom: setZoom,
         toggleSystemAliasEditable: toggleSystemAliasEditable,
-        storeLocaleCharacterData: storeLocaleCharacterData,
-        getLocaleData: getLocaleData,
-        storeLocalData: storeLocalData,
-        deleteLocalData: deleteLocalData,
         visualizeMap: visualizeMap,
         setMapDefaultOptions: setMapDefaultOptions,
         getSystemPosition: getSystemPosition,
@@ -2323,6 +2249,7 @@ define([
         checkRight: checkRight,
         newSystemPositionBySystem: newSystemPositionBySystem,
         newSystemPositionByCoordinates: newSystemPositionByCoordinates,
+        newSystemPositionsByMapOffset: newSystemPositionsByMapOffset,
         newSystemPositionsByMap: newSystemPositionsByMap,
         getMapDeeplinkUrl: getMapDeeplinkUrl
     };

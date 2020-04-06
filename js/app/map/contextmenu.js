@@ -10,6 +10,7 @@ define([
     'use strict';
 
     let config = {
+        contextMenuContainerId: 'pf-contextmenu-container',                         // id for container element that holds (hidden) context menus
         mapContextMenuId: 'pf-map-contextmenu',                                     // id for "maps" context menu
         connectionContextMenuId: 'pf-map-connection-contextmenu',                   // id for "connections" context menu
         endpointContextMenuId: 'pf-map-endpoint-contextmenu',                       // id for "endpoints" context menu
@@ -221,7 +222,7 @@ define([
      * @param excludeMenu
      */
     let closeMenus = excludeMenu => {
-        let allMenus = $('.' + config.contextMenuClass + '[role="menu"]');
+        let allMenus = $('.' + config.contextMenuClass + '[role="menu"][style*="display: block"]');
         if(excludeMenu){
             allMenus = allMenus.not(excludeMenu);
         }
@@ -290,17 +291,15 @@ define([
 
     /**
      * default config (skeleton) for valid context menu configuration
-     * @returns {{hidden: Array, active: Array, disabled: Array, id: string, selectCallback: null}}
+     * @returns {{hidden: [], active: [], disabled: [], id: string, selectCallback: null}}
      */
-    let defaultMenuOptionConfig = () => {
-        return {
-            'id': '',
-            'selectCallback': null,
-            'hidden': [],
-            'active': [],
-            'disabled': []
-        };
-    };
+    let defaultMenuOptionConfig = () => ({
+        'id': '',
+        'selectCallback': null,
+        'hidden': [],
+        'active': [],
+        'disabled': []
+    });
 
     return {
         config: config,

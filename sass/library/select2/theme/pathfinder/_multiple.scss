@@ -1,57 +1,72 @@
 .select2-selection--multiple {
   background-color: $gray-dark;
-  color: $gray-dark;
-  border: 1px solid $border-color;
-  border-radius: $border-radius;
+  border: 1px solid $gray-light;
+  border-radius: 0;
   cursor: text;
-  outline: 0;
-
-  &:focus {
-    border: 1px solid $focus-border-color;
-  }
 
   .select2-selection__rendered {
+    box-sizing: border-box;
     list-style: none;
     margin: 0;
-    padding: 0 5px;
+    padding: 0 12px;
     width: 100%;
-  }
 
-  .select2-selection__clear {
-    display: none;
-  }
-
-  .select2-selection__choice {
-    background-color: $gray-lighter;
-    border: 1px solid $border-color;
-    border-radius: $border-radius-choice;
-    cursor: default;
-    float: left;
-    margin-right: 5px;
-    margin-top: 5px;
-    padding: 0 5px;
-  }
-
-  .select2-selection__choice__remove {
-    color: $remove-color;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: bold;
-    margin-right: 4px;
-
-    &:hover {
-      color: $remove-hover-color;
+    li {
+      display: flex;
+      list-style: none;
     }
   }
 
-  .select2-selection__placeholder {
-    color: $gray-light;
+  .select2-selection__clear {
+    cursor: pointer;
+    float: right;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-right: 0;
+
+    // This padding is to account for the bottom border for the first
+    // selection row and the top border of the second selection row.
+    // Without it, selections on the first row may be offset incorrectly
+    // and appear in their own row instead of going to the second row
+    padding: 1px;
+  }
+
+  .select2-selection__choice {
+    background-color:  $gray-lighter;
+
+    border: 1px solid $gray-lighter;
+    border-radius: 0;
+    cursor: default;
+
+    float: left;
+
+    margin-right: 5px;
+    margin-top: 5px;
+    padding: 0 5px;
+
+    color: $gray-dark;
+    font-weight: bold;
+  }
+
+  .select2-selection__choice__remove {
+    color: $red-dark;
+    cursor: pointer;
+
+    display: inline-block;
+    font-weight: bold;
+
+    //margin-right: 2px;
+    min-width: 10px;
+
+    &:hover {
+      opacity: .5;
+    }
   }
 }
 
 &[dir="rtl"] {
   .select2-selection--multiple {
-    .select2-selection__choice {
+    .select2-selection__choice, .select2-search--inline {
       float: right;
     }
 
@@ -67,24 +82,20 @@
   }
 }
 
-&.select2-container--open {
+&.select2-container--focus {
   .select2-selection--multiple {
-    border: 1px solid $focus-border-color;
+    border: solid $teal-lighter 1px;
+    outline: 0;
+  }
+}
+
+&.select2-container--disabled {
+  .select2-selection--multiple {
+    background-color: #eee;
+    cursor: default;
   }
 
-  &.select2-container--above {
-    .select2-selection--multiple {
-      border-top: none;
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
-    }
-  }
-
-  &.select2-container--below {
-    .select2-selection--multiple {
-      border-bottom: none;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
+  .select2-selection__choice__remove {
+    display: none;
   }
 }

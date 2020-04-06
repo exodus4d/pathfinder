@@ -743,8 +743,8 @@ $code-bg:                     $gray-light;
 $kbd-color:                   $gray-lighter;
 $kbd-bg:                      $gray-darker;
 
-$pre-bg:                      $gray-light;
-$pre-color:                   $gray-darkest;
+$pre-bg:                      $gray-dark;
+$pre-color:                   $gray-light;
 $pre-border-color:            #ccc;
 $pre-scrollable-max-height:   340px;
 
@@ -757,8 +757,8 @@ $text-muted:                  $gray-light;
 $abbr-border-color:           $gray-light;
 $headings-small-color:        $gray-light;
 $blockquote-small-color:      $gray-light;
-$blockquote-font-size:        ($font-size-base * 1.25);
-$blockquote-border-color:     $green;
+$blockquote-font-size:        ($font-size-base * 1.20);
+$blockquote-border-color:     $brand-info;
 $page-header-border-color:    $gray-lighter;
 
 
@@ -820,7 +820,6 @@ $base-url: "../../img";
 $html-background-image: "";
 $html-background-color: $bg-color;
 
-$body-background-image: "pf-bg.jpg";
 $body-background-color: $bg-color;
 
 //== HEADER

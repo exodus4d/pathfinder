@@ -1,17 +1,12 @@
 <div class="row ">
     <div class="col-sm-12" >
 
-        <div class="pf-dynamic-area pf-credits-logo-background">
-            <div id="{{logoContainerId}}" class="text-center">
-
-            </div>
+        <div class="pf-dynamic-area pf-credits-logo-background" style="--bg-image: url('{{{imgSrcBackground}}}');">
+            <svg>
+                <use xlink:href="#pf-svg-logo"/>
+            </svg>
+            <h3><small class="text-right txt-color txt-color-grayLighter">{{version}}</small></h3>
         </div>
-
-
-        <h3 class="text-right txt-color txt-color-grayLight">
-            <strong>Pathfinder</strong>
-            <small>{{version}}</small>
-        </h3>
 
         <blockquote>
             <p>
@@ -43,12 +38,12 @@
         <div class="row">
             <div class="col-xs-6 text-center">
                 <a class="btn" target="_blank" href="//www.patreon.com/exodus4d" rel="noopener">
-                    <img src="/public/img/landing/donate_patreon.png">
+                    <img src="{{imgSrcPatreon}}">
                 </a>
             </div>
             <div class="col-xs-6 text-center">
                 <a class="btn" target="_blank" href="//www.paypal.me/Exodus4D" rel="noopener">
-                    <img src="/public/img/landing/donate_paypal.png">
+                    <img src="{{imgSrcPaypal}}">
                 </a>
             </div>
         </div>

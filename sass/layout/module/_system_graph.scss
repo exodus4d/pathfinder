@@ -1,0 +1,23 @@
+.pf-system-graph-module {
+
+  .pf-module-head {
+    h5.pull-right {
+      margin-right: 5px;
+    }
+  }
+
+  .pf-module-body {
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  }
+
+  .pf-system-graph {
+    position: relative;
+    width: 100%;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    @include transition(height .18s ease-out); // height is reduced when no graph shown
+  }
+}

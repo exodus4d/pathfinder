@@ -1,0 +1,362 @@
+$colMinWidth:               444px;
+
+$mapHeight:                 1500px;
+$mapWidth:                  2500px;
+
+$mapAreaHeight:             520px + 38px;
+$mapAreaMinHeight:          300px;
+$mapAreaMaxHeight:          1000px;              // no vertical scrollbar: $mapHeight + 38px;
+
+$mapModuleMaxWidth:         floor(4 * ($mapWidth + 16) / 3);
+$mapModuleGridGap:          10px;
+$mapModuleGridRowMinHeight: 38px;
+
+#pf-map-module {
+  margin: 15px 10px 52px 10px;
+}
+
+#pf-map-tab-element{
+  max-width: $mapModuleMaxWidth;
+  margin: 0 auto;
+
+  display: grid;
+  grid-column-gap: 10px;
+
+  grid-template:
+          "tabs1" max-content
+          "wrapper" minmax($mapModuleGridRowMinHeight, 1fr) /
+          1fr;
+
+  @media screen and (min-width: $screen-lg){
+    grid-template-areas:
+            "tabs1   tabs1   tabs1   tabs1"
+            "wrapper wrapper wrapper wrapper";
+    grid-template-columns: 1fr 1fr 1fr minmax($colMinWidth, 1fr);
+  }
+
+  #pf-map-tab-bar-left {
+    grid-area: tabs1;
+  }
+
+  .pf-map-tab-content-wrapper {
+    grid-area: wrapper;
+    z-index: 100; // slightly over map tabs
+  }
+
+  // global 'layout' class (left|right) affect child grid layout for .pf-map-tab-content elements
+  // -> default: 'right'
+  &.left {
+    // swap grid tab element
+    @media screen and (min-width: $screen-lg){
+      grid-template-areas:
+              ".       tabs1   tabs1   tabs1"
+              "wrapper wrapper wrapper wrapper";
+      grid-template-columns: minmax($colMinWidth, 1fr) 1fr 1fr 1fr;
+    }
+
+    .pf-map-tab-content {
+      // swap grid area columns
+      @media screen and (min-width: $screen-lg){
+        grid-template-areas:
+                "area2 map   map   map"
+                "area2 area1 area1 area3"
+                "area2 area1 area1 area3";
+        grid-template-columns: minmax($colMinWidth, 1fr) 1fr 1fr minmax($colMinWidth, 1fr);
+      }
+    }
+  }
+}
+
+// Tabs (colored) =====================================================================================================
+.pf-map-tab-bar {
+  display: flex;
+  position: relative; // vor applying dropZone class
+
+  &:after {
+    border-radius: 0 !important; // for pf-sortable-dropzone class
+    font-size: 14px !important;
+  }
+
+  .pf-map-tab {
+    z-index: 10;
+    flex: 0 0 auto;
+
+    &:last-child{
+      margin-right: 0; // overwrite default
+    }
+
+    > a {
+      &[data-badge]:after {
+        content:attr(data-badge);
+        position: absolute;
+        top: -4px;
+        left: 60%;
+        background: $gray-dark;
+        color: $orange;
+        border-radius: 9px;
+        padding: 3px 4px;
+        font-size: 11px;
+        font-weight: bold;
+        line-height: 1;
+        vertical-align: baseline;
+        white-space: nowrap;
+        text-align: center;
+      }
+    }
+  }
+
+  .noSort {
+    margin-left: auto;
+  }
+
+  .pf-map-type-tab-default {
+    border-top: 2px solid transparent;
+
+    > a {
+      &:hover, &:focus, &.editable-open {
+        color: $orange;
+        background-color: transparent;
+        border-color: transparent;
+      }
+    }
+  }
+
+  .pf-map-type-tab-private {
+    border-top: 2px solid $indigo;
+  }
+
+  .pf-map-type-tab-corporation {
+    border-top: 2px solid $green;
+  }
+
+  .pf-map-type-tab-alliance {
+    border-top: 2px solid $blue;
+  }
+
+  .pf-map-type-tab-global {
+    border-top: 2px solid $teal-lighter;
+  }
+
+  .pf-map-tab-icon {
+    + .nav-tabs-link:not(:empty){
+      margin-left: 3px;
+    }
+  }
+
+  .pf-map-tab-shared-icon {
+    margin-left: 3px;
+  }
+}
+
+// Tab content grid ===================================================================================================
+.pf-map-tab-content {
+  display: grid;
+  grid-column-gap: 10px; // "row-gap" is created by margin-top of areas. Because an area could be empty (invisible)
+
+  grid-template:
+          "map"   max-content
+          "area1" minmax(0, max-content)
+          "area2" minmax(0, max-content)
+          "area3" minmax(0, max-content) /
+          1fr;
+
+  @media screen and (min-width: $screen-sm){
+    grid-template:
+            "map   map"   max-content
+            "area1 area1" minmax(0, min-content)
+            "area2 area3" minmax(0, min-content) /
+            1fr 1fr;
+  }
+
+  @media screen and (min-width: $screen-md){
+    grid-template:
+            "map   map   map"   max-content
+            "area1 area1 area2" minmax(0, max-content)
+            "area1 area1 area3" minmax(0, 1fr) /
+            1fr 1fr minmax($colMinWidth, 1fr);
+  }
+
+
+  @media screen and (min-width: $screen-lg){
+    grid-template:
+            "map   map   map   area2" minmax(0, max-content)
+            "area1 area1 area3 area2" minmax(0, max-content)
+            "area1 area1 area3 area2" minmax(0, 1fr) /
+            1fr 1fr minmax($colMinWidth, 1fr) minmax($colMinWidth, 1fr);
+  }
+
+  &.active {
+    display: grid; // overwrites default display: block; of .tab-content
+  }
+
+  &-area {
+    position: relative;
+    border-radius: 5px;
+    min-height: 0; // animated for drop-zone
+    @include transition(min-height 0.3s ease);
+
+    &-map {
+      grid-area: map;
+
+      position: relative;
+      resize: vertical;
+      width: 100%;
+      height: $mapAreaHeight;
+      //max-width: $mapWrapperMaxWidth;
+      min-height: $mapAreaMinHeight;
+      max-height: $mapAreaMaxHeight;
+      overflow: hidden; // required for resizing to work with pos: absolute "overlay" elements
+      padding: 5px;
+      background: rgba($gray-darker, 0.93);
+      box-shadow: inset -3px 3px 10px 0 rgba($black, 0.3);
+      will-change: width, height;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border: {
+        width: 1px;
+        style: solid;
+        color: $gray-dark;
+      }
+
+      &:before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        border-style: solid;
+        border-width: 14px 14px 0 0;
+        border-color: transparent $gray-dark transparent transparent;
+        cursor: row-resize;
+      }
+
+      &:focus, &:hover {
+        border: 1px solid $gray;
+
+        &:before {
+          border-color: transparent $gray transparent transparent;
+        }
+      }
+    }
+
+    &-a, &-b, &-c {
+      display: grid;
+      grid-gap: 10px;
+      grid-auto-rows: max-content;
+
+      &:not(:empty) {
+        margin-top: $mapModuleGridGap;
+      }
+    }
+
+    &-a {
+      grid-area: area1;
+    }
+
+    &-b {
+      grid-area: area2;
+
+      @media screen and (min-width: $screen-lg){
+        margin-top: 0 !important;
+      }
+    }
+
+    &-c {
+      grid-area: area3;
+    }
+  }
+
+  .pf-sortable-dropzone {
+    margin-top: $mapModuleGridGap;
+    min-height: $mapModuleGridRowMinHeight;
+  }
+}
+
+// Module (panel) =====================================================================================================
+.pf-module {
+  font-family: $font-family-bold;
+  background: rgba($gray, 0.27);
+  padding: 10px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 5px;
+  border-top-left-radius: 0;
+  opacity: 0; // animated by JS
+  will-change: opacity, transform, height;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-style: solid;
+    border-width: 0 0 9px 9px;
+    border-color: transparent transparent transparent $gray;
+    cursor: row-resize;
+  }
+
+  .label:not(:last-child) {
+    margin-bottom: 10px;
+  }
+
+  .pf-module-head {
+    h5 {
+      display: inline-block;
+      line-height: 16px;
+      margin-bottom: 0;
+
+      // icons in headline
+      .pf-module-icon-button {
+        margin-left: 4px;
+      }
+    }
+
+    + .pf-module-body {
+      &:not(:empty):not(.hidden) {
+        margin-top: 10px;
+      }
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  // system info table
+  .pf-module-table {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .dataTable {
+    font-size: 10px;
+  }
+
+  .pf-dynamic-area {
+    background: rgba($gray-darker, 0.4);
+    min-height: initial;
+  }
+
+  .pf-module-control-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: inherit;
+
+    &:hover {
+      .fa-sync {
+        transform: rotateZ(720deg);
+      }
+    }
+
+    .fa-sync {
+      @include transition(transform 1.6s ease-out);
+    }
+  }
+}
+
+// "Fake" spacer module -> preserves height during hide -> show animation for a module
+.pf-module-spacer {
+  margin-bottom: 10px; // same as .pf-module -> no UI jump
+}

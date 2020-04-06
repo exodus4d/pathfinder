@@ -53,8 +53,9 @@ define([
                 captchaImageId: config.captchaImageId,
                 formErrorContainerClass: Util.config.formErrorContainerClass,
                 ccpImageServer: Init.url.ccpImageServer,
-                roleLabel: Util.getLabelByRole(Util.getObjVal(Util.getCurrentUserData(), 'character.role')).prop('outerHTML'),
-                characterAutoLocationSelectEnabled: Boolean(Util.getObjVal(Init, 'character.autoLocationSelect'))
+                roleLabel: Util.getLabelByRole(Util.getCurrentCharacterData('role')).prop('outerHTML'),
+                characterAutoLocationSelectEnabled: Boolean(Util.getObjVal(Init, 'character.autoLocationSelect')),
+                hasRightCorporationShare: Util.hasRight('map_share', 'corporation')
             };
 
             let content = Mustache.render(template, data);
@@ -189,16 +190,9 @@ define([
                 dialogElement.initTooltips();
 
                 form.initFormValidation();
-            });
 
-            // show dialog
-            accountSettingsDialog.modal('show');
-
-            // events for tab change
-            accountSettingsDialog.find('.navbar a').on('shown.bs.tab', function(e){
-
-                // init "toggle" switches on current active tab
-                accountSettingsDialog.find( $(this).attr('href') ).find('input[data-toggle="toggle"][type="checkbox"]').bootstrapToggle({
+                // init "toggle" switches
+                dialogElement.find('input[type="checkbox"][data-toggle="toggle"]').bootstrapToggle({
                     on: '<i class="fas fa-fw fa-check"></i>&nbsp;Enable',
                     off: 'Disable&nbsp;<i class="fas fa-fw fa-ban"></i>',
                     onstyle: 'success',
@@ -206,9 +200,10 @@ define([
                     width: 100,
                     height: 30
                 });
-
             });
 
+            // show dialog
+            accountSettingsDialog.modal('show');
         });
     };
 });

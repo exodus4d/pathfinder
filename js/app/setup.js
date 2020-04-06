@@ -81,7 +81,7 @@ define([
         let body = $('body');
 
         // navigation (scroll) ----------------------------------------------------------------------------------------
-        Util.initScrollSpy(document.getElementById(config.navigationElementId), window, {
+        Util.initScrollSpy(document.getElementById(config.navigationElementId), document, {
             offset: 300
         });
 
@@ -111,7 +111,7 @@ define([
             e.preventDefault();
             e.stopPropagation();
             let element = $(this);
-            let url = '/api/setup/' + element.attr('data-action');
+            let url = '/api/Setup/' + element.attr('data-action');
             let payload = element.attr('data-payload');
             let callStartName = element.attr('data-callstart');
             let callBackName = element.attr('data-callback');
@@ -167,9 +167,7 @@ define([
         });
 
         // tooltips ---------------------------------------------------------------------------------------------------
-        body.initTooltips({
-            container: 'body'
-        });
+        body.initTooltips({container: 'body'});
 
         body.on('show.bs.tooltip', e => {
             let element = $(e.target);
@@ -284,9 +282,7 @@ define([
             if(elOld && elNew){
                 elOld.destroyTooltips(true);
                 elOld.replaceWith(elNew);
-                elNew.initTooltips({
-                    container: 'body'
-                });
+                elNew.initTooltips({container: 'body'});
                 initBarCharts(elNew.find('.' + config.barChartClass));
                 updateStatusBar(elPanel);
             }
@@ -515,7 +511,7 @@ define([
                 getWebSocketSubscriptionTable(Util.getObjVal(response, 'load.subStats')).then(payload => {
                     // remove existing table -> then insert new
                     $('#' + config.webSocketStatsId).remove();
-                    $(payload).insertAfter(webSocketPanel).initTooltips();
+                    $(payload).insertAfter(webSocketPanel).initTooltips({container: 'body'});
 
                     let token = Util.getObjVal(response, 'load.token');
                     tcpSocketPanel.attr('data-token', token);

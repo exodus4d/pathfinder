@@ -2,7 +2,7 @@
     <form  role="form" class="form-horizontal">
 
         <div class="row">
-            <div class="col-sm-4">
+            <div class="col-sm-5">
                 <div class="form-group">
                     <label class="col-sm-3 col-xs-2 control-label">From</label>
                     <div class="col-sm-9 col-xs-10">
@@ -16,7 +16,7 @@
                 </div>
             </div>
 
-            <div class="col-sm-8">
+            <div class="col-sm-7">
                 <div class="form-group">
                     <label class="col-sm-2 col-xs-2 control-label" for="to_system">To</label>
                     <div class="col-sm-10 col-xs-10">
@@ -35,26 +35,30 @@
 
         {{! search options ----------------------------------------------------------- }}
 
-        <h4 class="pf-dynamic-area">Search options</h4>
+        <h4 class="pf-dynamic-area"><i class="fas fa-search"></i>&nbsp;&nbsp;Options</h4>
 
         <div class="row">
-            <div class="col-sm-4">
+            <div class="col-sm-5">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include stargate connections">
-                            <input id="form_stargates" name="stargates" value="1" type="checkbox" checked>
-                            <label for="form_stargates">Stargates</label>
+                        <div class="col-sm-12 col-xs-6 radio radio-primary">
+                            <input id="form_flag_shortest" name="flag" value="shortest" type="radio" checked>
+                            <label for="form_flag_shortest">Shortest
+                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Prefer shortest"></i>
+                            </label>
                         </div>
 
-                        <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include jump bridge connections">
-                            <input id="form_rally" name="jumpbridges" value="1" type="checkbox" checked>
-                            <label for="form_rally">Jump Bridges</label>
+                        <div class="col-sm-12 col-xs-6 radio radio-success">
+                            <input id="form_flag_secure" name="flag" value="secure" type="radio">
+                            <label for="form_flag_secure">Secure
+                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Prefer higher security"></i>
+                            </label>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-sm-8">
+            <div class="col-sm-7">
                 <div class="form-group">
                     <label class="col-sm-2 control-label" for="{{routeDialogMapSelectId}}">Maps</label>
                     <div class="col-sm-10">
@@ -64,35 +68,79 @@
                                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                                 {{/mapSelectOptions}}
                             </select>
-                            <span class="help-block with-errors">Set maps for search</span>
+                            <span class="help-block with-errors">Add maps to search</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <hr>
+        <h4 class="pf-dynamic-area"><i class="fas fa-filter"></i>&nbsp;&nbsp;Filter</h4>
 
-        {{! wormhole ----------------------------------------------------------------- }}
+        {{! Filter ------------------------------------------------------------------- }}
 
         <div class="row">
-            <div class="col-xs-6 col-sm-4">
+
+            <div class="col-xs-12 col-sm-5">
                 <div class="form-group">
-                    <div class="col-sm-offset-1 col-sm-11">
-                        <div class="col-sm-12 checkbox checkbox-primary" title="include wormhole connections">
-                            <input id="form_wormholes" name="wormholes" value="1" type="checkbox" checked>
-                            <label for="form_wormholes">Wormholes</label>
-                        </div>
+                    <label class="col-xs-2 col-sm-3 control-label">Type</label>
+
+                    <div class="col-sm-offset-1 col-xs-3 col-sm-8 checkbox checkbox-primary">
+                        <input id="form_wormholes" name="wormholes" value="1" type="checkbox" checked>
+                        <label for="form_wormholes">Wormholes
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include wormhole connections"></i>
+                        </label>
                     </div>
+
+                    <i class="fas fa-tree-child col-sm-offset-4 hidden-xs"></i>
+
+                    <div class="col-xs-4 checkbox checkbox-warning checkbox-circle">
+                        <input id="form_wormholes_reduced" name="wormholesReduced" value="1" type="checkbox" checked>
+                        <label for="form_wormholes_reduced">Stage 2 (reduced)
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include reduced connections"></i>
+                        </label>
+                    </div>
+
+                    <i class="fas fa-tree-child col-sm-offset-4 hidden-xs"></i>
+
+                    <div class="col-xs-3 checkbox checkbox-danger checkbox-circle">
+                        <input id="form_wormholes_critical" name="wormholesCritical" value="1" type="checkbox" checked>
+                        <label for="form_wormholes_critical">Stage 3 (critical)
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include critical connections"></i>
+                        </label>
+                    </div>
+
+                    <i class="fas fa-tree-child col-sm-offset-4 hidden-xs"></i>
+
+                    <div class="col-xs-offset-9 col-xs-3 checkbox checkbox-danger">
+                        <input id="form_wormholes_eol" name="wormholesEOL" value="1" type="checkbox" checked>
+                        <label for="form_wormholes_eol">End of life (EOL)
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include EOL connections"></i>
+                        </label>
+                    </div>
+
+                    <div class="col-xs-offset-2 col-sm-offset-4 col-xs-3 col-sm-8 checkbox checkbox-primary">
+                        <input id="form_stargates" name="stargates" value="1" type="checkbox" checked>
+                        <label for="form_stargates">Stargates
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include stargate connections"></i>
+                        </label>
+                    </div>
+
+                    <div class="col-sm-offset-4 col-xs-3 col-sm-8 checkbox checkbox-primary">
+                        <input id="form_jumpbridges" name="jumpbridges" value="1" type="checkbox" checked>
+                        <label for="form_jumpbridges">Jump Bridges
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include jump bridge connections"></i>
+                        </label>
+                    </div>
+
                 </div>
             </div>
 
-            <div class="col-xs-6 col-sm-8">
+            <div class="col-xs-6 col-sm-7">
                 <div class="form-group">
                     <label for="{{routeDialogSizeSelectId}}" class="col-sm-2 control-label">Size min</label>
                     <div class="col-sm-10">
                         <select name="wormholesSizeMin" id="{{routeDialogSizeSelectId}}" class="form-control {{select2Class}}">
-                            <option value="">test</option>
                             {{#sizeOptions}}
                             <option value="{{id}}">{{name}}</option>
                             {{/sizeOptions}}
@@ -101,56 +149,28 @@
                 </div>
             </div>
 
-            <div class="col-xs-6 col-sm-4 col-sm-offset-4">
-                <div class="form-group">
-                    <div class="col-sm-offset-1 col-sm-11">
-                        <div class="checkbox checkbox-warning checkbox-circle" title="include reduced connections">
-                            <input id="form_wormholes_reduced" name="wormholesReduced" value="1" type="checkbox" checked>
-                            <label for="form_wormholes_reduced">Stage 2 (reduced)</label>
+            <div class="col-sm-offset-3 col-xs-6 col-sm-4">
+                <div class="pf-dynamic-area">
+                    <div class="form-group">
+                        <div class="col-xs-offset-1 checkbox checkbox-default">
+                            <input id="form_connections_thera" name="wormholesThera" value="1" type="checkbox" checked>
+                            <label for="form_connections_thera">Thera
+                                <i class="fas fa-fw fa-question-circle pf-help-light" title="include known Thera connections"></i>
+                                &nbsp;&nbsp;<a target="_blank" href="//www.eve-scout.com" rel="noopener"><em>eve-scout.com</em></a>
+                            </label>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-xs-6 col-sm-4">
-                <div class="form-group">
-                    <div class="col-sm-offset-1 col-sm-11">
-                        <div class="checkbox checkbox-danger checkbox-circle" title="include critical connections">
-                            <input id="form_wormholes_critical" name="wormholesCritical" value="1" type="checkbox" checked>
-                            <label for="form_wormholes_critical">Stage 3 (critical)</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xs-6 col-sm-4 col-xs-offset-6 col-sm-offset-8">
-                <div class="form-group">
-                    <div class="col-sm-offset-1 col-sm-11">
-                        <div class="checkbox checkbox-danger checkbox-circle" title="include EOL connections">
-                            <input id="form_wormholes_eol" name="wormholesEOL" value="1" type="checkbox" checked>
-                            <label for="form_wormholes_eol">End of life (EOL)</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <hr>
-
-        {{! endpoint ----------------------------------------------------------------- }}
-
-        <div class="row">
-            <div class="col-xs-6 col-sm-4">
-                <div class="form-group">
-                    <div class="col-sm-offset-1 col-sm-11">
-                        <div class="checkbox checkbox-primary" title="include bubbled connections">
+                        <div class="col-xs-offset-1 checkbox checkbox-default">
                             <input id="form_endpoints_bubble" name="endpointsBubble" value="1" type="checkbox" checked>
-                            <label for="form_endpoints_bubble">Bubbled&nbsp;&nbsp;<span class="pf-endpoint-bubble"></span></label>
+                            <label for="form_endpoints_bubble">Bubbled
+                                <i class="fas fa-fw fa-question-circle pf-help-light" title="include bubbled source/destination endpoints"></i>
+                                &nbsp;&nbsp;<span class="pf-endpoint-bubble"></span>
+                            </label>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
 
     </form>

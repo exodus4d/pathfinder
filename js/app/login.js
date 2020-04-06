@@ -8,18 +8,16 @@ define([
     'app/util',
     'app/render',
     'blueImpGallery',
-    'bootbox',
-    'lazyload',
     'layout/header_login',
-    'layout/logo',
-    'layout/demo_map',
+    'lazyload',
+    'bootbox',
     'dialog/account_settings',
     'dialog/notification',
     'dialog/manual',
     'dialog/changelog',
     'dialog/credit',
-    'dialog/api_status',
-], ($, Init, Util, Render, Gallery, bootbox) => {
+    'dialog/api_status'
+], ($, Init, Util, Render, Gallery, HeaderLogin, LazyLoad, bootbox) => {
 
     'use strict';
 
@@ -29,7 +27,6 @@ define([
         // header
         headerId: 'pf-landing-top',                                             // id for header
         headerContainerId: 'pf-header-container',                               // id for header container
-        logoContainerId: 'pf-logo-container',                                   // id for main header logo container
         headHeaderMapId: 'pf-header-map',                                       // id for header image (svg animation)
 
         // map bg
@@ -177,7 +174,7 @@ define([
         // license ------------------------------------------------------------
         $('.' + config.navigationLinkLicenseClass).on('click', function(e){
             e.preventDefault();
-            $.fn.showCreditsDialog(false, true);
+            $.fn.showCreditsDialog();
         });
 
         // releases -----------------------------------------------------------
@@ -404,7 +401,7 @@ define([
      * init scrollSpy for navigation bar
      */
     let initScrollSpy = () => {
-        let scrollElement = window;
+        let scrollElement = document;
         let timeout;
 
         // show elements that are currently in the viewport
@@ -515,7 +512,7 @@ define([
 
         let showNotificationPanel = () => {
             let data = {
-                version: Util.getVersion()
+                version: currentVersion
             };
 
             requirejs(['text!templates/ui/notice.html', 'mustache'], (template, Mustache) => {
@@ -529,16 +526,16 @@ define([
                         setVersionLinkObserver();
 
                         // mark panel as "shown"
-                        Util.getLocalStorage().setItem(storageKey, currentVersion);
+                        Util.getLocalStore('default').setItem(storageKey, currentVersion);
                     }
                 });
             });
         };
 
-        Util.getLocalStorage().getItem(storageKey).then(function(data){
+        Util.getLocalStore('default').getItem(storageKey).then(data => {
             // check if panel was shown before
             if(data){
-                if(data !== this.version){
+                if(data !== currentVersion){
                     // show current panel
                     showNotificationPanel();
                 }
@@ -546,9 +543,7 @@ define([
                 // show current panel
                 showNotificationPanel();
             }
-        }.bind({
-            version: currentVersion
-        }));
+        });
     };
 
     /**
@@ -756,6 +751,9 @@ define([
      * main init "landing" page
      */
     $(() => {
+        // passive event listener
+        Util.initPassiveEvents();
+
         // clear sessionStorage
         Util.clearSessionStorage();
 
@@ -769,26 +767,36 @@ define([
         Util.showVersionInfo();
 
         // show log off message
-        let isLogOut = location.search.split('logout')[1];
-        if(isLogOut !== undefined){
+        let searchParams = new URLSearchParams(location.search); // jshint ignore:line
+        if(
+            searchParams.has('logout') ||
+            searchParams.has('logoutGraceful')
+        ){
+            let cls = 'txt-color-warning';
+            let text = [
+                'For security reasons, you were logged out automatically',
+                'Please log in again'
+            ];
+
+            if(searchParams.has('logoutGraceful')){
+                cls = 'txt-color-success';
+                text = ['You have successfully logged out'];
+            }
 
             // show logout dialog
             let options = {
                 buttons: {
                     close: {
                         label: 'close',
-                        className: ['btn-default'].join(' ')
+                        className: 'btn-default'
                     }
                 },
                 content: {
                     icon: 'fa-sign-out-alt',
-                    class: 'txt-color-warning',
+                    class: cls,
                     title: 'Logout',
                     headline: 'Logout',
-                    text: [
-                        'For security reasons, you were logged out automatically',
-                        'Please log in again'
-                    ]
+                    text: text
                 }
             };
 
@@ -807,8 +815,9 @@ define([
         });
 
         // init "lazy loading" for images
-        $('.' + config.galleryThumbImageClass).lazyload({
-            threshold : 300
+        let lazyLoadInstance = new LazyLoad({
+            elements_selector: `.${config.galleryThumbImageClass}`,
+            use_native: true
         });
 
         // hide splash loading animation
@@ -837,13 +846,8 @@ define([
         initYoutube();
 
         // draw header logo
-        $('#' + config.logoContainerId).drawLogo(() => {
-            // init header animation
-            $('#' + config.headerContainerId).initHeader(() => {
-
-            });
-        }, false);
-
+        document.querySelector(`.logo-ploygon-top-right`).addEventListener('animationend', () => {
+            HeaderLogin.init(document.getElementById(config.headerContainerId));
+        });
     });
-
 });

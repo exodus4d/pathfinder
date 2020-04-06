@@ -11,8 +11,8 @@
             Use your browsers Back button to navigate to the page you have previously come
             <a href="{{ @errorData->redirectUrl }}">from</a>.<br>
 
-            <check if="{{ @errorData->message }}">
-                Message: {{ @errorData->message }}
+            <check if="{{ @errorData->text }}">
+                Message: {{ @errorData->text }}
             </check>
         </p>
     </div>

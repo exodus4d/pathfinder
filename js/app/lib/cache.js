@@ -5,7 +5,7 @@ define([], () => {
      * Abstract Cache Strategy class
      * @type {AbstractStrategy}
      */
-    let AbstractStrategy = class AbstractStrategy {
+    class AbstractStrategy {
         constructor(){
             if(new.target === AbstractStrategy){
                 throw new TypeError('Cannot construct AbstractStrategy instances directly');
@@ -19,7 +19,7 @@ define([], () => {
         static create(){
             return new this();
         }
-    };
+    }
 
     /**
      * LIFO Cache Strategy - First In First Out
@@ -27,7 +27,7 @@ define([], () => {
      *    without any regard to how often or how many times they were accessed before.
      * @type {StrategyFIFO}
      */
-    let StrategyFIFO = class StrategyFIFO extends AbstractStrategy {
+    class StrategyFIFO extends AbstractStrategy {
         valueToCompare(metaData){
             return metaData.age();
         }
@@ -35,7 +35,7 @@ define([], () => {
         compare(a, b){
             return b - a;
         }
-    };
+    }
 
     /**
      * LFU Cache Strategy - Least Frequently Used
@@ -43,7 +43,7 @@ define([], () => {
      *   Those that are used least often are discarded first
      * @type {StrategyLFU}
      */
-    let StrategyLFU = class StrategyLFU extends AbstractStrategy {
+    class StrategyLFU extends AbstractStrategy {
         valueToCompare(metaData){
             return metaData.hitCount;
         }
@@ -51,7 +51,7 @@ define([], () => {
         compare(a, b){
             return  a - b;
         }
-    };
+    }
 
     /**
      * LRU Cache Strategy - Least Recently Used
@@ -59,7 +59,7 @@ define([], () => {
      *    No matter how often they have been accessed.
      * @type {StrategyLRU}
      */
-    let StrategyLRU = class StrategyLRU extends AbstractStrategy {
+    class StrategyLRU extends AbstractStrategy {
         valueToCompare(metaData){
             return metaData.hits[metaData.hits.length - 1] || metaData.set;
         }
@@ -67,26 +67,26 @@ define([], () => {
         compare(a, b){
             return  a - b;
         }
-    };
+    }
 
     /**
      * Each entry in cache also has its own instance of CacheEntryMeta
      * -> The configured Cache Strategy use this meta data for eviction policy
      * @type {CacheEntryMeta}
      */
-    let CacheEntryMeta = class CacheEntryMeta {
+    class CacheEntryMeta {
         constructor(ttl, tSet){
-            this.ttl = ttl;
-            this.tSet = tSet || this.constructor.now();
-            this.tHits = [];
+            this._ttl = ttl;                                // ttl < 0 => no expire
+            this._tSet = tSet || this.constructor.now();
+            this._tHits = [];
         }
 
         get set(){
-            return this.tSet;
+            return this._tSet;
         }
 
         get hits(){
-            return this.tHits;
+            return this._tHits;
         }
 
         get hitCount(){
@@ -94,15 +94,15 @@ define([], () => {
         }
 
         newHit(current){
-            this.tHits.push(current || this.constructor.now());
+            this._tHits.push(current || this.constructor.now());
         }
 
         age(current){
-            return (current || this.constructor.now()) - this.tSet;
+            return (current || this.constructor.now()) - this._tSet;
         }
 
         expired(current){
-            return this.ttl < this.age(current);
+            return this._ttl < 0 ? false : this._ttl < this.age(current);
         }
 
         static now(){
@@ -112,7 +112,7 @@ define([], () => {
         static create(ttl, tSet){
             return new this(ttl, tSet);
         }
-    };
+    }
 
     /**
      * Each instance of Cache represents a key value in memory data store
@@ -123,26 +123,18 @@ define([], () => {
      *    if cache reaches maxSize limit, to increase performance.
      * @type {Cache}
      */
-    let Cache = class Cache {
+    class Cache {
 
-        constructor(config){
-            this.config = Object.assign({},{
-                name:       'Default',          // custom name for identification
-                ttl:        3600,               // default ttl for cache entries
-                maxSize:    600,                // max cache entries
-                bufferSize: 10,                 // cache entry count in percent to be removed if maxSize reached
-                strategy:   'FIFO',             // cache strategy policy
-                debug:      false               // debug output in console
-            }, config);
-
-            this.store      = new Map();
-            this.metaStore  = new WeakMap();
-            this.strategy   = this.constructor.setStrategy(this.config.strategy);
+        constructor(config = {}){
+            this._config    = Object.assign({}, Cache.defaultConfig, config);
+            this._store     = new Map();
+            this._metaStore = new WeakMap();
+            this._strategy  = this.constructor.setStrategy(this._config.strategy);
 
             this.debug = (msg,...data) => {
-                if(this.config.debug){
+                if(this._config.debug){
                     data = (data || []);
-                    data.unshift(this.config.name);
+                    data.unshift(this._config.name);
                     console.debug('debug: CACHE %o | ' + msg, ...data);
                 }
             };
@@ -151,34 +143,34 @@ define([], () => {
         }
 
         get size(){
-            return this.store.size;
+            return this._store.size;
         }
 
         isFull(){
-            return this.size>= this.config.maxSize;
+            return this.size>= this._config.maxSize;
         }
 
         set(key, value, ttl){
-            if(this.store.has(key)){
+            if(this._store.has(key)){
                 this.debug('SET key %o, UPDATE value %o', key, value);
-                this.store.set(key, value);
+                this._store.set(key, value);
             }else{
                 this.debug('SET key %o, NEW value %o', key, value);
                 if(this.isFull()){
                     this.debug(' ↪ FULL trim cache…');
                     this.trim(this.trimCount(1));
                 }
-                this.store.set(key, value);
+                this._store.set(key, value);
             }
 
-            this.metaStore.set(value, CacheEntryMeta.create(ttl || this.config.ttl));
+            this._metaStore.set(value, CacheEntryMeta.create(ttl || this._config.ttl));
         }
 
         get(key){
-            if(this.store.has(key)){
-                let value = this.store.get(key);
+            if(this._store.has(key)){
+                let value = this._store.get(key);
                 if(value){
-                    let metaData = this.metaStore.get(value);
+                    let metaData = this._metaStore.get(value);
                     if(metaData.expired()){
                         this.debug('EXPIRED key %o delete', key);
                         this.delete(key);
@@ -199,8 +191,8 @@ define([], () => {
         keysForTrim(count){
             let trimKeys = [];
             let compare = [];
-            for(let [key, value] of this.store){
-                let metaData = this.metaStore.get(value);
+            for(let [key, value] of this._store){
+                let metaData = this._metaStore.get(value);
                 if(metaData.expired()){
                     trimKeys.push(key);
                     if(count === trimKeys.length){
@@ -209,14 +201,14 @@ define([], () => {
                 }else{
                     compare.push({
                         key: key,
-                        value: this.strategy.valueToCompare(metaData)
+                        value: this._strategy.valueToCompare(metaData)
                     });
                 }
             }
 
             let countLeft = count - trimKeys.length;
             if(countLeft > 0){
-                compare = compare.sort((a, b) => this.strategy.compare(a.value, b.value));
+                compare = compare.sort((a, b) => this._strategy.compare(a.value, b.value));
                 trimKeys = trimKeys.concat(compare.splice(0, countLeft).map(a => a.key));
             }
 
@@ -224,20 +216,20 @@ define([], () => {
         }
 
         keys(){
-            return this.store.keys();
+            return this._store.keys();
         }
 
         delete(key){
-            return this.store.delete(key);
+            return this._store.delete(key);
         }
 
         clear(){
-            this.store.clear();
+            this._store.clear();
         }
 
         trimCount(spaceLeft){
-            let bufferSize = Math.max(Math.round(this.config.maxSize / 100 * this.config.bufferSize), spaceLeft);
-            return Math.min(Math.max(this.size - this.config.maxSize + bufferSize, 0), this.size);
+            let bufferSize = Math.max(Math.round(this._config.maxSize / 100 * this._config.bufferSize), spaceLeft);
+            return Math.min(Math.max(this.size - this._config.maxSize + bufferSize, 0), this.size);
         }
 
         trim(count){
@@ -253,9 +245,9 @@ define([], () => {
 
         status(){
             return {
-                config: this.config,
-                store: this.store,
-                metaStore: this.metaStore
+                config: this._config,
+                store: this._store,
+                metaStore: this._metaStore
             };
         }
 
@@ -269,6 +261,15 @@ define([], () => {
 
             }
         }
+    }
+
+    Cache.defaultConfig = {
+        name:       'Default',          // custom unique name for identification
+        ttl:        3600,               // default ttl for cache entries
+        maxSize:    600,                // max cache entries
+        bufferSize: 10,                 // cache entry count in percent to be removed if maxSize reached
+        strategy:   'FIFO',             // cache strategy policy
+        debug:      false               // debug output in console
     };
 
     return Cache;

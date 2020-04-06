@@ -44,36 +44,28 @@
 
 <div id="{{sigInfoId}}" class="pf-dynamic-area"></div>
 
-<div class="row">
-    <div class="col-xs-8">
-        <div class="well well-sm">
-            <div class="row">
-                <div class="col-xs-3">Signatures:</div>
-                <div class="col-xs-3 text-right" title="New signatures found">
-                    new&nbsp;
-                    <kbd id="{{sigInfoCountSigNewId}}" class="txt-color" data-class="txt-color-success">0</kbd>
-                </div>
-                <div class="col-xs-3 text-right" title="Update signatures">
-                    change&nbsp;
-                    <kbd id="{{sigInfoCountSigChangeId}}" class="txt-color" data-class="txt-color-warning">0</kbd>
-                </div>
-                <div class="col-xs-3 text-right" title="Delete signatures">
-                    delete&nbsp;
-                    <kbd id="{{sigInfoCountSigDeleteId}}" class="txt-color" data-class="txt-color-red">0</kbd>
-                </div>
-            </div>
+<div class="flex-row flex-between">
+    <div class="flex-col flex-grow well well-sm flex-row flex-between">
+        <div class="flex-col">Signatures:</div>
+        <div class="flex-col" title="New signatures found">
+            new&nbsp;
+            <kbd id="{{sigInfoCountSigNewId}}" class="txt-color" data-class="txt-color-success">0</kbd>
+        </div>
+        <div class="flex-col" title="Update signatures">
+            change&nbsp;
+            <kbd id="{{sigInfoCountSigChangeId}}" class="txt-color" data-class="txt-color-warning">0</kbd>
+        </div>
+        <div class="flex-col" title="Delete signatures">
+            delete&nbsp;
+            <kbd id="{{sigInfoCountSigDeleteId}}" class="txt-color" data-class="txt-color-red">0</kbd>
         </div>
     </div>
 
-    <div class="col-xs-4">
-        <div class="well well-sm">
-            <div class="row">
-                <div class="col-xs-6">Connections:</div>
-                <div class="col-xs-6 text-right" title="Delete linked connections">
-                    delete&nbsp;
-                    <kbd id="{{sigInfoCountConDeleteId}}" class="txt-color" data-class="txt-color-red">0</kbd>
-                </div>
-            </div>
+    <div class="flex-col well well-sm flex-row flex-between">
+        <div class="flex-col">Connections:</div>
+        <div class="flex-col" title="Delete linked connections">
+            delete&nbsp;
+            <kbd id="{{sigInfoCountConDeleteId}}" class="txt-color" data-class="txt-color-red">0</kbd>
         </div>
     </div>
 </div>

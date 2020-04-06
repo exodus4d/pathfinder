@@ -1,6 +1,7 @@
 /* GULP itself */
 'use strict';
 
+let util                = require('util');
 let fs                  = require('fs');
 let ini                 = require('ini');
 
@@ -10,12 +11,18 @@ let filter              = require('gulp-filter');
 let gulpif              = require('gulp-if');
 let jshint              = require('gulp-jshint');
 let sourcemaps          = require('gulp-sourcemaps');
+let zlib                = require('zlib');
 let gzip                = require('gulp-gzip');
 let brotli              = require('gulp-brotli');
 let uglifyjs            = require('uglify-es');
 let composer            = require('gulp-uglify/composer');
-let compass             = require('gulp-compass');
+let sass                = require('gulp-sass');
+let autoprefixer        = require('gulp-autoprefixer');
 let cleanCSS            = require('gulp-clean-css');
+let imageResize         = require('gulp-image-resize');
+let imagemin            = require('gulp-imagemin');
+let imageminWebp        = require('imagemin-webp');
+let rename              = require('gulp-rename');
 let bytediff            = require('gulp-bytediff');
 let debug               = require('gulp-debug');
 let notifier            = require('node-notifier');
@@ -36,24 +43,32 @@ let del                 = require('promised-del');
 
 let minify = composer(uglifyjs, console);
 
+sass.compiler           = require('node-sass');
+
 // == Settings ========================================================================================================
 
 // build/src directories
 let PATH = {
     JS_HINT: {
-        CONF:       '/.jshintrc'
+        CONF:           '/.jshintrc'
     },
     ASSETS: {
-        DIST:       './public'
+        DEST:           './public'
     },
     JS: {
-        SRC:        'js/**/*.js',
-        SRC_LIBS:   './js/lib/**/*',
-        DIST:       'public/js',
-        DIST_BUILD: './public/js/vX.X.X'
+        SRC:            'js/**/*.js',
+        SRC_LIBS:       './js/lib/**/*',
+        DEST:           'public/js',
+        DEST_BUILD:     './public/js/vX.X.X'
     },
     CSS: {
-        SRC: './sass/**/*.scss',
+        SRC:            'sass/**/*.scss',
+    },
+    IMG: {
+        SRC:            'img/**/*.{jpg,png,svg}',
+        SRC_HEADER:     'img/header/*.{jpg,png}',
+        SRC_GALLERY:    'img/gallery/**/*.{jpg,png}',
+        SRC_SVG:        'img/svg/*.svg'
     }
 };
 
@@ -94,7 +109,9 @@ let trackTable = {
 let uglifyJsOptions = {
     warnings: true,
     toplevel: false,
-    ecma: 8
+    ecma: 8,
+    nameCache: {},          // cache mangled variable and property names across multiple invocations of minify()
+    keep_classnames: true   // pass true to prevent discarding or mangling of class names.
 };
 
 // Sourcemaps options
@@ -108,17 +125,13 @@ let uglifyJsOptions = {
  * @param example
  */
 let printError = (title, example) => {
-    let cliLineLength = (cliBoxLength - 8);
-
     log('');
-    log(colors.red( '= ERROR ' + '=' . repeat(cliLineLength)));
-    log(colors.red(title));
+    log(colors.danger.divider('error'));
+    log(colors.iconDanger(title));
     if(example){
-        log(`
-             ${colors.gray(example)}
-        `);
+        log(`     ${colors.gray(example)}`);
     }
-    log(colors.red('='.repeat(cliBoxLength)));
+    log(colors.danger.divider(' '));
     log('');
 };
 
@@ -165,16 +178,33 @@ let CONF = {
         GZIP: options.hasOwnProperty('cssGzip') ? options.cssGzip === 'true': undefined,
         BROTLI: options.hasOwnProperty('cssBrotli') ? options.cssBrotli === 'true': undefined
     },
+    IMG: {
+        ACTIVE: options.hasOwnProperty('imgActive') ? options.imgActive === 'true': undefined,
+    },
     DEBUG: false
 };
 
 // -- Plugin options ----------------------------------------------------------
+let sassOptions = {
+    errorLogToConsole: true,
+    outputStyle: 'compressed' // nested, expanded, compact, compressed
+};
+
+let autoprefixerOptions = {
+    // browsers: ['last 2 versions'], read from package.json key: "browserslist"
+    cascade: false
+};
+
+let cleanCssOptions = {
+    compatibility: '*',
+    level: 2
+};
 
 let gZipOptions = {
     append: false,                      // disables default append ext .gz
     extension: 'gz',                    // use "custom" ext: .gz
     threshold: '1kb',                   // min size required to compress a file
-    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threshold'
+    deleteMode: PATH.JS.DEST_BUILD,     // replace *.gz files if size < 'threshold'
     gzipOptions: {
         level: 9                        // zlib.Gzip compression level [0-9]
     },
@@ -183,20 +213,70 @@ let gZipOptions = {
 
 let brotliOptions = {
     extension: 'br',                    // use "custom" ext: .br
-    mode: 1,                            // compression mode for UTF-8 formatted text
-    quality: 11,                        // quality [1 worst - 11 best]
-    skipLarger: true                    // use orig. files in case of *.br size > orig. size
-};
-
-let compassOptions = {
-    config_file: './config.rb',
-    css: 'public/css/' + CONF.TAG,      // #VERSION# will be replaced with version tag
-    sass: 'sass',
-    time: true,                         // show execution time
-    sourcemap: true
+    skipLarger: true,                   // use orig. files in case of *.br size > orig. size
+    params: {
+        [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,        // compression mode for UTF-8 formatted text
+        [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY    // quality [1 worst - 11 best]
+    }
 };
 
 let compressionExt = [gZipOptions.extension, brotliOptions.extension];
+
+let imageminWebpOptions = {quality: 80};
+
+let imgResizeOptions = {
+    crop : true,
+    upscale : false,
+    noProfile: true
+};
+
+colors.theme({
+    primary: colors.cyan,
+    success: colors.green,
+    info: colors.blue,
+    warning: colors.yellow,
+    danger: colors.red,
+
+    disabled:       (...args) => colors.dim.gray(util.format(...args)),
+    comment:        (...args) => colors.disabled.italic(util.format(...args)),
+
+    iconSuccess:    text => ` ${colors.success(`✔`)} ${colors.success(text)}`,
+    iconDanger:     text => ` ${colors.danger(`✘`)} ${colors.danger(text)}`,
+
+    divider:        text => colors.disabled(`${(text || '').trim().length ? `═ ${(text || '').trim().toUpperCase()} ═` : ''}`.padEnd(cliBoxLength, '═'))
+});
+
+/**
+ * example output formatting
+ */
+/*
+log(colors.primary('primary'));
+log(colors.success('success'));
+log(colors.info('info'));
+log(colors.warning('warning'));
+log(colors.danger('danger'));
+
+log(colors.disabled('disabled'));
+log(colors.comment('comment'));
+
+log(colors.iconSuccess('success'));
+log(colors.iconDanger('danger'));
+
+log(colors.bold('bold'));
+log(colors.italic('italic'));
+log(colors.underline('underline'));
+log('');
+log(colors.magenta('magenta'));
+log(colors.magentaBright('magentaBright'));
+log(colors.cyan('cyan'));
+log(colors.cyanBright('cyanBright'));
+log(colors.blue('blue'));
+log(colors.blueBright('blueBright'));
+log(colors.yellow('yellow'));
+log(colors.yellowBright('yellowBright'));
+log('');
+log('');
+*/
 
 // == Helper methods ==================================================================================================
 
@@ -272,35 +352,33 @@ let mergeConf = (confUser, confDefault) => {
  * print help information for all Gulp tasks
  */
 let printHelp = () => {
-    let cliLineLength = (cliBoxLength - 7);
-    log('');
-    log(colors.cyan( '= HELP ' + '='.repeat(cliLineLength)));
     log(`
-        ${colors.cyan('documentation:')}        ${colors.gray('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
-         
-        ${colors.cyan('usage:')}                ${colors.gray('$ npm run gulp [task] -- [--options] ...')}
-         
-        ${colors.cyan('tasks:')}
-            ${colors.gray('help')}              This view
-            ${colors.gray('default')}           Development environment. Working with row src files and file watcher, default:
-            ${colors.gray('')}                      ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
-            ${colors.gray('production')}        Production build. Concat and uglify static resources, default:
-            ${colors.gray('')}                      ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
-         
-        ${colors.cyan('options:')}
-            ${colors.gray('--tag')}             Set build version.                  ${colors.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
-            ${colors.gray('--jsUglify')}        Set js uglification.                ${colors.gray('(true || false)')}
-            ${colors.gray('--jsSourcemaps')}    Set js sourcemaps generation.       ${colors.gray('(true || false)')}
-            ${colors.gray('--jsGzip')}          Set js "gzip" compression mode.     ${colors.gray('(true || false)')}
-            ${colors.gray('--jsBrotli')}        Set js "brotli" compression mode.   ${colors.gray('(true || false)')}
-             
-            ${colors.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${colors.gray('(true || false)')}
-            ${colors.gray('--cssGzip')}         Set CSS "gzip" compression mode.    ${colors.gray('(true || false)')}
-            ${colors.gray('--cssBrotli')}       Set CSS "brotli" compression mode.  ${colors.gray('(true || false)')}
-            ${colors.gray('--debug')}           Set debug mode (more output).       ${colors.gray('(true || false)')}
+            ${colors.divider('help')}
+                ${colors.bold('docs:')}                 ${colors.info('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
+                ${colors.bold('command:')}              ${colors.magenta('$ npm run gulp')} ${colors.primary.italic('[task]')} ${colors.yellow.italic('-- [--options] …')}
+                ${colors.bold('tasks:')}
+                    ${colors.primary('help')}              This view
+                    ${colors.primary('default')}           Development environment. Working with row src files and file watcher, default:
+                    ${colors.primary('')}                      ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false --imgActive=true')}
+                    ${colors.primary('production')}        Production build. Concat and uglify static resources, default:
+                    ${colors.primary('')}                      ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true --imgActive=true')}
+                ${colors.bold('helper tasks:')}
+                    ${colors.primary('images')}            Build images. Convert src *.png images to *.webp and *.jpg. Crop & resize tasks
+                    ${colors.primary('')}                      ${colors.gray('--imgActive=true')}
+
+                ${colors.bold('options:')}
+                    ${colors.yellow('--tag')}             Set build version.                  ${colors.gray(`default: --tag="${tagVersion}" -> dest path: public/js/${tagVersion}`)}
+                    ${colors.yellow('--jsUglify')}        Set js uglification.                ${colors.gray('(true || false)')}
+                    ${colors.yellow('--jsSourcemaps')}    Set js sourcemaps generation.       ${colors.gray('(true || false)')}
+                    ${colors.yellow('--jsGzip')}          Set js "gzip" compression mode.     ${colors.gray('(true || false)')}
+                    ${colors.yellow('--jsBrotli')}        Set js "brotli" compression mode.   ${colors.gray('(true || false)')}
+                    ${colors.yellow('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${colors.gray('(true || false)')}
+                    ${colors.yellow('--cssGzip')}         Set CSS "gzip" compression mode.    ${colors.gray('(true || false)')}
+                    ${colors.yellow('--cssBrotli')}       Set CSS "brotli" compression mode.  ${colors.gray('(true || false)')}
+                    ${colors.yellow('--imgActive')}       Disables all image tasks.           ${colors.gray('(true || false)')}
+                    ${colors.yellow('--debug')}           Set debug mode (more output).       ${colors.gray('(true || false)')}
+            ${colors.divider(' ')}
     `);
-    log(colors.cyan('='.repeat(cliBoxLength)));
-    log('');
 };
 
 /**
@@ -488,18 +566,24 @@ let printJsSummary = () => {
 // == clean up tasks ==================================================================================================
 
 /**
- * clean temp JS build dir
+ * clean temp JS dest dir
  */
-gulp.task('task:cleanJsBuild', () => del([PATH.JS.DIST_BUILD]));
-/**
- * clean CSS build dir
- */
-gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css/' + CONF.TAG]));
+gulp.task('task:cleanJsDestBuild', () => del([PATH.JS.DEST_BUILD]));
 
 /**
- * clean JS destination (final) dir
+ * clean JS dest dir
  */
-gulp.task('task:cleanJsDest', () => del([PATH.JS.DIST + '/' + CONF.TAG]));
+gulp.task('task:cleanJsDest', () => del([PATH.JS.DEST + '/' + CONF.TAG]));
+
+/**
+ * clean CSS dest dir
+ */
+gulp.task('task:cleanCssDest', () => del([PATH.ASSETS.DEST + '/css/' + CONF.TAG]));
+
+/**
+ * clean IMG dest dir
+ */
+gulp.task('task:cleanImgDest', () => del([PATH.ASSETS.DEST + '/img/' + CONF.TAG]));
 
 // == Dev tasks (code analyses) =======================================================================================
 gulp.task('task:hintJS', () => {
@@ -514,7 +598,7 @@ gulp.task('task:hintJS', () => {
  * concat/build JS files by modules
  */
 gulp.task('task:concatJS', () => {
-    let modules = ['login', 'mappage', 'setup', 'admin', 'notification', 'datatables.loader'];
+    let modules = ['login', 'mappage', 'setup', 'admin', 'pnotify.loader', 'datatables.loader', 'summernote.loader'];
     let srcModules = ['./js/app/*(' + modules.join('|') + ').js'];
 
     return gulp.src(srcModules, {base: 'js'})
@@ -551,7 +635,7 @@ gulp.task('task:concatJS', () => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
             return colors.green('Build concat file "' + data.fileName + '"');
         }))
-        .pipe(gulp.dest(PATH.JS.DIST_BUILD));
+        .pipe(gulp.dest(PATH.JS.DEST_BUILD));
 });
 
 /**
@@ -569,32 +653,32 @@ gulp.task('task:diffJS', () => {
         .pipe(gulpif(CONF.JS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false, sourceRoot: '/js'})))
         .pipe(bytediff.stop(data => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
-            return colors.green('Build file "' + data.fileName + '"');
+            return colors.iconSuccess(`build → ${colors.magenta(data.fileName)}`);
         }))
-        .pipe(gulp.dest(PATH.JS.DIST_BUILD, {overwrite: false}));
+        .pipe(gulp.dest(PATH.JS.DEST_BUILD, {overwrite: false}));
 });
 
 /**
  * get assets filter options e.g. for gZip or Brotli assets
  * @param compression
  * @param fileExt
- * @returns {{srcModules: *[], fileFilter}}
+ * @returns {{fileFilter, srcModules: string[]}}
  */
 let getAssetFilterOptions = (compression, fileExt) => {
     return {
         srcModules: [
-            PATH.ASSETS.DIST +'/**/*.' + fileExt,
-            '!' + PATH.ASSETS.DIST + '/js/' + CONF.TAG + '{,/**/*}'
+            PATH.ASSETS.DEST +'/**/*.' + fileExt,
+            '!' + PATH.ASSETS.DEST + '/js/' + CONF.TAG + '{,/**/*}'
         ],
         fileFilter: filter(file => CONF[fileExt.toUpperCase()][compression.toUpperCase()])
     };
 };
 
 /**
- * build gZip or Brotli assets
+ * build gZip assets
  * @param config
  * @param taskName
- * @returns {JQuery.PromiseBase<never, never, never, never, never, never, never, never, never, never, never, never>}
+ * @returns {*}
  */
 let gzipAssets = (config, taskName) => {
     return gulp.src(config.srcModules, {base: 'public', since: gulp.lastRun(taskName)})
@@ -610,21 +694,21 @@ let gzipAssets = (config, taskName) => {
                 return colors.gray('Gzip skip "' + data.fileName + '". Size < ' + gZipOptions.threshold + ' (threehold)');
             }
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST));
+        .pipe(gulp.dest(PATH.ASSETS.DEST));
 };
 
 /**
- * build Brotli or Brotli assets
+ * build Brotli assets
  * @param config
  * @param taskName
- * @returns {JQuery.PromiseBase<never, never, never, never, never, never, never, never, never, never, never, never>}
+ * @returns {*}
  */
 let brotliAssets = (config, taskName) => {
     return gulp.src(config.srcModules, {base: 'public', since: gulp.lastRun(taskName)})
         .pipe(config.fileFilter)
         .pipe(debug({title: 'Brotli asses dest: ', showFiles: false}))
         .pipe(bytediff.start())
-        .pipe(brotli.compress(brotliOptions))
+        .pipe(brotli(brotliOptions))
         .pipe(bytediff.stop(data => {
             trackFile(data, {brotliFile: 'fileName', brotli: 'endSize'});
             if(fileExtension(data.fileName) ===  brotliOptions.extension){
@@ -633,7 +717,7 @@ let brotliAssets = (config, taskName) => {
                 return colors.gray('Brotli skip "' + data.fileName + '"');
             }
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST));
+        .pipe(gulp.dest(PATH.ASSETS.DEST));
 };
 
 gulp.task('task:gzipJsAssets', () => {
@@ -653,42 +737,135 @@ gulp.task('task:brotliCssAssets', () => {
 });
 
 /**
- * rename "temp" build JS folder to final dist folder
+ * rename "temp" build JS folder to final dest folder
  * (keep "old" build data as long as possible in case of build failure)
  */
 gulp.task('task:renameJsDest', () => {
     let fileExt = ['js', 'map'].concat(compressionExt);
-    return gulp.src( PATH.JS.DIST_BUILD + '/**/*.{' + fileExt.join(',') + '}', {base: PATH.JS.DIST_BUILD, since: gulp.lastRun('task:renameJsDest')})
+    return gulp.src( PATH.JS.DEST_BUILD + '/**/*.{' + fileExt.join(',') + '}', {base: PATH.JS.DEST_BUILD, since: gulp.lastRun('task:renameJsDest')})
         .pipe(debug({title: 'Rename JS dest: ', showFiles: false}))
-        .pipe(gulp.dest(PATH.JS.DIST_BUILD + '/../' + CONF.TAG));
+        .pipe(gulp.dest(PATH.JS.DEST_BUILD + '/../' + CONF.TAG));
 });
 
+// == CSS build tasks =================================================================================================
+
 /**
- * build CSS rom SASS files (Compass)
+ * build CSS rom SASS files
+ * -> 1. node-sass
+ *    2. autoprefixer
  */
 gulp.task('task:sass', () => {
-    compassOptions.sourcemap = CONF.CSS.SOURCEMAPS;
-
-    return gulp.src( './sass/**/*.scss')
-        .pipe(compass(compassOptions))
+    return gulp.src(PATH.CSS.SRC)
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.init()))
+        .pipe(sass(sassOptions).on('error', sass.logError))
         .pipe(bytediff.start())
         .pipe(bytediff.stop(data => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
-            return colors.green('Build CSS file "' + data.fileName + '"');
+            return colors.iconSuccess(`build → ${colors.magenta(data.fileName)}`);
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG));
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false, sourceRoot: '../../../sass'})))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/css/' + CONF.TAG))
+
+        .pipe(filter(['!*.map']))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.init({loadMaps: true})))
+        .pipe(autoprefixer(autoprefixerOptions))
+        .pipe(bytediff.start())
+        .pipe(bytediff.stop(data => {
+            trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
+            return colors.green('Autoprefix CSS file "' + data.fileName + '"');
+        }))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false})))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/css/' + CONF.TAG));
 });
 
 /**
  * css-clean can be used to "optimize" generated CSS [optional]
  */
 gulp.task('task:cleanCss', () => {
-    return gulp.src( PATH.ASSETS.DIST +'/css/**/*.css')
-        .pipe(cleanCSS({
-            compatibility: '*',
-            level: 2
-        }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css/' + CONF.TAG));
+    return gulp.src('public/css/' + CONF.TAG + '/*.css')
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.init({loadMaps: true})))
+        .pipe(cleanCSS(cleanCssOptions))
+        .pipe(gulpif(CONF.CSS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false})))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/css/' + CONF.TAG));
+});
+
+// == Image build tasks ===============================================================================================
+
+let imgWebpHandler = (config, taskName) => {
+    return gulp.src(config.src, {base: config.base, since: gulp.lastRun(taskName)})
+        .pipe(imagemin([imageminWebp(config.options)], {verbose: true}))
+        .pipe(rename({extname: '.webp'}))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/img/' + CONF.TAG));
+};
+
+gulp.task('task:imgHeadToWEBP', () => {
+    return imgWebpHandler({
+        src: PATH.ASSETS.DEST + '/img/' + CONF.TAG + '/header/**/*.png',
+        base: PATH.ASSETS.DEST + '/img/' + CONF.TAG,
+        options: imageminWebpOptions
+    }, 'task:imgHeadToWEBP');
+});
+
+gulp.task('task:imgGalleryToWEBP', () => {
+    return imgWebpHandler({
+        src: PATH.ASSETS.DEST + '/img/' + CONF.TAG + '/gallery/**/*.jpg',
+        base: PATH.ASSETS.DEST + '/img/' + CONF.TAG,
+        options: Object.assign({}, imageminWebpOptions, {quality: 90}) // unfortunately src jpg´s are already high compressed
+    }, 'task:imgGalleryToWEBP');
+});
+
+let imgResizeHandler = (config, taskName) => {
+    return gulp.src(config.src, {base: 'img', since: gulp.lastRun(taskName)})
+        .pipe(imageResize(config.options))
+        .pipe(gulpif(config.rename, rename(config.rename)))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/img/' + CONF.TAG));
+};
+
+let imgResizeHeaderTasks = [];
+[480, 780, 1200, 1600, 3840].forEach(size => {
+    ['png', 'jpg'].forEach(format => {
+        let taskName = `task:imgHead${size}${format}`;
+        gulp.task(taskName, () => {
+            return imgResizeHandler({
+                src: PATH.IMG.SRC_HEADER,
+                options: Object.assign({}, imgResizeOptions, {format: format, width: size}),
+                rename: {suffix: `-${size}`}
+            }, taskName);
+        });
+        imgResizeHeaderTasks.push(taskName);
+    });
+});
+
+gulp.task('task:imgHeadResize', gulp.series(
+    gulp.parallel(...imgResizeHeaderTasks),
+    'task:imgHeadToWEBP'
+));
+
+gulp.task('task:imgGalleryCopy', () => {
+    return gulp.src(PATH.IMG.SRC_GALLERY, {base: 'img', since: gulp.lastRun('task:imgGalleryCopy')})
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/img/' + CONF.TAG));
+});
+
+gulp.task('task:imgGallery', gulp.series(
+    'task:imgGalleryCopy',
+    'task:imgGalleryToWEBP'
+));
+
+gulp.task('task:imgRest', () => {
+    return gulp.src([
+        PATH.IMG.SRC,
+        `!${PATH.IMG.SRC_HEADER}`,
+        `!${PATH.IMG.SRC_GALLERY}`,
+        `!${PATH.IMG.SRC_SVG}`
+    ], {base: 'img', since: gulp.lastRun('task:imgRest')})
+        .pipe(debug({title: 'Copy img "rest" dest: ', showFiles: false}))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/img/' + CONF.TAG));
+});
+
+gulp.task('task:imgSVG', () => {
+    return gulp.src(PATH.IMG.SRC_SVG, {base: 'img', since: gulp.lastRun('task:imgSVG')})
+        .pipe(debug({title: 'Copy img SVG dest: ', showFiles: false}))
+        .pipe(gulp.dest(PATH.ASSETS.DEST + '/img/' + CONF.TAG));
 });
 
 // == Helper tasks ====================================================================================================
@@ -713,18 +890,19 @@ gulp.task('task:printJsSummary', done => {
  * print task configuration (e.g. CLI parameters)
  */
 gulp.task('task:printConfig', done => {
-    let error = colors.red;
-    let success = colors.green;
-
+    let error = colors.danger;
     let columnLength = Math.round(cliBoxLength / 2);
-    let cliLineLength = cliBoxLength - 9;
 
-    log(colors.gray( '= CONFIG ' + '='.repeat(cliLineLength)));
+    log(colors.divider('config'));
 
     let configFlat = flatten(CONF);
     for (let key in configFlat) {
         if (configFlat.hasOwnProperty(key)){
             let value = configFlat[key];
+            let success = colors.success;
+            switch(key){
+                case 'TASK': success = colors.primary; break;
+            }
             // format value
             value = padEnd((typeof value === 'undefined') ? 'undefined': value, columnLength);
             log(
@@ -733,7 +911,7 @@ gulp.task('task:printConfig', done => {
             );
         }
     }
-    log(colors.gray('='.repeat(cliBoxLength)));
+    log(colors.divider(' '));
     done();
 });
 
@@ -742,9 +920,7 @@ gulp.task('task:printConfig', done => {
  */
 gulp.task('task:checkConfig', done => {
     if(!CONF.TAG){
-        printError(
-            'Missing TAG version. Add param ' + colors.cyan('--tag'),
-            '$ npm run gulp default -- --tag="v1.2.4"');
+        printError(`Missing TAG version. Add param: ${colors.yellow('--tag')}`, `$ npm run gulp default -- --tag="${tagVersion}"`);
         process.exit(0);
     }
     done();
@@ -767,6 +943,9 @@ gulp.task('task:configDevelop',
                     SOURCEMAPS: true,
                     GZIP: false,
                     BROTLI: false
+                },
+                IMG: {
+                    ACTIVE: true
                 }
             };
 
@@ -794,6 +973,9 @@ gulp.task('task:configProduction',
                     SOURCEMAPS: true,
                     GZIP: true,
                     BROTLI: true
+                },
+                IMG: {
+                    ACTIVE: true
                 }
             };
 
@@ -806,35 +988,64 @@ gulp.task('task:configProduction',
 );
 
 /**
- * updates JS destination move to (final) dir
+ * configure "image" task (standalone)
  */
-gulp.task('task:updateJsDest', gulp.series(
-    'task:gzipJsAssets',
-    'task:brotliJsAssets',
-    'task:renameJsDest',
-   // 'task:printJsSummary',
-    'task:cleanJsBuild'
+gulp.task('task:configImages',
+    gulp.series(
+        done => {
+            let CONF_IMAGES = {
+                IMG: {
+                    ACTIVE: true
+                }
+            };
+
+            CONF = mergeConf(['TASK', 'TAG', 'IMG'].reduce((obj, key) => ({ ...obj, [key]: CONF[key] }), {}), CONF_IMAGES);
+            done();
+        },
+        'task:printConfig',
+        'task:checkConfig'
     )
 );
 
 /**
- * build JS source files (concat, uglify, sourcemaps)
+ * updates JS destination move to (final) dir
+ */
+gulp.task('task:updateJsDest', gulp.series(
+    gulp.parallel(
+        'task:gzipJsAssets',
+        'task:brotliJsAssets'
+    ),
+    'task:renameJsDest',
+    // 'task:printJsSummary',
+    'task:cleanJsDestBuild'
+));
+
+/**
+ * build JS dest files (concat, uglify, sourcemaps)
  */
 gulp.task('task:buildJs', gulp.series(
     'task:concatJS',
     'task:diffJS',
     'task:cleanJsDest',
     'task:updateJsDest'
-    )
-);
+));
 
 /**
- * build SCSS source files
+ * build SCSS dest files
  */
 gulp.task('task:buildCss', gulp.series(
     'task:sass'
-    )
-);
+));
+
+/**
+ * build IMG dest files
+ */
+gulp.task('task:buildImg', gulp.parallel(
+    'task:imgHeadResize',
+    'task:imgGallery',
+    'task:imgRest',
+    'task:imgSVG'
+));
 
 // == Notification tasks ==============================================================================================
 
@@ -842,29 +1053,27 @@ gulp.task('task:buildCss', gulp.series(
  * JS Build done notification
  */
 gulp.task('task:notifyJsDone', done => {
-        notifier.notify({
-            title: 'Done JS build',
-            message: 'JS build task finished',
-            icon: PATH.ASSETS.DIST + '/img/logo.png',
-            wait: false
-        });
-        done();
-    }
-);
+    notifier.notify({
+        title: 'Done JS build',
+        message: 'JS build task finished',
+        icon: PATH.ASSETS.DEST + '/img/logo.png',
+        wait: false
+    });
+    done();
+});
 
 /**
  * CSS Build done notification
  */
 gulp.task('task:notifyCssDone', done => {
-        notifier.notify({
-            title: 'Done CSS build',
-            message: 'CSS build task finished',
-            icon: PATH.ASSETS.DIST + '/img/logo.png',
-            wait: false
-        });
-        done();
-    }
-);
+    notifier.notify({
+        title: 'Done CSS build',
+        message: 'CSS build task finished',
+        icon: PATH.ASSETS.DEST + '/img/logo.png',
+        wait: false
+    });
+    done();
+});
 
 // == Watcher tasks ===================================================================================================
 
@@ -888,11 +1097,20 @@ gulp.task(
     'task:watchCss',
     gulp.series(
         'task:buildCss',
-       // 'task:cleanCss',
-        'task:gzipCssAssets',
-        'task:brotliCssAssets',
-       // 'task:printJsSummary',
+        // 'task:cleanCss',
+        gulp.parallel(
+            'task:gzipCssAssets',
+            'task:brotliCssAssets'
+        ),
+        // 'task:printJsSummary',
         'task:notifyCssDone'
+    )
+);
+
+gulp.task(
+    'task:watchImg',
+    gulp.series(
+        'task:buildImg'
     )
 );
 
@@ -900,18 +1118,15 @@ gulp.task(
  * watch files for changes
  */
 
-gulp.task('task:setWatcherJs', function() {
-    return gulp.watch(PATH.JS.SRC, gulp.series('task:watchJsSrc', 'task:printJsSummary'));
-});
-
-gulp.task('task:setWatcherCss', function() {
-    return gulp.watch(PATH.CSS.SRC, gulp.series('task:watchCss', 'task:printJsSummary'));
-});
+gulp.task('task:setWatcherJs',  () => gulp.watch(PATH.JS.SRC, gulp.series('task:watchJsSrc', 'task:printJsSummary')));
+gulp.task('task:setWatcherCss', () => gulp.watch(PATH.CSS.SRC, gulp.series('task:watchCss', 'task:printJsSummary')));
+gulp.task('task:setWatcherImg', () => gulp.watch(PATH.IMG.SRC, gulp.series('task:watchImg', 'task:printJsSummary')));
 
 gulp.task('task:setWatcher',
     gulp.parallel(
         'task:setWatcherJs',
-        'task:setWatcherCss'
+        'task:setWatcherCss',
+        'task:setWatcherImg'
     )
 );
 
@@ -930,12 +1145,16 @@ gulp.task(
         'task:configDevelop',
         gulp.parallel(
             gulp.series(
-                'task:cleanJsBuild',
+                'task:cleanJsDestBuild',
                 'task:watchJsSrc'
             ),
             gulp.series(
-                'task:cleanCssBuild',
+                'task:cleanCssDest',
                 'task:watchCss'
+            ),
+            gulp.series(
+                'task:cleanImgDest',
+                'task:watchImg'
             )
         ),
         'task:printJsSummary',
@@ -949,15 +1168,29 @@ gulp.task(
         'task:configProduction',
         gulp.parallel(
             gulp.series(
-                'task:cleanJsBuild',
+                'task:cleanJsDestBuild',
                 'task:buildJs'
             ),
             gulp.series(
-                'task:cleanCssBuild',
+                'task:cleanCssDest',
                 'task:watchCss'
+            ),
+            gulp.series(
+                'task:cleanImgDest',
+                'task:watchImg'
             )
         ),
         'task:printJsSummary'
+    )
+);
+
+gulp.task(
+    'images',
+    gulp.series(
+        'task:configImages',
+        'task:cleanImgDest',
+        'task:watchImg',
+        //'task:printJsSummary'
     )
 );
 

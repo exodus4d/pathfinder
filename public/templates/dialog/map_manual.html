@@ -14,7 +14,7 @@
     </div>
 </nav>
 
-<div id="{{scrollspyId}}">
+<div id="{{scrollspyId}}" style="--svgBubble: url('{{{imgSrcBubble}}}')">
     <h2 id="pf-manual-map"><i class="fas fa-sitemap fa-fw"></i>&nbsp;&nbsp;Map</h2>
     <div class="row">
         <div class="col-xs-12 col-md-6">
@@ -120,10 +120,8 @@
         </div>
         <div class="col-xs-12 col-md-6">
             <h4><i class="fas fa-history fa-fw"></i> Update counter</h4>
-            <div class="pf-map-overlay" style="position: initial; display: block; padding-top: 1px; float: left; margin: 0 10px 10px 0;">
-                <div class="{{pieChartClass}} {{mapCounterClass}}" data-percent="40">
-                    <span style="position: absolute; line-height: 30px; margin-left: 10px;">4</span>
-                </div>
+            <div class="pf-map-overlay" style="position: initial; display: block; float: left; margin: 0 10px 0 0;">
+                <div class="{{pieChartClass}} {{mapCounterClass}}" data-percent="40"></div>
             </div>
             <p>
                 The <em>"Update counter"</em> starts counting backwards during map interaction. While the counter is active, no data is pushed to server.

@@ -38,7 +38,8 @@
   line-height: 18px;
   background-color: $popover-title-bg;
   border-bottom: 1px solid darken($popover-bg, 5%);
-  @include border-top-radius(($border-radius-large - 1));
+  border-top-left-radius: ($border-radius-large - 1);
+  border-top-right-radius: ($border-radius-large - 1);
   color: $gray-light
 }
 

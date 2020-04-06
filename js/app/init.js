@@ -18,45 +18,39 @@ define([], () => {
 
     return {
         path: {
-            img: '/public/img/',                                            // path for images
             api: '/api/rest',                                               //ajax URL - REST API
             // user API
-            getCaptcha: '/api/user/getCaptcha',                             // ajax URL - get captcha image
-            getServerStatus: '/api/user/getEveServerStatus',                // ajax URL - get EVE-Online server status
-            getCookieCharacterData: '/api/user/getCookieCharacter',         // ajax URL - get character data from cookie
-            logIn: '/api/user/logIn',                                       // ajax URL - login
-            logout: '/api/user/logout',                                     // ajax URL - logout
-            openIngameWindow: '/api/user/openIngameWindow',                 // ajax URL - open inGame Window
-            saveUserConfig: '/api/user/saveAccount',                        // ajax URL - saves/update user account
-            deleteAccount: '/api/user/deleteAccount',                       // ajax URL - delete Account data
+            getCaptcha: '/api/User/getCaptcha',                             // ajax URL - get captcha image
+            getServerStatus: '/api/User/getEveServerStatus',                // ajax URL - get EVE-Online server status
+            getCookieCharacterData: '/api/User/getCookieCharacter',         // ajax URL - get character data from cookie
+            logIn: '/api/User/logIn',                                       // ajax URL - login
+            logout: '/api/User/logout',                                     // ajax URL - logout
+            openIngameWindow: '/api/User/openIngameWindow',                 // ajax URL - open inGame Window
+            saveUserConfig: '/api/User/saveAccount',                        // ajax URL - saves/update user account
+            deleteAccount: '/api/User/deleteAccount',                       // ajax URL - delete Account data
             // access API
-            searchAccess: '/api/access/search',                             // ajax URL - search user/corporation/ally by name
+            searchAccess: '/api/Access/search',                             // ajax URL - search user/corporation/ally by name
             // main config/map ping API
-            initData: '/api/map/initData',                                  // ajax URL - get static configuration data
-            getAccessData: '/api/map/getAccessData',                        // ajax URL - get map access tokens (WebSocket)
-            updateMapData: '/api/map/updateData',                           // ajax URL - main map update trigger
-            updateUserData: '/api/map/updateUserData',                      // ajax URL - main map user data trigger
-            updateUnloadData: '/api/map/updateUnloadData',                  // post URL - for my sync onUnload
+            initData: '/api/Map/initData',                                  // ajax URL - get static configuration data
+            getAccessData: '/api/Map/getAccessData',                        // ajax URL - get map access tokens (WebSocket)
+            updateMapData: '/api/Map/updateData',                           // ajax URL - main map update trigger
+            updateUserData: '/api/Map/updateUserData',                      // ajax URL - main map user data trigger
+            updateUnloadData: '/api/Map/updateUnloadData',                  // post URL - for my sync onUnload
             // map API
-            saveMap: '/api/map/save',                                       // ajax URL - save/update map
-            deleteMap: '/api/map/delete',                                   // ajax URL - delete map
-            importMap: '/api/map/import',                                   // ajax URL - import map
-            getMapConnectionData: '/api/map/getConnectionData',             // ajax URL - get connection data
-            getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
+            importMap: '/api/Map/import',                                   // ajax URL - import map
+            getMapConnectionData: '/api/Map/getConnectionData',             // ajax URL - get connection data
+            getMapLogData: '/api/Map/getLogData',                           // ajax URL - get logs data
             // system API
-            getSystemGraphData: '/api/system/graphData',                    // ajax URL - get all system graph data
-            setDestination: '/api/system/setDestination',                   // ajax URL - set destination
-            pokeRally: '/api/system/pokeRally',                             // ajax URL - send rally point pokes
-            // route API
-            searchRoute: '/api/route/search',                               // ajax URL - search system routes
+            setDestination: '/api/System/setDestination',                   // ajax URL - set destination
+            pokeRally: '/api/System/pokeRally',                             // ajax URL - send rally point pokes
             // stats API
-            getStatisticsData: '/api/statistic/getData',                    // ajax URL - get statistics data (activity log)
+            getStatisticsData: '/api/Statistic/getData',                    // ajax URL - get statistics data (activity log)
             // universe API
-            searchUniverseData: '/api/universe/search',                     // ajax URL - search universe data by category Ids
-            searchUniverseSystemData: '/api/universe/systems',              // ajax URL - search universe system data by name
-            getConstellationData: '/api/universe/constellationData',        // ajax URL - get system constellation data
+            searchUniverseData: '/api/Universe/search',                     // ajax URL - search universe data by category Ids
+            searchUniverseSystemData: '/api/Universe/systems',              // ajax URL - search universe system data by name
+            getConstellationData: '/api/Universe/constellationData',        // ajax URL - get system constellation data
             // GitHub API
-            gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
+            gitHubReleases: '/api/GitHub/releases'                          // ajax URL - get release info from GitHub
         },
         breakpoints: [
             {name: 'screen-xl', width: Infinity},
@@ -141,6 +135,18 @@ define([], () => {
                 class: 'fa-hat-wizard',
                 label: 'hat wizard',
                 unicode: '&#xf6e8;'
+            },{
+                class: 'fa-cross',
+                label: 'cross',
+                unicode: '&#xf654;'
+            }, {
+                class: 'fa-cannabis',
+                label: 'cannabis',
+                unicode: '&#xf55f;'
+            }, {
+                class: 'fa-spider',
+                label: 'spider',
+                unicode: '&#xf717;'
             }, {
                 class: 'fa-plane',
                 label: 'plane',

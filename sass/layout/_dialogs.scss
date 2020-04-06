@@ -86,6 +86,16 @@
     }
   }
 
+  // checkbox list ============================================================
+  @media (min-width: $screen-sm-min) {
+    .fa-tree-child + .checkbox{
+      margin-left: 5px;
+      display: inline-block;
+      float: none;
+      width: unset;
+    }
+  }
+
   // form wizard ==============================================================
   .pf-wizard-navigation{
     margin: 0;
@@ -106,15 +116,15 @@
 
       &.finished{
           &:before{
-          @include border-image( linear-gradient(to right, $teal-dark, $teal-dark) 1 1% );
-          border-bottom: 0;
+            border-image: linear-gradient(to right, $teal-dark, $teal-dark) 1 1%;
+            border-bottom: 0;
         }
       }
 
       &.active{
 
         &:before{
-          @include border-image( linear-gradient(to right, $brand-success, $gray-light) 1 1% );
+          border-image: linear-gradient(to right, $brand-success, $gray-light) 1 1%;
           border-bottom: 0;
         }
       }
@@ -142,6 +152,12 @@
     }
   }
 }
+// notification dialog ========================================================
+#pf-notification-dialog{
+  h1{
+    will-change: transform;
+  }
+}
 
 // settings dialog ============================================================
 #pf-settings-dialog{
@@ -154,6 +170,7 @@
   #pf-dialog-captcha-wrapper{
     margin: 0;
     padding: 3px 0;
+    min-height: 35px; // captcha img has dynamic height. Height should not change on captcha reload
   }
 }
 
@@ -192,6 +209,10 @@
 
   .list-unstyled.well{
     display: inline-block;
+  }
+
+  h2:first-of-type{
+    margin-top: 0;
   }
 }
 
@@ -269,11 +290,6 @@
     }
   }
 
-  .fa-tree-child + .checkbox{
-    margin-left: 5px;  // "delete connections" checkbox
-    display: inline-block;
-  }
-
   #pf-sig-info{
     margin-bottom: 10px;
   }
@@ -314,17 +330,22 @@
 .pf-credits-dialog{
   .pf-credits-logo-background{
     overflow: visible;
-    background: url("#{$base-url}/logo_bg.png");
-    background-size: cover;
-    padding: 20px;
+    background: var(--bg-image);
+    background-position-y: -50px; // nicer image viewport
+    padding: 15px;
     margin-bottom: 20px;
-  }
 
-  #pf-logo-container{
-    width: 355px;
-    height: 366px;
-    margin: 0 auto;
+    > svg {
+      height: 80px;
+      width: 90px;
+    }
 
+    > h3 {
+      position: absolute;
+      top: 5px;
+      right: 15px;
+      margin: 0;
+    }
   }
 
   .pf-dynamic-area{

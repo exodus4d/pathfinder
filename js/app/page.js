@@ -60,22 +60,21 @@ define([
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
 
-        // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                           // class for container element that holds hidden "context menus"
-
         // system signature module
         systemSignatureModuleClass: 'pf-system-signature-module',               // module wrapper (signatures)
         systemIntelModuleClass: 'pf-system-intel-module',                       // module wrapper (intel)
     };
 
-    let menuBtnTypes = {
-        'info': {class: 'list-group-item-info'},
-        'danger': {class: 'list-group-item-danger'},
-        'warning': {class: 'list-group-item-warning'}
-    };
-
     let programStatusCounter = 0;                                               // current count down in s until next status change is possible
     let programStatusInterval = false;                                          // interval timer until next status change is possible
+
+    /**
+     * get menu button class by type
+     * -> if no type -> get default class (all buttons)
+     * @param type
+     * @returns {string}
+     */
+    let getMenuBtnClass = type => 'list-group-item' + (['info', 'danger', 'warning'].includes(type) ? `-${type}` : '');
 
     /**
      * set an DOM element to fullscreen mode
@@ -110,7 +109,7 @@ define([
      * @param element
      */
     let initHeaderTooltips = element => {
-        element.find('[title]').tooltip({
+        element.initTooltips({
             placement: 'bottom',
             delay: {
                 show: 500,
@@ -120,53 +119,61 @@ define([
     };
 
     /**
-     * load main page structure elements and navigation container into body
-     * @returns {*|w.fn.init|jQuery|HTMLElement}
+     * render page content + left/right menu
+     * @param rootEl
+     * @returns {Promise<{pageEl: HTMLDivElement, pageMenuRightEl: HTMLDivElement, pageMenuLeftEl: HTMLDivElement}>}
      */
-    let loadPageStructure = () => {
+    let renderPage = rootEl => {
+        let pageEl = Object.assign(document.createElement('div'), {
+            className: config.pageClass
+        });
+        pageEl.setAttribute('canvas', 'container');
 
-        let executor = resolve => {
-            let body = $('body');
+        let contextMenuContainerEl = Object.assign(document.createElement('div'), {
+            id: MapContextMenu.config.contextMenuContainerId
+        });
+        pageEl.append(Util.getMapModule()[0], contextMenuContainerEl);
 
-            let pageElement = $('<div>', {
-                class: config.pageClass
-            }).attr('canvas', 'container').append(
-                Util.getMapModule(),
-                $('<div>', {
-                    id: config.dynamicElementWrapperId
-                })
-            );
+        let pageMenuLeftEl = Object.assign(document.createElement('div'), {
+            className: [config.pageMenuClass, config.pageMenuLeftClass].join(' ')
+        });
+        pageMenuLeftEl.setAttribute('off-canvas', [config.pageMenuLeftClass, 'left', 'push'].join(' '));
 
-            let pageMenuLeftElement = $('<div>', {
-                class: [config.pageMenuClass, config.pageMenuLeftClass].join(' ')
-            }).attr('off-canvas', [config.pageMenuLeftClass, 'left', 'push'].join(' '));
+        let pageMenuRightEl = Object.assign(document.createElement('div'), {
+            className: [config.pageMenuClass, config.pageMenuRightClass].join(' ')
+        });
+        pageMenuRightEl.setAttribute('off-canvas', [config.pageMenuRightClass, 'right', 'push'].join(' '));
 
-            let pageMenuRightElement = $('<div>', {
-                class: [config.pageMenuClass, config.pageMenuRightClass].join(' ')
-            }).attr('off-canvas', [config.pageMenuRightClass, 'right', 'push'].join(' '));
+        rootEl.prepend(pageEl, pageMenuLeftEl, pageMenuRightEl);
 
-            body.prepend(pageElement, pageMenuLeftElement, pageMenuRightElement);
-
-            Promise.all([
-                loadHeader(pageElement),
-                loadFooter(pageElement),
-                loadLeftMenu(pageMenuLeftElement),
-                loadRightMenu(pageMenuRightElement),
-                loadSVGs()
-            ]).then(payload => Promise.all([
-                setMenuObserver(payload[2].data),
-                setMenuObserver(payload[3].data),
-                setDocumentObserver(),
-                setBodyObserver(),
-                setGlobalShortcuts()
-            ])).then(() => resolve({
-                action: 'loadPageStructure',
-                data: {}
-            }));
-        };
-
-        return new Promise(executor);
+        return Promise.resolve({pageEl, pageMenuLeftEl, pageMenuRightEl});
     };
+
+    /**
+     * load main page structure elements and navigation container into body
+     * @param pageEl
+     * @param pageMenuLeftEl
+     * @param pageMenuRightEl
+     * @returns {Promise}
+     */
+    let loadPageStructure = ({pageEl, pageMenuLeftEl, pageMenuRightEl}) => new Promise(resolve => {
+        Promise.all([
+            loadHeader(pageEl),
+            loadFooter(pageEl),
+            loadLeftMenu(pageMenuLeftEl),
+            loadRightMenu(pageMenuRightEl),
+            loadSVGs()
+        ]).then(payload => Promise.all([
+            setMenuObserver(payload[2].data),
+            setMenuObserver(payload[3].data),
+            setDocumentObserver(),
+            setBodyObserver(),
+            setGlobalShortcuts()
+        ])).then(() => resolve({
+            action: 'loadPageStructure',
+            data: pageEl
+        }));
+    });
 
     /**
      * build main menu from mapConfig array
@@ -182,15 +189,21 @@ define([
 
             switch(itemConfig.type){
                 case 'button':
-                    let className = Util.getObjVal(menuBtnTypes, itemConfig.btnType + '.class') || '';
-                    className += itemConfig.class || '';
+                    let classNames = [getMenuBtnClass(), getMenuBtnClass(itemConfig.btnType)];
+                    if(itemConfig.class){
+                        classNames.push(itemConfig.class);
+                    }
 
                     item = $('<a>', {
                         id: itemConfig.id || undefined,
-                        class: 'list-group-item ' + className,
+                        class: classNames.join(' '),
                         href: itemConfig.href || undefined,
                         html: '&nbsp;&nbsp;' + itemConfig.label
                     });
+
+                    if(itemConfig.group){
+                        item.attr('data-group', itemConfig.group);
+                    }
 
                     if(itemConfig.action){
                         item.attr('data-action', itemConfig.action);
@@ -230,13 +243,13 @@ define([
 
     /**
      * load left menu content options
-     * @param pageMenuLeftElement
+     * @param pageMenuLeftEl
      * @returns {Promise<any>}
      */
-    let loadLeftMenu = pageMenuLeftElement => {
+    let loadLeftMenu = pageMenuLeftEl => {
 
         let executor = resolve => {
-            pageMenuLeftElement.append(getMenu([
+            $(pageMenuLeftEl).append(getMenu([
                 {
                     type: 'button',
                     label: 'Home',
@@ -268,8 +281,10 @@ define([
                     label: 'Settings'
                 },{
                     type: 'button',
+                    class: 'loading',
                     label: 'Account',
                     icon: 'fa-user',
+                    group: 'userOptions',
                     action: 'ShowSettingsDialog'
                 }, document.fullscreenEnabled ? {
                     type: 'button',
@@ -297,13 +312,13 @@ define([
                     icon: 'fa-sign-in-alt',
                     btnType: 'warning',
                     action: 'Logout',
-                    data: {clearCookies: 1}
+                    data: {graceful: 1, deleteCookie: 1}
                 }
             ]));
 
             resolve({
                 action: 'loadLeftMenu',
-                data: pageMenuLeftElement
+                data: pageMenuLeftEl
             });
         };
 
@@ -312,13 +327,13 @@ define([
 
     /**
      * load right menu content options
-     * @param pageMenuRightElement
+     * @param pageMenuRightEl
      * @returns {Promise<any>}
      */
-    let loadRightMenu = pageMenuRightElement => {
+    let loadRightMenu = pageMenuRightEl => {
 
         let executor = resolve => {
-            pageMenuRightElement.append(getMenu([
+            $(pageMenuRightEl).append(getMenu([
                 {
                     type: 'button',
                     label: 'Information',
@@ -333,6 +348,7 @@ define([
                     class: 'loading',
                     label: 'Settings',
                     icon: 'fa-cogs',
+                    group: 'mapOptions',
                     action: 'ShowMapSettings',
                     data: {tab: 'settings'}
                 },{
@@ -341,6 +357,7 @@ define([
                     class: 'loading',
                     label: 'Grid snapping',
                     icon: 'fa-th',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapSnapToGrid', toggle: true}
@@ -350,6 +367,7 @@ define([
                     class: 'loading',
                     label: 'Magnetizing',
                     icon: 'fa-magnet',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapMagnetizer', toggle: true}
@@ -359,6 +377,7 @@ define([
                     class: 'loading',
                     label: 'Signatures',
                     icon: 'fa-link',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapSignatureOverlays', toggle: true}
@@ -368,6 +387,7 @@ define([
                     class: 'loading',
                     label: 'Compact',
                     icon: 'fa-compress',
+                    group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
                     data: {option: 'mapCompact', toggle: true}
@@ -407,7 +427,7 @@ define([
 
             resolve({
                 action: 'loadRightMenu',
-                data: pageMenuRightElement
+                data: pageMenuRightEl
             });
         };
 
@@ -423,15 +443,17 @@ define([
     let loadSVGs = () => {
 
         let executor = resolve => {
-            let parentElement = $('body');
-
             let svgPaths = [
-                'img/svg/logo.svg',
-                'img/svg/swords.svg'
-            ].map(path => 'text!' + path + '!strip');
+                'svg/logo_inline.svg',
+                'svg/swords.svg'
+            ].map(path => `text!${Util.imgRoot()}${path}!strip`);
 
             requirejs(svgPaths, (...SVGs) => {
-                parentElement.append.apply(parentElement, SVGs);
+                let svgWrapperEl = Object.assign(document.createElement('div'), {
+                    className: 'pf-svg-wrapper'
+                });
+                svgWrapperEl.insertAdjacentHTML('beforeend', SVGs.join(''));
+                document.body.append(svgWrapperEl);
 
                 resolve({
                     action: 'loadSVGs',
@@ -445,10 +467,10 @@ define([
 
     /**
      * load page header
-     * @param pageElement
+     * @param pageEl
      * @returns {Promise<any>}
      */
-    let loadHeader = pageElement => {
+    let loadHeader = pageEl => {
 
         let executor = resolve => {
             let moduleData = {
@@ -462,7 +484,7 @@ define([
                 mapTrackingId:              Util.config.headMapTrackingId
             };
 
-            pageElement.prepend(Mustache.render(TplHead, moduleData));
+            pageEl.insertAdjacentHTML('afterbegin', Mustache.render(TplHead, moduleData));
 
             // init header --------------------------------------------------------------------------------------------
 
@@ -571,7 +593,7 @@ define([
             resolve({
                 action: 'loadHeader',
                 data: {
-                    pageElement: pageElement
+                    pageEl: pageEl
                 }
             });
         };
@@ -581,10 +603,10 @@ define([
 
     /**
      * load page footer
-     * @param pageElement
+     * @param pageEl
      * @returns {Promise<any>}
      */
-    let loadFooter = pageElement => {
+    let loadFooter = pageEl => {
 
         let executor = resolve => {
             let moduleData = {
@@ -594,11 +616,11 @@ define([
                 currentYear:            new Date().getFullYear()
             };
 
-            pageElement.prepend(Mustache.render(TplFooter, moduleData));
+            pageEl.insertAdjacentHTML('afterbegin', Mustache.render(TplFooter, moduleData));
 
             // init footer --------------------------------------------------------------------------------------------
 
-            pageElement.find('.' + config.footerLicenceLinkClass).on('click', e => {
+            $(pageEl.querySelector(`.${config.footerLicenceLinkClass}`)).on('click', e => {
                 e.stopPropagation();
                 //show credits info dialog
                 $.fn.showCreditsDialog();
@@ -609,7 +631,7 @@ define([
             resolve({
                 action: 'loadFooter',
                 data: {
-                    pageElement: pageElement
+                    pageEl: pageEl
                 }
             });
         };
@@ -619,10 +641,10 @@ define([
 
     /**
      * set page menu observer
-     * @param menuElement
+     * @param menuEl
      * @returns {Promise<any>}
      */
-    let setMenuObserver = menuElement => {
+    let setMenuObserver = menuEl => {
 
         let executor = resolve => {
 
@@ -634,7 +656,7 @@ define([
                 }
             };
 
-            menuElement.on('click', '.list-group-item[data-action]', e => {
+            $(menuEl).on('click', '.list-group-item[data-action]', e => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -707,7 +729,10 @@ define([
                                 title: 'Test Notification',
                                 text: 'Accept browser security question'
                             },{
-                                desktop: true,
+                                desktop: {
+                                    title: 'Test OK',
+                                    text: 'Desktop notifications active'
+                                },
                                 stack: 'barBottom'
                             });
                             break;
@@ -717,7 +742,8 @@ define([
                         case 'Logout':
                             Util.logout({
                                 ajaxData: {
-                                    clearCookies: Util.getObjVal(data, 'clearCookies') || false
+                                    graceful: parseInt(Util.getObjVal(data, 'graceful')) || 0,
+                                    deleteCookie: parseInt(Util.getObjVal(data, 'deleteCookie')) || 0
                                 }
                             });
                             break;
@@ -760,13 +786,23 @@ define([
             });
 
             // disable menu links based on current map config ---------------------------------------------------------
-            documentElement.on('pf:updateMenuOptions', (e, data) => {
-                let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
-                $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);
+            documentElement.on('pf:updateMenuOptions', (e, {menuGroup, payload}) => {
+                let buttonGroup = document.querySelectorAll(`.${getMenuBtnClass()}[data-group="${menuGroup}"]`);
+                // find menu buttons by menuGroup
+                switch(menuGroup){
+                    case 'mapOptions':
+                        // payload is mapConfig
+                        let hasRightMapDelete = MapUtil.checkRight('map_delete', payload);
+                        document.getElementById(Util.config.menuButtonMapDeleteId).classList.toggle('disabled', !hasRightMapDelete);
 
-                // "loading" menu options require an active map
-                // -> active map now available -> remove loading class
-                $('.' + config.pageMenuRightClass + ' .loading').removeClass('loading');
+                        // active map -> remove loading classes
+                        [...buttonGroup].forEach(button => button.classList.remove('loading'));
+                        break;
+                    case 'userOptions':
+                        // payload is boolean (true if valid character data exists)
+                        [...buttonGroup].forEach(button => button.classList.toggle('loading', !payload));
+                        break;
+                }
             });
 
             // update header links with current map data --------------------------------------------------------------
@@ -789,8 +825,17 @@ define([
             });
 
             // changes in current userData ----------------------------------------------------------------------------
-            documentElement.on('pf:changedUserData', (e, userData, changes) => {
-                updateHeaderUserData(userData, changes).then();
+            documentElement.on('pf:changedUserData', (e, changes) => {
+                // update menu buttons (en/disable)
+                if(changes.characterId){
+                    documentElement.trigger('pf:updateMenuOptions', {
+                        menuGroup: 'userOptions',
+                        payload: Boolean(Util.getCurrentCharacterData('id'))
+                    });
+                }
+
+                // update header
+                updateHeaderUserData(changes).then();
             });
 
             // shutdown the program -> show dialog --------------------------------------------------------------------
@@ -830,7 +875,7 @@ define([
                 // add error information (if available)
                 if(data.error && data.error.length){
                     for(let error of data.error){
-                        options.content.textSmaller.push(error.message);
+                        options.content.textSmaller.push(error.text);
                     }
                 }
 
@@ -867,6 +912,8 @@ define([
     let setBodyObserver = () => {
 
         let executor = resolve => {
+            document.body.style.setProperty('--svgBubble', `url("${Util.imgRoot()}svg/bubble.svg")`);
+
             let bodyElement = $(document.body);
 
             // global "popover" callback (for all popovers)
@@ -886,7 +933,7 @@ define([
                 //modalElement.find('form').filter((i, form) => $(form).data('bs.validator')).validator('destroy');
 
                 // destroy all popovers
-                modalElement.find('.' + Util.config.popoverTriggerClass).popover('destroy');
+                modalElement.destroyPopover(true);
 
                 // destroy all Select2
                 modalElement.find('.' + Util.config.select2Class)
@@ -1007,18 +1054,17 @@ define([
 
     /**
      * update all header elements with current userData
-     * @param userData
      * @param changes
-     * @returns {Promise<[any, any, any, any, any, any, any, any, any, any]>}
+     * @returns {Promise<[]>}
      */
-    let updateHeaderUserData = (userData, changes) => {
+    let updateHeaderUserData = changes => {
         let updateTasks = [];
 
         if(changes.characterLogLocation){
-            updateTasks.push(updateMapTrackingToggle(Boolean(Util.getObjVal(userData, 'character.logLocation'))));
+            updateTasks.push(updateMapTrackingToggle(Boolean(Util.getCurrentCharacterData('logLocation'))));
         }
         if(changes.charactersIds){
-            updateTasks.push(updateHeaderCharacterSwitch(userData, changes.characterId));
+            updateTasks.push(updateHeaderCharacterSwitch(changes.characterId));
         }
         if(
             changes.characterSystemId ||
@@ -1027,7 +1073,7 @@ define([
             changes.characterStructureId ||
             changes.characterLogHistory
         ){
-            updateTasks.push(updateHeaderCharacterLocation(userData, changes.characterShipType));
+            updateTasks.push(updateHeaderCharacterLocation(changes.characterShipType));
         }
 
         return Promise.all(updateTasks);
@@ -1056,22 +1102,21 @@ define([
     };
 
     /**
-     * @param userData
      * @param changedCharacter
      * @returns {Promise<any>}
      */
-    let updateHeaderCharacterSwitch = (userData, changedCharacter) => {
+    let updateHeaderCharacterSwitch = changedCharacter => {
         let executor = resolve => {
             let userInfoElement = $('.' + config.headUserCharacterClass);
             // toggle element
             animateHeaderElement(userInfoElement, userInfoElement => {
                 if(changedCharacter){
                     // current character changed
-                    userInfoElement.find('span').text(Util.getObjVal(userData, 'character.name'));
-                    userInfoElement.find('img').attr('src', Util.eveImageUrl('characters', Util.getObjVal(userData, 'character.id')));
+                    userInfoElement.find('span').text(Util.getCurrentCharacterData('name'));
+                    userInfoElement.find('img').attr('src', Util.eveImageUrl('characters', Util.getCurrentCharacterData('id')));
                 }
                 // init "character switch" popover
-                userInfoElement.initCharacterSwitchPopover(userData);
+                userInfoElement.initCharacterSwitchPopover();
 
                 resolve({
                     action: 'updateHeaderCharacterSwitch',
@@ -1084,28 +1129,26 @@ define([
     };
 
     /**
-     *
-     * @param userData
      * @param changedShip
      * @returns {Promise<any>}
      */
-    let updateHeaderCharacterLocation = (userData, changedShip) => {
+    let updateHeaderCharacterLocation = changedShip => {
         let executor = resolve => {
             let userLocationElement = $('#' + Util.config.headUserLocationId);
             let breadcrumbHtml = '';
-            let logData = Util.getObjVal(userData, 'character.log');
+            let logData = Util.getCurrentCharacterData('log');
             let logDataAll = [];
 
             if(logData){
-                let shipData = Util.getObjVal(userData, 'character.log.ship');
+                let shipData = Util.getObjVal(logData, 'ship');
                 let shipTypeId = Util.getObjVal(shipData, 'typeId') || 0;
                 let shipTypeName = Util.getObjVal(shipData, 'typeName') || '';
 
-                let stationData = Util.getObjVal(userData, 'character.log.station');
+                let stationData = Util.getObjVal(logData, 'station');
                 let stationId = Util.getObjVal(stationData, 'id') || 0;
                 let stationName = Util.getObjVal(stationData, 'name') || '';
 
-                let structureData = Util.getObjVal(userData, 'character.log.structure');
+                let structureData = Util.getObjVal(logData, 'structure');
                 let structureTypeId = Util.getObjVal(structureData, 'type.id') || 0;
                 let structureTypeName = Util.getObjVal(structureData, 'type.name') || '';
                 let structureId = Util.getObjVal(structureData, 'id') || 0;
@@ -1114,7 +1157,7 @@ define([
                 logDataAll.push(logData);
 
                 // check for log history data as well
-                let logHistoryData = Util.getObjVal(userData, 'character.logHistory');
+                let logHistoryData = Util.getCurrentCharacterData('logHistory');
                 if(logHistoryData){
                     // check if there are more history log entries than max visual limit
                     if(logHistoryData.length > config.headMaxLocationHistoryBreadcrumbs){
@@ -1272,11 +1315,11 @@ define([
     };
 
     /**
-     *  set event listener if the program tab is active or not
-     *  this is used to lower the update ping cycle to reduce server load
+     * set event listener if the program tab is active or not
+     * this is used to lower the update ping cycle to reduce server load
+     * @returns {Promise}
      */
-    let initTabChangeObserver = () => {
-
+    let initTabChangeObserver = () => new Promise(resolve => {
         // increase the timer if a user is inactive
         let increaseTimer = 5000;
 
@@ -1285,47 +1328,35 @@ define([
         let mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
 
         // Set the name of the hidden property and the change event for visibility
-        let hidden, visibilityChange;
-        if(typeof document.hidden !== 'undefined'){ // Opera 12.10 and Firefox 18 and later support
-            hidden = 'hidden';
+        let visibilityState, visibilityChange;
+        if(typeof document.visibilityState !== 'undefined'){ // Opera 12.10 and Firefox 18 and later support
+            visibilityState = 'visibilityState';
             visibilityChange = 'visibilitychange';
-        }else if(typeof document.mozHidden !== 'undefined'){
-            hidden = 'mozHidden';
-            visibilityChange = 'mozvisibilitychange';
-        }else if(typeof document.msHidden !== 'undefined'){
-            hidden = 'msHidden';
-            visibilityChange = 'msvisibilitychange';
-        }else if(typeof document.webkitHidden !== 'undefined'){
-            hidden = 'webkitHidden';
-            visibilityChange = 'webkitvisibilitychange';
         }
 
         // function is called if the tab becomes active/inactive
         let handleVisibilityChange = () => {
-            if(document[hidden]){
-                // tab is invisible
-                // globally store current visibility status
-                window.isVisible = false;
-
-                Util.getCurrentTriggerDelay( mapUpdateKey, increaseTimer );
-                Util.getCurrentTriggerDelay( mapUserUpdateKey, increaseTimer );
-            }else{
+            if(document[visibilityState] === 'visible'){
                 // tab is visible
                 // globally store current visibility status
                 window.isVisible = true;
 
-                Util.getCurrentTriggerDelay( mapUpdateKey, -increaseTimer );
-                Util.getCurrentTriggerDelay( mapUserUpdateKey, -increaseTimer );
+                Util.getCurrentTriggerDelay(mapUpdateKey, -increaseTimer);
+                Util.getCurrentTriggerDelay(mapUserUpdateKey, -increaseTimer);
 
                 // stop blinking tab from previous notifications
                 Util.stopTabBlink();
+            }else{
+                // tab is invisible
+                // globally store current visibility status
+                window.isVisible = false;
+
+                Util.getCurrentTriggerDelay(mapUpdateKey, increaseTimer);
+                Util.getCurrentTriggerDelay(mapUserUpdateKey, increaseTimer);
             }
         };
 
-        if(
-            typeof document.addEventListener !== 'undefined' &&
-            typeof document[hidden] !== 'undefined'
-        ){
+        if(visibilityState && visibilityChange){
             // the current browser supports this feature
             // Handle page visibility change
 
@@ -1335,21 +1366,24 @@ define([
             document.addEventListener(visibilityChange, handleVisibilityChange, false);
         }
 
-    };
+        resolve({
+            action: 'initTabChangeObserver',
+            data: false
+        });
+    });
 
     /**
      * add "hidden" context menu elements to page
+     * @returns {Promise[]}
      */
-    let renderMapContextMenus = () => {
-        Promise.all([
-            MapContextMenu.renderMapContextMenu(),
-            MapContextMenu.renderConnectionContextMenu(),
-            MapContextMenu.renderEndpointContextMenu(),
-            MapContextMenu.renderSystemContextMenu(Init.systemStatus)
-        ]).then(payloads => {
-            $('#' + config.dynamicElementWrapperId).append(payloads.join(''));
-        });
-    };
+    let renderMapContextMenus = () => Promise.all([
+        MapContextMenu.renderMapContextMenu(),
+        MapContextMenu.renderConnectionContextMenu(),
+        MapContextMenu.renderEndpointContextMenu(),
+        MapContextMenu.renderSystemContextMenu(Init.systemStatus)
+    ]).then(payloads => {
+        document.getElementById(MapContextMenu.config.contextMenuContainerId).innerHTML = payloads.join('');
+    });
 
     /**
      * trigger "program status" in head
@@ -1476,6 +1510,7 @@ define([
     };
 
     return {
+        renderPage: renderPage,
         loadPageStructure: loadPageStructure,
         initTabChangeObserver: initTabChangeObserver,
         renderMapContextMenus: renderMapContextMenus

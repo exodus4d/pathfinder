@@ -49,50 +49,43 @@
     </form>
 
 
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="well well-sm">
-                <div class="row">
-                    <div class="col-xs-6 col-sm-4">Map config:</div>
-                    <div class="col-xs-6 col-sm-2 text-right" title="Desktop poke">
-                        <i class="fas fa-fw fa-volume-up"></i>&nbsp;
-                        {{#desktopRallyEnabled}}
-                        <kbd class="txt-color txt-color-success">enabled</kbd>
-                        {{/desktopRallyEnabled}}
-                        {{^desktopRallyEnabled}}
-                        <kbd>disabled</kbd>
-                        {{/desktopRallyEnabled}}
-                    </div>
-                    <div class="col-xs-6 col-sm-2 text-right" title="Slack poke">
-                        <i class="fab fa-fw fa-slack-hash"></i>
-                        {{#slackRallyEnabled}}
-                        <kbd class="txt-color txt-color-success">enabled</kbd>
-                        {{/slackRallyEnabled}}
-                        {{^slackRallyEnabled}}
-                        <kbd>disabled</kbd>
-                        {{/slackRallyEnabled}}
-                    </div>
-                    <div class="col-xs-6 col-sm-2 text-right" title="Discord poke">
-                        <i class="fab fa-fw fa-discord"></i>&nbsp;
-                        {{#discordRallyEnabled}}
-                        <kbd class="txt-color txt-color-success">enabled</kbd>
-                        {{/discordRallyEnabled}}
-                        {{^discordRallyEnabled}}
-                        <kbd>disabled</kbd>
-                        {{/discordRallyEnabled}}
-                    </div>
-                    <div class="col-xs-6 col-sm-2 text-right" title="Mail poke">
-                        <i class="fas fa-fw fa-envelope"></i>&nbsp;
-                        {{#mailRallyEnabled}}
-                        <kbd class="txt-color txt-color-success">enabled</kbd>
-                        {{/mailRallyEnabled}}
-                        {{^mailRallyEnabled}}
-                        <kbd>disabled</kbd>
-                        {{/mailRallyEnabled}}
-                    </div>
-                </div>
-            </div>
-
+    <div class="flex-row flex-between well well-sm">
+        <div class="flex-col">Map config:</div>
+        <div class="flex-col" title="Desktop poke">
+            <i class="fas fa-fw fa-volume-up"></i>&nbsp;
+            {{#desktopRallyEnabled}}
+            <kbd class="txt-color txt-color-success">enabled</kbd>
+            {{/desktopRallyEnabled}}
+            {{^desktopRallyEnabled}}
+            <kbd>disabled</kbd>
+            {{/desktopRallyEnabled}}
+        </div>
+        <div class="flex-col" title="Slack poke">
+            <i class="fab fa-fw fa-slack-hash"></i>
+            {{#slackRallyEnabled}}
+            <kbd class="txt-color txt-color-success">enabled</kbd>
+            {{/slackRallyEnabled}}
+            {{^slackRallyEnabled}}
+            <kbd>disabled</kbd>
+            {{/slackRallyEnabled}}
+        </div>
+        <div class="flex-col" title="Discord poke">
+            <i class="fab fa-fw fa-discord"></i>&nbsp;
+            {{#discordRallyEnabled}}
+            <kbd class="txt-color txt-color-success">enabled</kbd>
+            {{/discordRallyEnabled}}
+            {{^discordRallyEnabled}}
+            <kbd>disabled</kbd>
+            {{/discordRallyEnabled}}
+        </div>
+        <div class="flex-col" title="Mail poke">
+            <i class="fas fa-fw fa-envelope"></i>&nbsp;
+            {{#mailRallyEnabled}}
+            <kbd class="txt-color txt-color-success">enabled</kbd>
+            {{/mailRallyEnabled}}
+            {{^mailRallyEnabled}}
+            <kbd>disabled</kbd>
+            {{/mailRallyEnabled}}
         </div>
     </div>
 

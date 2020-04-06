@@ -13,8 +13,6 @@ define([
     let config = {
         logTimerCount: 3,                                                                   // map log timer in seconds
 
-        mapWrapperClass: 'pf-map-wrapper',                                                  // wrapper div (scrollable)
-
         // map overlays sections
         mapOverlayClass: 'pf-map-overlay',                                                  // class for all map overlays
         mapOverlayTimerClass: 'pf-map-overlay-timer',                                       // class for map overlay timer e.g. map timer
@@ -53,21 +51,21 @@ define([
      * @returns {null}
      */
     let getMapOverlay = (element, overlayType) => {
-        let mapWrapperElement = $(element).parents('.' + config.mapWrapperClass);
+        let areaMap = $(element).closest('.' + Util.getMapTabContentAreaClass('map'));
 
         let mapOverlay = null;
         switch(overlayType){
             case 'timer':
-                mapOverlay = mapWrapperElement.find('.' + config.mapOverlayTimerClass);
+                mapOverlay = areaMap.find('.' + config.mapOverlayTimerClass);
                 break;
             case 'info':
-                mapOverlay = mapWrapperElement.find('.' + config.mapOverlayInfoClass);
+                mapOverlay = areaMap.find('.' + config.mapOverlayInfoClass);
                 break;
             case 'zoom':
-                mapOverlay = mapWrapperElement.find('.' + config.mapOverlayZoomClass);
+                mapOverlay = areaMap.find('.' + config.mapOverlayZoomClass);
                 break;
             case 'local':
-                mapOverlay = mapWrapperElement.find('.' + config.overlayLocalClass);
+                mapOverlay = areaMap.find('.' + config.overlayLocalClass);
                 break;
         }
 
@@ -75,23 +73,43 @@ define([
     };
 
     /**
-     * get the map counter chart from overlay
-     * @param element
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
      * @returns {jQuery}
      */
-    let getMapCounter = element => $(element).find('.' + Init.classes.pieChart.pieChartMapCounterClass);
+    let getMapElementFromOverlay = mapOverlay => {
+        return $(mapOverlay).closest('.' + Util.getMapTabContentAreaClass('map')).find('.' + Util.config.mapClass);
+    };
 
     /**
-     * get interval value from map timer overlay
+     * get the map counter chart from overlay
      * @param element
-     * @returns {*}
+     * @returns {Element}
      */
-    let getMapOverlayInterval = element => getMapCounter(getMapOverlay(element, 'timer')).data('interval');
+    let getMapCounter = element => element.querySelector(`.${Init.classes.pieChart.pieChartMapCounterClass}`);
+
+    /**
+     * if there is an "active" (connected) counter task
+     * -> lock overlay
+     * @param {HTMLElement} element
+     * @returns {boolean}
+     */
+    let isMapCounterOverlayActive = element => {
+        let mapOverlay = getMapOverlay(element, 'timer');
+        if(mapOverlay){
+            let mapCounter = getMapCounter(mapOverlay[0]);
+            if(mapCounter && mapCounter.getData('counterTask')){
+                return mapCounter.getData('counterTask').isConnected();
+            }
+        }
+        return false;
+    };
 
     return {
         config: config,
         getMapOverlay: getMapOverlay,
+        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapCounter: getMapCounter,
-        getMapOverlayInterval: getMapOverlayInterval
+        isMapCounterOverlayActive: isMapCounterOverlayActive
     };
 });

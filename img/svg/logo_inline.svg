@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" viewBox="0 0 355 370" width="100%" height="100%"  shape-rendering="geometricPrecision">
+    <filter id="LogoFilterShadow" filterUnits="userSpaceOnUse" x="-10px" y="-10px" height="120%" width="120%">
+        <feGaussianBlur in="SourceAlpha" result="blurOut" stdDeviation="4"/>
+        <feOffset in="blurOut" result="dropBlur" dx="5" dy="5"/>
+        <feComposite operator="over" in="SourceGraphic" in2="dropBlur" result="final"/>
+    </filter>
+
+    <!-- a glow that takes on the stroke color of the object it's applied to -->
+    <filter id="strokeGlow" filterUnits="userSpaceOnUse" x="-10px" y="-10px" height="120%" width="120%">
+        <feOffset in="SourceGraphic" dx="0" dy="0" result="centeredOffset"/>
+        <feGaussianBlur in="centeredOffset" stdDeviation="3" result="blur2"/>
+
+        <feGaussianBlur result="blur3" in="offIn" stdDeviation="5"/>
+        <feBlend in="SourceGraphic" in2="blur3" mode="lighten" result="blend1"/>
+
+        <feMerge>
+            <feMergeNode in="blur2"/>
+            <feMergeNode in="blend1"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    </filter>
+
+    <defs>
+        <polygon id="pf-svg-logo-top-right" points="196 10 227 297 354 365" class="logo-ploygon-top-right"/>
+        <clipPath id="pf-svg-logo-top-right-clip">
+            <use xlink:href="#pf-svg-logo-top-right"/>
+        </clipPath>
+        <polygon id="pf-svg-logo-bottom-left" points="2 362 74 285 178 287" class="logo-ploygon-bottom-left"/>
+        <clipPath id="pf-svg-logo-bottom-left-clip">
+            <use xlink:href="#pf-svg-logo-bottom-left"/>
+        </clipPath>
+        <polygon id="pf-svg-logo-bottom-right" points="193 286 121 318 336 363" class="logo-ploygon-bottom-right"/>
+        <clipPath id="pf-svg-logo-bottom-right-clip">
+            <use xlink:href="#pf-svg-logo-bottom-right"/>
+        </clipPath>
+        <polygon id="pf-svg-logo-top-left" points="203 142 0 353 189 1" class="logo-ploygon-top-left"/>
+        <clipPath id="pf-svg-logo-top-left-clip">
+            <use xlink:href="#pf-svg-logo-top-left"/>
+        </clipPath>
+    </defs>
+
+    <symbol id="pf-svg-logo" viewBox="0 0 355 370" width="100%" height="100%" filter="url(#LogoFilterShadow)">
+        <g>
+            <title>Logo</title>
+            <use xlink:href="#pf-svg-logo-top-right" filter="url(#strokeGlow)" clip-path="url(#pf-svg-logo-top-right-clip)"/>
+            <use xlink:href="#pf-svg-logo-bottom-left" filter="url(#strokeGlow)" clip-path="url(#pf-svg-logo-bottom-left-clip)"/>
+            <use xlink:href="#pf-svg-logo-bottom-right" filter="url(#strokeGlow)" clip-path="url(#pf-svg-logo-bottom-right-clip)"/>
+            <use xlink:href="#pf-svg-logo-top-left" filter="url(#strokeGlow)" clip-path="url(#pf-svg-logo-top-left-clip)"/>
+        </g>
+    </symbol>
+</svg>

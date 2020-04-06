@@ -8,15 +8,17 @@ input, select{
     border-color: $teal-lighter;
   }
 
-  &:-webkit-autofill {
-    background-color: $gray-dark !important;
+  // Change Autocomplete styles in Chrome
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus, {
+    border: 1px solid $input-border;
+    -webkit-text-fill-color: $input-color;
+    transition: background-color 5000s ease-in-out 0s;
+    font-family: "Oxygen Bold", Arial, sans-serif;
+    font-weight: bold;
+    font-size: 12px;
     @include box-shadow(0 0 0 50px $gray-dark inset !important);
-    -webkit-text-fill-color: $gray-lighter;
-  }
-
-  &:-webkit-autofill:focus {
-    @include box-shadow(0 0 0 50px $gray-dark inset !important);
-    -webkit-text-fill-color: $gray-lighter;
   }
 
   &[disabled]{
@@ -25,7 +27,6 @@ input, select{
 
   &.pf-select2{
     height: 32px; // supposed to be select2 field (before initialization)
-    padding: 6px 12px;
   }
 }
 
@@ -83,6 +84,15 @@ fieldset[disabled]{
   }
 }
 
+// fix for ugly <select> boxes (Firefox) ==============================================================================
+@supports (-moz-appearance:none) {
+  select {
+    -moz-appearance: none !important;
+    background: $gray-dark url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAMAAABPT11nAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRFiIiIAAAA/v9K/QAAAAJ0Uk5T/wDltzBKAAAAHElEQVR42mJggAFGGMUIZjGCGIwMYIIRCgACDAABOwAVoypkGgAAAABJRU5ErkJggg==') right center no-repeat !important;
+    background-position: calc(100% - 5px) center !important;
+    padding-right: 16px !important;
+  }
+}
 
 // form fields with icons groups (stacked icons) ======================================================================
 .input-icon-left:not(.input-icon-right){
@@ -154,7 +164,7 @@ fieldset[disabled]{
   line-height: 100px;
   margin: 15px 0;
   color: $gray-darker;
-  @include border-radius(10px);
+  border-radius: 10px;
   @include transition( color 0.18s ease-out, border-color 0.18s ease-out);
 
   &:hover{

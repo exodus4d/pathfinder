@@ -1,19 +1,23 @@
 define([
     'jquery',
-    'app/init',
-    'app/counter',
     'app/promises/promise.deferred',
     'app/promises/promise.timeout',
     'datatables.net',
+    'datatables.net-select',
     'datatables.net-buttons',
     'datatables.net-buttons-html',
     'datatables.net-responsive',
-    'datatables.net-select'
-], ($, Init, Counter, DeferredPromise, TimeoutPromise) => {
+    'datatables.net-rowgroup'
+], ($, DeferredPromise, TimeoutPromise) => {
     'use strict';
 
-    // all Datatables stuff is available...
-    let initDefaultDatatablesConfig = () => {
+    /**
+     * DataTable dependencies loaded
+     * -> init default DataTables config (e.g. custom plugins)
+     * @param options
+     * @returns {Promise}
+     */
+    let initDefaultConfig = options => new Promise(resolve => {
 
         $.extend(true, $.fn.dataTable.defaults, {
             pageLength: -1,
@@ -25,14 +29,14 @@ define([
                 info: '_START_ - _END_ of _TOTAL_ entries'
             },
             responsive: {
-                breakpoints: Init.breakpoints,
+                breakpoints: options.breakpoints,
                 details: false
             },
             columnDefs: [],
             data: []
         });
 
-        // global open event
+        // global destroy event
         $(document).on('destroy.dt', '.dataTable ', function(e, settings){
             let table = $(this);
             let tableApi = new $.fn.dataTable.Api(settings);
@@ -42,8 +46,9 @@ define([
                 tableApi.endProcesses();
             }
 
-            // remove all active counters in table
-            Counter.destroyTimestampCounter(table, true);
+            if(typeof options.onDestroy === 'function'){
+                options.onDestroy(table);
+            }
         });
 
         // Status Plugin ==============================================================================================
@@ -157,7 +162,11 @@ define([
             cFeature: 'S',
             sFeature: 'StatusTable'
         });
-    };
 
-    initDefaultDatatablesConfig();
+        resolve();
+    });
+
+    return {
+        initDefaultConfig
+    };
 });

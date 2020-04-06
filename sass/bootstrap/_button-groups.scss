@@ -59,13 +59,15 @@
 .btn-group > .btn:first-child {
   margin-left: 0;
   &:not(:last-child):not(.dropdown-toggle) {
-    @include border-right-radius(0);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
 }
 // Need .dropdown-toggle since :last-child doesn't apply given a .dropdown-menu immediately after it
 .btn-group > .btn:last-child:not(:first-child),
 .btn-group > .dropdown-toggle:not(:first-child) {
-  @include border-left-radius(0);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 // Custom edits for including btn-groups within btn-groups (useful for including dropdown buttons within a btn-group)
@@ -78,11 +80,13 @@
 .btn-group > .btn-group:first-child {
   > .btn:last-child,
   > .dropdown-toggle {
-    @include border-right-radius(0);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
 }
 .btn-group > .btn-group:last-child > .btn:first-child {
-  @include border-left-radius(0);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 // On active and open, don't show outline
@@ -177,11 +181,13 @@
   }
   &:first-child:not(:last-child) {
     border-top-right-radius: $border-radius-base;
-    @include border-bottom-radius(0);
+    border-bottom-left-radius: $border-radius-base;
+    border-bottom-right-radius: $border-radius-base;
   }
   &:last-child:not(:first-child) {
     border-bottom-left-radius: $border-radius-base;
-    @include border-top-radius(0);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 }
 .btn-group-vertical > .btn-group:not(:first-child):not(:last-child) > .btn {
@@ -190,11 +196,13 @@
 .btn-group-vertical > .btn-group:first-child:not(:last-child) {
   > .btn:last-child,
   > .dropdown-toggle {
-    @include border-bottom-radius(0);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 }
 .btn-group-vertical > .btn-group:last-child:not(:first-child) > .btn:first-child {
-  @include border-top-radius(0);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 

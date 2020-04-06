@@ -1,18 +1,16 @@
 # ![Pathfinder logo](favicon/favicon-32x32.png "Logo") *PATHFINDER*
-Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
+#### Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
 - Project URL [https://www.pathfinder-w.space](https://www.pathfinder-w.space)
-- Official forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
 - Screenshots [imgur.com](http://imgur.com/a/k2aVa)
 - Videos [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
 #### Development
--  Test server
-  - URL: http://www.dev.pathfinder-w.space
+-  Test server: [https://www.dev.pathfinder-w.space](https://www.dev.pathfinder-w.space)
   - Running current `develop` branch
   - _SISI_ _ESI_ (make sure to use your test-server client)
-  - Available for public testing (e.g. new feature,.. )
+  - Available for public testing (e.g. new feature,… )
   - Database will be cleared from time to time
 - Installation guide:
   - [wiki](https://github.com/exodus4d/pathfinder/wiki)
@@ -27,52 +25,55 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
 ***
 
 ### Project structure
+<pre>
+ ─╮
+  ├─ app/              [0755] → PHP root
+  │  ├─ Controller/           → controller classes for app/ajax endpoints (see routes.ini)
+  │  ├─ Cron/                 → controller classes cronjob endpoints (see cron.ini)
+  │  ├─ Data/                 → classes for data handling
+  │  ├─ Db/                   → classes for DB handling
+  │  ├─ Exception/            → custom exceptions
+  │  ├─ Lib/                  → libs
+  │  ├─ Model/                → ORM
+  │  ├─ config.ini            → config - F3 core config: <a href="//fatfreeframework.com/3.7/quick-reference#SystemVariables" title="Fat-Free Framework - SystemVariables">SystemVariables</a>
+  │  ├─ cron.ini              → config - cronjobs
+  │  ├─ environment.ini       → config - system environment
+  │  ├─ pathfinder.ini        → config - pathfinder
+  │  ├─ plugin.ini            → config - custom plugins
+  │  ├─ requirements.ini      → config - system requirements
+  │  └─ routes.ini            → config - routes
+  ├─ export/           [0755] → static data
+  │  ├─ csv/                  → *.csv used by /setup page
+  │  └─ sql/                  → DB dump for import (eve_universe.sql.zip)
+  ├─ favicon/          [0755] → favicons
+  ├─ history/          [0777] → log files (map history logs) [optional]
+  ├─ js/               [0755] → JS source files (not used for production)
+  │  ├─ app/                  → "PATHFINDER" core files
+  │  ├─ lib/                  → 3rd party libs
+  │  └─ app.js                → require.js config
+  ├─ logs/             [0777] → log files
+  │  └─ …
+  ├─ public/           [0755] → static resources
+  │  ├─ css/                  → CSS dist/build folder (minified)
+  │  ├─ fonts/                → icon-/fonts
+  │  ├─ img/                  → images
+  │  ├─ js/                   → JS dist/build folder and source maps (minified, uglified)
+  │  └─ templates/            → templates
+  ├─ sass/                    → SCSS sources (not used for production)
+  ├─ tmp/              [0777] → cache folder (PHP templates)
+  │  └─ cache/         [0777] → cache folder (PHP cache)
+  ├─ .htaccess         [0755] → reroute/caching rules ("Apache" only!)
+  └─ index.php         [0755]
 
-```
-  |-- [0755] app/           --> backend [*.php]
-      |-- app/              --> "Fat Free Framework" extensions
-      |-- lib/              --> "Fat Free Framework"
-      |-- main/             --> "PATHFINDER" root
-      |-- config.ini        --> config "f3" framework
-      |-- cron.ini          --> config - cronjobs
-      |-- environment.ini   --> config - system environment
-      |-- pathfinder.ini    --> config - pathfinder
-      |-- requirements.ini  --> config - system requirements
-      |-- routes.ini        --> config - routes
-  |-- [0755] export/        --> static data
-      |-- csv/              --> *.csv used by /setup page
-      |-- sql/              --> DB dump for import (eve_universe.sql.zip)
-  |-- [0755] favicon/       --> Favicons
-  |-- [0777] history/       --> log files (map history logs) [optional]
-  |-- [0755] js/            --> JS source files
-      |-- app/              --> "PASTHFINDER" core files (not used for production)
-      |-- lib/              --> 3rd partie extension/library (not used for production)
-      |-- app.js            --> require.js config (!required for production!)
-  |-- [0777] logs/          --> log files
-      |-- ...
-  |-- node_modules/         --> node.js modules (not used for production)
-      |-- ...
-  |-- [0755] public/        --> frontend source
-      |-- css/              --> CSS dist/build folder (minified)
-      |-- fonts/            --> (icon)-Fonts
-      |-- img/              --> images
-      |-- js/               --> JS dist/build folder and source maps (minified, uglified)
-      |-- templates/        --> templates
-  |-- sass/                 --> SCSS source (not used for production)
-  |-- [0777] tmp/           --> cache folder
-  |-- [0755] .htaccess      --> reroute/caching rules ("Apache" only!)
-  |-- [0755] index.php
-
-  --------------------------
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━
   CI/CD config files:
-  --------------------------
-  |-- .jshintrc             --> "JSHint" config (not used for production)
-  |-- composer.json         --> Composer package definition
-  |-- config.rb             --> "Compass" config (not used for production)
-  |-- gulpfile.js           --> "Gulp" task config (not used for production )
-  |-- package.json          --> "Node.js" dependency config (not used for production)
-  |-- README.md             --> This file :) (not used for production)
-```
+  
+  ├─ .jshintrc                → "JSHint" config (not used for production)
+  ├─ composer.json            → "Composer" package definition
+  ├─ gulpfile.js              → "Gulp" task config (not used for production)
+  ├─ package.json             → "Node.js" dependency config (not used for production)
+  └─ README.md                → This file :) (not used for production)
+</pre>
 
 ***
 

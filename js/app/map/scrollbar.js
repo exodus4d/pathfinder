@@ -15,10 +15,10 @@ define([
 
     let defaultConfig = {
         axis: 'yx',
-        theme: 'light-3' ,
+        theme: 'light-3',
         scrollInertia: 200,
         autoExpandScrollbar: false,
-        scrollButtons:{
+        scrollButtons: {
             enable: true,
             scrollAmount: 30,
             scrollType: 'stepless'
@@ -226,25 +226,25 @@ define([
     /**
      * scroll to a specific position on map
      * demo: http://manos.malihu.gr/repository/custom-scrollbar/demo/examples/scrollTo_demo.html
-     * @param scrollWrapper
+     * @param scrollArea
      * @param position
      * @param options
      */
-    let scrollToPosition = (scrollWrapper, position, options) => {
-        $(scrollWrapper).mCustomScrollbar('scrollTo', position, options);
+    let scrollToPosition = (scrollArea, position, options) => {
+        $(scrollArea).mCustomScrollbar('scrollTo', position, options);
     };
 
     /**
      * scroll to center an element
      * -> subtract some offset for tooltips/connections
-     * @param scrollWrapper
+     * @param scrollArea
      * @param element
      */
-    let scrollToCenter = (scrollWrapper, element) => {
+    let scrollToCenter = (scrollArea, element) => {
         // no scroll if element is already FULL visible in scrollable viewport
         if(!isInView(element)){
             // get scrollTo position for centered element
-            scrollToPosition(scrollWrapper, getCenterScrollPosition(element));
+            scrollToPosition(scrollArea, getCenterScrollPosition(element));
         }
     };
 

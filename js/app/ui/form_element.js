@@ -25,12 +25,12 @@ define([
         if(data.loading) return data.text;
         if(data.placeholder) return data.placeholder;
 
-        let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
+        let markup = `<div class="clearfix ${config.resultOptionImageClass}">`;
 
         if(data.hasOwnProperty('children')){
             // category group label
-            markup += '<div class="col-xs-9">' + data.text + '</div>';
-            markup += '<div class="col-xs-3 text-right">(' + data.children.length + ')</div>';
+            markup += `<div class="col-xs-9">${data.text}</div>`;
+            markup += `<div class="col-xs-3 text-right">(${data.children.length})</div>`;
         }else{
             let imagePath = '';
             let iconName = '';
@@ -61,13 +61,13 @@ define([
             }
 
             if(imagePath){
-                thumb = '<img class="' + config.select2ImageLazyLoadClass + '" data-original="' + imagePath + '" style="max-width: 100%"/>';
+                thumb = `<img class="${config.select2ImageLazyLoadClass}" src="${Util.imgRoot()}svg/logo_simple.svg" data-src="${imagePath}" style="max-width: 100%"/>`;
             }else if(iconName){
-                thumb = '<i class="fas fa-fw ' + iconName + '" ></i>';
+                thumb = `<i class="fas fa-fw ${iconName}"></i>`;
             }
 
-            markup += '<div class="col-xs-2">' + thumb + '</div>';
-            markup += '<div class="col-xs-10">' + data.text + '</div>';
+            markup += `<div class="col-xs-2">${thumb}</div>`;
+            markup += `<div class="col-xs-10 pf-text-ellipsis">${data.text}</div>`;
         }
         markup += '</div>';
 
@@ -90,8 +90,7 @@ define([
             let name = parts[0];
             let sizeLabel;
             if(Util.getObjVal(customOptions, 'showWhSizeLabel')){
-                let wormholeSizeData = Util.getObjVal(Init, 'wormholes.' + name + '.size');
-                sizeLabel = Util.getObjVal(wormholeSizeData, 'label') || '';
+                sizeLabel = Util.getObjVal(Init, `wormholes.${name}.size.label`) || '';
             }
 
             let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
@@ -102,19 +101,17 @@ define([
 
             let classes = [securityClass, Util.config.popoverTriggerClass, Util.config.helpDefaultClass];
 
-            markup += '<span>' + name + '</span>';
+            markup += `<span>${name}</span>`;
             if(sizeLabel !== undefined){
-                markup += '<span><kbd>' + sizeLabel + '</kbd></span>';
-            }else{
-                markup += '&nbsp;&nbsp;';
+                markup += `<span><kbd>${sizeLabel}</kbd></span>`;
             }
             markup += '<i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i>';
-            markup += '<span class="' + classes.join(' ') + '" data-name="' + name + '">&nbsp;&nbsp;' + label + '</span>';
+            markup += `<span class="${classes.join(' ')}" data-name="${name}">&nbsp;&nbsp;${label}</span>`;
             if(suffix.length){
-                markup += '&nbsp;<span>' + suffix + '</span>';
+                markup += `&nbsp;<span>${suffix}</span>`;
             }
         }else{
-            markup += '<span>' + state.text + '</span>';
+            markup += `<span>${state.text}</span>`;
         }
 
         return $(markup);
@@ -152,7 +149,7 @@ define([
 
 
                         markup += '<div class="col-xs-3">' + parts[0] + '</div>';
-                        markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right"></i></div>';
+                        markup += '<div class="col-xs-2 text-center"><i class="fas fa-long-arrow-alt-right txt-color txt-color-grayLight"></i></div>';
                         markup += '<div class="col-xs-3 ' + securityClass + '">' + label + '</div>';
                         markup += '<div class="col-xs-4 text-right">' + suffix + '</div>';
                         break;
@@ -203,10 +200,10 @@ define([
             }
 
             let securityClass = Util.getSecurityClassForSystem(parts[1]);
-            markup += '<span class="' + styleClass.join(' ') + '">' + parts[0] + '</span>&nbsp;&nbsp;';
-            markup += '<span class="' + securityClass + '">' + parts[1] + '</span>';
+            markup += `<span class="${styleClass.join(' ')}">${parts[0]}</span>`;
+            markup += `<span class="${securityClass}">&nbsp;&nbsp;${parts[1]}</span>`;
         }else{
-            markup += '<span>' + state.text + '</span>';
+            markup += `<span>${state.text}</span>`;
         }
 
         return $(markup);
@@ -250,7 +247,7 @@ define([
 
         let defaultConfig = {
             dropdownParent: selectElement.parents('.modal-body'),
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '100%',
             maxSelectionLength: 1
         };
@@ -296,7 +293,7 @@ define([
     $.fn.initStatusSelect = function(options){
 
         let defaultConfig = {
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '100%',
             iconClass: 'fa-circle'
         };
@@ -787,7 +784,7 @@ define([
      */
     $.fn.initSignatureGroupSelect = function(options){
         let defaultConfig = {
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '110px',
             dropdownParent: this.parents('.popover-content')
         };
@@ -883,7 +880,7 @@ define([
      */
     $.fn.initSignatureConnectionSelect = function(options){
         let defaultConfig = {
-            minimumResultsForSearch: -1,
+            minimumResultsForSearch: Infinity,
             width: '140px',
             dropdownParent: this.parents('.popover-content')
         };

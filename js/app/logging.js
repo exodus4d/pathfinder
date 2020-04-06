@@ -7,7 +7,8 @@ define([
     'app/init',
     'app/util',
     'app/counter',
-    'bootbox'
+    'bootbox',
+    'app/lib/resize'
 ], ($, Init, Util, Counter, bootbox) => {
 
     'use strict';
@@ -37,6 +38,7 @@ define([
         if(logDialog.length){
             // dialog is open
             let statusArea = logDialog.find('.' + config.taskDialogStatusAreaClass);
+            statusArea.destroyTooltips(true);
             requirejs(['text!templates/modules/sync_status.html', 'mustache'], (templateSyncStatus, Mustache) => {
                 let data = {
                     timestampCounterClass: config.timestampCounterClass,
@@ -57,7 +59,7 @@ define([
                 let counterElements = syncStatusElement.find('.' + config.timestampCounterClass);
                 Counter.initTimestampCounter(counterElements);
 
-                syncStatusElement.initTooltips({
+                statusArea.initTooltips({
                     placement: 'right'
                 });
             });
@@ -69,9 +71,7 @@ define([
      * shows the logging dialog
      */
     let showDialog = () => {
-        // dialog content
-
-        requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache){
+        requirejs(['text!templates/dialog/task_manager.html', 'mustache'], function(templateTaskManagerDialog, Mustache){
             let data = {
                 id: config.taskDialogId,
                 dialogDynamicAreaClass: Util.config.dynamicAreaClass,
@@ -92,9 +92,9 @@ define([
 
             // init log table
             logDataTable = logTable.DataTable({
-                dom: '<"row"<"col-xs-3"l><"col-xs-5"B><"col-xs-4"fS>>' +
-                    '<"row"<"col-xs-12"tr>>' +
-                    '<"row"<"col-xs-5"i><"col-xs-7"p>>',
+                dom: '<"flex-row flex-between"<"flex-col"l><"flex-col"B><"flex-col"fS>>' +
+                    '<"flex-row"<"flex-col flex-grow"tr>>' +
+                    '<"flex-row flex-between"<"flex-col"i><"flex-col"p>>',
                 buttons: {
                     name: 'tableTools',
                     buttons: [
@@ -282,51 +282,61 @@ define([
                             xkey: 'x',
                             ykeys: ['y'],
                             labels: [key],
-                            units: 'ms',
-                            parseTime: false,
-                            ymin: 0,
-                            yLabelFormat: labelYFormat,
-                            padding: 10,
-                            hideHover: true,
-                            pointSize: 3,
                             lineColors: ['#375959'],
+                            lineWidth: 2,
+                            pointSize: 3,
                             pointFillColors: ['#477372'],
                             pointStrokeColors: ['#313335'],
-                            lineWidth: 2,
-                            grid: false,
-                            gridStrokeWidth: 0.3,
-                            gridTextSize: 9,
-                            gridTextFamily: 'Oxygen Bold',
-                            gridTextColor: '#63676a',
-                            behaveLikeLine: true,
-                            goals: [],
-                            goalLineColors: ['#66c84f'],
+                            ymin: 0,
                             smooth: false,
-                            fillOpacity: 0.3,
-                            resize: true
+                            hideHover: true,
+                            parseTime: false,
+                            postUnits: 'ms',
+                            yLabelFormat: labelYFormat,
+                            goals: [],
+                            goalStrokeWidth: 1,
+                            goalLineColors: ['#66c84f'],
+                            grid: true,
+                            gridTextColor: '#63676a',
+                            gridTextSize: 9,
+                            gridTextFamily: 'Arial, "Oxygen Bold"',
+                            gridTextWeight: 'bold',
+                            gridStrokeWidth: 0.3,
+                            resize: true, // we use our own resize function
+                            dataLabels: false,
+                            hoverReversed: true,
+                            // Area chart specific options
+                            behaveLikeLine: true,
+                            fillOpacity: 0.5,
+                            belowArea: true,
+                            areaColors: ['#3c3f41'],
+                            // Not documented but working
+                            padding: 8,
                         });
 
                         updateLogGraph(key);
 
                         graphArea.hideLoadingAnimation();
-
                     }
                 }
-            });
-
-
-            // modal dialog is closed
-            logDialog.on('hidden.bs.modal', function(e){
-                // clear memory -> destroy all charts
-                for(let key in chartData){
-                    if(chartData.hasOwnProperty(key)){
-                        chartData[key].graph = null;
-                    }
-                }
+/*
+                Util.getResizeManager().observe(
+                    this.querySelector('.modal-dialog'),
+                    (el, contentRect) => Object.values(chartData).forEach(data => {
+                        if(data.graph) data.graph.redraw();
+                    }),
+                    {debounce: true, ms: 100}
+                );*/
             });
 
             // modal dialog before hide
             logDialog.on('hide.bs.modal', function(e){
+                Object.entries(chartData).forEach(([key, data]) => {
+                    if(data.graph){
+                        data.graph.destroy();
+                        delete chartData[key].graph;
+                    }
+                });
 
                 // destroy logTable
                 logDataTable.destroy(true);
@@ -348,12 +358,13 @@ define([
     let updateLogGraph = (key, duration) => {
 
         // check if graph data already exist
-        if(!(chartData.hasOwnProperty(key))){
-            chartData[key] = {};
-            chartData[key].data = [];
-            chartData[key].graph = null;
-            chartData[key].averageElement = null;
-            chartData[key].updateElement = null;
+        if(!chartData.hasOwnProperty(key)){
+            chartData[key] = {
+                data: [],
+                graph: null,
+                averageElement: null,
+                updateElement: null
+            };
         }
 
         // add new value
@@ -394,7 +405,7 @@ define([
         let tempChartData = getGraphData(chartData[key].data);
 
         // add new data to graph (Morris chart) - if is already initialized
-        if(chartData[key].graph !== null){
+        if(chartData[key].graph){
             let avgElement = chartData[key].averageElement;
             let updateElement = chartData[key].updateElement;
 
@@ -472,16 +483,16 @@ define([
     /**
      * init logging -> set global log events
      */
-    let init = function(){
+    let init = () => {
 
         let maxEntries = 150;
 
-        $(window).on('pf:syncStatus', function(){
+        $(window).on('pf:syncStatus', () => {
             updateSyncStatus();
         });
 
         // set global logging listener
-        $(window).on('pf:log', function(e, logKey, options){
+        $(window).on('pf:log', (e, logKey, options) => {
 
             // check required logging information
             if(
@@ -520,10 +531,7 @@ define([
             }
 
             // delete old log entries from table ---------------------------------
-            let rowCount = logData.length;
-
-            if(rowCount >= maxEntries){
-
+            if(logData.length >= maxEntries){
                 if(logDataTable){
                     logDataTable.rows(0, {order:'index'}).remove().draw(false);
                 }else{

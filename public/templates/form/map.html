@@ -8,7 +8,7 @@
                     <div class="col-sm-8">
                         <select name="icon" id="{{iconSelectId}}" class="form-control pf-form-icon-field {{select2Class}}">
                             {{#icon}}
-                            <option value="{{class}}" >{{{unicode}}}</option>
+                            <option value="{{class}}" {{#mapIcon}}{{class}}{{/mapIcon}}>{{{unicode}}}</option>
                             {{/icon}}
                         </select>
                     </div>
@@ -16,9 +16,9 @@
             </div>
             <div class="col-xs-6 col-sm-9">
                 <div class="form-group">
-                    <label for="name" class="col-sm-2 control-label">Name</label>
+                    <label for="{{nameInputId}}" class="col-sm-2 control-label">Name</label>
                     <div class="col-sm-10">
-                        <input name="name" type="text" class="form-control" id="name" value="" placeholder="Map name" data-error="Name required" data-minlength="3" data-minlength-error="Min. of 3 characters" required>
+                        <input name="name" type="text" class="form-control" id="{{nameInputId}}" value="{{mapName}}" placeholder="Map name" data-error="Name required" data-minlength="3" data-minlength-error="Min. of 3 characters" required>
                         <span class="note help-block with-errors">Choose a meaningful name</span>
                     </div>
                 </div>
@@ -32,7 +32,7 @@
                     <div class="col-sm-10">
                         <select name="scopeId" id="{{scopeSelectId}}" class="form-control {{select2Class}}">
                             {{#scope}}
-                            <option value="{{id}}">{{label}}</option>
+                            <option value="{{id}}" {{#mapScopeId}}{{id}}{{/mapScopeId}}>{{label}}</option>
                             {{/scope}}
                         </select>
                     </div>
@@ -44,7 +44,7 @@
                     <div class="col-sm-10">
                         <select name="typeId" id="{{typeSelectId}}" class="form-control {{select2Class}}">
                             {{#type}}
-                            <option value="{{id}}">{{label}}</option>
+                            <option value="{{id}}" {{#mapTypeId}}{{id}}{{/mapTypeId}}>{{label}}</option>
                             {{/type}}
                         </select>
                     </div>
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <input type="hidden" name="id" value="0" />
+        <input type="hidden" name="id" value="{{mapId}}" />
 
 
         <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">

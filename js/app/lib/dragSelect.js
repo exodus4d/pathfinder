@@ -135,7 +135,6 @@ define(['app/lib/eventHandler'], (EventHandler) => {
             this._selectBox = document.createElement('div');
             this._selectBox.id = this._instanceName;
             this._selectBox.classList.add(this._config.selectBoxClass);
-            this._selectBox.style.position = 'absolute';
             this._config.target.after(this._selectBox);
         }
 
@@ -149,12 +148,11 @@ define(['app/lib/eventHandler'], (EventHandler) => {
                 top:  e.pageY - this._targetDim.top
             });
 
-            Object.assign(this._selectBox.style,{
-                left:   this._selectBoxOrigin.left + 'px',
-                top:	this._selectBoxOrigin.top + 'px',
-                width:	'1px',
-                height:	'1px'
-            });
+            // limit render "reflow" bny adding all properties at once
+            this._selectBox.style.cssText = `--selectBox-left: ${this._selectBoxOrigin.left}px; ` +
+                `--selectBox-top: ${this._selectBoxOrigin.top}px; ` +
+                `--selectBox-width: 1px; ` +
+                `--selectBox-height: 1px;`;
 
             this._selectBox.classList.add(this._config.activeClass);
 
@@ -195,12 +193,10 @@ define(['app/lib/eventHandler'], (EventHandler) => {
             let dimensionHash = [newWidth, newHeight].join('_');
             if(this._selectBoxDimHash !== dimensionHash){
                 this._selectBoxDimHash = dimensionHash;
-                Object.assign(this._selectBox.style,{
-                    left:	newLeft + 'px',
-                    top:	newTop + 'px',
-                    width:	newWidth + 'px',
-                    height:	newHeight + 'px'
-                });
+                this._selectBox.style.cssText = `--selectBox-left: ${newLeft}px; ` +
+                    `--selectBox-top: ${newTop}px; ` +
+                    `--selectBox-width: ${newWidth}px; ` +
+                    `--selectBox-height: ${newHeight}px;`;
 
                 // set drag position data (which corner)
                 this._selectBox.dataset.origin = this.getSelectBoxDragOrigin(left, top, newLeft, newTop).join('|');

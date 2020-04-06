@@ -1,8 +1,6 @@
 {* splash page *}
 <include href="templates/layout/splash.html"/>
 
-<include href="img/svg/logo.svg"/>
-
 {* counter for DB warnings (all databases) *}
 {{ @tplCounter('reset', 'database_warning_all') }}
 <section>
@@ -24,7 +22,7 @@
             <div class="alert alert-danger">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
                 <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
-                <small> {{ @errorData->message }}</small>
+                <small> {{ @errorData->text }}</small>
             </div>
         </check>
     </div>
@@ -963,6 +961,14 @@
                                                 </check>
                                             </td>
                                         </tr>
+                                        <repeat group="{{ @redisInformation.errors }}"  value="{{ @redisError }}">
+                                            <tr>
+                                                <td colspan="2">{{ @redisError.label | raw}}: {{ @redisError.error }}</td>
+                                                <td class="text-right"><kbd class="txt-color txt-color-danger">error</kbd></td>
+                                                <td class="text-right"><i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-danger"></i></td>
+                                            </tr>
+                                            {{ @tplCounter('increment', 'cache_danger') }}
+                                        </repeat>
                                         <tr>
                                             <td style="padding: 0"></td>
                                             <td style="padding: 0"></td>
@@ -1159,7 +1165,7 @@
                                                 <kbd>{{ mb_strimwidth(pathinfo(@logData.fileName, PATHINFO_FILENAME), 0, 15, '…') }}</kbd>
                                             </td>
                                             <td class="bg-color bg-color-tealDarker">{{ @logData.message }}</td>
-                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(@logData.logTypes, ', ') }}" data-placement="right" data-container="body">
+                                            <td class="text-right bg-color bg-color-tealDarker" title="{{ implode(', ', @logData.logTypes) }}" data-placement="right" data-container="body">
                                                 <i class="fas fa-fw fa-tag txt-color {{ @logTypeClass }}"></i>
                                             </td>
                                         </tr>
@@ -1512,3 +1518,8 @@
 {* footer *}
 <set panel2="{{ [['icon' => 'far fa-window-maximize', 'label' => 'toggle', 'action' => 'collapse-all']] }}" />
 <include href="templates/layout/footer_simple.html" with="p2={{ @panel2 }}"/>
+
+{* svg *}
+<div class="pf-svg-wrapper">
+    <include href="{{ 'img/' . @PATHFINDER.VERSION . '/svg/logo_inline.svg' }}"/>
+</div>

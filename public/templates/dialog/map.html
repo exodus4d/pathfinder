@@ -36,13 +36,16 @@
 
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane fade {{#openTabNew}}in active{{/openTabNew}}" id="{{dialogMapNewContainerId}}"></div>
-        <div role="tabpanel" class="tab-pane fade {{#openTabEdit}}in active{{/openTabEdit}}" id="{{dialogMapEditContainerId}}"></div>
+
+        {{^hideEditTab}}
+            <div role="tabpanel" class="tab-pane fade {{#openTabEdit}}in active{{/openTabEdit}}" id="{{dialogMapEditContainerId}}"></div>
+        {{/hideEditTab}}
 
         {{^hideSettingsTab}}
             <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
-                {{#hasRightMapUpdate}}
-                    <form role="form" class="form-horizontal">
 
+                <form role="form" class="form-horizontal">
+                    {{#hasRightMapUpdate}}
                         <div class="row">
                             <div class="col-xs-12 col-sm-12 col-md-8">
                                 <h4 class="pf-dynamic-area">Map options</h4>
@@ -201,9 +204,9 @@
                                                 <i class="fas fa-fw fa-question-circle pf-help-light" title="Send new 'Rally point' notifications to a Slack channel"></i>
                                             </label>
                                             <div class="col-sm-6 col-md-8">
-                                                <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type"{{/slackRallyEnabled}}>
+                                                <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type" {{/slackRallyEnabled}}>
                                                     <i class="fas fa-hashtag"></i>
-                                                    <input name="slackChannelRally" type="text" class="form-control" id="{{slackChannelRallyId}}" value="{{slackChannelRally}}" placeholder="map_rally" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackRallyEnabled}}disabled{{/slackRallyEnabled}}>
+                                                    <input name="slackChannelRally" type="text" class="form-control" id="{{slackChannelRallyId}}" value="{{slackChannelRally}}" placeholder="map_rally" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackRallyEnabled}}disabled{{/slackRallyEnabled}} />
                                                 </div>
                                             </div>
                                             <div class="note help-block with-errors"></div>
@@ -303,9 +306,17 @@
                             {{/discordEnabled}}
 
                         </div>
+                    {{/hasRightMapUpdate}}
+                    {{^hasRightMapUpdate}}
+                        <div class="alert alert-info">
+                            <span class="txt-color txt-color-info">Restricted</span>
+                            <small>You don´t have the required roles.</small>
+                        </div>
+                    {{/hasRightMapUpdate}}
 
                         <h4 class="pf-dynamic-area">Share settings</h4>
 
+                    {{#hasRightMapShare}}
                         <div class="row">
                             <div class="col-sm-11">
                                 <blockquote>
@@ -313,8 +324,7 @@
                                         Use this feature with caution! - Shared map entities have full map access.
                                         They even can take over control by removing other entities from this list.
                                     </p>
-                                    <small>Reduce this risk by creating a new map for joined OPs.
-                                    </small>
+                                    <small>Reduce this risk by creating a new map for joined OPs.</small>
                                 </blockquote>
                             </div>
                         </div>
@@ -385,15 +395,16 @@
                         </div>
                         {{/accessAlliance.length}}
 
-                        <input type="hidden" name="id" value="{{ mapData.config.id }}" />
-                    </form>
-                {{/hasRightMapUpdate}}
-                {{^hasRightMapUpdate}}
-                    <div class="alert alert-info">
-                        <span class="txt-color txt-color-info">Restricted</span>
-                        <small>You don´t have the required roles.</small>
-                    </div>
-                {{/hasRightMapUpdate}}
+                    {{/hasRightMapShare}}
+                    {{^hasRightMapShare}}
+                        <div class="alert alert-info">
+                            <span class="txt-color txt-color-info">Restricted</span>
+                            <small>You don´t have the required roles.</small>
+                        </div>
+                    {{/hasRightMapShare}}
+
+                    <input type="hidden" name="id" value="{{ mapData.config.id }}" />
+                </form>
             </div>
         {{/hideSettingsTab}}
 
@@ -434,7 +445,7 @@
                         <div class="form-group">
                             <label for="type" class="col-sm-2 control-label">Type</label>
                             <div class="col-sm-3">
-                                <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authentication" data-placement="top">
+                                <select name="typeId" id="type" class="form-control {{select2Class}}" title="Alliance/Corporation maps require character authentication" data-placement="top">
                                     {{#type}}
                                     <option value="{{id}}">{{label}}</option>
                                     {{/type}}

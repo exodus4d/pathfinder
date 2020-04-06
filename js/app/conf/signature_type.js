@@ -184,7 +184,7 @@ define([], () => {
         22: 'Central Blood Raider Sparking Transmitter',
         23: 'Central Blood Raider Survey Site',
         24: 'Central Guristas Command Center',
-        25: 'Central Guristas Data Mining Center',
+        25: 'Central Guristas Data Mining Site',
         26: 'Central Guristas Sparking Transmitter',
         27: 'Central Guristas Survey Site',
         28: 'Central Sansha Command Center',
@@ -357,58 +357,85 @@ define([], () => {
 
     // all k-space exits are static or K162
     let c1WH = {
-        1: 'H121 - C1',
-        2: 'C125 - C2',
-        3: 'O883 - C3',
-        4: 'M609 - C4',
-        5: 'L614 - C5',
-        6: 'S804 - C6',
-        7: 'F353 - C12 Thera'
+        1:  'H121 - C1',
+        2:  'C125 - C2',
+        3:  'O883 - C3',
+        4:  'M609 - C4',
+        5:  'L614 - C5',
+        6:  'S804 - C6',
+        7:  'N110 - H',
+        8:  'J244 - L',
+        9:  'Z060 - 0.0',
+        10: 'F353 - C12 Thera'
     };
 
     // all w-space -> w-space are statics or K162
     let c2WH = {
-        1: 'Z647 - C1',
-        2: 'D382 - C2',
-        3: 'O477 - C3',
-        4: 'Y683 - C4',
-        5: 'N062 - C5',
-        6: 'R474 - C6',
-        7: 'F135 - C12 Thera'
+        1:  'Z647 - C1',
+        2:  'D382 - C2',
+        3:  'O477 - C3',
+        4:  'Y683 - C4',
+        5:  'N062 - C5',
+        6:  'R474 - C6',
+        7:  'B274 - H',
+        8:  'A239 - L',
+        9:  'E545 - 0.0',
+        10: 'F135 - C12 Thera'
     };
 
     // all k-space exits are static or K162
     let c3WH = {
-        1: 'V301 - C1',
-        2: 'I182 - C2',
-        3: 'N968 - C3',
-        4: 'T405 - C4',
-        5: 'N770 - C5',
-        6: 'A982 - C6',
-        7: 'F135 - C12 Thera'
+        1:  'V301 - C1',
+        2:  'I182 - C2',
+        3:  'N968 - C3',
+        4:  'T405 - C4',
+        5:  'N770 - C5',
+        6:  'A982 - C6',
+        7:  'D845 - H',
+        8:  'U210 - L',
+        9:  'K346 - 0.0',
+        10: 'F135 - C12 Thera'
     };
 
     // no *wandering* w-space -> w-space
     // all holes are statics or K162
     let c4WH = {
-        1: 'S047 - H',
-        2: 'N290 - L',
-        3: 'K329 - 0.0'
+        1:  'P060 - C1',
+        2:  'N766 - C2',
+        3:  'C247 - C3',
+        4:  'X877 - C4',
+        5:  'H900 - C5',
+        6:  'U574 - C6',
+        7:  'S047 - H',
+        8:  'N290 - L',
+        9:  'K329 - 0.0'
     };
 
     let c5WH = {
-        1: 'D792 - H',
-        2: 'C140 - L',
-        3: 'Z142 - 0.0'
+        1:  'Y790 - C1',
+        2:  'D364 - C2',
+        3:  'M267 - C3',
+        4:  'E175 - C4',
+        5:  'H296 - C5',
+        6:  'V753 - C6',
+        7:  'D792 - H',
+        8:  'C140 - L',
+        9:  'Z142 - 0.0'
     };
 
     let c6WH = {
-        1: 'B520 - H',
-        2: 'D792 - H',
-        3: 'C140 - L',
-        4: 'C391 - L',
-        5: 'C248 - 0.0',
-        6: 'Z142 - 0.0'
+        1:  'Q317 - C1',
+        2:  'G024 - C2',
+        3:  'L477 - C3',
+        4:  'Z457 - C4',
+        5:  'V911 - C5',
+        6:  'W237 - C6',
+        7:  'B520 - H',
+        8:  'D792 - H',
+        9:  'C140 - L',
+        10: 'C391 - L',
+        11: 'C248 - 0.0',
+        12: 'Z142 - 0.0'
     };
 
     // Shattered WH (some of them are static)

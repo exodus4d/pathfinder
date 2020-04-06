@@ -1,61 +1,76 @@
-@import "defaults";
-@import "../../mixins/gradients";
-
 .select2-container--pathfinder {
-  @import "single";
-  @import "multiple";
+  @import "sass/library/select2/theme/pathfinder/single";
+  @import "sass/library/select2/theme/pathfinder/multiple";
+
+  &.select2-container--open.select2-container--above {
+    .select2-selection--single, .select2-selection--multiple {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-top: 0; // color: transparent leaves 1px gap
+    }
+  }
+
+  &.select2-container--open.select2-container--below {
+    .select2-selection--single, .select2-selection--multiple {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom: 0; // color: transparent leaves 1px gap
+    }
+  }
 
   .select2-search--dropdown {
     .select2-search__field {
-      border: 1px solid $border-color;
-      outline: 0;
+      border: 1px solid $gray-light;
+
+      &:focus {
+        border: 1px solid $teal-lighter;
+      }
     }
   }
 
   .select2-search--inline {
     .select2-search__field {
+      background: transparent;
+      border: none;
       outline: 0;
-      @include placeholder();
+      -webkit-appearance: textfield;
+      box-shadow: none !important;
     }
   }
 
-  .select2-dropdown {
-    background-color: $dropdown-bg-color;
-    border: 1px solid transparent;
-    overflow: hidden;
-    @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-
-    img{
-      image-rendering: -webkit-optimize-contrast;
-      width: 21px;
-    }
-  }
-
-  .select2-dropdown--above {
-    border-bottom: none;
-  }
-
-  .select2-dropdown--below {
-    border-top: none;
-  }
-
-  .select2-results {
-    max-height: $results-max-height;
+  //.select2-results > .select2-results__options {
+  //  max-height: 200px;
+  //  overflow-y: auto;
+  //}
+  .select2-results > .select2-results__options {
+    max-height: 200px;
     overflow-y: auto;
+  }
+
+  .select2-results .select2-results__options {
+    //height: 200px;
+    //overflow-y: auto;
   }
 
   .select2-results__option {
     padding: 3px 6px;
     min-height: 24px;  // options with empty string '' should not collapse
 
+    > .clearfix.pf-result-image [class*="col-"]{
+       line-height: 22px;  // options with images need more height
+
+      img {
+        height: 22px;
+      }
+    }
+
     &[role=group] {
       padding: 0;
     }
 
-    &[aria-disabled=true],
-    &[aria-selected=true]{
-      color: $results-choice-fg-unselectable-color;
-      background-color:  $results-choice-bg-unselectable-color;
+    &[aria-disabled=true] {
+      color: $gray-light;
+      background-color: $gray;
 
       // add a icon to all "disabled" options
       .pf-select-item-anchor {
@@ -73,45 +88,72 @@
         }
       }
     }
+
+    &[aria-selected=true] {
+      color: $gray-light;
+      background-color: $gray;
+    }
+
+    .select2-results__option {
+      padding-left: 1em;
+
+      .select2-results__group {
+        padding-left: 0;
+      }
+
+      .select2-results__option {
+        margin-left: -1em;
+        padding-left: 2em;
+
+        .select2-results__option {
+          margin-left: -2em;
+          padding-left: 3em;
+
+          .select2-results__option {
+            margin-left: -3em;
+            padding-left: 4em;
+
+            .select2-results__option {
+              margin-left: -4em;
+              padding-left: 5em;
+
+              .select2-results__option {
+                margin-left: -5em;
+                padding-left: 6em;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   .select2-results__option--highlighted[aria-selected] {
-    background-color: $results-choice-bg-hover-color;
-    color: $results-choice-fg-hover-color;
+    background-color: $gray-lighter;
+    color: $gray-dark;
   }
 
   .select2-results__group {
     cursor: default;
     display: block;
-    padding: 3px 6px;
-    background-color: $gray;
-    text-transform: capitalize;
+    padding: 6px;
+    background-color: $gray-darker;
+    color: #777; // like .navbar-default
   }
 
+  // custom PF styles -------------------------------
   &.select2-container--open .select2-dropdown {
-    border-color: $focus-border-color;
+    border-color: $teal-lighter;
+    @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
   }
 
-  &.select2-container--disabled {
-    .select2-selection {
-      background-color: $gray;
-      cursor: not-allowed;
-      border: 1px solid $gray-light;
-
-      .select2-selection__arrow{
-        background-color: $gray;
-      }
-
-      .select2-selection__clear{
-        display: none;
-      }
-    }
-  }
 }
+
 
 // hide small "arrow" for hidden select elements
 select.select2-hidden-accessible {
-  @include appearance( none );
+  -moz-appearance: none;
+  -webkit-appearance: none;
 }
 
 select[readonly].select2-hidden-accessible {

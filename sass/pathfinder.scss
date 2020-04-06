@@ -5,13 +5,12 @@
  * CSS - Cascading Style Sheets
  * Generated with Compass http://compass-style.org
  *
- * Copyright 2015 - 2018, Exodus 4D - Mark Friedrich
+ * Copyright 2015 - 2020, Exodus 4D - Mark Friedrinch
  *
  */
 
-@import "compass";
-@import "compass/reset";
-@import "compass/css3";
+// CSS Reset - https://github.com/simbo/css-reset-and-normalize
+@import "reset";
 
 // Core variables and mixins
 @import "colors";
@@ -31,12 +30,9 @@
 @import "library/data-tables/_all";                                 // DataTables 1.10.12 + extensions
 
 @import "library/x-editable/_bootstrap-editable";                   // X-editable - v1.5.1
-@import "library/pnotify/_pnotify";                                 // PNotify styles - v3.2.0
-@import "library/pnotify/_pnotify.nonblock";
-@import "library/pnotify/_pnotify.custom";                          // PNotify custom styles
 @import "library/slidebars/_slidebars";                             // Slidebars Navigation
 @import "library/easy-pie-chart/_easyPieChart";                     // Easy Pie Chart 2.1.6
-@import "library/select2/_core";                                    // Select2 4.0.3
+@import "library/select2/_core";                                    // Select2 4.0.13
 @import "library/blue-imp-gallery/_blueimp-gallery";                // Blue Imp Gallery
 @import "library/blue-imp-gallery/_bootstrap-image-gallery";        // Blue Imp Gallery Bootstrap
 @import "library/blue-imp-gallery/_bootstrap-image-gallery";        // Blue Imp Gallery Bootstrap

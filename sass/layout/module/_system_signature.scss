@@ -1,0 +1,71 @@
+.pf-system-signature-module {
+
+  .progress-label-right {
+    margin-right: 20px;
+    margin-left: 10px;
+    vertical-align: middle;
+    font-size: 11px;
+  }
+
+  // progress bar
+  .pf-system-progress-scanned {
+    display: inline-block;
+    margin-left: 20px;
+    width: calc(100% - 230px);
+
+    .progress {
+      margin-bottom: 3px; // overwrite default
+    }
+  }
+
+  // delete signature button
+  .pf-sig-table-clear-button {
+    will-change: color;
+    color: $red-dark;
+  }
+
+  .pf-sig-table {
+    // textarea field
+    // overwrite some styles in order to make <textarea> 100% width
+    .editable-container.editable-inline {
+      display: inline;
+
+      .control-group {
+        display: inline;
+
+        .editable-input {
+          display: inline;
+        }
+      }
+    }
+
+    .pf-editable-description {
+      width: 100%;
+      background-color: $gray-darker;
+      max-height: 300px;
+      font-size: 11px;
+      line-height: 14px;
+      padding: 3px 6px;
+    }
+
+    .fa-plus {
+      @extend .pf-dialog-icon-button;
+    }
+  }
+
+  .pf-sig-table-secondary {
+    // columns should be "inline" with primary table
+    // -> therefore "sortable" must be true even if columns should not be sortable -> now "disable" sortable by CSS
+    th {
+      pointer-events: none;
+
+      &:after {
+        display: none !important;
+      }
+
+      &.pf-table-counter-cell {
+        color: transparent; // hide label for counter columns -> no data here
+      }
+    }
+  }
+}

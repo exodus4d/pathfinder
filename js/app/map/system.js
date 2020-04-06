@@ -19,13 +19,10 @@ define([
             y: 0
         },
 
-        mapClass: 'pf-map',                                                             // class for all maps
-
         systemHeadInfoClass: 'pf-system-head-info',                                     // class for system info
         systemHeadInfoLeftClass: 'pf-system-head-info-left',                            // class for left system info
         systemHeadInfoRightClass: 'pf-system-head-info-right',                          // class for right system info
 
-        systemActiveClass: 'pf-system-active',                                          // class for an active system on a map
         systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',                         // id prefix for system tooltip content
         systemTooltipInnerClass: 'pf-system-tooltip-inner',                             // class for system tooltip content
 
@@ -138,7 +135,7 @@ define([
             // show loading animation
             dialogElement.find('[data-type="spinner"]').addClass('in');
 
-            Util.request('GET', 'system', systemId, {mapId: mapId, isCcpId: 1}, {dialogElement: dialogElement})
+            Util.request('GET', 'System', systemId, {mapId: mapId, isCcpId: 1}, {dialogElement: dialogElement})
                 .then(payload => updateDialog(payload.context.dialogElement, payload.data))
                 .catch(payload => updateDialog(payload.context.dialogElement));
         };
@@ -189,7 +186,7 @@ define([
             systemData = options.systemData;
         }else{
             // ... check for current active system (characterLog) -----------------------------------------------------
-            let currentCharacterLog = Util.getCurrentCharacterLog();
+            let currentCharacterLog = Util.getCurrentCharacterData('log');
             if(currentCharacterLog !== false){
                 // set system from 'characterLog' data as pre-selected system
                 systemData = Util.getObjVal(currentCharacterLog, 'system');
@@ -233,24 +230,26 @@ define([
                             if(formValid === false) return false;
 
                             // calculate new system position ----------------------------------------------------------
-                            let newPosition = {
-                                x: 0,
-                                y: 0
-                            };
+                            let newPosition;
 
                             // add new position
                             let sourceSystem = null;
+                            let connectionData = null;
                             if(options.sourceSystem !== undefined){
+                                // new position based on sourceSystem´s position
                                 sourceSystem = options.sourceSystem;
+                                connectionData = options.connectionData || null;
 
-                                // get new position
                                 newPosition = newSystemPositionBySystem(sourceSystem);
                             }else if(options.position){
-                                // check mouse cursor position (add system to map)
+                                // new position based on coordinated (e.g. mouse event)
                                 newPosition = {
                                     x: options.position.x,
                                     y: options.position.y
                                 };
+                            }else{
+                                // new position based on current map scroll offset
+                                newPosition = MapUtil.newSystemPositionsByMapOffset(mapContainer)[0];
                             }
 
                             formData.position = newPosition;
@@ -260,11 +259,12 @@ define([
 
                             this.find('.modal-content').showLoadingAnimation();
 
-                            Util.request('PUT', 'system', [], formData, {
+                            Util.request('PUT', 'System', [], formData, {
                                 systemDialog: systemDialog,
                                 formElement: form,
                                 map: map,
-                                sourceSystem: sourceSystem
+                                sourceSystem: sourceSystem,
+                                connectionData: connectionData
                             }, context => {
                                 // always do
                                 context.systemDialog.find('.modal-content').hideLoadingAnimation();
@@ -272,7 +272,7 @@ define([
                                 payload => {
                                     Util.showNotify({title: 'New system', text: payload.data.name, type: 'success'});
 
-                                    callback(payload.context.map, payload.data, payload.context.sourceSystem);
+                                    callback(payload.context.map, payload.data, payload.context.sourceSystem, payload.context.connectionData);
                                     bootbox.hideAll();
                                 },
                                 Util.handleAjaxErrorResponse
@@ -617,8 +617,8 @@ define([
                                 placement: getSystemTooltipPlacement(system),
                                 html: true,
                                 animation: true,
-                                  template: template,
-                                viewport: system.closest('.' + config.mapClass)
+                                template: template,
+                                container: system.closest('.' + Util.config.mapClass)
                             };
 
                             // init new tooltip -> Do not show automatic maybe system is currently dragged
@@ -666,7 +666,7 @@ define([
         let mapContainer = $( map.getContainer() );
         let systemIds = systems.map(system => $(system).data('id'));
 
-        Util.request('DELETE', 'system', systemIds, {
+        Util.request('DELETE', 'System', systemIds, {
             mapId: mapContainer.data('id')
         }, {
             map: map,
@@ -701,10 +701,12 @@ define([
 
         for(let system of systems){
             system = $(system);
+            let mapId = parseInt(system.data('mapid')) || 0;
 
             // check if system is "active"
-            if(system.hasClass(config.systemActiveClass)){
-                delete Init.currentSystemData;
+            if(system.hasClass(MapUtil.config.systemActiveClass)){
+                Util.deleteCurrentSystemData(mapId);
+
                 // get parent Tab Content and fire clear modules event
                 let tabContentElement = MapUtil.getTabContentElementByMapElement(system);
                 $(tabContentElement).trigger('pf:removeSystemModules');
@@ -714,7 +716,7 @@ define([
             map.deleteConnectionsForElement(system, {fireEvent: false});
 
             // unregister from "magnetizer"
-            Magnetizer.removeElement(system.data('mapid'), system[0]);
+            Magnetizer.removeElement(mapId, system[0]);
 
             // destroy tooltip/popover
             system.toggleSystemTooltip('destroy', {});

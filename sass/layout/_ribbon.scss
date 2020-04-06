@@ -20,7 +20,7 @@
   top: 16px;
   width: 99px;
   @include box-shadow(2px 3px 3px rgba(0,0,0,0.2));
-  @include transform(rotate(45deg));
+  transform: rotate(45deg);
 
 
   &:before, &:after{
@@ -34,7 +34,7 @@
   &.ribbon-default{
     color: $gray-lighter;
     background-color: darken($modal-content-bg, 3%);
-    @include background-image(linear-gradient(top, darken($modal-content-bg, 6%), darken($gray-dark, 3%)));
+    background-image: linear-gradient(top, darken($modal-content-bg, 6%), darken($gray-dark, 3%));
 
     &:before, &:after{
       border-top:   3px solid darken($gray-dark, 23%);
@@ -43,7 +43,7 @@
 
   &.ribbon-green{
     background-color: $green;
-    @include background-image(linear-gradient(top, darken($green, 3%), darken($green-dark, 3%)));
+    background-image: linear-gradient(top, darken($green, 3%), darken($green-dark, 3%));
 
     &:before, &:after{
       border-top:   3px solid darken($green-dark, 23%);
@@ -52,7 +52,7 @@
 
   &.ribbon-orange{
     background-color: $orange;
-    @include background-image(linear-gradient(top, darken($orange, 3%), darken($orange-dark, 3%)));
+    background-image: linear-gradient(top, darken($orange, 3%), darken($orange-dark, 3%));
 
     &:before, &:after{
       border-top:   3px solid darken($orange-dark, 18%) ;
@@ -61,7 +61,7 @@
 
   &.ribbon-red{
     background-color:  $red;
-    @include background-image(linear-gradient(top, darken($red, 10%), darken($red, 18%)));
+    background-image: linear-gradient(top, darken($red, 10%), darken($red, 18%));
 
     &:before, &:after{
       border-top:   3px solid darken($red, 38%);
@@ -70,7 +70,7 @@
 
   &.ribbon-blue{
     background-color: $blue;
-    @include background-image(linear-gradient(top, darken($blue, 3%), darken($blue-dark, 3%)));
+    background-image: linear-gradient(top, darken($blue, 3%), darken($blue-dark, 3%));
 
     &:before, &:after{
       border-top:   3px solid darken($blue-dark, 18%);

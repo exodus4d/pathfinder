@@ -1,11 +1,3 @@
-$mapHeight:             1500px;
-$mapWidth:              2500px;
-
-$mapWrapperHeight:      520px + 35px;
-$mapWrapperMinHeight:   300px;
-$mapWrapperMaxHeight:   1000px;              // no vertical scrollbar: $mapHeight + 35px;
-$mapWrapperMaxWidth:    $mapWidth + 35px;
-
 $mapOverlayTop:         8px;
 $mapOverlayRight:       25px;
 $mapOverlayBottom:      25px;
@@ -13,7 +5,7 @@ $mapOverlayLeft:        5px;
 
 $mapBubbleWidth:        30px;
 
-// start bounce mixin =================================================================================================
+// bounce mixin =================================================================================================
 @mixin bounce-up-down{
   animation-duration: 1s;
   animation-delay: 0.5s;
@@ -29,72 +21,19 @@ $mapBubbleWidth:        30px;
   60% {transform: translateY(-4px);}
 }
 
-// end bounce mixin ===================================================================================================
-#pf-map-tab-element{
-  max-width: $mapWrapperMaxWidth;
-  margin: 0 auto;
-}
-
-.pf-map-move{
-  cursor: move !important;
-}
-
-.pf-map-tab-content{
-
-  .pf-map-wrapper{
-    position: relative;
-    resize: vertical;
-    width: 100%;
-    height: $mapWrapperHeight;
-    max-width: $mapWrapperMaxWidth;
-    max-height: $mapWrapperMaxHeight;
-    min-height: $mapWrapperMinHeight;
-    overflow: hidden; // required for resizing to work with pos: absolute "overlay" elements
-    padding: 5px;
-    background: rgba($gray-darker, 0.93);
-    box-shadow:inset -3px 3px 10px 0 rgba($black, 0.3);
-    will-change: width, height;
-    @include border-bottom-radius(5px);
-    border: {
-      width: 1px;
-      style: solid;
-      color: $gray-dark;
-    }
-
-    &:before{
-      content: '';
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      border-style: solid;
-      border-width: 14px 14px 0 0 ;
-      border-color:  transparent $gray-dark transparent transparent;
-      cursor: nwse-resize;
-    }
-
-    &:focus, &:hover{
-      border: 1px solid $gray;
-
-      &:before{
-        border-color:  transparent $gray transparent transparent;
-      }
-    }
-  }
-}
-
 // map overlay ========================================================================================================
 .pf-map-overlay{
   position: absolute;
   display: none; // triggered by js
   z-index: 10000;
   background: rgba($black, 0.25);
-  @include border-radius(5px);
+  border-radius: 5px;
 
   &.pf-map-overlay-timer{
     right: $mapOverlayRight;
     bottom: $mapOverlayBottom;
     width: 36px;
-    height: 38px;
+    height: 36px;
   }
 
   &.pf-map-overlay-zoom{
@@ -284,7 +223,8 @@ $mapBubbleWidth:        30px;
     width: 100%;
     height: 100%;
     opacity: 0.6;
-    background: inline-image("/grid_40x40.png") !important;
+    //background: inline-image("/grid_40x40.png") !important;
+    background: url('data:image/png;base64,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') !important;
   }
 }
 
@@ -309,18 +249,43 @@ $mapBubbleWidth:        30px;
   font-family: $font-family-bold;
   will-change: transform;
 
+  &.pf-map-move{
+    cursor: move !important;
+  }
+
   // jsPlumb classes ==================================================================================================
+  // gets applied to system that is currently being dragged
   .jtk-drag{
     @extend .pf-system-selected;
   }
 
+  // gets applied to "endpoints", "overlays" and <svg>´s if <svg> is hovered
   .jtk-hover:not(.jtk-overlay){
     @include bounce-up-down;    // label should not bounce
   }
 
+  // gets applied to source/target (system) if <svg> or endpoint is hovered
   .jtk-source-hover, .jtk-target-hover{
     @include bounce-up-down;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
+  }
+
+  // gets applied to *all* systems that are target for a drop of current element
+  .jtk-drag-active{
+    @include transition(box-shadow 0.12s ease-out, transform 0.08s ease-out !important);
+
+  }
+
+  // gets applied to any drop target over which the current element is hovering.
+  // When the mouse is released the element having this class will be the recipient of an on drop event
+  .jtk-drag-hover{
+
+    &.jtk-drag-active{
+      // @see .pf-system:hover style. We want the same hover style for systems that are active drop-target
+      @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+      transform: translate3d(0, -1px, 0) scale(1.1) !important;
+    }
+
   }
 
   // ==================================================================================================================
@@ -340,16 +305,16 @@ $mapBubbleWidth:        30px;
       style: solid;
       color: $gray-light;
     }
-    @include border-radius(5px);
+    border-radius: 5px;
 
     // change border color with transition
-    @include transition( border-color 0.2s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out );
-    @include transform( translate3d(0, 0, 0) );
+    @include transition( border-color 0.2s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out);
+    transform: translate3d(0, 0, 0);
 
-    &:hover{
+    &:not(.jtk-drag-hover):hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      @include transform(translate3d(0, -1px, 0) !important);
+      transform: translate3d(0, -1px, 0) !important;
     }
 
     .pf-system-head{
@@ -358,6 +323,7 @@ $mapBubbleWidth:        30px;
       font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;
       white-space: nowrap;
+      backface-visibility: hidden; // fixed blurry text on system scale() -> requires display: inline-block; transform: translateY(0); for child nodes
 
       .pf-system-head-name{
         border: none;
@@ -365,6 +331,8 @@ $mapBubbleWidth:        30px;
         min-width: 50px;
         color: $gray-lighter;
         margin-right: 2px;
+        -webkit-font-smoothing: antialiased;
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       .pf-system-head-counter{
@@ -382,11 +350,13 @@ $mapBubbleWidth:        30px;
 
       .pf-system-effect{
         font-size: 11px;
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       .fa-lock{
         font-size: 11px;
         display: none; // triggered by system-lock class
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       .pf-system-head-expand{
@@ -394,6 +364,7 @@ $mapBubbleWidth:        30px;
         color: $gray-light;
         width: 10px;
         display: none;  // triggered by JS
+        transform: translateY(0); // fixed "blurry" text in scaled parent
       }
 
       // overwrites "xEditable" style for empty values
@@ -410,6 +381,7 @@ $mapBubbleWidth:        30px;
       line-height: 10px;
       padding-right: 1px; // bring right aligned text in line with wh "effect" icon
       margin-bottom: 2px;
+      transform: translateY(0); // fixed "blurry" text in scaled parent
 
       [class^="pf-system-sec-"]{
         cursor: help;
@@ -436,6 +408,7 @@ $mapBubbleWidth:        30px;
       cursor: grab;
       padding: 0 4px;
       white-space: nowrap;
+      backface-visibility: hidden; // fixed blurry text on system scale() -> requires display: inline-block; transform: translateY(0); for child nodes
       display: none;  // triggered by JS
       will-change: width;
 
@@ -461,6 +434,7 @@ $mapBubbleWidth:        30px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
           display: none; // hover effect
         }
 
@@ -469,6 +443,7 @@ $mapBubbleWidth:        30px;
           font-size: 6px;
           width: 10px;
           vertical-align: middle;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
         }
 
         .pf-system-body-item-name{
@@ -478,6 +453,7 @@ $mapBubbleWidth:        30px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
+          transform: translateY(0); // fixed "blurry" text in scaled parent
         }
       }
 
@@ -589,7 +565,7 @@ $mapBubbleWidth:        30px;
     }
 
     &:after{
-      content: url("#{$base-url}/bubble.svg");
+      content: var(--svgBubble);
       position: absolute;
       display: block;
       pointer-events: none;
@@ -787,7 +763,7 @@ $mapBubbleWidth:        30px;
     @extend %map-overlay;
     line-height: 14px;
     padding: 1px 4px;
-    @include border-radius(6px);
+    border-radius: 6px;
     @include box-shadow(0 3px 6px rgba(0,0,0,.3));
 
     &.small{
@@ -796,7 +772,7 @@ $mapBubbleWidth:        30px;
       padding: 1px 2px;
       line-height: 12px;
       min-width: 14px;
-      @include border-radius(3px);
+      border-radius: 3px;
     }
 
     &.icon{
@@ -807,7 +783,7 @@ $mapBubbleWidth:        30px;
       height: 12px;
       overflow: hidden;
       text-align: center;
-      @include border-radius(50%);
+      border-radius: 50%;
     }
 
     &.debug{
@@ -867,13 +843,21 @@ $mapBubbleWidth:        30px;
 .pf-map-drag-to-select {
   background: $teal-dark !important;
   display: block;
+  position: absolute;
   visibility: hidden; // triggered by js
   opacity: 0; // triggered by js
   z-index: 9000;
   border: 1px dashed $gray-lighter;
+
+  // positioning set by js
+  left:   var(--selectBox-left, 0px) ;
+  top:    var(--selectBox-top, 0px);
+  width:  var(--selectBox-width, 1px);
+  height: var(--selectBox-height, 1px);
+
   pointer-events: none; // required for "mouseover" event which should be ignored
   will-change: left, top, width, height, opacity;
-  @include border-radius(5px);
+  border-radius: 5px;
   @include transition(opacity 0.15s linear);
 
   &.active {

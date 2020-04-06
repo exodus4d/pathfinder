@@ -1,0 +1,192 @@
+.pf-system-killboard-module {
+
+  .pf-system-killboard-wsStatusWrapper {
+    margin-left: 8px;
+    font-size: 60%;
+    line-height: 100%;
+    vertical-align: middle;
+  }
+
+  .pf-system-killboard-list {
+    margin-bottom: 0; // overwrite default
+
+    & > li {
+      padding-left: 0;
+      overflow: visible;
+      min-height: 50px;
+      will-change: transform, opacity, margin-left;
+      @include transition(padding-left 0.12s cubic-bezier(0.30, 0.80, 0.80, 1.70));
+
+      // character headline
+      h3 {
+        white-space: nowrap;
+      }
+
+      > .flex-col {
+        align-self: center;
+        position: relative; // for absolute positioned badge icons
+
+        &:last-child {
+          display: flex;
+          flex-direction: column;
+          align-content: space-between;
+          min-width: 110px;
+        }
+      }
+
+      a {
+        &:hover {
+          > img {
+            border-color: $teal-lighter;
+          }
+        }
+      }
+
+      &.media {
+        margin-top: 10px;
+      }
+
+      &.pf-system-killboard-list-head {
+        min-height: 20px;
+
+        h5 {
+          margin-bottom: 0;
+          min-width: auto !important; // overwrite default
+
+          &:first-child > i {
+            margin-right: 5px;
+          }
+
+          &:last-child > i {
+            margin-left: 5px;
+          }
+        }
+      }
+
+      .media-heading-location {
+        margin: 0;
+        font-size: 11px;
+        line-height: 13px;
+      }
+
+      .media-heading-isk {
+        margin: 0;
+        font-size: 11px;
+        line-height: 25px;
+      }
+
+      .media-heading-date {
+        margin: 0;
+        font-size: 10px;
+        line-height: 12px;
+      }
+
+      .pf-system-killboard-img-l {
+        height: 50px;
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+        min-height: 50px;
+        max-height: 50px;
+        margin-right: 10px;
+        border: 1px solid $gray-darker;
+        overflow: hidden;
+        will-change: border-color;
+        border-radius: 50%;
+        @include transition(border-color 0.12s ease-out);
+      }
+
+      .pf-system-killboard-img-m {
+        display: inline;
+        height: 32px;
+        width: 32px;
+        min-width: 32px;
+        max-width: 32px;
+        min-height: 32px;
+        max-height: 32px;
+        margin-right: 10px;
+        border: 1px solid $gray-darker;
+        overflow: hidden;
+        will-change: border-color;
+        border-radius: 50%;
+        @include transition(border-color 0.12s ease-out);
+        align-self: center;
+      }
+
+      .pf-system-killboard-img-s {
+        display: inline;
+        height: 20px;
+        width: 20px;
+        min-width: 20px;
+        max-width: 20px;
+        min-height: 20px;
+        max-height: 20px;
+        margin-right: 10px;
+        border: 1px solid $gray-darker;
+        overflow: hidden;
+        will-change: border-color;
+        border-radius: 50%;
+        @include transition(border-color 0.12s ease-out);
+      }
+
+      &:before {
+        content: "\f054";
+        font-family: "Font Awesome 5 Free";
+        font-weight: bold;
+        position: absolute;
+        z-index: 10;
+        left: -18px;
+        top: 16px;
+        color: $teal;
+        opacity: 0;
+        will-change: opacity, left;
+        @include transition(all 0.12s ease-out);
+      }
+
+      &:not(.pf-system-killboard-list-head):hover {
+        padding-left: 10px;
+
+        &:before {
+          opacity: 1;
+          left: -3px;
+        }
+      }
+
+
+      .badge-victim {
+        &:after {
+          content: "\f714";
+          font-family: "Font Awesome 5 Free";
+          font-style: normal;
+          font-weight: bold;
+          font-size: 13px;
+          color: $red-dark;
+          position: absolute;
+          bottom: -6px;
+          left: 20px
+        }
+      }
+
+      .badge-attacker {
+        &:after {
+          content: var(--label);
+          font-style: normal;
+          font-weight: bold;
+          font-size: 11px;
+          color: var(--color);
+          background-color: $gray-dark;
+          line-height: 1;
+          border-radius: 9px;
+          padding: 3px 4px;
+          position: absolute;
+          bottom: -2px;
+          left: 30px
+        }
+      }
+    }
+  }
+
+  .pf-module-control-area {
+    margin-top: 15px;
+  }
+}

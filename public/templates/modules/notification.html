@@ -20,8 +20,8 @@
 
     <div class="alert {{@notificationTypeClass}}">
         <span class="txt-color {{@notificationColorClass}}">{{ @notification->title }}</span>
-        <check if="{{ @notification->message }}">
-            <small>{{ @notification->message }}</small>
+        <check if="{{ @notification->text }}">
+            <small>{{ @notification->text }}</small>
         </check>
     </div>
 </check>

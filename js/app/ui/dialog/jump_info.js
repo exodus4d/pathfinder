@@ -28,7 +28,7 @@ define([
      * show jump info dialog
      */
     $.fn.showJumpInfoDialog = function(){
-        requirejs(['text!templates/dialog/jump_info.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
+        requirejs(['text!templates/dialog/jump_info.html', 'mustache'], (template, Mustache) => {
             let iconShattered = '<i class="fas fa-fw fa-chart-pie pf-system-sec-unknown"></i>';
             let iconDrifter = '<i class="fas fa-fw fa-wave-square pf-system-sec-drifter"></i>';
 
