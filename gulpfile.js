@@ -240,15 +240,16 @@ colors.theme({
     disabled:       (...args) => colors.dim.gray(util.format(...args)),
     comment:        (...args) => colors.disabled.italic(util.format(...args)),
 
-    //badgeSuccess:   (...args) => `${colors.success.bold(`[OK]`)} ${colors.success(util.format(...args))}`,
-    //badgeError:     (...args) => `${colors.danger.bold(`[ERROR]`)} ${colors.danger.italic(util.format(...args))}`,
-
     iconSuccess:    text => ` ${colors.success(`✔`)} ${colors.success(text)}`,
     iconDanger:     text => ` ${colors.danger(`✘`)} ${colors.danger(text)}`,
 
     divider:        text => colors.disabled(`${(text || '').trim().length ? `═ ${(text || '').trim().toUpperCase()} ═` : ''}`.padEnd(cliBoxLength, '═'))
 });
 
+/**
+ * example output formatting
+ */
+/*
 log(colors.primary('primary'));
 log(colors.success('success'));
 log(colors.info('info'));
@@ -257,9 +258,6 @@ log(colors.danger('danger'));
 
 log(colors.disabled('disabled'));
 log(colors.comment('comment'));
-
-//log(colors.badgeSuccess(`Success`));
-//log(colors.badgeError('Error!'));
 
 log(colors.iconSuccess('success'));
 log(colors.iconDanger('danger'));
@@ -276,9 +274,9 @@ log(colors.blue('blue'));
 log(colors.blueBright('blueBright'));
 log(colors.yellow('yellow'));
 log(colors.yellowBright('yellowBright'));
-
 log('');
 log('');
+*/
 
 // == Helper methods ==================================================================================================
 
@@ -361,11 +359,12 @@ let printHelp = () => {
                 ${colors.bold('tasks:')}
                     ${colors.primary('help')}              This view
                     ${colors.primary('default')}           Development environment. Working with row src files and file watcher, default:
-                    ${colors.primary('')}                      ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
+                    ${colors.primary('')}                      ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false --imgActive=true')}
                     ${colors.primary('production')}        Production build. Concat and uglify static resources, default:
-                    ${colors.primary('')}                      ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
+                    ${colors.primary('')}                      ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true --imgActive=true')}
                 ${colors.bold('helper tasks:')}
                     ${colors.primary('images')}            Build images. Convert src *.png images to *.webp and *.jpg. Crop & resize tasks
+                    ${colors.primary('')}                      ${colors.gray('--imgActive=true')}
 
                 ${colors.bold('options:')}
                     ${colors.yellow('--tag')}             Set build version.                  ${colors.gray(`default: --tag="${tagVersion}" -> dest path: public/js/${tagVersion}`)}
@@ -376,7 +375,7 @@ let printHelp = () => {
                     ${colors.yellow('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${colors.gray('(true || false)')}
                     ${colors.yellow('--cssGzip')}         Set CSS "gzip" compression mode.    ${colors.gray('(true || false)')}
                     ${colors.yellow('--cssBrotli')}       Set CSS "brotli" compression mode.  ${colors.gray('(true || false)')}
-                    ${colors.yellow('--imgActive')}       Disables all IMG tasks.             ${colors.gray('(true || false)')}
+                    ${colors.yellow('--imgActive')}       Disables all image tasks.           ${colors.gray('(true || false)')}
                     ${colors.yellow('--debug')}           Set debug mode (more output).       ${colors.gray('(true || false)')}
             ${colors.divider(' ')}
     `);
@@ -989,6 +988,26 @@ gulp.task('task:configProduction',
 );
 
 /**
+ * configure "image" task (standalone)
+ */
+gulp.task('task:configImages',
+    gulp.series(
+        done => {
+            let CONF_IMAGES = {
+                IMG: {
+                    ACTIVE: true
+                }
+            };
+
+            CONF = mergeConf(['TASK', 'TAG', 'IMG'].reduce((obj, key) => ({ ...obj, [key]: CONF[key] }), {}), CONF_IMAGES);
+            done();
+        },
+        'task:printConfig',
+        'task:checkConfig'
+    )
+);
+
+/**
  * updates JS destination move to (final) dir
  */
 gulp.task('task:updateJsDest', gulp.series(
@@ -1162,6 +1181,16 @@ gulp.task(
             )
         ),
         'task:printJsSummary'
+    )
+);
+
+gulp.task(
+    'images',
+    gulp.series(
+        'task:configImages',
+        'task:cleanImgDest',
+        'task:watchImg',
+        //'task:printJsSummary'
     )
 );
 

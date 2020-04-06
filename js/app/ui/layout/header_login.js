@@ -345,11 +345,12 @@ define([
             }
 
             let lockChange = (e) => {
+                /*
                 if(document.pointerLockElement === this._canvas){
-                    //this._canvas.addEventListener('pointermove', this.onPointerMove, {passive: true});
+                    this._canvas.addEventListener('pointermove', this.onPointerMove, {passive: true});
                 }else{
-                    //this._canvas.removeEventListener('pointermove', this.onPointerMove, {passive: true});
-                }
+                    this._canvas.removeEventListener('pointermove', this.onPointerMove, {passive: true});
+                }*/
             };
 
             //this._canvas.requestPointerLock()
@@ -384,10 +385,12 @@ define([
             this._mouse.x = Math.min(this._canvas.width, Math.max(0, x));
             this._mouse.y = Math.min(this._canvas.height, Math.max(0, y));
 
+            /*
             if(x !== this._mouse.x || y !== this._mouse.y){
                 // cursor outside canvas
-                // document.exitPointerLock();
+                document.exitPointerLock();
             }
+            */
         }
 
         onPointerDown(e){

@@ -201,7 +201,7 @@ $headerHeight: 355px;
   overflow: hidden; // for e.g. canvas should not overlap in "smaller" header
   transition: height 0.25s ease-out;
   will-change: height;
-
+  background-color: #050a11; // ~img background color...
   &:hover{
     transition-delay: 0.25s;
     height: $headerHeight;

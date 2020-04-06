@@ -843,10 +843,18 @@ $mapBubbleWidth:        30px;
 .pf-map-drag-to-select {
   background: $teal-dark !important;
   display: block;
+  position: absolute;
   visibility: hidden; // triggered by js
   opacity: 0; // triggered by js
   z-index: 9000;
   border: 1px dashed $gray-lighter;
+
+  // positioning set by js
+  left:   var(--selectBox-left, 0px) ;
+  top:    var(--selectBox-top, 0px);
+  width:  var(--selectBox-width, 1px);
+  height: var(--selectBox-height, 1px);
+
   pointer-events: none; // required for "mouseover" event which should be ignored
   will-change: left, top, width, height, opacity;
   border-radius: 5px;

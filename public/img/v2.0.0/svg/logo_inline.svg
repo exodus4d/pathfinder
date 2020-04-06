@@ -11,7 +11,7 @@
         <feGaussianBlur in="centeredOffset" stdDeviation="3" result="blur2"/>
 
         <feGaussianBlur result="blur3" in="offIn" stdDeviation="5"/>
-        <feBlend in="SourceGraphic" in2="blur3" mode="lighten" result="blend3"/>
+        <feBlend in="SourceGraphic" in2="blur3" mode="lighten" result="blend1"/>
 
         <feMerge>
             <feMergeNode in="blur2"/>

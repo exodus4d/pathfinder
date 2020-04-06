@@ -1776,6 +1776,9 @@ define([
         requirejs(['pnotify.loader'], Notification => {
             // if notification is a "desktio" notification -> blink browser tab
             if(options.desktop && config.title){
+                options.desktop = {
+                    icon: `${imgRoot()}misc/notification.png`
+                };
                 startTabBlink(config.title);
             }
 
