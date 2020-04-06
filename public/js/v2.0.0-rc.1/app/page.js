@@ -443,15 +443,17 @@ define([
     let loadSVGs = () => {
 
         let executor = resolve => {
-            let parentElement = $('body');
-
             let svgPaths = [
-                'img/svg/logo.svg',
-                'img/svg/swords.svg'
-            ].map(path => 'text!' + path + '!strip');
+                'svg/logo_inline.svg',
+                'svg/swords.svg'
+            ].map(path => `text!${Util.imgRoot()}${path}!strip`);
 
             requirejs(svgPaths, (...SVGs) => {
-                parentElement.append.apply(parentElement, SVGs);
+                let svgWrapperEl = Object.assign(document.createElement('div'), {
+                    className: 'pf-svg-wrapper'
+                });
+                svgWrapperEl.insertAdjacentHTML('beforeend', SVGs.join(''));
+                document.body.append(svgWrapperEl);
 
                 resolve({
                     action: 'loadSVGs',
@@ -910,6 +912,8 @@ define([
     let setBodyObserver = () => {
 
         let executor = resolve => {
+            document.body.style.setProperty('--svgBubble', `url("${Util.imgRoot()}svg/bubble.svg")`);
+
             let bodyElement = $(document.body);
 
             // global "popover" callback (for all popovers)

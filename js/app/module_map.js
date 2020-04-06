@@ -1609,7 +1609,7 @@ define([
                             let gridItemEl = Object.assign(document.createElement('div'), {
                                 className: config.editableToggleItemClass + (layout === layoutCurrent ? ' active' : '')
                             });
-                            gridItemEl.style.setProperty('--bg-image',`url("/public/img/icons/grid_${layout}.png")`);
+                            gridItemEl.style.setProperty('--bg-image', `url("${Util.imgRoot()}/icons/grid_${layout}.png")`);
                             gridItemEl.dataset.value = layout;
                             return gridItemEl;
                         });

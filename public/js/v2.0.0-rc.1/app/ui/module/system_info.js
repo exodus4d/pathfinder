@@ -79,7 +79,7 @@ define([
                 if(linkData.showInModuleHead){
                     let headSysLinkEl = document.createElement('a');
                     headSysLinkEl.classList.add('pf-bg-icon-inline');
-                    headSysLinkEl.style.setProperty('--bg-image', 'url("/public/img/icons/logo_' + linkData.page + '.png")');
+                    headSysLinkEl.style.setProperty('--bg-image', `url("${Util.imgRoot()}icons/logo_${linkData.page}.png")`);
                     headSysLinkEl.setAttribute('title', linkData.title);
                     headSysLinkEl.setAttribute('href', linkData.url);
                     headSysLinkEl.setAttribute('target', '_blank');

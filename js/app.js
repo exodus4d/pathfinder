@@ -48,13 +48,12 @@ requirejs.config({
         hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.10.0  Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         select2: 'lib/select2.min',                                     // v4.0.13  Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1  Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
-        lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1   SVG line animation plugin - http://lazylinepainter.info
         blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3  Image Gallery - https://github.com/blueimp/Gallery
         blueImpGalleryHelper: 'lib/blueimp-helper',                     //          helper function for Blue Imp Gallery
         blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.4.2   Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
         bootstrapConfirmation: 'lib/bootstrap-confirmation.min',        // v1.0.7   Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
         bootstrapToggle: 'lib/bootstrap-toggle.min',                    // v2.2.0   Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
-        lazyload: 'lib/jquery.lazyload.min',                            // v1.9.7   LazyLoader images - https://appelsiini.net/projects/lazyload/
+        lazyload: 'lib/lazyload.min',                                   // v14.0.0  LazyLoader images - https://github.com/verlok/lazyload
         sortable: 'lib/sortable.min',                                   // v1.10.1  Sortable - drag&drop reorder - https://github.com/SortableJS/Sortable
 
         'summernote.loader': './app/summernote.loader',                 // v0.8.10  Summernote WYSIWYG editor -https://summernote.org
@@ -151,9 +150,6 @@ requirejs.config({
         validator: {
             deps: ['jquery', 'bootstrap']
         },
-        lazylinepainter: {
-            deps: ['jquery', 'bootstrap']
-        },
         blueImpGallery: {
             deps: ['jquery']
         },
@@ -162,9 +158,6 @@ requirejs.config({
         },
         bootstrapToggle: {
             deps: ['jquery', 'bootstrap']
-        },
-        lazyload: {
-            deps: ['jquery']
         },
         summernote: {
             deps: ['jquery']

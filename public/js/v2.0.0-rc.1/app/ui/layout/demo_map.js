@@ -2,10 +2,7 @@
  * Demo SVG map
  */
 
-define([
-    'jquery',
-    'lazylinepainter'
-], ($) => {
+define(['jquery'], ($) => {
 
     'use strict';
 

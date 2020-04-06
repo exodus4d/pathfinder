@@ -1,8 +1,6 @@
 {* splash page *}
 <include href="templates/layout/splash.html"/>
 
-<include href="img/svg/logo.svg"/>
-
 {* counter for DB warnings (all databases) *}
 {{ @tplCounter('reset', 'database_warning_all') }}
 <section>
@@ -1520,3 +1518,8 @@
 {* footer *}
 <set panel2="{{ [['icon' => 'far fa-window-maximize', 'label' => 'toggle', 'action' => 'collapse-all']] }}" />
 <include href="templates/layout/footer_simple.html" with="p2={{ @panel2 }}"/>
+
+{* svg *}
+<div class="pf-svg-wrapper">
+    <include href="{{ 'img/' . @PATHFINDER.VERSION . '/svg/logo_inline.svg' }}"/>
+</div>

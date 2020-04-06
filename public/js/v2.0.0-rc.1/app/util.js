@@ -11,8 +11,8 @@ define([
     'app/lib/resize',
     'conf/system_effect',
     'conf/signature_type',
-    'bootbox',
     'lazyload',
+    'bootbox',
     'velocity',
     'velocityUI',
     'customScrollbar',
@@ -22,7 +22,19 @@ define([
     'bootstrapConfirmation',
     'bootstrapToggle',
     'select2'
-], ($, Init, Proto, Con, Cache, LocalStoreManager, ResizeManager, SystemEffect, SignatureType, bootbox) => {
+], (
+    $,
+    Init,
+    Proto,
+    Con,
+    Cache,
+    LocalStoreManager,
+    ResizeManager,
+    SystemEffect,
+    SignatureType,
+    LazyLoad,
+    bootbox
+) => {
 
     'use strict';
 
@@ -879,16 +891,20 @@ define([
 
     /**
      * get current Pathfinder version number
-     * @returns {*|jQuery}
+     * @returns {string}
      */
-    let getVersion = () => {
-        return $('body').data('version');
-    };
+    let getVersion = () => document.body.dataset.version;
 
     /**
      * show current program version information in browser console
      */
     let showVersionInfo = () => Con.showVersionInfo(getVersion());
+
+    /**
+     * get image root dir
+     * @returns {string}
+     */
+    let imgRoot = () => `/public/img/${getVersion()}/`;
 
     /**
      * get CCP image URLs for
@@ -942,7 +958,7 @@ define([
         const supportedPassiveTypes = [
             'scroll', 'wheel',
             'touchstart', 'touchmove', 'touchenter', 'touchend', 'touchleave',
-            'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
+            //'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
         ];
         const getDefaultPassiveOption = (passive, eventName) => {
             if(passive !== undefined) return passive;
@@ -1050,8 +1066,18 @@ define([
      * @param scrollElement
      * @param settings
      */
-    let initScrollSpy = (navElement, scrollElement = window, settings = {}) => {
-        let timeout, current;
+    let initScrollSpy = (navElement, scrollElement = document, settings = {}) => {
+        settings = Object.assign({}, {
+            clsOnScroll: 'on-scroll'
+        }, settings);
+        let requestAnimationId, scrollId, current;
+
+        if(!navElement){
+            console.warn('initScrollSpy() failed. navElement undefined');
+            return;
+        }
+
+        let scrollDomNode = () => scrollElement === document ? document.body : scrollElement;
 
         let contents = Array.from(navElement.querySelectorAll('.page-scroll')).map(link => ({
             link: link,
@@ -1149,18 +1175,30 @@ define([
             current = active;
         };
 
+        let onScrollClassHandler = () => {
+            if(scrollId){
+                clearTimeout(scrollId);
+            }
+            scrollDomNode().classList.add(settings.clsOnScroll);
+            scrollId = setTimeout(() => scrollDomNode().classList.remove(settings.clsOnScroll), 80);
+        };
+
         let scrollHandler = () => {
             // If there's a timer, cancel it
-            if(timeout){
-                window.cancelAnimationFrame(timeout);
+            if(requestAnimationId){
+                window.cancelAnimationFrame(requestAnimationId);
             }
-            timeout = window.requestAnimationFrame(detect);
+            requestAnimationId = window.requestAnimationFrame(() => {
+                detect();
+                // apply 'onScroll' class -> can be used by other elements
+                onScrollClassHandler();
+            });
         };
 
         // Find the currently active content
         detect();
 
-        scrollElement.addEventListener('scroll', scrollHandler, false);
+        scrollElement.addEventListener('scroll', scrollHandler, {passive: true});
 
         // set click observer for links
         let clickHandler = function(e){
@@ -1430,10 +1468,11 @@ define([
                     },
                     onUpdate: function(a){
                         // whenever the scroll content updates -> init lazyLoad for potential images
-                        $('.' + config.select2ImageLazyLoadClass).lazyload({
+                        new LazyLoad({
                             container: this,
+                            elements_selector: `.${config.select2ImageLazyLoadClass}`,
                             threshold: lazyLoadImagesOffset,
-                            event: 'pf:lazyLoad'
+                            use_native: true
                         });
                     },
                     onTotalScroll: function(){
@@ -1445,22 +1484,6 @@ define([
                         loadMoreLi.addClass('no-margin');
                         this.mcs.content.find('> :first-child').trigger('scroll');
                         setTimeout(() => loadMoreLi.removeClass('no-margin'), 20);
-                    },
-                    whileScrolling: function(){
-                        // lazy load for images -> reduce number of calculations by % 10
-                        if(0 === this.mcs.top % 10){
-                            let scroller = $(this).find('.mCSB_container');
-                            let scrollerBox = scroller.closest('.mCustomScrollBox');
-
-                            scrollerBox.find('.' + config.select2ImageLazyLoadClass).filter(function(){
-                                let $this = $(this);
-                                if($this.attr('src') === $this.attr('data-original')) return false;
-                                let scrollerTop = scroller.position().top;
-                                let scrollerHeight = scrollerBox.height();
-                                let offset = $this.closest('div').position();
-                                return (offset.top - lazyLoadImagesOffset < scrollerHeight - scrollerTop);
-                            }).trigger('pf:lazyLoad');
-                        }
                     }
                 }
             });
@@ -3654,6 +3677,7 @@ define([
         config: config,
         getVersion: getVersion,
         showVersionInfo: showVersionInfo,
+        imgRoot: imgRoot,
         eveImageUrl: eveImageUrl,
         initPassiveEvents: initPassiveEvents,
         initDefaultBootboxConfig: initDefaultBootboxConfig,

@@ -1,0 +1,26 @@
+<set path="{{ @tplResource->getPath('image') }}" />
+<set srcPlaceholder="{{ @path . '/svg/logo_simple.svg' }}" />
+<check if="{{ !isset(@src) }}">
+    <set src="{{ @path . '/gallery/thumbs/' . @image }}" />
+    <set srcWebp="{{ @src . '.webp' }}" />
+    <set src="{{ @src . '.jpg' }}" />
+</check>
+
+<switch expr="{{ @size }}">
+    <case value="256" break="true">
+        <set class = "pf-landing-image-preview-medium" />
+    </case>
+    <default>
+        <set size = 160 />
+        <set class = "pf-landing-image-preview-small" />
+    </default>
+</switch>
+
+<picture>
+    <check if="{{ @srcWebp }}">
+        <source type="image/webp" data-srcset="{{ @srcWebp }}"/>
+    </check>
+    <img class="pf-landing-image-preview {{ @class }}" src="{{ @srcPlaceholder }}"
+         data-src="{{ @src }}"
+         alt="{{ @alt }}" width="{{ @size }}" height="{{ @size }}" />
+</picture>

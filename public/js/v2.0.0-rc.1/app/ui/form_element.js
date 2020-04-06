@@ -25,12 +25,12 @@ define([
         if(data.loading) return data.text;
         if(data.placeholder) return data.placeholder;
 
-        let markup = '<div class="clearfix ' + config.resultOptionImageClass + '">';
+        let markup = `<div class="clearfix ${config.resultOptionImageClass}">`;
 
         if(data.hasOwnProperty('children')){
             // category group label
-            markup += '<div class="col-xs-9">' + data.text + '</div>';
-            markup += '<div class="col-xs-3 text-right">(' + data.children.length + ')</div>';
+            markup += `<div class="col-xs-9">${data.text}</div>`;
+            markup += `<div class="col-xs-3 text-right">(${data.children.length})</div>`;
         }else{
             let imagePath = '';
             let iconName = '';
@@ -61,13 +61,13 @@ define([
             }
 
             if(imagePath){
-                thumb = '<img class="' + config.select2ImageLazyLoadClass + '" data-original="' + imagePath + '" style="max-width: 100%"/>';
+                thumb = `<img class="${config.select2ImageLazyLoadClass}" src="${Util.imgRoot()}svg/logo_simple.svg" data-src="${imagePath}" style="max-width: 100%"/>`;
             }else if(iconName){
-                thumb = '<i class="fas fa-fw ' + iconName + '" ></i>';
+                thumb = `<i class="fas fa-fw ${iconName}"></i>`;
             }
 
-            markup += '<div class="col-xs-2">' + thumb + '</div>';
-            markup += '<div class="col-xs-10">' + data.text + '</div>';
+            markup += `<div class="col-xs-2">${thumb}</div>`;
+            markup += `<div class="col-xs-10 pf-text-ellipsis">${data.text}</div>`;
         }
         markup += '</div>';
 

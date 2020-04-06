@@ -1759,7 +1759,7 @@ define([
             for(let i = 0; i < services.length; i++){
                 let icon = getServiceIcon(services[i]);
                 if(icon){
-                    content += '<img class="' + Util.config.popoverListIconClass + '" src="/public/img/icons/client/ui/window/' + icon + '.png" alt="' + services[i] + '">';
+                    content += `<img class="${Util.config.popoverListIconClass}" src="${Util.imgRoot()}icons/client/ui/window/${icon}.png" alt="${services[i]}">`;
                 }
             }
             return content;

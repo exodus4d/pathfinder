@@ -68,10 +68,8 @@ class AppController extends Controller {
         $resource = Resource::instance();
         $resource->register('script', 'app/login');
         $resource->register('script', 'app/mappage', 'prefetch');
-        $resource->register('image', 'pf-bg.jpg');
-        $resource->register('image', 'pf-header-bg.jpg');
-        $resource->register('image', 'landing/eve_sso_login_buttons_large_black.png');
-        $resource->register('image', 'landing/eve_sso_login_buttons_large_black_hover.png');
+        $resource->register('image', 'sso/signature.png');
+        $resource->register('image', 'sso/gameplay.png');
     }
 
 }

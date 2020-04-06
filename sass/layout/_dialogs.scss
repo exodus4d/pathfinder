@@ -330,17 +330,22 @@
 .pf-credits-dialog{
   .pf-credits-logo-background{
     overflow: visible;
-    background: url("#{$base-url}/logo_bg.png");
-    background-size: cover;
-    padding: 20px;
+    background: var(--bg-image);
+    background-position-y: -50px; // nicer image viewport
+    padding: 15px;
     margin-bottom: 20px;
-  }
 
-  #pf-logo-container{
-    width: 355px;
-    height: 366px;
-    margin: 0 auto;
+    > svg {
+      height: 80px;
+      width: 90px;
+    }
 
+    > h3 {
+      position: absolute;
+      top: 5px;
+      right: 15px;
+      margin: 0;
+    }
   }
 
   .pf-dynamic-area{

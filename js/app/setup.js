@@ -81,7 +81,7 @@ define([
         let body = $('body');
 
         // navigation (scroll) ----------------------------------------------------------------------------------------
-        Util.initScrollSpy(document.getElementById(config.navigationElementId), window, {
+        Util.initScrollSpy(document.getElementById(config.navigationElementId), document, {
             offset: 300
         });
 

@@ -177,7 +177,7 @@ class Controller {
             'script'    => sprintf('/%sjs/%s',      $f3->get('UI'), Config::getPathfinderData('version')),
             'font'      => sprintf('/%sfonts',      $f3->get('UI')),
             'document'  => sprintf('/%stemplates',  $f3->get('UI')),
-            'image'     => sprintf('/%simg',        $f3->get('UI')),
+            'image'     => sprintf('/%simg/%s',     $f3->get('UI'), Config::getPathfinderData('version')),
             'favicon'   => $f3->get('FAVICON')
         ], true);
 

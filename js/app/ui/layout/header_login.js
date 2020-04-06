@@ -3,8 +3,9 @@
  */
 
 define([
-    'jquery'
-], ($) => {
+    'jquery',
+    'app/util'
+], ($, Util) => {
     'use strict';
 
     let config = {
@@ -173,15 +174,34 @@ define([
             this._nodes = [];
             this._nodesQty = 0;
             this._updateActive = true;
+            this._minWait = Math.floor(1 / this._config.fps * 1000);
 
             this.resizeWindow();
             this._mouse = this._config.startCoordinates(this._canvas);
 
-            this._ctx = this._canvas.getContext('2d');
+            this._ctx = this._canvas.getContext('2d', {alpha: true, desynchronized: true});
             this.initHandlers();
+
+            // must be bind to this instance -> https://stackoverflow.com/a/46014225/4329969
+            this.onPointerDown = this.onPointerDown.bind(this);
+            this.onPointerEnter = this.onPointerEnter.bind(this);
+            this.onPointerLeave = this.onPointerLeave.bind(this);
+            this.onPointerMove = this.onPointerMove.bind(this);
+
+            this.initPointerLock();
             this.initIntersectionObserver();
+            this.setColorBase();
             this.initNodes();
             this.redrawCheck();
+        }
+
+        setColorBase(){
+            // if base color does not change -> re-use same instance for all nodes
+            this._colorBase = Array.isArray(this._config.colorBase) ? new Color(...this._config.colorBase) : null;
+        }
+
+        isPaused(){
+            return (typeof this._config.isPaused === 'function') ? this._config.isPaused(this) : this._config.isPaused;
         }
 
         findSiblings(){
@@ -219,7 +239,7 @@ define([
         }
 
         redrawScene(){
-            this.resizeWindow();
+            //this.resizeWindow();
             this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
             this.findSiblings();
             // skip nodes move to move if they are outside the visible radius -> performance boost
@@ -227,7 +247,7 @@ define([
             // mouse pointer node moves on mousemove
             this._pointerNode.x = this._mouse.x;
             this._pointerNode.y = this._mouse.y;
-            let skipNodesMove = [this._pointerNode];
+            let skipNodesMove = [0]; // pointer node
 
             let i, node, distance;
             for(i = 0; i < this._nodesQty; i++){
@@ -244,8 +264,9 @@ define([
                 }
 
                 if(distance > haltRadius){
-                    skipNodesMove.push(node);
+                    skipNodesMove.push(i);
                 }
+                skipNodesMove = [];
             }
 
             for(i = 0; i < this._nodesQty; i++){
@@ -255,17 +276,32 @@ define([
                     node.drawConnections();
                 }
 
-                if(!skipNodesMove.includes(node)){
+                if(!skipNodesMove.includes(i)){
                     node.moveNode();
                 }
             }
         }
 
         redrawCheck(){
-            if(this._updateActive){
-                this.redrawScene();
+            if(this._animationFrameId){
+                cancelAnimationFrame(this._animationFrameId);
             }
-            requestAnimationFrame(() => this.redrawCheck());
+
+            this._animationFrameId = requestAnimationFrame(() => {
+                let now = Date.now();
+
+                if(
+                    this._updateActive && !this.isPaused() &&
+                    now - (this._lastRender || 0) >= this._minWait
+                ){
+                    this._lastRender = now;
+                    this.redrawScene();
+                }
+
+
+                this._animationFrameId = null;
+                this.redrawCheck();
+            });
         }
 
         initNodes(){
@@ -277,7 +313,7 @@ define([
                     if(typeof this._config.colorBase === 'function'){
                         node.color = this._config.colorBase(node, this);
                     }else{
-                        node.color = new Color(...this._config.colorBase);
+                        node.color = this._colorBase;
                     }
                     this._nodes.push(node);
                     this._nodesQty++;
@@ -299,8 +335,29 @@ define([
         }
 
         initHandlers(){
-            document.addEventListener('resize', () => this.resizeWindow(), false);
-            document.addEventListener('mousemove', e => this.mousemoveHandler(e), true);
+            this._canvas.addEventListener('pointerover', e => this.onPointerEnter(e), {passive: true});
+            this._canvas.addEventListener('pointermove', e => this.onPointerMove(e), {passive: true});
+        }
+
+        initPointerLock(){
+            if(!this._config.pointerLock){
+                return;
+            }
+
+            let lockChange = (e) => {
+                if(document.pointerLockElement === this._canvas){
+                    //this._canvas.addEventListener('pointermove', this.onPointerMove, {passive: true});
+                }else{
+                    //this._canvas.removeEventListener('pointermove', this.onPointerMove, {passive: true});
+                }
+            };
+
+            //this._canvas.requestPointerLock()
+            this._canvas.addEventListener('pointerdown', this.onPointerDown, false);
+            //this._canvas.addEventListener('mouseenter', this.onPointerEnter, false);
+            //this._canvas.addEventListener('mouseleave', this.onPointerLeave, false);
+
+            document.addEventListener('pointerlockchange', lockChange, false);
         }
 
         initIntersectionObserver(){
@@ -320,6 +377,38 @@ define([
             this._mouse.y = e.clientY;
         }
 
+        onPointerMove(e){
+            let x = this._mouse.x + Math.floor(e.movementX);
+            let y = this._mouse.y + Math.floor(e.movementY);
+
+            this._mouse.x = Math.min(this._canvas.width, Math.max(0, x));
+            this._mouse.y = Math.min(this._canvas.height, Math.max(0, y));
+
+            if(x !== this._mouse.x || y !== this._mouse.y){
+                // cursor outside canvas
+                // document.exitPointerLock();
+            }
+        }
+
+        onPointerDown(e){
+            this._mouse.x = e.clientX;
+            this._mouse.y = e.clientY;
+            if(document.pointerLockElement === this._canvas){
+                document.exitPointerLock();
+            }else{
+                this._canvas.requestPointerLock();
+            }
+        }
+
+        onPointerEnter(e){
+            this._mouse.x = e.clientX;
+            this._mouse.y = e.clientY;
+        }
+
+        onPointerLeave(e){
+            document.exitPointerLock();
+        }
+
         resizeWindow(){
             let dimension = this._config.newDimension(this);
             this._canvas.width = dimension.width;
@@ -328,6 +417,7 @@ define([
     }
 
     StarCanvas.circ = 2 * Math.PI;
+
     StarCanvas.calcDistance = (node1, node2) => {
         return Math.sqrt(Math.pow(node1.x - node2.x, 2) + (Math.pow(node1.y - node2.y, 2)));
     };
@@ -352,6 +442,9 @@ define([
 
 
     StarCanvas.defaultConfig = {
+        // limit render interval to max fps
+        // lower fps == less CPU
+        fps: 80,
         // how close next node must be to activate connection (in px)
         // shorter distance == better connection (line width)
         sensitivity: 90,
@@ -359,13 +452,13 @@ define([
         // that's because the node accepts sibling nodes with no regard to their current connections this is acceptable
         // because potential fix would not result in significant visual difference
         // more siblings == bigger node
-        siblingsLimit: 30,
+        siblingsLimit: 15,
         // default node margin
         density: 50,
         // avoid nodes spreading
-        anchorLength: 120,
+        anchorLength: 80,
         // highlight radius
-        mouseRadius: 200,
+        mouseRadius: 150,
         // values < 1 will lower the calculated node brightness [0-1]
         brightnessMultiplierNode: 1,
         // values < 1 will lower the calculated connection brightness [0-1]
@@ -378,8 +471,63 @@ define([
         startCoordinates: canvas => ({
             x: canvas.width / 2,
             y: canvas.height / 2
-        })
+        }),
+        // callback/boolean to pause canvas updated (e.g. while page scroll). Better scroll performance
+        isPaused: false,
+        pointerLock: true
     };
+
+    // custom configuration -------------------------------------------------------------------------------------------
+    let defaultConfig = {
+        brightnessMultiplierConnection: 0.95,
+        colorCursor: [200,  184,  71], // yellow dark
+        newDimension: starCanvas => ({
+            width: window.innerWidth,
+            height: 354 // max height + 1px border
+        }),
+        startCoordinates: canvas => ({
+            x: canvas.width / 2 + 500,
+            y: canvas.height / 2 + 50
+        }),
+        isPaused: () => document.body.classList.contains('on-scroll')
+    };
+
+    if(navigator.userAgent.indexOf('Chrome') > -1){
+        // Chrome user
+        Object.assign(defaultConfig, {
+            sensitivity: 85,
+            siblingsLimit: 10,
+            density: 60,
+            anchorLength: 20,
+            colorBase: (node, instance) => {
+                let colorId = StarCanvas.getRandomIntInclusive(0, 4);
+                let colorKey = `_randColor${colorId}`;
+                if(instance[colorKey]){
+                    return instance[colorKey];
+                }
+
+                let rgb = StarCanvas.defaultConfig.colorBase;
+                switch(colorId){
+                    case 1: rgb = [ 92, 184,  92]; break; // green
+                    case 2: rgb = [ 68, 170, 130]; break; // aqua
+                    case 3: rgb = [194, 118,  12]; break; // orange dark
+                    case 4: rgb = StarCanvas.defaultConfig.colorBase; break;
+                }
+
+                instance[colorKey] = new Color(...rgb);
+                return instance[colorKey];
+            }
+        });
+    }else{
+        // Non Chrome user
+        Object.assign(defaultConfig, {
+            sensitivity: 85,
+            siblingsLimit: 6,
+            density: 60,
+            anchorLength: 20,
+            mouseRadius: 120
+        });
+    }
 
     let init = headerEl => {
         let previewEls = headerEl.getElementsByClassName(config.previewElementClass);
@@ -392,30 +540,20 @@ define([
                 let canvas = document.getElementById(config.canvasId);
                 // not on mobile
                 if(canvas){
-                    new StarCanvas(canvas, {
-                        brightnessMultiplierConnection: 0.9,
-                        colorBase: (starCanvas, node) => {
-                            let rgb = StarCanvas.defaultConfig.colorBase;
-                            switch(StarCanvas.getRandomIntInclusive(0, 4)){
-                                case 1: rgb = [ 92, 184,  92]; break; // green
-                                case 2: rgb = [ 68, 170, 130]; break; // aqua
-                                case 3: rgb = [194, 118,  12]; break; // orange dark
-                                case 4: rgb = StarCanvas.defaultConfig.colorBase; break;
-                            }
-                            return  new Color(...rgb);
-                        },
-                        colorCursor: [200,  184,  71], // red dark
-                        newDimension: starCanvas => ({
-                            width: window.innerWidth,
-                            height: starCanvas._canvas.closest(`#${config.headerId}`).getBoundingClientRect().height - 1 // border
-                        }),
-                        startCoordinates: canvas => ({
-                            x: canvas.width / 2 + 500,
-                            y: canvas.height / 2 + 50
-                        })
-                    });
-
+                    let starCanvasInstance = new StarCanvas(canvas, defaultConfig);
                     canvas.classList.add('in');
+
+                    // watch for resize
+                    Util.getResizeManager().observe(
+                        canvas.parentNode,
+                        (el, contentRect) => {
+                            // ignore "height" change (css transition) (no canvas repaint)
+                            if(canvas.width !== contentRect.width){
+                                starCanvasInstance.resizeWindow();
+                            }
+                        },
+                        {debounce: true, ms: 260}
+                    );
                 }
             }
         });

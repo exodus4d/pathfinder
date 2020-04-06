@@ -31,7 +31,8 @@ define([
                 dialogNavLiClass: config.dialogNavigationListItemClass,
                 scrollspyId: config.mapManualScrollspyId,
                 pieChartClass : Init.classes.pieChart.class,
-                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass
+                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass,
+                imgSrcBubble: `${Util.imgRoot()}svg/bubble.svg`,
             };
 
             let content = Mustache.render(template, data);

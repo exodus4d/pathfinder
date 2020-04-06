@@ -9,17 +9,15 @@ define([
     'app/render',
     'blueImpGallery',
     'layout/header_login',
-    'bootbox',
     'lazyload',
-    'layout/logo',
-    'layout/demo_map',
+    'bootbox',
     'dialog/account_settings',
     'dialog/notification',
     'dialog/manual',
     'dialog/changelog',
     'dialog/credit',
     'dialog/api_status'
-], ($, Init, Util, Render, Gallery, HeaderLogin, bootbox) => {
+], ($, Init, Util, Render, Gallery, HeaderLogin, LazyLoad, bootbox) => {
 
     'use strict';
 
@@ -29,7 +27,6 @@ define([
         // header
         headerId: 'pf-landing-top',                                             // id for header
         headerContainerId: 'pf-header-container',                               // id for header container
-        logoContainerId: 'pf-logo-container',                                   // id for main header logo container
         headHeaderMapId: 'pf-header-map',                                       // id for header image (svg animation)
 
         // map bg
@@ -177,7 +174,7 @@ define([
         // license ------------------------------------------------------------
         $('.' + config.navigationLinkLicenseClass).on('click', function(e){
             e.preventDefault();
-            $.fn.showCreditsDialog(false, true);
+            $.fn.showCreditsDialog();
         });
 
         // releases -----------------------------------------------------------
@@ -404,7 +401,7 @@ define([
      * init scrollSpy for navigation bar
      */
     let initScrollSpy = () => {
-        let scrollElement = window;
+        let scrollElement = document;
         let timeout;
 
         // show elements that are currently in the viewport
@@ -515,7 +512,7 @@ define([
 
         let showNotificationPanel = () => {
             let data = {
-                version: Util.getVersion()
+                version: currentVersion
             };
 
             requirejs(['text!templates/ui/notice.html', 'mustache'], (template, Mustache) => {
@@ -818,8 +815,9 @@ define([
         });
 
         // init "lazy loading" for images
-        $('.' + config.galleryThumbImageClass).lazyload({
-            threshold : 300
+        let lazyLoadInstance = new LazyLoad({
+            elements_selector: `.${config.galleryThumbImageClass}`,
+            use_native: true
         });
 
         // hide splash loading animation
@@ -848,11 +846,8 @@ define([
         initYoutube();
 
         // draw header logo
-        $('#' + config.logoContainerId).drawLogo(() => {
-            // init header animation
+        document.querySelector(`.logo-ploygon-top-right`).addEventListener('animationend', () => {
             HeaderLogin.init(document.getElementById(config.headerContainerId));
-        }, false);
-
+        });
     });
-
 });

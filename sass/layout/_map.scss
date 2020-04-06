@@ -565,7 +565,7 @@ $mapBubbleWidth:        30px;
     }
 
     &:after{
-      content: url("#{$base-url}/bubble.svg");
+      content: var(--svgBubble);
       position: absolute;
       display: block;
       pointer-events: none;

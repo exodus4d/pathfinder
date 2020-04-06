@@ -18,7 +18,6 @@ define([], () => {
 
     return {
         path: {
-            img: '/public/img/',                                            // path for images
             api: '/api/rest',                                               //ajax URL - REST API
             // user API
             getCaptcha: '/api/User/getCaptcha',                             // ajax URL - get captcha image
