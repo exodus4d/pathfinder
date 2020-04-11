@@ -1,3 +1,5 @@
+$characterSlideDuration: 500ms;
+
 .pf-animate{
   visibility: hidden;
   opacity: 0;
@@ -92,7 +94,7 @@
   }
 
   section{
-    min-height: 200px;
+    min-height: 150px;
     padding: 20px 0 40px 0;
 
     h4:not(.pf-dynamic-area){
@@ -186,91 +188,64 @@
       @extend .txt-color-tealLighter;
     }
   }
-
-
 }
  // header --------------------------------------------------------------------
 $headerHeight: 355px;
 
 #pf-landing-top{
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   height: $headerHeight - 100px;
   border-bottom: 1px solid $gray-dark;
-  overflow: hidden; // for e.g. canvas should not overlap in "smaller" header
   transition: height 0.25s ease-out;
   will-change: height;
   background-color: #050a11; // ~img background color...
-  &:hover{
-    transition-delay: 0.25s;
+
+  @media (max-width: $screen-xs-max) {
+    height: $headerHeight - 170px;
+
+  }
+
+  &.pointer-locked{
     height: $headerHeight;
+  }
+
+  // darker bg for logo on light background image
+  &:after{
+    content: ' ';
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: inherit;
+    width: 400px;
+    pointer-events: none;
+    background-image: linear-gradient(to right, transparent, rgba($black, 0.75));
   }
 
   .pf-header-bg{
     height: inherit;
   }
 
-  #pf-header-container{
+  #pf-logo-container{
     position: absolute;
-    //width: inherit; // usefull for mobile?!
     height: inherit;
-    pointer-events: none; // no cursor (hidden by canvas)
-    z-index: 30; // will overlap "login" area
+    left: 10px;
+    pointer-events: none;
+    z-index: 20; // less than character images
 
-    #pf-logo-container{
-      height: inherit;
-      z-index: 110;
-
-      @media (max-width: $screen-sm-max) {
-        text-align: center;
-      }
-
-      > svg {
-        width: 250px; // for logo resize (if needed)
-        padding-top: 60px; // for top-navigation 30px + 30px padding
-        padding-bottom: 50px; // 50px padding
-        height: 100%;
-        opacity: .8;
-      }
+    @media (max-width: $screen-xs-max) {
+      left: initial;
     }
 
-    #pf-header-preview-container{
-      align-self: flex-end;
-      margin-bottom: -26px;
-
-      .pf-header-preview-element{
-        position: relative;
-        margin-left: 12px;
-        margin-top: 12px;
-        height: 155px;
-        width: 180px;
-        padding: 7px;
-        opacity: 0;
-        border-radius: 5px;
-        background: {
-          color: rgba(43, 43, 43, 0.5);
-        }
-
-        &:nth-child(n+4){
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-        }
-        
-        &:after{
-          content: '';
-          position: absolute;
-          width: calc(100% - 14px);
-          height: calc(100% - 14px);
-          border-radius: 3px;
-          background-image: var(--bg-image);
-          background: {
-            repeat: no-repeat;
-            position: 50% 50%;
-            color: rgba(29, 29, 29, 0.75);
-          }
-        }
-      }
-
+    > svg {
+      width: 250px; // for logo resize (if needed)
+      padding-top: 60px; // for top-navigation 30px + 30px padding
+      padding-bottom: 50px; // 50px padding
+      height: 100%;
+      opacity: .8;
+      will-change: height;
     }
   }
 
@@ -283,37 +258,64 @@ $headerHeight: 355px;
       cursor: none;
     }
   }
-}
 
-// login ----------------------------------------------------------------------
-#pf-landing-login{
-  position: relative; // equired because <canvas> gets overlapped by this element
-  background-color: inherit; // ^^
-  z-index: 20; // ^^
-  padding-top: 40px;
-  padding-bottom: 30px;
+  .pf-character-selection {
+    position: absolute;
+    bottom: -70px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: none;
+    z-index: 30; // character images overlap next section
+    pointer-events: none;
+    margin-bottom: 20px;
 
-  @media (max-width: $screen-sm-max) {
-    padding-top: 10px;
-  }
+    @media (max-width: $screen-xs-max) {
+      width: 100%;
+    }
 
-  .row{
-    margin-bottom: 0;
-  }
+    .pf-character-box {
+      flex: 1;
+      transition: flex $characterSlideDuration linear;
+      text-align: center;
+      will-change: flex, opacity;
+      overflow: hidden; // "slide" animation
+      opacity: 0;
+      padding-top: 3px; //space for ribbon
 
-  // character select panel animation (e.g. on delete)
-  .pf-character-selection > div:not(.pf-character-row-animate){
-    @include transition( width 0.2s ease, margin 0.2s ease);
+      &.new {
+        flex: .00001; //0 does not work so we have to use a small number
+        animation: flexGrow $characterSlideDuration ease forwards;
+      }
+
+      &.remove {
+        flex: 1;
+        opacity: 1;
+        animation: flexShrink $characterSlideDuration ease forwards;
+      }
+    }
   }
 
   .pf-dynamic-area{
     display: inline-block;
-    margin: 10px 5px 20px 5px;
-    padding: 10px 10px 5px 10px;
-    min-width: 155px;
-    min-height: 184px;
-    border-radius: 10px;
-    @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
+    margin: 0 10px 10px 10px; // because of drop shadow
+    padding: 0; // overwrite default
+    overflow: visible;
+    min-width: 132px;
+    min-height: 164px;
+    border-radius: 0; // overwrite default
+    pointer-events: all;
+    background-color: transparent;
+
+    > a {
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px 8px 0 0;
+      @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
+    }
 
     .ribbon-wrapper{
       z-index: 5 ;
@@ -323,8 +325,8 @@ $headerHeight: 355px;
     .pf-character-image-wrapper{
       opacity: 0;
       width: 128px;
-      border: 2px solid $gray-light;
-      border-radius: 8px;
+      border: 2px solid $gray;
+      border-radius: inherit;
       @include transition( border-color 0.2s ease-out, box-shadow 0.2s ease-out);
       transform: translate3d(0, 0, 0);
       will-change: border-color, transition;
@@ -395,6 +397,10 @@ $headerHeight: 355px;
         line-height: 30px;
         border-top: 1px solid $gray-dark;
         color: $gray-lighter;
+        font-family: "Oxygen Bold", Arial, sans-serif;
+        letter-spacing: 0.3px;
+        padding: 0 5px;
+        text-rendering: geometricPrecision;
         @include transition( color 0.2s ease-out );
       }
 
@@ -405,6 +411,20 @@ $headerHeight: 355px;
         filter: grayscale(0%);
       }
     }
+  }
+}
+
+// login ----------------------------------------------------------------------
+#pf-landing-login{
+  position: relative; // required because <canvas> gets overlapped by this element
+  background-color: inherit; // ^^
+  z-index: 20; // ^^
+  padding-top: 60px;
+  padding-bottom: 30px;
+  border-top: 1px solid $gray-dark;
+
+  .row{
+    margin-bottom: 0;
   }
 
   .pf-sso-login-button{
@@ -426,62 +446,6 @@ $headerHeight: 355px;
       width: inherit;
       height: inherit;
     }
-
-    /*
-    position: relative;
-    display: inline-block;
-    width: 270px;
-    height: 45px;
-    border: none;
-    margin-bottom: 10px;
-    background-color: transparent;
-    background-image: var(--bg-image-hover);
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-
-    &:before{
-      content: ' ';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-
-      // Create the box shadow at expanded size.
-     // box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
-
-      // Hidden by default.
-      opacity: 0;
-      //@include transition(opacity 0.12s ease-in-out);
-      //will-change: opacity;
-    }
-
-    &:after {
-      content: ' ';
-      position: absolute;
-      width: 270px;
-      height: 45px;
-      left: 0;
-      top: 0;
-      background-image: var(--bg-image);
-      //@include transition(opacity 0.12s ease-in-out);
-      //will-change: opacity;
-    }
-
-    &:hover {
-      &:before{
-        opacity: 1;
-      }
-
-      &:after{
-        opacity: 0;
-      }
-    }
-
-    &.disabled{
-      pointer-events: auto; // required for tooltips to be shown on "disabled" links
-    }
-     */
   }
 
   #pf-notification-panel{
