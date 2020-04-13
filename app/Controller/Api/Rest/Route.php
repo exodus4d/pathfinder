@@ -500,7 +500,7 @@ class Route extends AbstractRestController {
 
         // Endpoint return http:404 in case no route find (e.g. from inside a wh)
         // we thread that error "no route found" as a valid response! -> no fallback to custom search
-        if(!empty($routeData['error']) && strtolower($routeData['error']) !== 'no route found'){
+        if (((isset($routeData["too_many_links"]) ? $routeData["too_many_links"] : false ) == true) or (!empty($routeData['error']) && strtolower($routeData['error']) !== 'no route found')){
             // ESI route search has errors -> fallback to custom search implementation
             $routeData = $this->searchRouteCustom($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
         }
@@ -654,7 +654,8 @@ class Route extends AbstractRestController {
                                 // check if connections limit is reached
                                 if(count($connections) >= self::MAX_CONNECTION_COUNT){
                                     // ESI API limit for custom "connections"
-                                    break 2;
+									return ["too_many_links" => true];
+                                    //break 2;
                                 }
                             }
                         }
