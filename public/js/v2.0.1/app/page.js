@@ -445,6 +445,7 @@ define([
         let executor = resolve => {
             let svgPaths = [
                 'svg/logo_inline.svg',
+                'svg/grid_layout.svg',
                 'svg/swords.svg'
             ].map(path => `text!${Util.imgRoot()}${path}!strip`);
 

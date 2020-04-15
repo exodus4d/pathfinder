@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%">
+    <defs>
+        <g id="pf-svg-grid-3" fill="currentColor">
+            <title>3 columns</title>
+            <rect width="65" height="22" fill="#212c30" />
+            <rect width="40" height="35" y="25" />
+            <rect width="22" height="60" x="68" />
+            <rect width="22" height="35" x="43" y="25" />
+        </g>
+        <g id="pf-svg-grid-2" fill="currentColor">
+            <title>2 columns</title>
+            <rect width="90" height="22" fill="#212c30" />
+            <rect width="55" height="35" y="25" />
+            <rect width="32" height="16" y="25" x="58" />
+            <rect width="32" height="16" y="44" x="58" />
+        </g>
+    </defs>
+
+    <symbol id="pf-svg-grid-3-right" viewBox="0 0 90 60" width="100%" height="100%">
+        <use href="#pf-svg-grid-3" />
+    </symbol>
+
+    <symbol id="pf-svg-grid-3-left" viewBox="0 0 90 60" width="100%" height="100%">
+        <use href="#pf-svg-grid-3-right" transform="translate(90,0) scale(-1,1)" />
+    </symbol>
+
+    <symbol id="pf-svg-grid-2-right" viewBox="0 0 90 60" width="100%" height="100%">
+        <use href="#pf-svg-grid-2" />
+    </symbol>
+
+    <symbol id="pf-svg-grid-2-left" viewBox="0 0 90 60" width="100%" height="100%">
+        <use href="#pf-svg-grid-2-right" transform="translate(90,0) scale(-1,1)" />
+    </symbol>
+</svg>

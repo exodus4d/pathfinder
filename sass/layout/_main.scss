@@ -385,30 +385,52 @@ html{
     display: flex;
     margin-bottom: 5px;
     justify-content: space-between;
-    align-items: center;
 
     .pf-editable-toggle-item {
-      @extend %pf-bg-image-wrapper;
-      width: 98px;
-      height: 68px;
-      background-color: lighten($gray-light, 10%);
-      padding: 3px;
-      border-radius: 4px;
-      border: 1px solid $gray-dark;
-      cursor: pointer;
-      @include transition(background-color 0.08s ease-out);
-      will-change: background-color;
+      display: flex;
+      flex-wrap: nowrap;
 
-      &.active {
-        background-color: $teal;
+      &:nth-child(odd) {
+        margin-right: 4px;
       }
 
-      &:hover {
-        background-color: $teal-lighter;
+      > .btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.pf-editable-toggle-btn {
+          font-size: 13px;
+
+          &:not(.disabled) {
+            color: $gray-darker;
+          }
+        }
+
+        &.active {
+          color: $gray-dark; // overwrite default
+          background-color: $btn-primary-bg;
+          border-color: $btn-primary-border;
+        }
+
+        &.disabled {
+          color: $gray-dark;
+          pointer-events: all; // required for cursor: not-allowed change (bootstrap bug) https://stackoverflow.com/a/50349274/4329969
+        }
+
+        &.active, &:active {
+          + .btn.active, + .btn:active {
+            clip-path: inset(-15px -15px -15px 0);
+          }
+        }
       }
 
-      + .fas {
-        margin: 0 10px;
+      > .pf-editable-toggle-svg {
+        width: 98px;
+        height: 68px;
+        color: $gray-dark; // SVG color
+        padding: 3px;
+        margin: 0 3px;
       }
     }
   }

@@ -51,8 +51,7 @@ define([
             // close all modals
             $('.modal').modal('hide');
 
-            requirejs(['text!templates/dialog/notification.html', 'mustache'], function(template, Mustache){
-
+            requirejs(['text!templates/dialog/notification.html', 'mustache'], (template, Mustache) => {
                 let data = {
                     id: config.notificationDialogId,
                     content: dialogData.content
