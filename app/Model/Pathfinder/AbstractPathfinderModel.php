@@ -38,11 +38,12 @@ abstract class AbstractPathfinderModel extends AbstractModel {
 
     /**
      * @param bool $mapper
+     * @param bool $essentials
      * @return NULL|void
      */
-    public function reset($mapper = true){
+    public function reset($mapper = true, $essentials = true){
         $this->fieldChanges = [];
-        parent::reset($mapper);
+        parent::reset($mapper, $essentials);
     }
 
     /**
