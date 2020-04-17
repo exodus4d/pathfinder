@@ -49,6 +49,8 @@ class Universe extends Controller\AccessController {
         $search = isset($params['arg1']) ? (string)$params['arg1'] : '';
         $morePages = false;
         $count = 0;
+        // reduce returned system data to required keys (save bandwidth)
+        $allowedProperties = array_flip(['id', 'name', 'trueSec', 'security', 'effect', 'shattered']);
 
         $return = (object) [];
         $return->results = [];
@@ -82,11 +84,14 @@ class Universe extends Controller\AccessController {
             $endCount = $offset + self::PAGE_SIZE_SYSTEMS;
             $morePages = $endCount < $count;
 
+            /**
+             * @var Model\Universe\SystemModel[] $systems
+             */
             $systems = $system->find($filter, $options);
             if($systems){
                 foreach($systems as $system){
                     if($systemData = $system->fromIndex()){
-                        $return->results[] = $systemData;
+                        $return->results[] = (object)array_intersect_key((array)$systemData, $allowedProperties);
                     }
                 }
             }

@@ -87,7 +87,7 @@ define(['app/lib/eventHandler'], (EventHandler) => {
             this.setTargetDimensions();
 
             EventHandler.addEventListener(this._config.target, this.getNamespaceEvent('mousedown'), this.onMouseDown.bind(this), {passive: false});
-            EventHandler.addEventListener(this._config.container, this.getNamespaceEvent('mousemove'), this.onMouseMove.bind(this), {passive: false});
+            EventHandler.addEventListener(this._config.container, this.getNamespaceEvent('mousemove'), this.onMouseMove.bind(this), {passive: true});
             EventHandler.addEventListener(this._config.container, this.getNamespaceEvent('mouseup'), this.onMouseUp.bind(this), {passive: true});
         }
 
@@ -104,6 +104,7 @@ define(['app/lib/eventHandler'], (EventHandler) => {
         onMouseMove(e){
             if(this._mouseIsDown){
                 e.preventDefault();
+                e.stopPropagation();
 
                 if(this._animationFrameId){
                     cancelAnimationFrame(this._animationFrameId);

@@ -392,7 +392,7 @@ define([
                                 let disabled = false;
                                 let trueSec = parseFloat(item.trueSec);
                                 let secClass = Util.getSecurityClassForSystem(item.security);
-                                let trueSecClass = Util.getTrueSecClassForSystem( trueSec );
+                                let trueSecClass = Util.getTrueSecClassForSystem(trueSec);
                                 let effectClass = MapUtil.getEffectInfoForSystem(item.effect, 'class');
 
                                 // check if system is dialed

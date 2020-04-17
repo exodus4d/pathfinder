@@ -20,6 +20,7 @@
       "Exodus4D\\Pathfinder\\": "app/"
     }
   },
+  "readme": "README.md",
   "require": {
     "php-64bit": ">=7.2",
     "ext-pdo": "*",
