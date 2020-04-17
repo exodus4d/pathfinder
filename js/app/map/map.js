@@ -2034,6 +2034,7 @@ define([
 
         // system click events ========================================================================================
         let double = function(e){
+            e.stopPropagation(); // if not xEditable triggers page reload #945
             let system = $(this);
             let headElement = $(system).find('.' + config.systemHeadNameClass);
 
