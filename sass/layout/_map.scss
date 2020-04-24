@@ -387,7 +387,9 @@ $mapBubbleWidth:        30px;
       flex-wrap: nowrap;
       color: lighten($gray-light, 10%);
       font-size: 10px;
-      padding-right: 1px; // bring right aligned text in line with wh "effect" icon
+      line-height: 14px; // 15 is "default", lower it a bit and set fix "height" for 1-2px bottom space
+      height: 15px;
+      padding-right: 2px; // bring right aligned text in line with wh "effect" icon
       transform: translateY(0); // fixed "blurry" text in scaled parent
       min-width: 100%; // required for text "truncate" inside
       max-width: 0; // required for text "truncate" inside
@@ -429,7 +431,7 @@ $mapBubbleWidth:        30px;
       justify-content: flex-end;
 
       > *:not(:last-child){
-        margin-right: 3px;
+        margin-right: 5px;
       }
     }
 
