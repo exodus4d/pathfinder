@@ -452,6 +452,7 @@ select:active, select:hover {
     // smaller and less padding
     padding-left: 3px;
     padding-right: 3px;
+    line-height: 22px;
 
     &:first-child{
       padding-left: 0;
@@ -459,6 +460,23 @@ select:active, select:hover {
 
     &:last-child{
       padding-right: 0;
+    }
+  }
+
+  // custom "remove" X icon for multi select
+  .select2-selection__choice__remove {
+    display: flex !important; // overwrite default
+    align-items: center;
+    justify-content: center;
+    font-size: 0; // hide default char
+
+    &:before {
+      font-family: "Font Awesome 5 Free";
+      content: "\f00d";
+      font-weight: bold;
+      display: inline-block;
+      margin-right: 3px;
+      font-size: 12px;
     }
   }
 }
@@ -1007,6 +1025,11 @@ table{
   width: 150px;
   transition-duration: 180ms;
   will-change: transform;
+
+  .panel-heading {
+    text-align: right;
+    padding: 6px 15px; // overwrite default
+  }
 }
 
 .pf-menu-left{
@@ -1179,10 +1202,7 @@ table{
           transparent 75%,
           transparent);
   background-size: 25px 25px;
-  -webkit-animation: move 2.5s linear infinite;
-  -moz-animation: move 2.5s linear infinite;
-  -ms-animation: move 2.5s linear infinite;
-  animation: move 2.5s linear infinite;
+  animation: move 6s linear infinite;
 }
 
 .pf-system-info-rally{
@@ -1964,7 +1984,7 @@ code {
 
   .container-fluid{
     padding-left: 0;    // overwrite default
-    padding-right: 0;   // verwrite default
+    padding-right: 0;   // overwrite default
   }
 }
 

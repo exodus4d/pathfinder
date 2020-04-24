@@ -60,27 +60,34 @@ define([
 
     // map menu options
     let mapOptions = {
+        mapSnapToGrid : {
+            buttonId: Util.config.menuButtonGridId,
+            description: 'Grid snapping',
+            class: 'mapGridClass'
+        },
         mapMagnetizer: {
             buttonId: Util.config.menuButtonMagnetizerId,
             description: 'Magnetizer',
             onEnable: Magnetizer.initMagnetizer,
             onDisable: Magnetizer.destroyMagnetizer
         },
-        mapSnapToGrid : {
-            buttonId: Util.config.menuButtonGridId,
-            description: 'Grid snapping',
-            class: 'mapGridClass'
+        systemRegion : {
+            buttonId: Util.config.menuButtonRegionId,
+            description: 'Region names',
+            class: 'systemRegionClass',
+            onEnable: MapOverlay.toggleInfoSystemRegion,
+            onDisable: MapOverlay.toggleInfoSystemRegion,
+        },
+        systemCompact : {
+            buttonId: Util.config.menuButtonCompactId,
+            description: 'Compact system layout',
+            class: 'systemCompactClass'
         },
         mapSignatureOverlays : {
             buttonId: Util.config.menuButtonEndpointId,
             description: 'Endpoint overlay',
             onEnable: MapOverlay.showInfoSignatureOverlays,
             onDisable: MapOverlay.hideInfoSignatureOverlays,
-        },
-        mapCompact : {
-            buttonId: Util.config.menuButtonCompactId,
-            description: 'Compact system layout',
-            class: 'mapCompactClass'
         }
     };
 
@@ -930,7 +937,7 @@ define([
                     connection.setConnector(newConnector);
 
                     // we need to "reapply" the types after "Connector" was changed
-                    connection.reapplyTypes();
+                    // connection.reapplyTypes();
                 }
 
                 // add endpoint types ---------------------------------------------------------------------------------
@@ -1203,7 +1210,7 @@ define([
 
                 // show static overlay actions
                 let mapOverlay = MapOverlayUtil.getMapOverlay(mapContainer, 'info');
-                mapOverlay.updateOverlayIcon('systemRegion', 'show');
+                mapOverlay.updateOverlayIcon('systemPopover', 'show');
                 mapOverlay.updateOverlayIcon('connection', 'show');
                 mapOverlay.updateOverlayIcon('connectionEol', 'show');
 
@@ -2889,7 +2896,7 @@ define([
                 }
 
                 // compact/small system layout or not
-                let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
+                let compactView = mapElement.hasClass(MapUtil.config.systemCompactClass);
 
                 // get current character log data
                 let characterLogSystemId = Util.getObjVal(Util.getCurrentCharacterData('log'), 'system.id') || 0;

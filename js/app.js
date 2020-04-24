@@ -34,7 +34,7 @@ requirejs.config({
         velocity: 'lib/velocity.min',                                   // v1.5.1   animation engine - http://julian.com/research/velocity
         velocityUI: 'lib/velocity.ui.min',                              // v5.2.0   plugin for velocity - http://julian.com/research/velocity/#uiPack
         slidebars: 'lib/slidebars',                                     // v2.0.2   Slidebars - side menu plugin https://www.adchsm.com/slidebars/
-        jsPlumb: 'lib/jsplumb',                                         // v2.9.3   jsPlumb main map draw plugin http://jsplumb.github.io/jsplumb/home.html
+        jsPlumb: 'lib/jsplumb',                                         // v2.13.1  jsPlumb main map draw plugin http://jsplumb.github.io/jsplumb/home.html
         farahey: 'lib/farahey',                                         // v1.1.2   jsPlumb "magnetizing" plugin extension - https://github.com/ThomasChan/farahey
         easyTimer: 'lib/easytimer.min',                                 // v4.0.2   EasyTimer - Timer/Chronometer/Countdown library - http://albert-gonzalez.github.io/easytimer.js
         customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5   Custom scroll bars - http://manos.malihu.gr

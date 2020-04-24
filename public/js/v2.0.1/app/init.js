@@ -47,7 +47,6 @@ define([], () => {
             getStatisticsData: '/api/Statistic/getData',                    // ajax URL - get statistics data (activity log)
             // universe API
             searchUniverseData: '/api/Universe/search',                     // ajax URL - search universe data by category Ids
-            searchUniverseSystemData: '/api/Universe/systems',              // ajax URL - search universe system data by name
             getConstellationData: '/api/Universe/constellationData',        // ajax URL - get system constellation data
             // GitHub API
             gitHubReleases: '/api/GitHub/releases'                          // ajax URL - get release info from GitHub
@@ -367,22 +366,13 @@ define([], () => {
         // map connection types
         connectionTypes: {
             abyssal: {
-                cssClass: 'pf-map-connection-abyssal',
-                paintStyle: {
-                    dashstyle: '0.5 2' // dotted line
-                }
+                cssClass: 'pf-map-connection-abyssal'
             },
             jumpbridge: {
-                cssClass: 'pf-map-connection-jumpbridge',
-                paintStyle: {
-                    dashstyle: '4 2 1 2'
-                }
+                cssClass: 'pf-map-connection-jumpbridge'
             },
             stargate: {
-                cssClass: 'pf-map-connection-stargate',
-                paintStyle: {
-                    dashstyle: '0' // solid line
-                }
+                cssClass: 'pf-map-connection-stargate'
             },
             wh_eol: {
                 cssClass: 'pf-map-connection-wh-eol'
@@ -398,10 +388,6 @@ define([], () => {
             },
             wh_jump_mass_s: {
                 cssClass: 'pf-map-connection-wh-size-s',
-                paintStyle: {
-                    dashstyle: '0.5 1',
-                    strokeWidth: 3
-                },
                 overlays: [
                     ['Label',
                         {
@@ -414,9 +400,6 @@ define([], () => {
             },
             wh_jump_mass_m: {
                 cssClass: 'pf-map-connection-wh-size-m',
-                paintStyle: {
-                    dashstyle: '3 1'
-                },
                 overlays: [
                     ['Label',
                         {
@@ -441,9 +424,6 @@ define([], () => {
             },
             wh_jump_mass_xl: {
                 cssClass: 'pf-map-connection-wh-size-xl',
-                paintStyle: {
-                    strokeWidth: 6
-                },
                 overlays: [
                     ['Label',
                         {
@@ -471,11 +451,11 @@ define([], () => {
                         {
                             id: 'pf-map-connection-arrow-overlay',
                             cssClass: 'pf-map-connection-arrow-overlay',
+                            location: 0.5,
+                            length: '${arrowlength}',
                             width: 12,
-                            length: 15,
-                            direction: 1,
-                            foldback: 0.8,
-                            location: 0.5
+                            direction: '${arrowdirection}',
+                            foldback: '${arrowfoldback}'
                         }]
                 ]
             },
