@@ -34,12 +34,12 @@ class Image extends \Prefab {
     /**
      * build image server src URL
      * @param string $resourceType
-     * @param int $resourceId
+     * @param int|null $resourceId
      * @param int|null $size
      * @param string|null $resourceVariant
      * @return string|null
      */
-    public function eveSrcUrl(string $resourceType, int $resourceId, ?int $size = null, ?string $resourceVariant = null) : ?string {
+    public function eveSrcUrl(string $resourceType, ?int $resourceId = null, ?int $size = null, ?string $resourceVariant = null) : ?string {
         $url = null;
         if(
             $resourceId &&
