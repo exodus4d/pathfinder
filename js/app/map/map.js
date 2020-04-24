@@ -83,7 +83,7 @@ define([
             description: 'Compact system layout',
             class: 'systemCompactClass'
         },
-        mapSignatureOverlays : {
+        connectionSignatureOverlays : {
             buttonId: Util.config.menuButtonEndpointId,
             description: 'Endpoint overlay',
             onEnable: MapOverlay.showInfoSignatureOverlays,
@@ -1436,7 +1436,7 @@ define([
          */
         let showInfoSignatureOverlays = payload => new Promise(resolve => {
             Util.getLocalStore('map').getItem(payload.data.mapConfig.config.id).then(dataStore => {
-                if(dataStore && dataStore.mapSignatureOverlays){
+                if(dataStore && dataStore.connectionSignatureOverlays){
                     MapOverlay.showInfoSignatureOverlays($(payload.data.mapConfig.map.getContainer()));
                 }
                 resolve(payload);

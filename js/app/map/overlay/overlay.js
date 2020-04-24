@@ -288,7 +288,7 @@ define([
         let connectionsData = Util.getObjVal(mapData, 'data.connections');
 
         if(connectionsData){
-            let overlayIcon = getOverlayIcon(mapElement, options.mapSignatureOverlays.class);
+            let overlayIcon = getOverlayIcon(mapElement, options.connectionSignatureOverlays.class);
             showLoading(overlayIcon);
             updateInfoSignatureOverlays(map, connectionsData);
             hideLoading(overlayIcon);
@@ -352,7 +352,7 @@ define([
                 let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                 let map = getMapObjectFromOverlayIcon(this);
 
-                MapUtil.storeLocalData('map', mapElement.data('id'), 'filterScopes', []);
+                Util.getLocalStore('map').setItem(`${mapElement.data('id')}.filterScopes`, []);
                 MapUtil.filterMapByScopes(map, []);
             }
         },
@@ -379,6 +379,12 @@ define([
             trigger: 'active',
             class: 'pf-map-overlay-compact',
             iconClass: ['fas', 'fa-fw', 'fa-compress']
+        },
+        connectionSignatureOverlays: {
+            title: 'signature overlays',
+            trigger: 'active',
+            class: 'pf-map-overlay-endpoint',
+            iconClass: ['fas', 'fa-fw', 'fa-link']
         },
         systemPopover: {
             title: 'sovereignty',
@@ -415,12 +421,6 @@ define([
                     mapElement.find('.' + MapOverlayUtil.config.systemHeadClass).popover('hide');
                 }
             }
-        },
-        mapSignatureOverlays: {
-            title: 'signature overlays',
-            trigger: 'active',
-            class: 'pf-map-overlay-endpoint',
-            iconClass: ['fas', 'fa-fw', 'fa-link']
         },
         connection: {
             title: 'WH data',

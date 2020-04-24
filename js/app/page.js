@@ -406,7 +406,7 @@ define([
                     group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
-                    data: {option: 'mapSignatureOverlays', toggle: true}
+                    data: {option: 'connectionSignatureOverlays', toggle: true}
                 },{
                     type: 'heading',
                     label: 'Help'

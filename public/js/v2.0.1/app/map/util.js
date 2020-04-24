@@ -1472,7 +1472,7 @@ define([
 
             // init endpoint overlay --------------------------------------------------------------------------
             Util.triggerMenuAction(mapElement, 'MapOption', {
-                option: 'mapSignatureOverlays',
+                option: 'connectionSignatureOverlays',
                 toggle: false,
                 skipOnEnable: true,     // skip callback -> Otherwise it would run 2 times on map create
                 skipOnDisable: true     // skip callback -> Otherwise it would run 2 times on map create
