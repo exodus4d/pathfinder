@@ -25,13 +25,15 @@ class MapUpdate extends AbstractCron {
     const DAYS_UNTIL_MAP_DELETION = 30;
 
     /**
-     * deactivate all "private" maps whose lifetime is over
+     * deactivate all maps whose lifetime is over
      * >> php index.php "/cron/deactivateMapData"
      * @param \Base $f3
      */
     function deactivateMapData(\Base $f3){
         $this->logStart(__FUNCTION__, false);
         $privateMapLifetime = (int)Config::getMapsDefaultConfig('private.lifetime');
+        $corporationMapLifetime = (int)Config::getMapsDefaultConfig('corporation.lifetime');
+        $allianceMapLifetime = (int)Config::getMapsDefaultConfig('alliance.lifetime');
 
         if($privateMapLifetime > 0){
             if($pfDB = $f3->DB->getDB('PF')){
@@ -43,6 +45,32 @@ class MapUpdate extends AbstractCron {
                         TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
 
                 $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
+            }
+        }
+
+        if($corporationMapLifetime > 0){
+            if($pfDB = $f3->DB->getDB('PF')){
+                $sqlDeactivateExpiredMaps = "UPDATE map SET
+                        active = 0
+                    WHERE
+                        map.active = 1 AND
+                        map.typeId = 3 AND
+                        TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
+
+                $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $corporationMapLifetime]);
+            }
+        }
+
+        if($allianceMapLifetime > 0){
+            if($pfDB = $f3->DB->getDB('PF')){
+                $sqlDeactivateExpiredMaps = "UPDATE map SET
+                        active = 0
+                    WHERE
+                        map.active = 1 AND
+                        map.typeId = 4 AND
+                        TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
+
+                $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $allianceMapLifetime]);
             }
         }
 
