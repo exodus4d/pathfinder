@@ -5,17 +5,27 @@ define([], () => {
         constructor(config = {}) {
             this._config    = Object.assign({}, ResizeManager.defaultConfig, config);
             this._observables = new WeakMap();
-            this._observer = new ResizeObserver((entries, observer) => { // jshint ignore:line
-                for (let entry of entries) {
-                    if (this._observables.has(entry.target)) {
-                        this._observables
-                            .get(entry.target)
-                            .callback(entry.target, entry.contentRect);
-                    } else {
-                        this._observer.unobserve(entry.target);
+            if(window.ResizeObserver){
+                this._observer = new ResizeObserver((entries, observer) => { // jshint ignore:line
+                    for (let entry of entries) {
+                        if (this._observables.has(entry.target)) {
+                            this._observables
+                                .get(entry.target)
+                                .callback(entry.target, entry.contentRect);
+                        } else {
+                            this._observer.unobserve(entry.target);
+                        }
                     }
-                }
-            });
+                });
+            }else if(requestAnimationFrame){
+                // ResizeObserver() not supported
+                let checkMapSize = (entry) => {
+                    saveMapSize(entry);
+                    return setTimeout(checkMapSize, 500, entry);
+                };
+        
+                checkMapSize(areaMap[0]);
+            }
         }
 
         debounce(callback, ms = this._config.msDebounce, immediate = false) {
