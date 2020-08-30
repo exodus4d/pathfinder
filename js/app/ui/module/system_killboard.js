@@ -554,7 +554,7 @@ define([
          */
         openKillboardUrl(e){
             e.stopPropagation();
-            window.open(`//zkillboard.com/system/${this._systemData.systemId}`, '_blank');
+            window.open(`//zkillboard.com/system/${this._systemData.systemId}/`, '_blank');
         }
 
         /**
