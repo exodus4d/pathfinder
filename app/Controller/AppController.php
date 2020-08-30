@@ -68,8 +68,6 @@ class AppController extends Controller {
         $resource = Resource::instance();
         $resource->register('script', 'app/login');
         $resource->register('script', 'app/mappage', 'prefetch');
-        $resource->register('image', 'sso/signature.png');
-        $resource->register('image', 'sso/gameplay.png');
     }
 
 }

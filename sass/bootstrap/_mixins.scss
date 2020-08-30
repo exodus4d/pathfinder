@@ -509,12 +509,12 @@
   &.active:not(.toggle-on):not(.toggle-off) {
     color: $color;
     background-color: lighten($background, 6%);
-        border-color: lighten($border, 10%);
+        border-color: lighten($border, 6%);
   }
   .open & { &.dropdown-toggle {
     color: $color;
     background-color: lighten($background, 6%);
-        border-color: lighten($border, 10%);
+        border-color: lighten($border, 6%);
   } }
   &:active,
   &.active {

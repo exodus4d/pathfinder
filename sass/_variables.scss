@@ -166,30 +166,31 @@ $table-border-color:            $gray-dark;
 //## For each of Bootstrap's buttons, define text, background and border color.
 
 $btn-font-weight:                normal;
+$btn-border-radius-base:         2px;
 
 $btn-default-color:              $gray-lightest;
 $btn-default-bg:                 $gray-light;
-$btn-default-border:             darken($gray-light, 5%);
+$btn-default-border:             lighten($gray-light, 2%);
 
 $btn-primary-color:              $gray-lightest;
 $btn-primary-bg:                 $brand-primary;
-$btn-primary-border:             darken($btn-primary-bg, 2%);
+$btn-primary-border:             lighten($btn-primary-bg, 2%);
 
 $btn-success-color:              $gray-lightest;
 $btn-success-bg:                 $brand-success;
-$btn-success-border:             darken($btn-success-bg, 5%);
+$btn-success-border:             lighten($btn-success-bg, 2%);
 
 $btn-info-color:                 $gray-lightest;
 $btn-info-bg:                    $brand-info;
-$btn-info-border:                darken($btn-info-bg, 5%);
+$btn-info-border:                lighten($btn-info-bg, 2%);
 
 $btn-warning-color:              $gray-lightest;
 $btn-warning-bg:                 $orange-dark;
-$btn-warning-border:             darken($btn-warning-bg, 5%);
+$btn-warning-border:             lighten($btn-warning-bg, 2%);
 
 $btn-danger-color:               $gray-lightest;
 $btn-danger-bg:                  $brand-danger;
-$btn-danger-border:              darken($btn-danger-bg, 5%);
+$btn-danger-border:              lighten($btn-danger-bg, 2%);
 
 $btn-link-disabled-color:        $gray-light;
 

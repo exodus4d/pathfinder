@@ -207,8 +207,6 @@ class SystemModel extends AbstractMapTrackingModel {
             $data->name                     = $this->name;
             $data->security                 = $this->security;
             $data->trueSec                  = $this->trueSec;
-            $data->effect                   = $this->effect;
-            $data->shattered                = $this->shattered;
 
             $data->constellation            = (object) [];
             $data->constellation->id        = $this->constellationId;
@@ -218,8 +216,21 @@ class SystemModel extends AbstractMapTrackingModel {
             $data->region->id               = $this->regionId;
             $data->region->name             = $this->region;
 
-            $data->planets                  = $this->planets ? : [];
-            $data->statics                  = $this->statics ? : [];
+            if($this->planets){
+                $data->planets              = $this->planets;
+            }
+
+            if($this->statics){
+                $data->statics              = $this->statics;
+            }
+
+            if($this->effect){
+                $data->effect               = $this->effect;
+            }
+
+            if($this->shattered){
+                $data->shattered            = $this->shattered;
+            }
 
             if(is_object($sovereignty = $this->sovereignty)){
                 $data->sovereignty          = $sovereignty;

@@ -385,30 +385,52 @@ html{
     display: flex;
     margin-bottom: 5px;
     justify-content: space-between;
-    align-items: center;
 
     .pf-editable-toggle-item {
-      @extend %pf-bg-image-wrapper;
-      width: 98px;
-      height: 68px;
-      background-color: lighten($gray-light, 10%);
-      padding: 3px;
-      border-radius: 4px;
-      border: 1px solid $gray-dark;
-      cursor: pointer;
-      @include transition(background-color 0.08s ease-out);
-      will-change: background-color;
+      display: flex;
+      flex-wrap: nowrap;
 
-      &.active {
-        background-color: $teal;
+      &:nth-child(odd) {
+        margin-right: 4px;
       }
 
-      &:hover {
-        background-color: $teal-lighter;
+      > .btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.pf-editable-toggle-btn {
+          font-size: 13px;
+
+          &:not(.disabled) {
+            color: $gray-darker;
+          }
+        }
+
+        &.active {
+          color: $gray-dark; // overwrite default
+          background-color: $btn-primary-bg;
+          border-color: $btn-primary-border;
+        }
+
+        &.disabled {
+          color: $gray-dark;
+          pointer-events: all; // required for cursor: not-allowed change (bootstrap bug) https://stackoverflow.com/a/50349274/4329969
+        }
+
+        &.active, &:active {
+          + .btn.active, + .btn:active {
+            clip-path: inset(-15px -15px -15px 0);
+          }
+        }
       }
 
-      + .fas {
-        margin: 0 10px;
+      > .pf-editable-toggle-svg {
+        width: 98px;
+        height: 68px;
+        color: $gray-dark; // SVG color
+        padding: 3px;
+        margin: 0 3px;
       }
     }
   }
@@ -430,6 +452,7 @@ select:active, select:hover {
     // smaller and less padding
     padding-left: 3px;
     padding-right: 3px;
+    line-height: 22px;
 
     &:first-child{
       padding-left: 0;
@@ -437,6 +460,23 @@ select:active, select:hover {
 
     &:last-child{
       padding-right: 0;
+    }
+  }
+
+  // custom "remove" X icon for multi select
+  .select2-selection__choice__remove {
+    display: flex !important; // overwrite default
+    align-items: center;
+    justify-content: center;
+    font-size: 0; // hide default char
+
+    &:before {
+      font-family: "Font Awesome 5 Free";
+      content: "\f00d";
+      font-weight: bold;
+      display: inline-block;
+      margin-right: 3px;
+      font-size: 12px;
     }
   }
 }
@@ -985,6 +1025,11 @@ table{
   width: 150px;
   transition-duration: 180ms;
   will-change: transform;
+
+  .panel-heading {
+    text-align: right;
+    padding: 6px 15px; // overwrite default
+  }
 }
 
 .pf-menu-left{
@@ -1157,10 +1202,7 @@ table{
           transparent 75%,
           transparent);
   background-size: 25px 25px;
-  -webkit-animation: move 2.5s linear infinite;
-  -moz-animation: move 2.5s linear infinite;
-  -ms-animation: move 2.5s linear infinite;
-  animation: move 2.5s linear infinite;
+  animation: move 6s linear infinite;
 }
 
 .pf-system-info-rally{
@@ -1942,7 +1984,7 @@ code {
 
   .container-fluid{
     padding-left: 0;    // overwrite default
-    padding-right: 0;   // verwrite default
+    padding-right: 0;   // overwrite default
   }
 }
 
