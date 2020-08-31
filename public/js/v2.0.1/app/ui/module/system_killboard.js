@@ -727,7 +727,7 @@ define([
          */
         static initWebSocket(){
             if(!SystemKillboardModule.ws){
-                SystemKillboardModule.ws = new WebSocket('wss://zkillboard.com:2096');
+                SystemKillboardModule.ws = new WebSocket('wss://zkillboard.com/websocket/');
                 SystemKillboardModule.wsStatus = 1;
             }
 
