@@ -576,26 +576,28 @@ define([
          * @param killmailData
          */
         onWsMessage(zkbData, killmailData){
-
-            if(!this._killboardEl){
-                // Remove label which indicates that there are no kills
-                let noKillsEl = this._bodyEl.querySelector('.label-success');
-                if(noKillsEl){
-                    this._bodyEl.removeChild(noKillsEl);
-                }
-                
-                // Initialize necessary container nodes
-                this._killboardEl = document.createElement('ul');
-                this._killboardEl.classList.add(this._config.systemKillboardListClass);
-                
-                this._bodyEl.append(
-                    this._killboardLabelEl,
-                    this._killboardEl
-                );
-            }
-            
             // check if killmail belongs to current filtered "streams"
             if(this.filterKillmailByStreams(killmailData)){
+                
+                if(!this._killboardEl){
+                    // Remove label which indicates that there are no kills
+                    let noKillsEl = this._bodyEl.querySelector('.label-success');
+                    if(noKillsEl){
+                        this._bodyEl.removeChild(noKillsEl);
+                    }
+                    
+                    // Initialize necessary container nodes
+                    this._killboardEl = document.createElement('ul');
+                    this._killboardEl.classList.add(this._config.systemKillboardListClass);
+                    
+                    this._bodyEl.append(
+                        this._killboardLabelEl,
+                        this._killboardEl
+                    );
+                }
+                
+            
+            
                 // check max limit for WS kill entries
                 this._countKillsWS = (this._countKillsWS || 0) + 1;
                 if(this._countKillsWS > this._config.maxCountKillsWS){
