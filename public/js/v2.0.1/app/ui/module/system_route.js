@@ -318,8 +318,6 @@ define([
                         // add "Rally Point" systems to table
                         let systemsToData = module.getRallySystemsData(module._systemData.mapId);
                         systemsToData.push(...systemsTo);
-                        
-                        // set global routeSettings
 
                         module.drawRouteTable(module._systemData.mapId, module._systemFromData, systemsToData);
                     });
@@ -969,7 +967,7 @@ define([
                                         Util.getLocalStore('map').setItem(`${dialogData.mapId}.routes`, systemsToData);
                                     }else{
                                         Util.getLocalStore('map').removeItem(`${dialogData.mapId}.routes`);
-                                    }                                                                    
+                                    }
 
                                     this.showNotify({title: 'Route settings stored', type: 'success'});
 
