@@ -485,11 +485,11 @@ define([
             
             // Here we need to retrieve the stored settings stored as "routeSettings" in the map module. 
             // This can be done with the function :
-            //      Util.getLocalStorage('map').getItem(mapId); 
+            //      Util.getLocalStore('map').getItem(mapId); 
             // however this returns a promise, and I do not know how to make the return below wait for the promise to
             // call back without using something like: 
             //      async getRouteRequestDataFromRowData(rowData, mapId){
-            //          let routeSettings = await Util.getLocalStorage('map').getItem(mapId).routeSettings;
+            //          let routeSettings = await Util.getLocalStore('map').getItem(mapId).routeSettings;
             //          return {
             //              ...
             //          };
