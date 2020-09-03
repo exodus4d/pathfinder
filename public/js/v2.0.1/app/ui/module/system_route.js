@@ -887,13 +887,20 @@ define([
          */
         showSettingsDialog(dialogData){
             Util.getLocalStore('map').getItem(dialogData.mapId).then(dataStore => {
-                // selected systems (if already stored)
+                // selected systems and options (if already stored)
                 let systemSelectOptions = [];
+                let routeSettingsOptions = {};
                 if(
                     dataStore &&
                     dataStore.routes
                 ){
                     systemSelectOptions = dataStore.routes;
+                }
+                if(
+                    dataStore &&
+                    dataStore.routeSettings
+                ){
+                    routeSettingsOptions = dataStore.routeSettings;
                 }
 
                 // max count of "default" target systems
@@ -903,8 +910,9 @@ define([
                     id: this._config.routeSettingsDialogId,
                     selectClass: this._config.systemDialogSelectClass,
                     systemSelectOptions: systemSelectOptions,
-                    maxSelectionLength: maxSelectionLength, //remove comma
+                    maxSelectionLength: maxSelectionLength,
                     // new options
+                    routeSettings: routeSettingsOptions,
                     select2Class: Util.config.select2Class,
                     routeDialogSizeSelectId: this._config.routeDialogSizeSelectId,
                     select2Class: Util.config.select2Class,
@@ -913,9 +921,9 @@ define([
                         name: type,
                         selected: false
                     }))
-
                 };
-
+                console.log(data);
+                
                 requirejs(['text!templates/dialog/route_settings.html', 'mustache'], (template, Mustache) => {
                     let content = Mustache.render(template, data);
 
@@ -937,10 +945,15 @@ define([
                                     
                                     let systemSelectData = form.find('.' + this._config.systemDialogSelectClass).select2('data');
                                     let systemsToData = [];
+                                    if(systemSelectData.length > 0){
+                                        systemsToData = SystemRouteModule.formSystemSelectData(systemSelectData);
+                                        Util.getLocalStore('map').setItem(`${dialogData.mapId}.routes`, systemsToData);
+                                    }else{
+                                        Util.getLocalStore('map').removeItem(`${dialogData.mapId}.routes`);
+                                    }
                                     
                                     // route settings additions
                                     let routeSettingsData = $(form).getFormValues();
-
                                     if(
                                         routeSettingsData
                                     ){
@@ -960,12 +973,6 @@ define([
                                     }
                                     // end route settings additions
 
-                                    if(systemSelectData.length > 0){
-                                        systemsToData = SystemRouteModule.formSystemSelectData(systemSelectData);
-                                        Util.getLocalStore('map').setItem(`${dialogData.mapId}.routes`, systemsToData);
-                                    }else{
-                                        Util.getLocalStore('map').removeItem(`${dialogData.mapId}.routes`);
-                                    }
 
                                     this.showNotify({title: 'Route settings stored', type: 'success'});
 
