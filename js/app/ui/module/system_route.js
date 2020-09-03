@@ -33,7 +33,7 @@ define([
                         });
                         break;
                     case 'findRoute':
-                        this.drawRouteTable(this._systemData.mapId, this._systemFromData, [payload.systemToData]);
+                        this.drawRouteTable(this._systemData.mapId, this._systemFromData, [payload.systemToData], this._routeSettings);
                         break;
                 }
 
@@ -211,7 +211,7 @@ define([
                                 // get current row data (important!)
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 rowData = tableApi.row( $(cell).parents('tr')).data();
-                                let routeData = module.getRouteRequestDataFromRowData(rowData, module._systemData.mapId);
+                                let routeData = module.getRouteRequestDataFromRowData(rowData, module._routeSettings);
 
                                 // overwrite some params
                                 routeData.skipSearch = 0;
@@ -242,7 +242,7 @@ define([
                                 // get current row data (important!)
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 rowData = tableApi.row( $(cell).parents('tr')).data();
-                                let routeData = module.getRouteRequestDataFromRowData(rowData, module._systemData.mapId);
+                                let routeData = module.getRouteRequestDataFromRowData(rowData, module._systemData.mapId, module._routeSettings);
 
                                 // overwrite some params
                                 routeData.skipSearch = 0;
@@ -300,6 +300,9 @@ define([
                     }
                 },
                 initComplete: function(settings, json){
+                    // create global settings object
+                    
+
                     // fill routesTable with data ---------------------------------------------------------------------
                     Util.getLocalStore('map').getItem(module._systemData.mapId).then(dataStore => {
                         // selected systems (if already stored)
@@ -314,12 +317,22 @@ define([
                         ){
                             systemsTo = dataStore.routes;
                         }
+                        
+                        // set global route settings from store
+                        let routeSettings = {};
+                        if(
+                            dataStore &&
+                            dataStore.routeSettings
+                        ){
+                            routeSettings = dataStore.routeSettings
+                        }
+                        module._routeSettings = routeSettings
 
                         // add "Rally Point" systems to table
                         let systemsToData = module.getRallySystemsData(module._systemData.mapId);
                         systemsToData.push(...systemsTo);
 
-                        module.drawRouteTable(module._systemData.mapId, module._systemFromData, systemsToData);
+                        module.drawRouteTable(module._systemData.mapId, module._systemFromData, systemsToData, routeSettings);
                     });
 
                     // click on "fake connection" ---------------------------------------------------------------------
@@ -416,7 +429,7 @@ define([
          * @param systemFromData
          * @param systemsToData
          */
-        drawRouteTable(mapId, systemFromData, systemsToData){
+        drawRouteTable(mapId, systemFromData, systemsToData, routeSettings){
             let requestRouteData = [];
 
             // Skip some routes from search
@@ -441,7 +454,7 @@ define([
                             skipSearch: requestRouteData.length >= defaultRoutesCount
                         };
 
-                        requestRouteData.push(this.getRouteRequestDataFromRowData(searchData, mapId));
+                        requestRouteData.push(this.getRouteRequestDataFromRowData(searchData, routeSettings));
                     }
                 }
             }
@@ -481,40 +494,25 @@ define([
          * @param {Object} rowData
          * @returns {Object}
          */
-        getRouteRequestDataFromRowData(rowData, mapId){
-            
-            // Here we need to retrieve the stored settings stored as "routeSettings" in the map module. 
-            // This can be done with the function :
-            //      Util.getLocalStore('map').getItem(mapId); 
-            // however this returns a promise, and I do not know how to make the return below wait for the promise to
-            // call back without using something like: 
-            //      async getRouteRequestDataFromRowData(rowData, mapId){
-            //          let routeSettings = await Util.getLocalStore('map').getItem(mapId).routeSettings;
-            //          return {
-            //              ...
-            //          };
-            //      }
-            // In theory if the storedLocal data can be retrieved here into a var we can just modify the returned object below
-            // to incorporate these settings like:
-            //      wormholesThera: (rowData.hasOwnProperty('wormholesThera')) ? rowData.wormholesThera | 0 : routeSettings.wormholesThera | 1,
+        getRouteRequestDataFromRowData(rowData, routeSettings){
           
             return {
-                mapIds:             (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
-                systemFromData:     (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
-                systemToData:       (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
-                skipSearch:         (rowData.hasOwnProperty('skipSearch')) ? rowData.skipSearch | 0 : 0,
-                stargates:          (rowData.hasOwnProperty('stargates')) ? rowData.stargates | 0 : 1,
-                jumpbridges:        (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges | 0 : 1,
-                wormholes:          (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
-                wormholesReduced:   (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
-                wormholesCritical:  (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
-                wormholesEOL:       (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
-                wormholesThera:     (rowData.hasOwnProperty('wormholesThera')) ? rowData.wormholesThera | 0 : 1,
-                wormholesSizeMin:   (rowData.hasOwnProperty('wormholesSizeMin')) ? rowData.wormholesSizeMin : '',
-                excludeTypes:       (rowData.hasOwnProperty('excludeTypes')) ? rowData.excludeTypes : [],
-                endpointsBubble:    (rowData.hasOwnProperty('endpointsBubble')) ? rowData.endpointsBubble | 0 : 1,
-                connections:        (rowData.hasOwnProperty('connections')) ? rowData.connections.value | 0 : 0,
-                flag:               (rowData.hasOwnProperty('flag')) ? rowData.flag.value : 'shortest'
+                mapIds:             (rowData.hasOwnProperty('mapIds'))              ? rowData.mapIds                : [],
+                systemFromData:     (rowData.hasOwnProperty('systemFromData'))      ? rowData.systemFromData        : {},
+                systemToData:       (rowData.hasOwnProperty('systemToData'))        ? rowData.systemToData          : {},
+                skipSearch:         (rowData.hasOwnProperty('skipSearch'))          ? rowData.skipSearch        | 0 : 0,
+                stargates:          (rowData.hasOwnProperty('stargates'))           ? rowData.stargates         | 0 : routeSettings.stargates,
+                jumpbridges:        (rowData.hasOwnProperty('jumpbridges'))         ? rowData.jumpbridges       | 0 : routeSettings.jumpbridges,
+                wormholes:          (rowData.hasOwnProperty('wormholes'))           ? rowData.wormholes         | 0 : routeSettings.wormholes,
+                wormholesReduced:   (rowData.hasOwnProperty('wormholesReduced'))    ? rowData.wormholesReduced  | 0 : routeSettings.wormholesReduced,
+                wormholesCritical:  (rowData.hasOwnProperty('wormholesCritical'))   ? rowData.wormholesCritical | 0 : routeSettings.wormholesCritical,
+                wormholesEOL:       (rowData.hasOwnProperty('wormholesEOL'))        ? rowData.wormholesEOL      | 0 : routeSettings.wormholesEOL,
+                wormholesThera:     (rowData.hasOwnProperty('wormholesThera'))      ? rowData.wormholesThera    | 0 : routeSettings.wormholesThera,
+                wormholesSizeMin:   (rowData.hasOwnProperty('wormholesSizeMin'))    ? rowData.wormholesSizeMin      : routeSettings.wormholesSizeMin,
+                excludeTypes:       (rowData.hasOwnProperty('excludeTypes'))        ? rowData.excludeTypes          : routeSettings.excludeTypes,
+                endpointsBubble:    (rowData.hasOwnProperty('endpointsBubble'))     ? rowData.endpointsBubble   | 0 : routeSettings.endpointsBubble,
+                connections:        (rowData.hasOwnProperty('connections'))         ? rowData.connections.value | 0 : 0,
+                flag:               (rowData.hasOwnProperty('flag'))                ? rowData.flag.value            : 'shortest'
             };
         }
 
@@ -972,7 +970,7 @@ define([
                                     this.showNotify({title: 'Route settings stored', type: 'success'});
 
                                     // (re) draw table
-                                    this.drawRouteTable(dialogData.mapId, dialogData.systemFromData, systemsToData);
+                                    this.drawRouteTable(dialogData.mapId, dialogData.systemFromData, systemsToData, routeSettingsData);
                                 }
                             }
                         }
