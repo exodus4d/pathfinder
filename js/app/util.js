@@ -3345,6 +3345,8 @@ define([
         }
     };
 
+
+
     /**
      * get ResizeManager instance
      * @returns {ResizeManager}

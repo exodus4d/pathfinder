@@ -33,7 +33,7 @@ define([
                         });
                         break;
                     case 'findRoute':
-                        this.drawRouteTable(this._systemData.mapId, this._systemFromData, [payload.systemToData]);
+                        this.drawRouteTable(this._systemData.mapId, this._systemFromData, [payload.systemToData], this._routeSettings);
                         break;
                 }
 
@@ -211,7 +211,7 @@ define([
                                 // get current row data (important!)
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 rowData = tableApi.row( $(cell).parents('tr')).data();
-                                let routeData = module.getRouteRequestDataFromRowData(rowData);
+                                let routeData = module.getRouteRequestDataFromRowData(rowData, module._routeSettings);
 
                                 // overwrite some params
                                 routeData.skipSearch = 0;
@@ -242,7 +242,7 @@ define([
                                 // get current row data (important!)
                                 // -> "rowData" param is not current state, values are "on createCell()" state
                                 rowData = tableApi.row( $(cell).parents('tr')).data();
-                                let routeData = module.getRouteRequestDataFromRowData(rowData);
+                                let routeData = module.getRouteRequestDataFromRowData(rowData, module._systemData.mapId, module._routeSettings);
 
                                 // overwrite some params
                                 routeData.skipSearch = 0;
@@ -300,6 +300,9 @@ define([
                     }
                 },
                 initComplete: function(settings, json){
+                    // create global settings object
+                    
+
                     // fill routesTable with data ---------------------------------------------------------------------
                     Util.getLocalStore('map').getItem(module._systemData.mapId).then(dataStore => {
                         // selected systems (if already stored)
@@ -314,12 +317,22 @@ define([
                         ){
                             systemsTo = dataStore.routes;
                         }
+                        
+                        // set global route settings from store
+                        let routeSettings = {};
+                        if(
+                            dataStore &&
+                            dataStore.routeSettings
+                        ){
+                            routeSettings = dataStore.routeSettings
+                        }
+                        module._routeSettings = routeSettings
 
                         // add "Rally Point" systems to table
                         let systemsToData = module.getRallySystemsData(module._systemData.mapId);
                         systemsToData.push(...systemsTo);
 
-                        module.drawRouteTable(module._systemData.mapId, module._systemFromData, systemsToData);
+                        module.drawRouteTable(module._systemData.mapId, module._systemFromData, systemsToData, routeSettings);
                     });
 
                     // click on "fake connection" ---------------------------------------------------------------------
@@ -416,7 +429,7 @@ define([
          * @param systemFromData
          * @param systemsToData
          */
-        drawRouteTable(mapId, systemFromData, systemsToData){
+        drawRouteTable(mapId, systemFromData, systemsToData, routeSettings){
             let requestRouteData = [];
 
             // Skip some routes from search
@@ -441,7 +454,7 @@ define([
                             skipSearch: requestRouteData.length >= defaultRoutesCount
                         };
 
-                        requestRouteData.push(this.getRouteRequestDataFromRowData(searchData));
+                        requestRouteData.push(this.getRouteRequestDataFromRowData(searchData, routeSettings));
                     }
                 }
             }
@@ -481,24 +494,25 @@ define([
          * @param {Object} rowData
          * @returns {Object}
          */
-        getRouteRequestDataFromRowData(rowData){
+        getRouteRequestDataFromRowData(rowData, routeSettings){
+          
             return {
-                mapIds:             (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
-                systemFromData:     (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
-                systemToData:       (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
-                skipSearch:         (rowData.hasOwnProperty('skipSearch')) ? rowData.skipSearch | 0 : 0,
-                stargates:          (rowData.hasOwnProperty('stargates')) ? rowData.stargates | 0 : 1,
-                jumpbridges:        (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges | 0 : 1,
-                wormholes:          (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
-                wormholesReduced:   (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
-                wormholesCritical:  (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
-                wormholesEOL:       (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
-                wormholesThera:     (rowData.hasOwnProperty('wormholesThera')) ? rowData.wormholesThera | 0 : 1,
-                wormholesSizeMin:   (rowData.hasOwnProperty('wormholesSizeMin')) ? rowData.wormholesSizeMin : '',
-                excludeTypes:       (rowData.hasOwnProperty('excludeTypes')) ? rowData.excludeTypes : [],
-                endpointsBubble:    (rowData.hasOwnProperty('endpointsBubble')) ? rowData.endpointsBubble | 0 : 1,
-                connections:        (rowData.hasOwnProperty('connections')) ? rowData.connections.value | 0 : 0,
-                flag:               (rowData.hasOwnProperty('flag')) ? rowData.flag.value : 'shortest'
+                mapIds:             (rowData.hasOwnProperty('mapIds'))              ? rowData.mapIds                : [],
+                systemFromData:     (rowData.hasOwnProperty('systemFromData'))      ? rowData.systemFromData        : {},
+                systemToData:       (rowData.hasOwnProperty('systemToData'))        ? rowData.systemToData          : {},
+                skipSearch:         (rowData.hasOwnProperty('skipSearch'))          ? rowData.skipSearch        | 0 : 0,
+                stargates:          (rowData.hasOwnProperty('stargates'))           ? rowData.stargates         | 0 : routeSettings.stargates,
+                jumpbridges:        (rowData.hasOwnProperty('jumpbridges'))         ? rowData.jumpbridges       | 0 : routeSettings.jumpbridges,
+                wormholes:          (rowData.hasOwnProperty('wormholes'))           ? rowData.wormholes         | 0 : routeSettings.wormholes,
+                wormholesReduced:   (rowData.hasOwnProperty('wormholesReduced'))    ? rowData.wormholesReduced  | 0 : routeSettings.wormholesReduced,
+                wormholesCritical:  (rowData.hasOwnProperty('wormholesCritical'))   ? rowData.wormholesCritical | 0 : routeSettings.wormholesCritical,
+                wormholesEOL:       (rowData.hasOwnProperty('wormholesEOL'))        ? rowData.wormholesEOL      | 0 : routeSettings.wormholesEOL,
+                wormholesThera:     (rowData.hasOwnProperty('wormholesThera'))      ? rowData.wormholesThera    | 0 : routeSettings.wormholesThera,
+                wormholesSizeMin:   (rowData.hasOwnProperty('wormholesSizeMin'))    ? rowData.wormholesSizeMin      : routeSettings.wormholesSizeMin,
+                excludeTypes:       (rowData.hasOwnProperty('excludeTypes'))        ? rowData.excludeTypes          : routeSettings.excludeTypes,
+                endpointsBubble:    (rowData.hasOwnProperty('endpointsBubble'))     ? rowData.endpointsBubble   | 0 : routeSettings.endpointsBubble,
+                connections:        (rowData.hasOwnProperty('connections'))         ? rowData.connections.value | 0 : 0,
+                flag:               (rowData.hasOwnProperty('flag'))                ? rowData.flag.value            : 'shortest'
             };
         }
 
@@ -532,7 +546,7 @@ define([
             let routeData = [];
 
             this._tableApi.rows().every(function(){
-                routeData.push(module.getRouteRequestDataFromRowData(this.data()));
+                routeData.push(module.getRouteRequestDataFromRowData(this.data(), module._systemData.mapId));
             });
 
             this.getRouteData({routeData: routeData}, 'callbackAddRouteRows');
@@ -873,13 +887,20 @@ define([
          */
         showSettingsDialog(dialogData){
             Util.getLocalStore('map').getItem(dialogData.mapId).then(dataStore => {
-                // selected systems (if already stored)
+                // selected systems and options (if already stored)
                 let systemSelectOptions = [];
+                let routeSettingsOptions = {};
                 if(
                     dataStore &&
                     dataStore.routes
                 ){
                     systemSelectOptions = dataStore.routes;
+                }
+                if(
+                    dataStore &&
+                    dataStore.routeSettings
+                ){
+                    routeSettingsOptions = dataStore.routeSettings;
                 }
 
                 // max count of "default" target systems
@@ -889,9 +910,19 @@ define([
                     id: this._config.routeSettingsDialogId,
                     selectClass: this._config.systemDialogSelectClass,
                     systemSelectOptions: systemSelectOptions,
-                    maxSelectionLength: maxSelectionLength
+                    maxSelectionLength: maxSelectionLength,
+                    // new options
+                    routeSettings: routeSettingsOptions,
+                    select2Class: Util.config.select2Class,
+                    routeDialogSizeSelectId: this._config.routeDialogSizeSelectId,
+                    select2Class: Util.config.select2Class,
+                    sizeOptions: MapUtil.allConnectionJumpMassTypes().map(type => ({
+                        id: type,
+                        name: type,
+                        selected: false
+                    }))
                 };
-
+                
                 requirejs(['text!templates/dialog/route_settings.html', 'mustache'], (template, Mustache) => {
                     let content = Mustache.render(template, data);
 
@@ -910,20 +941,42 @@ define([
                                 callback: e => {
                                     let form = $(e.delegateTarget).find('form');
                                     // get all system data from select2
+                                    
                                     let systemSelectData = form.find('.' + this._config.systemDialogSelectClass).select2('data');
                                     let systemsToData = [];
-
                                     if(systemSelectData.length > 0){
                                         systemsToData = SystemRouteModule.formSystemSelectData(systemSelectData);
                                         Util.getLocalStore('map').setItem(`${dialogData.mapId}.routes`, systemsToData);
                                     }else{
                                         Util.getLocalStore('map').removeItem(`${dialogData.mapId}.routes`);
                                     }
+                                    
+                                    // route settings additions
+                                    let routeSettingsData = $(form).getFormValues();
+                                    if(
+                                        routeSettingsData
+                                    ){
+                                        let routeSettings = {
+                                            stargates: routeSettingsData.hasOwnProperty('stargates') ? parseInt(routeSettingsData.stargates) : 0,
+                                            jumpbridges: routeSettingsData.hasOwnProperty('jumpbridges') ? parseInt(routeSettingsData.jumpbridges) : 0,
+                                            wormholes: routeSettingsData.hasOwnProperty('wormholes') ? parseInt(routeSettingsData.wormholes) : 0,
+                                            wormholesReduced: routeSettingsData.hasOwnProperty('wormholesReduced') ? parseInt(routeSettingsData.wormholesReduced) : 0,
+                                            wormholesCritical: routeSettingsData.hasOwnProperty('wormholesCritical') ? parseInt(routeSettingsData.wormholesCritical) : 0,
+                                            wormholesEOL: routeSettingsData.hasOwnProperty('wormholesEOL') ? parseInt(routeSettingsData.wormholesEOL) : 0,
+                                            wormholesThera: routeSettingsData.hasOwnProperty('wormholesThera') ? parseInt(routeSettingsData.wormholesThera) : 0,
+                                            wormholesSizeMin: routeSettingsData.wormholesSizeMin || '',
+                                            excludeTypes: SystemRouteModule.getLowerSizeConnectionTypes(routeSettingsData.wormholesSizeMin),
+                                            endpointsBubble: routeSettingsData.hasOwnProperty('endpointsBubble') ? parseInt(routeSettingsData.endpointsBubble) : 0,
+                                        };
+                                        Util.getLocalStore('map').setItem(`${dialogData.mapId}.routeSettings`, routeSettings);
+                                    }
+                                    // end route settings additions
+
 
                                     this.showNotify({title: 'Route settings stored', type: 'success'});
 
                                     // (re) draw table
-                                    this.drawRouteTable(dialogData.mapId, dialogData.systemFromData, systemsToData);
+                                    this.drawRouteTable(dialogData.mapId, dialogData.systemFromData, systemsToData, routeSettingsData);
                                 }
                             }
                         }
@@ -935,6 +988,9 @@ define([
                         // -> add some delay until modal transition has finished
                         let systemTargetSelect = $(e.target).find('.' + this._config.systemDialogSelectClass);
                         systemTargetSelect.delay(240).initSystemSelect({key: 'id', maxSelectionLength: maxSelectionLength});
+
+                        // init connection jump size select -------------------------------------------------------------------
+                        $(e.target).find('#' + this._config.routeDialogSizeSelectId).initConnectionSizeSelect();
                     });
 
                     // show dialog
