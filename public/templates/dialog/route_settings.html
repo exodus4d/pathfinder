@@ -1,3 +1,36 @@
+<script>
+    // populate form with data from localStore
+    $(document).ready(function(){
+        if({{routeSettings.wormholes}} == 0){
+            $('#form_wormholes').prop('checked', false);
+        }
+        if({{routeSettings.wormholesReduced}} == 0){
+            $('#form_wormholes_reduced').prop('checked', false);
+        }
+        if({{routeSettings.wormholesCritical}} == 0){
+            $('#form_wormholes_critical').prop('checked', false);
+        }
+        if({{routeSettings.wormholesEOL}} == 0){
+            $('#form_wormholes_eol').prop('checked', false);
+        }
+        if({{routeSettings.stargates}} == 0){
+            $('#form_stargates').prop('checked', false);
+        }
+        if({{routeSettings.jumpbridges}} == 0){
+            $('#form_jumpbridges').prop('checked', false);
+        }
+        if({{routeSettings.wormholesThera}} == 0){
+            $('#form_connections_thera').prop('checked', false);
+        }
+        if({{routeSettings.endpointsBubble}} == 0){
+            $('#form_endpoints_bubble').prop('checked', false);
+        }
+        if('{{routeSettings.wormholesSizeMin}}' !== ''){
+        $('#pf-route-dialog-size-select').val('{{routeSettings.wormholesSizeMin}}').change();
+        }
+    })
+</script>
+
 <div id="{{id}}">
     <form  role="form" class="form-horizontal">
 
