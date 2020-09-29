@@ -1267,7 +1267,6 @@ table{
   cursor: -moz-grab;
   cursor: -webkit-grab;
   cursor: grab;
-  margin-right: 5px;                    // makes space for tag
 }
 
 .pf-system-sec-highSec{
@@ -1312,6 +1311,12 @@ table{
 
 .pf-system-sec-drifter{
   color: $aqua;
+}
+
+// system tag ==================================================================================
+
+.pf-system-head-tag{
+  margin-right: 5px;
 }
 
 // system status ==================================================================================
