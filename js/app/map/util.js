@@ -254,6 +254,24 @@ define([
         return Util.getObjVal(Init.classes.systemEffects, `${effect}.${option}`) || '';
     };
 
+
+    let getSystemSecurityForDisplay = (security) => {
+        const securityMapping = {
+            '0.0': 'NS',
+            'L': 'LS',
+            'H': 'HS'
+        };
+        return securityMapping.hasOwnProperty(security) ? securityMapping[security] : security;
+    };
+
+    let getAlphabetTagFromInt = (int) => {
+        if (int === "") {
+            return ""
+        }
+
+        return String.fromCharCode(64 + parseInt(int)).toLowerCase();
+    }
+
     /**
      * flag map component (map, system, connection) as "changed"
      * @param component
@@ -2209,6 +2227,8 @@ define([
         getConnectionData: getConnectionData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
+        getSystemSecurityForDisplay: getSystemSecurityForDisplay,
+        getAlphabetTagFromInt: getAlphabetTagFromInt,
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,

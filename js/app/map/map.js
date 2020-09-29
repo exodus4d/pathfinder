@@ -447,12 +447,12 @@ define([
                     class: config.systemHeadClass
                 }).append(
                     $('<span>', {
-                        class: [config.systemHeadTagClass, secClass].join(' ')
-                    }).attr('data-value', data.tag),
-                    $('<span>', {
                         class: [config.systemSec, secClass].join(' '),
                         text: MapUtil.getSystemSecurityForDisplay(data.security)
                     }),
+                    $('<span>', {
+                        class: [config.systemHeadTagClass, secClass].join(' ')
+                    }).attr('data-value', MapUtil.getAlphabetTagFromInt(data.tag)),
                     // System name is editable
                     $('<span>', {
                         class: systemHeadClasses.join(' '),
@@ -1694,7 +1694,7 @@ define([
             }, 0, inputElement);
         });
 
-        headElement.on('hidden', function(e, editable){
+        headElements.on('hidden', function(e, editable){
             // show tooltip "again" on xEditable hidden
             system.toggleSystemTooltip('show', {show: true});
 
@@ -2198,9 +2198,9 @@ define([
             }
         }
 
-        // update name class
-        let nameClass = Util.getNameClassForSystem(system.data('locked'), system.data('effect'));
-        system.find('.' + config.systemHeadNameClass).attr('class', [config.systemHeadNameClass, nameClass].join(' ') );
+        // // update name class
+        // let nameClass = Util.getNameClassForSystem(system.data('locked'), system.data('effect'));
+        // system.find('.' + config.systemHeadNameClass).attr('class', [config.systemHeadNameClass, nameClass].join(' ') );
 
         // repaint connections
         revalidate(map, system);
