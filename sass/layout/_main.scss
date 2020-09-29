@@ -1263,7 +1263,6 @@ table{
   display: inline-block;                // fixed "blurry" text in scaled parent
   transform: translateY(0);             // s.o.
   -webkit-font-smoothing: antialiased;  // s.o.
-  margin-right: 5px;
   cursor: -moz-grab;
   cursor: -webkit-grab;
   cursor: grab;

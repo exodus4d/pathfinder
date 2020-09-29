@@ -264,12 +264,11 @@ define([
         return securityMapping.hasOwnProperty(security) ? securityMapping[security] : security;
     };
 
-    let getAlphabetTagFromInt = (int) => {
-        if (int === "") {
-            return ""
+    let getAlphabetTagFromInt = (tag) => {
+        if (isNaN(tag) || tag === "" ) {
+            return tag
         }
-
-        return String.fromCharCode(64 + parseInt(int)).toLowerCase();
+        return String.fromCharCode(64 + parseInt(tag)).toLowerCase();
     }
 
     /**
