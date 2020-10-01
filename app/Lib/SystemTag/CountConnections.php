@@ -17,35 +17,39 @@ class CountConnections implements SystemTagInterface
      * @throws \Exception
      */
     static function generateFor(SystemModel $targetSystem, SystemModel $sourceSystem, MapModel $map) : ?string
-    {
-        $whConnections = array_filter($sourceSystem->getConnections(), function (ConnectionModel $connection) {
-            return $connection->isWormhole();
-        });
-        $countWhConnections = count($whConnections);
-
-        // If the source system is locked and has statics we assume it's our home
-        // First static is always "1", second always "2" etc., K-connections always start after that and count up
-        $statics = $sourceSystem->get_statics();
-        if($sourceSystem->locked && is_array($statics) && count($statics)) {
-            $staticTypeModels = AbstractUniverseModel::getNew('TypeModel')->find(['name IN ?', preg_filter('/^/', 'Wormhole ', $statics)]);
-            if($staticTypeModels) {
-                $i = 0;
-                // Loop over statics till we find one matching the $targetSystem's security
-                foreach($staticTypeModels as $static) {
-                    $i++;
-                    // Security of static and $targetSystem match -> tag as static number X
-                    if($targetSystem->security === $static->getWormholeData()->security) {
-                        return $i;
-                    }
-                }
+    {                       
+        // set target class for new system being added to the map
+        $targetClass = $targetSystem->security;
+        
+        // Get all systems from active map
+        $systems = $map->getSystemsData();
+                
+        // empty array to append tags to
+        $tags = array();
+        
+        // iterate over systems and append tag to $tags if security matches targetSystem security
+        foreach ($systems as $system) {
+            if ($system->security === $targetClass) {
+                array_push($tags, $system->tag);
             }
-            // No static matched: count wh connections but reserve at least the number of statics
-            return max(count($statics), $countWhConnections) + 1;
+        };            
+        
+        // sort tags array and iterate to return first empty value
+        sort($tags);
+        $i = 0;
+        while($tags[$i] == $i + 1) {
+            $i++;
         }
-
-        // New connection did not start in "home" -> tag by counting connections
-        // Dont +1 because we don't want to count one "incoming" connection
-        // But never use 0 (e.g. when a new chain is opened from a K-space system)
-        return max($countWhConnections, 1);
+        
+        // REMOVE DEBUGGING
+        $debugfile = fopen("debuglog.txt", "w");
+        fwrite($debugfile, "security: $targetClass\n");
+        $mapsize = count($systems);
+        fwrite($debugfile, "map-size: $mapsize\n");
+        fwrite($debugfile, print_r($tags, true));
+        fwrite($debugfile, "i: $i\n");
+        fclose($debugfile);
+        
+        return $i + 1;
     }
 }
