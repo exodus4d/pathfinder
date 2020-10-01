@@ -257,9 +257,9 @@ define([
 
     let getSystemSecurityForDisplay = (security) => {
         const securityMapping = {
-            '0.0': 'NS',
-            'L': 'LS',
-            'H': 'HS'
+            '0.0': 'ns',
+            'L': 'ls',
+            'H': 'hs'
         };
         return securityMapping.hasOwnProperty(security) ? securityMapping[security] : security;
     };
