@@ -804,7 +804,7 @@ define([
                         Util.getSecurityClassForSystem(staticData.security),
                         Util.config.popoverTriggerClass
                     ].join(' '),
-                    textContent: MapUtil.getSystemSecurityForDisplay(staticData.security.toLowerCase())
+                    textContent: MapUtil.getSystemSecurityForDisplay(staticData.security).toLowerCase()
                 });
                 staticEl.dataset.name = staticData.name;
                 headInfoRight.push(staticEl);
