@@ -264,11 +264,20 @@ define([
         return securityMapping.hasOwnProperty(security) ? securityMapping[security] : security;
     };
 
+    /**
+     * convert an integer tag value into characters, if value is greater than 25 it will warp in excel column style of x,y,z,aa,ab, etc
+     * @param tag 
+     * @returns {string}
+     */
+
     let getAlphabetTagFromInt = (tag) => {
         if (isNaN(tag) || tag === "" ) {
             return tag
         }
-        return String.fromCharCode(64 + parseInt(tag)).toLowerCase();
+        if (tag > 25){
+            return [String.fromCharCode(97 + Math.floor(tag / 26) - 1), String.fromCharCode(97 + tag - (Math.floor(tag / 26) * 26))].join('');
+        }
+        return String.fromCharCode(97 + parseInt(tag)).toLowerCase();
     }
 
     /**
