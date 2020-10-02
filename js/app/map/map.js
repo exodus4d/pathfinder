@@ -448,7 +448,7 @@ define([
                 }).append(
                     $('<span>', {
                         class: [config.systemSec, secClass].join(' '),
-                        text: MapUtil.getSystemSecurityForDisplay(data.security.toLowerCase())
+                        text: MapUtil.getSystemSecurityForDisplay(data.security).toLowerCase()
                     }),
                     $('<span>', {
                         class: [config.systemHeadTagClass, secClass].join(' ')
@@ -540,7 +540,7 @@ define([
 
             let tag = system.getSystemInfo(['tag']);
             if(tag !== data.tag){
-                system.find('.' + config.systemHeadTagClass).editable('setValue', data.tag);
+                system.find('.' + config.systemHeadTagClass).editable('setValue', MapUtil.getIntFromAlphabet(data.tag));
             }
         }
 

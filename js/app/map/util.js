@@ -280,6 +280,22 @@ define([
         return String.fromCharCode(97 + parseInt(tag)).toLowerCase();
     }
 
+        /**
+     * convert an alpabet tag value into integer
+     * @param tag 
+     * @returns {int}
+     */
+
+    let getIntFromAlphabet = (tag) => {
+        if (tag.length === 1) {
+            int = tag.charCodeAt() - 97;
+        } else {
+            chars = tag.split('')	
+            int = ((chars[0].charCodeAt() - 96) * 26) + (chars[1].charCodeAt() - 97)
+        }
+        return int;
+    }
+
     /**
      * flag map component (map, system, connection) as "changed"
      * @param component
@@ -2237,6 +2253,7 @@ define([
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemSecurityForDisplay: getSystemSecurityForDisplay,
         getAlphabetTagFromInt: getAlphabetTagFromInt,
+        getIntFromAlphabet: getIntFromAlphabet,
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,
