@@ -34,13 +34,22 @@ class CountConnections implements SystemTagInterface
             }
         };            
         
-        // sort tags array and iterate to return first empty value
+        // sort tags array and iterate to return first empty value 
         sort($tags);
         $tag = 0;
-        while($tags[$tag] == $tag + 1) {
+        while($tags[$tag] === $tag) {
             $tag++;
         }
 
-        return $tag + 1;
+        // REMOVE DEBUGGING
+        $debugfile = fopen("debuglog.txt", "a");
+        fwrite($debugfile, "security: $targetClass\n");
+        $mapsize = count($systems);
+        fwrite($debugfile, "map-size: $mapsize\n");
+        fwrite($debugfile, print_r($tags, true));
+        fwrite($debugfile, "tag: $tag\n");
+        fclose($debugfile);
+
+        return $tag;
     }
 }
