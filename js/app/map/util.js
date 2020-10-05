@@ -282,25 +282,9 @@ define([
         const securityMapping = {
             'ns': '0.0',
             'ls': 'L',
-            'hs': 'H'
+            'hs': 'H',
         }
         return securityMapping.hasOwnProperty(sec) ? securityMapping[sec] : sec.toUpperCase();
-    }
-
-        /**
-     * convert an alpabet tag value into integer
-     * @param tag 
-     * @returns {int}
-     */
-
-    let getIntFromAlphabet = (tag) => {
-        if (tag.length === 1) {
-            int = tag.charCodeAt() - 97;
-        } else {
-            chars = tag.split('')	
-            int = ((chars[0].charCodeAt() - 96) * 26) + (chars[1].charCodeAt() - 97)
-        }
-        return int;
     }
 
     /**

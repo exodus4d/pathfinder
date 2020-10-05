@@ -540,7 +540,7 @@ define([
 
             let tag = system.getSystemInfo(['tag']);
             if(tag !== data.tag){
-                system.find('.' + config.systemHeadTagClass).editable('setValue', MapUtil.getIntFromAlphabet(data.tag));
+                system.find('.' + config.systemHeadTagClass).editable('setValue', data.tag);
             }
         }
 
