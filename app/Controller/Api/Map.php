@@ -972,6 +972,11 @@ class Map extends Controller\AccessController {
                         ){
                             $connection->logMass($targetLog);
                         }
+                        
+                        // update Tags =================================================================================
+                        $map->nextBookmarks = SystemTag::nextBookmarks($map);
+                        $activeCharacter = $this->getCharacter();
+                        $map->save($activeCharacter);
                     }
                 }
             }

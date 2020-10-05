@@ -265,38 +265,6 @@ define([
     };
 
     /**
-     * convert an integer tag value into characters, if value is greater than 25 it will warp in excel column style of x,y,z,aa,ab, etc
-     * @param tag 
-     * @returns {string}
-     */
-
-    let getAlphabetTagFromInt = (tag) => {
-        if (isNaN(tag) || tag === "" ) {
-            return tag
-        }
-        if (tag > 25){
-            return [String.fromCharCode(97 + Math.floor(tag / 26) - 1), String.fromCharCode(97 + tag - (Math.floor(tag / 26) * 26))].join('');
-        }
-        return String.fromCharCode(97 + parseInt(tag)).toLowerCase();
-    }
-
-        /**
-     * convert an alpabet tag value into integer
-     * @param tag 
-     * @returns {int}
-     */
-
-    let getIntFromAlphabet = (tag) => {
-        if (tag.length === 1) {
-            int = tag.charCodeAt() - 97;
-        } else {
-            chars = tag.split('')	
-            int = ((chars[0].charCodeAt() - 96) * 26) + (chars[1].charCodeAt() - 97)
-        }
-        return int;
-    }
-
-    /**
      * flag map component (map, system, connection) as "changed"
      * @param component
      */
@@ -2252,8 +2220,6 @@ define([
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemSecurityForDisplay: getSystemSecurityForDisplay,
-        getAlphabetTagFromInt: getAlphabetTagFromInt,
-        getIntFromAlphabet: getIntFromAlphabet,
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,
