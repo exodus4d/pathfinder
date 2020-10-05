@@ -6,6 +6,7 @@ use Exodus4D\Pathfinder\Model\Pathfinder\ConnectionModel;
 use Exodus4D\Pathfinder\Model\Pathfinder\MapModel;
 use Exodus4D\Pathfinder\Model\Pathfinder\SystemModel;
 use Exodus4D\Pathfinder\Model\Universe\AbstractUniverseModel;
+use Exodus4D\Pathfinder\Lib\SystemTag;
 
 class CountConnections implements SystemTagInterface
 {
@@ -35,37 +36,42 @@ class CountConnections implements SystemTagInterface
         };
 
         // REMOVE DEBUGGING
-        $debugfile = fopen("debuglog.txt", "a");
+        $debugfile = fopen("jumplog.txt", "a");
         fwrite($debugfile, "security: $targetClass\n");
         fwrite($debugfile, print_r($tags, true));
 
         // try to assign "s(tatic)" tag to connections from our home by checking if source is locked, 
         // if dest is static, and finally if "s" (18) tag is already taken
         if ($sourceSystem->locked){
+            fwrite($debugfile, "system is locked\n");
             if($targetClass == "C5" || $targetClass == "0.0" ){
-                if(!in_array(18, $tags)) {
-                    return 18;
+                fwrite($debugfile, "target class is $targetClass\n");
+                if(!in_array('s', $tags)) {
+                    fwrite($debugfile, "s is not assigned\n");
+                    return 's';
                 }
             }
         }
 
-        // return 0 if array is empty
+        // return 'a' if array is empty
         if (count($tags) === 0) {
-            return 0;
+            return 'a';
         }
 
         // sort and uniq tags array and iterate to return first empty value 
         sort($tags);
         $tags = array_unique($tags);           
-        $tag = 0;
-        while($tags[$tag] == $tag) {
-            $tag++;
+        $i = 0;
+        while($tags[$i] == $i) {
+            $i++;
         }
         
-        // REMOVE DEBUGGING        
-        fwrite($debugfile, "tag: $tag\n");
-        fclose($debugfile);
+        $char = SystemTag::intToTag($i);
 
-        return $tag;
+        // REMOVE DEBUGGING                
+        fwrite($debugfile, "char: $char\n");
+        fclose($debugfile);
+        
+        return $char;
     }
 }

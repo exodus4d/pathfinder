@@ -452,7 +452,7 @@ define([
                     }),
                     $('<span>', {
                         class: [config.systemHeadTagClass, secClass].join(' ')
-                    }).attr('data-value', MapUtil.getAlphabetTagFromInt(data.tag)),
+                    }).attr('data-value', data.tag),
                     // System name is editable
                     $('<span>', {
                         class: systemHeadClasses.join(' '),
@@ -540,7 +540,7 @@ define([
 
             let tag = system.getSystemInfo(['tag']);
             if(tag !== data.tag){
-                system.find('.' + config.systemHeadTagClass).editable('setValue', MapUtil.getIntFromAlphabet(data.tag));
+                system.find('.' + config.systemHeadTagClass).editable('setValue', data.tag);
             }
         }
 
