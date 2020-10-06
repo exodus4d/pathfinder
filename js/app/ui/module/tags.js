@@ -1,15 +1,16 @@
-define([                // dependencies for this module
-  'module/base',      // abstract `parent` module class definition [required]
-  'app/map/util',
-  'app/util'
-], (BaseModule, MapUtil, Util) => {
-  'use strict';
+define([      
+    'jquery',           // dependencies for this module
+    'module/base',      // abstract `parent` module class definition [required]
+    'app/map/util',
+    'app/util'
+], ($, BaseModule, MapUtil, Util) => {
+    'use strict';
 
-  /**
-   * TagsModule class
-   * -> skeleton for custom module plugins
-   * @type {TagsModule}
-   */
+    /**
+     * TagsModule class
+     * -> skeleton for custom module plugins
+     * @type {TagsModule}
+     */
     let TagsModule = class TagsModule extends BaseModule {
         constructor(config = {}) {
             super(Object.assign({}, new.target.defaultConfig, config));
@@ -23,38 +24,60 @@ define([                // dependencies for this module
          * @param systemData
          * @returns {HTMLElement}
          */
-        render(mapId){
-            this._mapId = mapId;
-
-            // ... append your custom module body
+        render(mapId){            
             this._bodyEl = Object.assign(document.createElement('div'), {
                 className: this._config.bodyClassName
             });
 
-            this.moduleElement.append(this._bodyEl);
-            let content = "nope";
-            // var content = JSON.stringify(BaseModule.Util.getCurrentMapData(mapId, 'config.name'))
-            let activeMap = BaseModule.Util.getMapModule().getActiveMap();
-            if(activeMap){
-               var mapData = Util.getCurrentMapData(mapId);
-               content = mapData.config.name
-            }
+            let tags = this.getTagList(mapId);
             
-
-            this._bodyEl.append(content);
-
+            // let content = "";        
+            // tags.forEach(pair => content += (pair.join(': ') + ", "));
+            // this._bodyEl.append(content + "\n");
+                    
+            // this.buildDisplayElements(tags);        
+            
+            this.moduleElement.append(this._bodyEl);
             this.initTagModule();
 
             return this.moduleElement;
         }
 
         /**
-         * init module
+         * init tag list
          */
         initTagModule(){
             super.init();
+        }   
+        
+        getTagList(mapId){                
+                let currentTags = [];
+                let securityClasses = ['H', 'L', '0.0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
+
+                let activeMap = BaseModule.Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    var mapData = Util.getCurrentMapData(mapId);
+                    currentTags = mapData.config.nextBookmarks.split(',');
+                    console.log(currentTags);
+                }
+                var displayTags = securityClasses.map(function(k, i) {
+                    return [k, currentTags[i]];
+                });
+            return displayTags;
         }
 
+        buildDisplayElements(tagsArr){
+            tagsArr.forEach( tag => {
+                let secClass = Util.getSecurityClassForSystem(tag[0]);
+                let systemSpan  = Object.assign(document.createElement('span'), {                    
+                    className: [this._config.systemSec, secClass].join(' '),
+                    style: "margin-right: 5px;"
+                })
+                systemSpan.innerHTML = MapUtil.getSystemSecurityForDisplay(tag[0]).toLowerCase() + tag[1];
+                this._bodyEl.append(systemSpan);
+            })
+
+        }
         beforeHide(){
             super.beforeHide();
         }
@@ -92,17 +115,19 @@ define([                // dependencies for this module
         // }
     };
 
-  TagsModule.isPlugin = true;                            // module is defined as 'plugin'
-  TagsModule.scope = 'global';                           // module scope controls how module gets updated and what type of data is injected
-  TagsModule.sortArea = 'b';                             // default sortable area
-  TagsModule.position = 15;                              // default sort/order position within sortable area
-  TagsModule.label = 'Bookmark Tags';                            // static module label (e.g. description)
+TagsModule.isPlugin = true;                            // module is defined as 'plugin'
+TagsModule.scope = 'global';                           // module scope controls how module gets updated and what type of data is injected
+TagsModule.sortArea = 'b';                             // default sortable area
+TagsModule.position = 15;                              // default sort/order position within sortable area
+TagsModule.label = 'Bookmark Tags';                    // static module label (e.g. description)
 
-  TagsModule.defaultConfig = {
-      className: 'pf-system-tag-module',                // class for module
-      sortTargetAreas: ['a', 'b', 'c'],                   // sortable areas where module can be dragged into
-      headline: 'Bookmark Tags',
-  };
+TagsModule.defaultConfig = {
+    className: 'pf-system-tag-module',                // class for module
+    innerClassName: 'pf-system-tag-inner',
+    sortTargetAreas: ['a', 'b', 'c'],                 // sortable areas where module can be dragged into
+    headline: 'Bookmark Tags',    
+    systemSec: 'pf-system-sec'                        // system security classes
+};
 
-  return TagsModule;
+return TagsModule;
 });

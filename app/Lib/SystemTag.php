@@ -37,32 +37,48 @@ class SystemTag {
         
         $systems = $map->getSystemsData();
         $systemClasses = ['H', 'L', '0.0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
-        $tags = array();
+        $tags = array();                
 
-        // REMOVE DEBUGGING
-        $debugfile = fopen("taglog.txt", "a");        
-        fwrite($debugfile, print_r($systemClasses, true));
-
-        foreach($systemClasses as $systemClass){
-            fwrite($debugfile, "starting loop for class: $systemClass\n");
-            $i = 0;
+        foreach($systemClasses as $systemClass){                        
+            $tagsInUse = array();
+            
             foreach($systems as $system){
-                if($system->security == $systemClass && !$system->locked && $system->tag !== 's'){
-                    $i++;
+                if($system->security == $systemClass && !$system->locked){
+                    array_push($tagsInUse, SystemTag::tagToInt($system->tag));
                 }
-                fwrite($debugfile, "i: $i, sec: $system->security, name: $system->name, tag: $system->tag\n");
             }
-            array_push($tags, SystemTag::intToTag($i));
-        }
-        // REMOVE DEBUGGING                
-        $rr = implode(',' ,$tags);
-        fwrite($debugfile, "final tags: [$rr]\n");
-        fclose($debugfile);
+            sort($tagsInUse);
 
-        return implode(',', $tags);
+            // REMOVE DEBUGGING                                        
+            $availableTags = array();
+            $i = 0;
+            while(count($availableTags) < 3) {
+                if(!in_array($i, $tagsInUse)) {
+                    array_push($availableTags, SystemTag::intToTag($i));
+                }
+                $i++;
+            }
+
+            // REMOVE DEBUGGING
+            $debugfile = fopen("taglog.txt", "a");                 
+            $sortedTags = json_encode($tagsInUse);
+            $available = json_encode($availableTags);
+            fwrite($debugfile, "$systemClass - in use: $sortedTags - available: $available\n");            
+            // REMOVE DEBUGGING 
+
+            array_push($tags, $availableTags);
+        }
+
+        // REMOVE DEBUGGING                
+        $rr = json_encode($tags);
+        fwrite($debugfile, "final tags: $rr\n");
+        fclose($debugfile);
+        // REMOVE DEBUGGING 
+
+        return json_encode($tags);
     }
 
-     /**
+    /**
      * converts integer to character tag
      * @param int $int
      * @return string
@@ -76,5 +92,20 @@ class SystemTag {
             $tag = chr(97 + $int);
         }
         return $tag;
+    }
+
+    /**
+     * converts character tag to integer
+     * @param string $tag
+     * @return int
+     */
+    static function tagToInt(string $tag): int {
+        if (strlen($tag) === 1){
+            $int = ord($tag) - 97;
+        } else {
+            $chars = str_split($tag);
+            $int = ((ord($chars[0]) - 96) * 26) + (ord($chars[1]) - 97);
+        }
+        return $int;
     }
 }
