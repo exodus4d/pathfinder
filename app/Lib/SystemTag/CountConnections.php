@@ -31,7 +31,7 @@ class CountConnections implements SystemTagInterface
         $tags = array();
         foreach ($systems as $system) {
             if ($system->security === $targetClass && !$system->locked) {
-                array_push($tags, $system->tag);
+                array_push($tags, SystemTag::tagToInt($system->tag));
             }
         };
 
@@ -46,7 +46,7 @@ class CountConnections implements SystemTagInterface
             fwrite($debugfile, "system is locked\n");
             if($targetClass == "C5" || $targetClass == "0.0" ){
                 fwrite($debugfile, "target class is $targetClass\n");
-                if(!in_array('s', $tags)) {
+                if(!in_array(18, $tags)) {
                     fwrite($debugfile, "s is not assigned\n");
                     return 's';
                 }
@@ -55,6 +55,7 @@ class CountConnections implements SystemTagInterface
 
         // return 'a' if array is empty
         if (count($tags) === 0) {
+            fwrite($debugfile, "no existing tags for $targetClass, returning a\n");
             return 'a';
         }
 
