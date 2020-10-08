@@ -49,32 +49,16 @@ class SystemTag {
             }
             sort($tagsInUse);
 
-            // REMOVE DEBUGGING                                        
             $availableTags = array();
             $i = 0;
-            while(count($availableTags) < 3) {
+            while(count($availableTags) < 5) {
                 if(!in_array($i, $tagsInUse)) {
                     array_push($availableTags, SystemTag::intToTag($i));
                 }
                 $i++;
             }
-
-            // REMOVE DEBUGGING
-            $debugfile = fopen("taglog.txt", "a");                 
-            $sortedTags = json_encode($tagsInUse);
-            $available = json_encode($availableTags);
-            fwrite($debugfile, "$systemClass - in use: $sortedTags - available: $available\n");            
-            // REMOVE DEBUGGING 
-
             array_push($tags, $availableTags);
-        }
-
-        // REMOVE DEBUGGING                
-        $rr = json_encode($tags);
-        fwrite($debugfile, "final tags: $rr\n");
-        fclose($debugfile);
-        // REMOVE DEBUGGING 
-
+        } 
         return json_encode($tags);
     }
 

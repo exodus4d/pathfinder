@@ -35,27 +35,18 @@ class CountConnections implements SystemTagInterface
             }
         };
 
-        // REMOVE DEBUGGING
-        $debugfile = fopen("jumplog.txt", "a");
-        fwrite($debugfile, "security: $targetClass\n");
-        fwrite($debugfile, print_r($tags, true));
-
         // try to assign "s(tatic)" tag to connections from our home by checking if source is locked, 
         // if dest is static, and finally if "s" (18) tag is already taken
         if ($sourceSystem->locked){
-            fwrite($debugfile, "system is locked\n");
             if($targetClass == "C5" || $targetClass == "0.0" ){
-                fwrite($debugfile, "target class is $targetClass\n");
                 if(!in_array(18, $tags)) {
-                    fwrite($debugfile, "s is not assigned\n");
                     return 's';
                 }
             }
         }
 
         // return 'a' if array is empty
-        if (count($tags) === 0) {
-            fwrite($debugfile, "no existing tags for $targetClass, returning a\n");
+        if (count($tags) === 0) {            
             return 'a';
         }
 
@@ -67,12 +58,7 @@ class CountConnections implements SystemTagInterface
             $i++;
         }
         
-        $char = SystemTag::intToTag($i);
-
-        // REMOVE DEBUGGING                
-        fwrite($debugfile, "char: $char\n");
-        fclose($debugfile);
-        
+        $char = SystemTag::intToTag($i);        
         return $char;
     }
 }
