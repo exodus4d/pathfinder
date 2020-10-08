@@ -123,7 +123,7 @@ class MapModel extends AbstractMapTrackingModel {
             'activity-log' => true
         ],
         'nextBookmarks' => [
-            'type' => Schema::DT_VARCHAR128,
+            'type' => Schema::DT_VARCHAR256,
             'nullable' => false,
             'default' => '',
             'activity-log' => true
