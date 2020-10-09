@@ -21,20 +21,22 @@ define([
          * -> implementation is enforced by BaseModule
          * -> must return a single node element
          * @param mapId
-         * @param systemData
          * @returns {HTMLElement}
          */
         render(mapId){            
             this._bodyEl = Object.assign(document.createElement('div'), {
                 className: this._config.bodyClassName
             });
+            this._mapId = mapId;
 
-            let tags = this.getTagList(mapId);
-            
-            for (var i = 0; i < tags.length; i += 3) {
-                this.buildDisplayElements(tags.slice(i, i+3));    
-            }                                
-            
+
+            // returns 2d array of data to create table from
+            let tagsData = this.getTagList(mapId);
+
+            // build the table
+            this.buildTagsTable(tagsData)       
+
+            //append to module body
             this.moduleElement.append(this._bodyEl);
             this.initTagModule();
 
@@ -61,33 +63,53 @@ define([
             currentTags.forEach(function(item, index, arr){
                 arr[index] = [securityClasses[index]];            
                 item.forEach(tag => {
-                   arr[index].push( MapUtil.getSystemSecurityForDisplay(securityClasses[index]).toLowerCase() + tag)
+                   arr[index].push(tag)
                 })  
               })
-
-            console.log(currentTags);
             return currentTags;
         }
 
-        buildDisplayElements(tagsArr){
-            let row = Object.assign(document.createElement('p'), {
-                style: "margin-right: 0px 5px;"
-            });
-            tagsArr.forEach( tag => {
-                let secClass = Util.getSecurityClassForSystem(tag[0]);
-                if (row.childElementCount != 0){
-                    let dividerSpan = document.createElement('span')
-                    dividerSpan.innerHTML = "|";
-                    row.append(dividerSpan);
-                }
-                let systemSpan  = Object.assign(document.createElement('span'), {                    
-                    className: [this._config.systemSec, secClass].join(' '),
-                    style: "margin: 0px 10px; width: 28%; text-align: center;"    
-                })
-                systemSpan.innerHTML = tag.slice(1).join('&nbsp;&nbsp;');                                
-                row.append(systemSpan);
-            })
-            this._bodyEl.append(row);
+        buildTagsTable(tagsArr){
+            let tagsTable = Object.assign(document.createElement('table'), {
+                className: this._config.tagsTable,
+                id: 'table-id',
+                style: "width: 90%; text-align: center; margin-left: auto; margin-right: auto;"
+            });            
+            
+            for (var i = 0; i < tagsArr[0].length; i++) {
+                let tagsRow = tagsTable.insertRow();
+                tagsArr.forEach(tags => {                    
+                    let tagsCell = Object.assign(tagsRow.insertCell(), {                    
+                        className: [this._config.systemSec, Util.getSecurityClassForSystem(tags[0])].join(' '),
+                        style: "width: 10%; padding: 5px;"
+                    });
+                    let tagsText = document.createTextNode(i == 0 ? MapUtil.getSystemSecurityForDisplay(tags[i]).toLowerCase() : tags[i]); 
+                    tagsCell.appendChild(tagsText);
+                });                
+            }            
+            this._bodyEl.append(tagsTable);
+        }
+
+        updateTagsTable(){
+            let table = document.getElementById('table-id');
+            table.parentElement.removeChild(table);
+            
+            let tagsData = this.getTagList(this._mapId);
+            this.buildTagsTable(tagsData);
+            return true
+        }
+        
+        update(mapId){
+            return super.update(mapId).then(mapId => new Promise(resolve => {
+                this.updateTagsTable(mapId);
+                
+                resolve({
+                    action: 'update',
+                    data: {
+                        module: this
+                    }
+                });
+            }));
         }
 
 
@@ -101,7 +123,7 @@ define([
 
         onSortableEvent(name, e){
             super.onSortableEvent(name, e);
-        }        
+        }  
     };
 
 TagsModule.isPlugin = true;                            // module is defined as 'plugin'
@@ -116,6 +138,7 @@ TagsModule.defaultConfig = {
     sortTargetAreas: ['a', 'b', 'c'],                 // sortable areas where module can be dragged into
     headline: 'Bookmark Tags',    
     systemSec: 'pf-system-sec',                       // system security classes    
+    tagsTable: 'pf-tags-table'
 };
 
 return TagsModule;
