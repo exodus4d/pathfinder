@@ -125,7 +125,7 @@ class MapModel extends AbstractMapTrackingModel {
         'nextBookmarks' => [
             'type' => Schema::DT_VARCHAR256,
             'nullable' => false,
-            'default' => '',
+            'default' => '[]',
             'activity-log' => true
         ],
         'slackWebHookURL' => [
