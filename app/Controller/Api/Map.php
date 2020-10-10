@@ -1040,10 +1040,6 @@ class Map extends Controller\AccessController {
                         $connectionData[] = $data;
                     }
                 }
-                // update Tags =================================================================================
-                $map->nextBookmarks = SystemTag::nextBookmarks($map);
-                $activeCharacter = $this->getCharacter();
-                $map->save($activeCharacter);
             }
         }
 
