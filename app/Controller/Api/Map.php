@@ -582,7 +582,7 @@ class Map extends Controller\AccessController {
                                     $return->error = array_merge($return->error, $connection->getErrors());
                                 }
                             }
-                        }
+                        }                        
                     }
                 }
             }
@@ -597,6 +597,10 @@ class Map extends Controller\AccessController {
 
                 $return->mapData[] = $mapData;
             }
+            // update Tags =================================================================================
+            $map->nextBookmarks = SystemTag::nextBookmarks($map);
+            $activeCharacter = $this->getCharacter();
+            $map->save($activeCharacter);            
         }
 
         return $return;
@@ -621,7 +625,7 @@ class Map extends Controller\AccessController {
         // -> Only first trigger call should request this data!
         if($userDataRequired) {
             $return->userData = $activeCharacter->getUser()->getData();
-        }
+        }    
 
         echo json_encode($return);
     }
@@ -984,6 +988,7 @@ class Map extends Controller\AccessController {
 
         if($mapDataChanged){
             $this->broadcastMap($map);
+            
         }
 
         return $map;
@@ -1034,6 +1039,10 @@ class Map extends Controller\AccessController {
                         $connectionData[] = $data;
                     }
                 }
+                // update Tags =================================================================================
+                $map->nextBookmarks = SystemTag::nextBookmarks($map);
+                $activeCharacter = $this->getCharacter();
+                $map->save($activeCharacter);
             }
         }
 
