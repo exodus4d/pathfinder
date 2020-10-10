@@ -127,7 +127,7 @@ define([
     };
 
 TagsModule.isPlugin = true;                            // module is defined as 'plugin'
-TagsModule.scope = 'global';                           // module scope controls how module gets updated and what type of data is injected
+TagsModule.scope = 'system';                           // module scope controls how module gets updated and what type of data is injected
 TagsModule.sortArea = 'b';                             // default sortable area
 TagsModule.position = 15;                              // default sort/order position within sortable area
 TagsModule.label = 'Bookmark Tags';                    // static module label (e.g. description)
