@@ -1678,7 +1678,7 @@ define([
 
         headElements.on('save', function(e, params){
             // system alias changed -> mark system as updated
-            MapUtil.markAsChanged(system);            
+            MapUtil.markAsChanged(system);
         });
 
         headElements.on('shown', function(e, editable){
