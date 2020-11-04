@@ -149,6 +149,7 @@ define([
          * @returns {HTMLElement}
          */
         render(mapId, systemData){
+            console.log(systemData);
             this._mapId = mapId;
             this._systemData = systemData;
 
