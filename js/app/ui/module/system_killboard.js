@@ -149,6 +149,7 @@ define([
          * @returns {HTMLElement}
          */
         render(mapId, systemData){
+            console.log(systemData);
             this._mapId = mapId;
             this._systemData = systemData;
 
@@ -562,6 +563,15 @@ define([
         openKillboardUrl(e){
             e.stopPropagation();
             window.open(`//zkillboard.com/system/${this._systemData.systemId}/`, '_blank');
+        }
+
+        /**
+         * open external zKillboard URL for region
+         * @param e
+         */
+        openKillboardUrlRegion(e){
+            e.stopPropagation();
+            window.open(`//zkillboard.com/region/${this._systemData.region.id}/`, '_blank');
         }
 
         /**
