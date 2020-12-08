@@ -47,7 +47,14 @@ define([
             iconKbEl.setAttribute('title', 'zkillboard.com');
             iconKbEl.onclick = e => this.openKillboardUrl(e);
 
-            toolbarEl.append(iconKbEl, this._iconFilterEl);
+            let iconRegKbEl = this.newIconElement([
+                'fa-map-marked-alt', 'fa-fw',
+                this._config.moduleHeadlineIconClass
+            ]);
+            iconRegKbEl.setAttribute('title', 'zkillboard.com region');
+            iconRegKbEl.onclick = e => this.openKillboardUrlRegion(e);
+
+            toolbarEl.append(iconRegKbEl, iconKbEl, this._iconFilterEl);
             headEl.append(wsStatusEl, toolbarEl);
 
             return headEl;
@@ -142,6 +149,7 @@ define([
          * @returns {HTMLElement}
          */
         render(mapId, systemData){
+            console.log(systemData);
             this._mapId = mapId;
             this._systemData = systemData;
 
@@ -555,6 +563,15 @@ define([
         openKillboardUrl(e){
             e.stopPropagation();
             window.open(`//zkillboard.com/system/${this._systemData.systemId}/`, '_blank');
+        }
+
+        /**
+         * open external zKillboard URL for region
+         * @param e
+         */
+        openKillboardUrlRegion(e){
+            e.stopPropagation();
+            window.open(`//zkillboard.com/region/${this._systemData.region.id}/`, '_blank');
         }
 
         /**

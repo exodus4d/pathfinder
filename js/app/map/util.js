@@ -254,6 +254,16 @@ define([
         return Util.getObjVal(Init.classes.systemEffects, `${effect}.${option}`) || '';
     };
 
+
+    let getSystemSecurityForDisplay = (security) => {
+        const securityMapping = {
+            '0.0': 'ns',
+            'L': 'ls',
+            'H': 'hs'
+        };
+        return securityMapping.hasOwnProperty(security) ? securityMapping[security] : security;
+    };
+
     /**
      * flag map component (map, system, connection) as "changed"
      * @param component
@@ -2209,6 +2219,7 @@ define([
         getConnectionData: getConnectionData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
+        getSystemSecurityForDisplay: getSystemSecurityForDisplay,
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,

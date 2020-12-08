@@ -1263,7 +1263,6 @@ table{
   display: inline-block;                // fixed "blurry" text in scaled parent
   transform: translateY(0);             // s.o.
   -webkit-font-smoothing: antialiased;  // s.o.
-  margin-right: 5px;
   cursor: -moz-grab;
   cursor: -webkit-grab;
   cursor: grab;
@@ -1307,6 +1306,16 @@ table{
 
 .pf-system-sec-drifter{
   color: $aqua;
+}
+
+// system tag ==================================================================================
+
+.pf-system-head-tag{
+  margin-right: 5px;
+}
+.pf-tags-table tr:nth-child(1) {
+  border-bottom:2px solid $gray-light;
+  padding: 5px;
 }
 
 // system status ==================================================================================

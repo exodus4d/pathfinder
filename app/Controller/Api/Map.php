@@ -9,6 +9,7 @@
 namespace Exodus4D\Pathfinder\Controller\Api;
 
 use Exodus4D\Pathfinder\Lib\Config;
+use Exodus4D\Pathfinder\Lib\SystemTag;
 use Exodus4D\Pathfinder\Controller;
 use Exodus4D\Pathfinder\Data\File\FileHandler;
 use Exodus4D\Pathfinder\Model\AbstractModel;
@@ -553,7 +554,7 @@ class Map extends Controller\AccessController {
                         foreach($systems as $i => $systemData){
                             // check if current system belongs to the current map
                             if($system = $map->getSystemById((int)$systemData['id'])){
-                                $system->copyfrom($systemData, ['alias', 'status', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
+                                $system->copyfrom($systemData, ['alias', 'tag', 'status', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
                                 if($system->save($character)){
                                     if(!in_array($map->_id, $mapIdsChanged)){
                                         $mapIdsChanged[] = $map->_id;
@@ -581,7 +582,7 @@ class Map extends Controller\AccessController {
                                     $return->error = array_merge($return->error, $connection->getErrors());
                                 }
                             }
-                        }
+                        }                        
                     }
                 }
             }
@@ -596,6 +597,10 @@ class Map extends Controller\AccessController {
 
                 $return->mapData[] = $mapData;
             }
+            // update Tags =================================================================================
+            $map->nextBookmarks = SystemTag::nextBookmarks($map);
+            $activeCharacter = $this->getCharacter();
+            $map->save($activeCharacter);            
         }
 
         return $return;
@@ -620,7 +625,7 @@ class Map extends Controller\AccessController {
         // -> Only first trigger call should request this data!
         if($userDataRequired) {
             $return->userData = $activeCharacter->getUser()->getData();
-        }
+        }    
 
         echo json_encode($return);
     }
@@ -878,6 +883,7 @@ class Map extends Controller\AccessController {
                         $sourceSystem &&
                         !$sourceExists
                     ){
+                        $sourceSystem->tag = SystemTag::generateFor($sourceSystem, $targetSystem, $map);
                         $sourceSystem = $map->saveSystem($sourceSystem, $character, $systemPosX, $systemPosY);
                         // get updated maps object
                         if($sourceSystem){
@@ -970,6 +976,11 @@ class Map extends Controller\AccessController {
                         ){
                             $connection->logMass($targetLog);
                         }
+                        
+                        // update Tags =================================================================================
+                        $map->nextBookmarks = SystemTag::nextBookmarks($map);
+                        $activeCharacter = $this->getCharacter();
+                        $map->save($activeCharacter);
                     }
                 }
             }
@@ -977,6 +988,7 @@ class Map extends Controller\AccessController {
 
         if($mapDataChanged){
             $this->broadcastMap($map);
+            
         }
 
         return $map;

@@ -122,6 +122,12 @@ class MapModel extends AbstractMapTrackingModel {
             'default' => 0,
             'activity-log' => true
         ],
+        'nextBookmarks' => [
+            'type' => Schema::DT_VARCHAR256,
+            'nullable' => false,
+            'default' => '[]',
+            'activity-log' => true
+        ],
         'slackWebHookURL' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
@@ -235,6 +241,7 @@ class MapModel extends AbstractMapTrackingModel {
             $mapData->persistentAliases                     = $this->persistentAliases;
             $mapData->persistentSignatures                  = $this->persistentSignatures;
             $mapData->trackAbyssalJumps                     = $this->trackAbyssalJumps;
+            $mapData->nextBookmarks                         = $this->nextBookmarks;
 
             // map scope
             $mapData->scope                                 = (object) [];
