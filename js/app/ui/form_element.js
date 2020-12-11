@@ -81,7 +81,7 @@ define([
      * @param customOptions
      * @returns {*|k.fn.init|jQuery|HTMLElement}
      */
-    let formatSignatureTypeSelectionData = (state, container, customOptions) => {
+    let formatSignatureTypeSelectionData = (state, container, customOptions) => {        
         let parts = state.text.split(' - ');
 
         let markup = '';
