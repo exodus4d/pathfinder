@@ -81,7 +81,7 @@ define([
      * @param customOptions
      * @returns {*|k.fn.init|jQuery|HTMLElement}
      */
-    let formatSignatureTypeSelectionData = (state, container, customOptions) => {
+    let formatSignatureTypeSelectionData = (state, container, customOptions) => {        
         let parts = state.text.split(' - ');
 
         let markup = '';
@@ -173,7 +173,7 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     let formatSignatureConnectionSelectionData = state => {
-        let parts = state.text.split(' - ');
+        let parts = state.text.split(' - ');    
 
         let markup = '';
         if(parts.length === 2){
@@ -199,7 +199,7 @@ define([
                 }
             }
 
-            let securityClass = Util.getSecurityClassForSystem(parts[1]);
+            let securityClass = Util.getSecurityClassForSystem(MapUtil.getSystemSecurityForClass(parts[1]));
             markup += `<span class="${styleClass.join(' ')}">${parts[0]}</span>`;
             markup += `<span class="${securityClass}">&nbsp;&nbsp;${parts[1]}</span>`;
         }else{

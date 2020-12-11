@@ -259,10 +259,33 @@ define([
         const securityMapping = {
             '0.0': 'ns',
             'L': 'ls',
-            'H': 'hs'
+            'H': 'hs',
+            'T': 'tr'
         };
         return securityMapping.hasOwnProperty(security) ? securityMapping[security] : security;
     };
+
+    let getSystemSecurityForClass = (security) => {        
+        
+        if (security.toLowerCase().slice(0,2) === "tr" || security[0].toLowerCase() === 'a'){
+            var sec = security[0];
+        } else if (security.length > 2) {
+            var res = security.match(/[c|C][0-9]{1,2}/)
+            if (res === null || res.length == 0) {
+                var sec = security.slice(0,2);
+            } else {
+                sec = res[0].toUpperCase();
+            }
+        } else {
+            var sec = security;
+        }
+        const securityMapping = {
+            'ns': '0.0',
+            'ls': 'L',
+            'hs': 'H'
+        }
+        return securityMapping.hasOwnProperty(sec) ? securityMapping[sec] : sec.toUpperCase();
+    }
 
     /**
      * flag map component (map, system, connection) as "changed"
@@ -2220,6 +2243,7 @@ define([
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemSecurityForDisplay: getSystemSecurityForDisplay,
+        getSystemSecurityForClass: getSystemSecurityForClass,
         markAsChanged: markAsChanged,
         hasChanged: hasChanged,
         toggleSystemsSelect: toggleSystemsSelect,

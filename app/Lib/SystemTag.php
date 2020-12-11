@@ -37,13 +37,13 @@ class SystemTag {
         
         $systems = $map->getSystemsData();
         $systemClasses = ['H', 'L', '0.0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
-        $tags = array();                
+        $tags = array();
 
-        foreach($systemClasses as $systemClass){                        
+        foreach($systemClasses as $systemClass){
             $tagsInUse = array();
-            
+
             foreach($systems as $system){
-                if($system->security == $systemClass && !$system->locked){
+                if($system->security == $systemClass && !$system->locked && gettype($system->tag) == "string"){
                     array_push($tagsInUse, SystemTag::tagToInt($system->tag));
                 }
             }
@@ -58,7 +58,7 @@ class SystemTag {
                 $i++;
             }
             array_push($tags, $availableTags);
-        } 
+        }
         return json_encode($tags);
     }
 

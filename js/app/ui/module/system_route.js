@@ -922,7 +922,6 @@ define([
                         selected: false
                     }))
                 };
-                console.log(data);
                 
                 requirejs(['text!templates/dialog/route_settings.html', 'mustache'], (template, Mustache) => {
                     let content = Mustache.render(template, data);
