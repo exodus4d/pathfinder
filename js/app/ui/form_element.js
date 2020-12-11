@@ -81,7 +81,7 @@ define([
      * @param customOptions
      * @returns {*|k.fn.init|jQuery|HTMLElement}
      */
-    let formatSignatureTypeSelectionData = (state, container, customOptions) => {        
+    let formatSignatureTypeSelectionData = (state, container, customOptions) => {
         let parts = state.text.split(' - ');
 
         let markup = '';
@@ -138,8 +138,9 @@ define([
             let parts = data.text.split(' - ');
             if(parts.length === 2){
                 // wormhole data -> 2 columns
-                let securityClass = Util.getSecurityClassForSystem(getSystemSecurityFromLabel(parts[1]));
-
+                
+                let securityClass = Util.getSecurityClassForSystem(MapUtil.getSystemSecurityForClass(parts[1]));
+                
                 switch(formatType){
                     case 'wormhole':
                         // some labels have a "suffix" label that should not have the securityClass
