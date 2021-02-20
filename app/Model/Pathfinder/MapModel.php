@@ -396,7 +396,7 @@ class MapModel extends AbstractMapTrackingModel {
         if( !empty($val) ){
             $hosts = [
                 'slack' => ['hooks.slack.com'],
-                'discord' => ['discordapp.com', 'ptb.discordapp.com']
+                'discord' => ['discord.com', 'discordapp.com', 'ptb.discordapp.com']
             ];
 
             if(
