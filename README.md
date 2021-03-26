@@ -7,17 +7,16 @@
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
 #### Development
--  Test server: [https://www.dev.pathfinder-w.space](https://www.dev.pathfinder-w.space)
-  - Running current `develop` branch
-  - _SISI_ _ESI_ (make sure to use your test-server client)
-  - Available for public testing (e.g. new feature,… )
-  - Database will be cleared from time to time
-- Installation guide:
-  - [wiki](https://github.com/exodus4d/pathfinder/wiki)
+
+PLEASE NOTE: This fork is a heavily modified version of Exodus4d's PathFinder and may not be suitable as a base for your own fork, or for use as is. This fork is based on Exodus4d's latest develop branch that would have been v2.0.1 if it had ever been merged, and has modifications to: system class labels on the map module, zkillboard module, routes module and settings, signatures module, among other changes. 
+
+I would highly recommend using Techfreak's excellent docker-compose solution for running PF that can be found [here](https://gitlab.com/techfreak/pathfinder-container/).
+
+If you have any questions specific to my fork feel free to contact me on the PF Slack:
+
 - Developer [Slack](https://slack.com) chat:
   - https://pathfinder-eve-online.slack.com
   - Join channel [pathfinder-eve-online.slack.com](https://join.slack.com/t/pathfinder-eve-online/shared_invite/enQtMzMyOTkyMjczMTA3LWI2NGE1OTY5ODBmNDZlMDY3MDIzYjk5ZTljM2JjZjIwNDRkNzMyMTEwMDUzOGQwM2E3ZjE1NGEwNThlMzYzY2Y)
-  - Can´t join? pathfinder@exodus4d.de
 
 **Feel free to check the code for bugs and security issues.
 Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
