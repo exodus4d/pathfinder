@@ -56,14 +56,14 @@ abstract class AbstractMapTrackingModel extends AbstractPathfinderModel implemen
      * @param string $action
      */
     protected function logActivity($action){
-        // check if activity logging is enabled for this object
-        if($this->enableActivityLogging){
+        // check if activity logging is enabled for this object and if updatedCharacterId is valid characterModel instance
+        if($this->enableActivityLogging && $this->updatedCharacterId instanceof CharacterModel){
             // check for field changes
             if(
                 mb_stripos(mb_strtolower($action), 'delete') !== false ||
                 !empty($this->fieldChanges)
             ){
-                $this->newLog($action)->setCharacter($this->updatedCharacterId)->setData($this->fieldChanges)->buffer();
+                $this->newLog($action)->setCharacter($this->updatedCharacterId)->setData($this->fieldChanges)->buffer();                
             }
         }
     }
