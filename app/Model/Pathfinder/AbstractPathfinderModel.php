@@ -18,7 +18,7 @@ abstract class AbstractPathfinderModel extends AbstractModel {
      * in $fieldConf config
      * @var bool
      */
-    protected $enableActivityLogging        = false;
+    protected $enableActivityLogging        = true;
 
     /**
      * changed fields (columns) on update/insert
