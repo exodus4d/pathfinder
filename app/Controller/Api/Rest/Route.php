@@ -632,7 +632,12 @@ class Route extends AbstractRestController {
             // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
 
-            $connections = [];
+            $connections = [
+                [30001721,30001957], // Saminer <=> F7-ICZ
+                [30003605,30003823], // Kennink <=> Eggheron
+                [30003452,30005198], // Pakhshi <=> Irgrus
+                [30000134,30005196], // Hykkota <=> Ahbazon
+            ];
             foreach($this->jumpArray as $systemSourceId => $jumpData){
                 $count = count($jumpData);
                 if($count > 1){
@@ -665,8 +670,7 @@ class Route extends AbstractRestController {
             // search route -------------------------------------------------------------------------------------------
             $options = [
                 'flag' => $filterData['flag'],
-                'connections' => $connections,
-                'avoid' => [ 30003504, 30002702, 30001372, 30003503, 30004080, 30004079, 30004078, 30004083, 30005192, 30005193, 30005194, 30005195, 30005205, 30005200, 30005199, 30005198, 30005015, 30002761, 30002764, 30002765, 30002768, 30002803, 30002805, 30002791, 30000139, 30000144, 30000142 ]
+                'connections' => $connections,                
             ];
 
             $result = $this->getF3()->ccpClient()->send('getRoute', $systemFromId, $systemToId, $options);
