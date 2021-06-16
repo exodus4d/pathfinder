@@ -676,8 +676,7 @@ class Route extends AbstractRestController {
             // search route -------------------------------------------------------------------------------------------
             $options = [
                 'flag' => $filterData['flag'],
-                'connections' => $connections,
-                'avoid' => [ 30003504, 30002702, 30001372, 30003503, 30004080, 30004079, 30004078, 30004083, 30005192, 30005193, 30005194, 30005195, 30005205, 30005200, 30005199, 30005198, 30005015, 30002761, 30002764, 30002765, 30002768, 30002803, 30002805, 30002791, 30000139, 30000144, 30000142 ]
+                'connections' => $connections,                
             ];
 
             $result = $this->getF3()->ccpClient()->send('getRoute', $systemFromId, $systemToId, $options);
