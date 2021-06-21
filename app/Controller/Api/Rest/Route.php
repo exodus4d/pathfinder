@@ -633,10 +633,14 @@ class Route extends AbstractRestController {
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
 
             $connections = [
-                [30001721,30001957], // Saminer <=> F7-ICZ
-                [30003605,30003823], // Kennink <=> Eggheron
-                [30003452,30005198], // Pakhshi <=> Irgrus
-                [30000134,30005196], // Hykkota <=> Ahbazon
+                [30001721,30001957], // Saminer => F7-ICZ
+                [30001957,30001721], // F7-ICZ => Saminer
+                [30003605,30003823], // Kennink => Eggheron
+                [30003823,30003605], // Eggheron => Kennink
+                [30003452,30005198], // Pakhshi => Irgrus
+                [30005198,30003452], // Irgrus => Pakhshi
+                [30000134,30005196], // Hykkota => Ahbazon
+                [30005196,30000134], // Ahbazon => Hykkota
             ];
             foreach($this->jumpArray as $systemSourceId => $jumpData){
                 $count = count($jumpData);

@@ -30,7 +30,7 @@ class CountConnections implements SystemTagInterface
         // and it is not our home (locked)
         $tags = array();
         foreach ($systems as $system) {
-            if ($system->security === $targetClass && !$system->locked) {
+            if ($system->security === $targetClass && !$system->locked && $system->tag) {
                 array_push($tags, SystemTag::tagToInt($system->tag));
             }
         };
