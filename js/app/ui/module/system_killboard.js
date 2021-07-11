@@ -46,8 +46,15 @@ define([
             ]);
             iconKbEl.setAttribute('title', 'zkillboard.com');
             iconKbEl.onclick = e => this.openKillboardUrl(e);
+            
+            let iconRegKbEl = this.newIconElement([
+                'fa-map-marked-alt', 'fa-fw',
+                this._config.moduleHeadlineIconClass
+            ]);
+            iconRegKbEl.setAttribute('title', 'zkillboard.com region');
+            iconRegKbEl.onclick = e => this.openKillboardUrlRegion(e);
 
-            toolbarEl.append(iconKbEl, this._iconFilterEl);
+            toolbarEl.append(iconRegKbEl, iconKbEl, this._iconFilterEl);
             headEl.append(wsStatusEl, toolbarEl);
 
             return headEl;
