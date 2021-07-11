@@ -236,6 +236,9 @@ define([], () => {
                 'L': {
                     class: 'pf-system-sec-lowSec'
                 },
+                'T': {
+                    class: 'pf-system-sec-triglav'
+                },
                 '0.0': {
                     class: 'pf-system-sec-nullSec'
                 },

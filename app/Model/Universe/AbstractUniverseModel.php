@@ -185,6 +185,8 @@ abstract class AbstractUniverseModel extends AbstractModel {
             $security = 'L';
         }elseif($id == 9){
             $security = '0.0';
+        }elseif($id == 25){
+            $security = 'T';
         }
 
         return $security;

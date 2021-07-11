@@ -2375,6 +2375,9 @@ define([
             case '0.0':
                 areaId = 32;
                 break;
+            case 'T':
+                areaId = 33;
+                break;
             default:
                 // w-space
                 for(let i = 1; i <= 18; i++){

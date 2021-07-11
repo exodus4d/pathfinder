@@ -788,6 +788,7 @@ class SystemModel extends AbstractMapTrackingModel {
             case 'H':
             case 'L':
             case '0.0':
+            case 'T':
                 $typeId = 2; // k-space
                 break;
             case 'A':
