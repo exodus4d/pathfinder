@@ -53,14 +53,15 @@
   }
 
   .select2-results__option {
-    padding: 3px 6px;
+    padding: 2px 6px;
     min-height: 24px;  // options with empty string '' should not collapse
+    line-height: 22px;
 
     > .clearfix.pf-result-image [class*="col-"]{
-       line-height: 22px;  // options with images need more height
 
       img {
         height: 22px;
+        display: block; // otherwise parent col- is 22,xx subpixel
       }
     }
 

@@ -370,19 +370,14 @@ define([
         $.when(
             selectElement.select2({
                 ajax: {
-                    url: function(params){
-                        // add params to URL
-                        return   Init.path.searchUniverseSystemData + '/' + params.term.trim();
-                    },
+                    url: params => `${Init.path.api}/SystemSearch/${params.term.trim()}`,
                     dataType: 'json',
                     delay: 250,
                     timeout: 5000,
                     cache: true,
-                    data: function(params){
-                        return {
-                            page: params.page || 1
-                        };
-                    },
+                    data: params => ({
+                       page: params.page || 1
+                    }),
                     processResults: function(data, params){
                         // parse the results into the format expected by Select2.
                         return {
@@ -392,7 +387,7 @@ define([
                                 let disabled = false;
                                 let trueSec = parseFloat(item.trueSec);
                                 let secClass = Util.getSecurityClassForSystem(item.security);
-                                let trueSecClass = Util.getTrueSecClassForSystem( trueSec );
+                                let trueSecClass = Util.getTrueSecClassForSystem(trueSec);
                                 let effectClass = MapUtil.getEffectInfoForSystem(item.effect, 'class');
 
                                 // check if system is dialed

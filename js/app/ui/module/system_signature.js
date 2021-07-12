@@ -3181,7 +3181,7 @@ define([
 
     SystemSignatureModule.defaultConfig = {
         className: 'pf-system-signature-module',                                // class for module
-        sortTargetAreas: ['a'],                                                 // sortable areas where module can be dragged into
+        sortTargetAreas: ['a', 'b', 'c'],                                       // sortable areas where module can be dragged into
         headline: 'Signatures',
 
         // headline toolbar

@@ -14,7 +14,6 @@ use Exodus4D\Pathfinder\Data\File\FileHandler;
 use Exodus4D\Pathfinder\Model\AbstractModel;
 use Exodus4D\Pathfinder\Model\Pathfinder;
 use Exodus4D\Pathfinder\Model\Universe;
-use Exodus4D\Pathfinder\Exception;
 
 /**
  * Map controller

@@ -41,7 +41,7 @@
     float: left;
 
     margin-right: 5px;
-    margin-top: 5px;
+    margin-top: 3px;
     padding: 0 5px;
 
     color: $gray-dark;
@@ -84,7 +84,8 @@
 
 &.select2-container--focus {
   .select2-selection--multiple {
-    border: solid $teal-lighter 1px;
+    border-color: $input-border-focus;
+    box-shadow: inset -1px 1px 5px 0 rgba(0, 0, 0, 0.8) !important;
     outline: 0;
   }
 }

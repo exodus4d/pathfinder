@@ -632,7 +632,18 @@ class Route extends AbstractRestController {
             // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
 
-            $connections = [];
+            // pre-populate connections array with new connected_pairs from TrailBlazer expansion because 
+            // they have not been added to ESI routes. Can be removed when ESI is updated
+            $connections = [
+                [30001721,30001957], // Saminer => F7-ICZ
+                [30001957,30001721], // F7-ICZ => Saminer
+                [30003605,30003823], // Kennink => Eggheron
+                [30003823,30003605], // Eggheron => Kennink
+                [30003452,30005198], // Pakhshi => Irgrus
+                [30005198,30003452], // Irgrus => Pakhshi
+                [30000134,30005196], // Hykkota => Ahbazon
+                [30005196,30000134], // Ahbazon => Hykkota
+            ];
             foreach($this->jumpArray as $systemSourceId => $jumpData){
                 $count = count($jumpData);
                 if($count > 1){

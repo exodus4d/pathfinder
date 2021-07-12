@@ -5,7 +5,8 @@
   height: 32px;
 
   &:focus {
-    border: 1px solid $teal-lighter;
+    border-color: $input-border-focus;
+    box-shadow: inset -1px 1px 5px 0 rgba(0, 0, 0, 0.8) !important;
   }
 
   .select2-selection__rendered {
@@ -81,8 +82,9 @@
 
 &.select2-container--disabled {
   .select2-selection--single {
-    background-color: #eee;
+    background-color: $input-bg-disabled;
     cursor: default;
+    pointer-events: none;
 
     .select2-selection__clear {
       display: none;

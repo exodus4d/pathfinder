@@ -48,8 +48,8 @@ define([
         ssoButtonClass: 'pf-sso-login-button',                                  // class for SSO login button
 
         // character select
-        characterSelectionClass: 'pf-character-selection',                      // class for character panel wrapper
-        characterRowAnimateClass: 'pf-character-row-animate',                   // class for character panel row during animation
+        characterSelectionClass: 'pf-character-selection',                      // class for character boxes
+        characterBoxClass: 'pf-character-box',                                  // class for outer character box
         characterImageWrapperClass: 'pf-character-image-wrapper',               // class for image wrapper (animated)
         characterImageInfoClass: 'pf-character-info',                           // class for character info layer (visible on hover)
         dynamicMessageContainerClass: 'pf-dynamic-message-container',           // class for "dynamic" (JS) message container
@@ -489,12 +489,13 @@ define([
                 let content = Mustache.render(template, data);
                 $('#' + config.headerId).prepend(content);
                 let stickyPanelServer = $('#' + config.stickyPanelServerId);
-                stickyPanelServer.velocity('transition.slideLeftBigIn', {
+                stickyPanelServer.velocity('transition.slideRightBigIn', {
                     duration: 240
                 });
 
                 // set observer for api status dialog
-                stickyPanelServer.on('click', '.' + config.apiStatusTriggerClass, function(){
+                stickyPanelServer.on('pointerdown', '.' + config.apiStatusTriggerClass, e => {
+                    e.stopPropagation();
                     $.fn.apiStatusDialog(data.api);
                 });
             });
@@ -550,22 +551,21 @@ define([
      * load character data from cookie information
      * -> all validation is done server side!
      */
-    let initCharacterSelect = function(){
+    let initCharacterSelect = () => {
 
         /**
          * init panel animation for an element
          * @param imageWrapperElement
          */
-        let initCharacterAnimation = function(imageWrapperElement){
-
-            imageWrapperElement.velocity('stop').velocity('transition.flipBounceXIn', {
-                display: 'inline-block',
+        let initCharacterAnimation = imageWrapperElement => {
+            $(imageWrapperElement).velocity('stop').velocity('transition.flipBounceXIn', {
+                display: 'block',
                 drag: true,
                 duration: 500
             });
 
             // Hover effect for character info layer
-            imageWrapperElement.hoverIntent(function(e){
+            $(imageWrapperElement).hoverIntent(function(e){
                 let characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
 
                 characterInfoElement.velocity('finish').velocity({
@@ -586,43 +586,14 @@ define([
         };
 
         // --------------------------------------------------------------------
-
-        /**
-         * update all character panels -> set CSS class (e.g. after some panels were added/removed,..)
-         */
-        let updateCharacterPanels = function(){
-            let characterRows = $('.' + config.characterSelectionClass + ' .' + Util.config.dynamicAreaClass).parent();
-            let rowClassIdentifier = ((12 / characterRows.length ) <= 3) ? 3 : (12 / characterRows.length);
-            $(characterRows).removeClass().addClass('col-sm-' + rowClassIdentifier);
+        let removeCharacterPanel = panelElement => {
+            let charBox = panelElement.closest(`.${config.characterBoxClass}`);
+            charBox.classList.add('remove');
+            charBox.addEventListener('animationend', () => charBox.parentNode.removeChild(charBox));
         };
 
         // --------------------------------------------------------------------
-
-        let removeCharacterPanel = function(panelElement){
-            $(panelElement).velocity('transition.expandOut', {
-                duration: 250,
-                complete: function(){
-                    // lock row for CSS animations while removing...
-                    $(this).parent().addClass(config.characterRowAnimateClass);
-
-                    $(this).parent().velocity({
-                        width: 0
-                    },{
-                        easing: 'ease',
-                        duration: 300,
-                        complete: function(){
-                            $(this).remove();
-                            // reset column CSS classes for all existing panels
-                            updateCharacterPanels();
-                        }
-                    });
-                }
-            });
-        };
-
-        // --------------------------------------------------------------------
-
-        let getCharacterAuthLabel = (authStatus) => {
+        let getCharacterAuthLabel = authStatus => {
             let label = '';
             switch(authStatus){
                 case 'UNKNOWN':
@@ -642,15 +613,13 @@ define([
 
         // --------------------------------------------------------------------
         // request character data for each character panel
-        requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
+        requirejs(['text!templates/ui/character_panel.html', 'mustache'], (template, Mustache) => {
 
-            $('.' + config.characterSelectionClass + ' .' + Util.config.dynamicAreaClass).each(function(){
-                let characterElement = $(this);
-
-                characterElement.showLoadingAnimation();
+            [...document.querySelectorAll(`.${config.characterSelectionClass} .${Util.config.dynamicAreaClass}`)].forEach(charEl => {
+                $(charEl).showLoadingAnimation();
 
                 let requestData = {
-                    cookie: characterElement.data('cookie')
+                    cookie: charEl.dataset.cookie
                 };
 
                 $.ajax({
@@ -660,11 +629,11 @@ define([
                     dataType: 'json',
                     context: {
                         cookieName: requestData.cookie,
-                        characterElement: characterElement,
+                        charEl: charEl,
                         browserTabId: Util.getBrowserTabId()
                     }
                 }).done(function(responseData, textStatus, request){
-                    this.characterElement.hideLoadingAnimation();
+                    $(this.charEl).hideLoadingAnimation();
 
                     if(
                         responseData.error &&
@@ -679,9 +648,8 @@ define([
                     }
 
                     if(responseData.hasOwnProperty('character')){
-
                         let data = {
-                            link: this.characterElement.data('href'),
+                            link: this.charEl.dataset.href,
                             cookieName: this.cookieName,
                             browserTabId: this.browserTabId,
                             ccpImageServer: responseData.ccpImageServer,
@@ -693,21 +661,19 @@ define([
                             hasActiveSession: responseData.character.hasActiveSession === true
                         };
 
-                        let content = Mustache.render(template, data);
-                        this.characterElement.html(content);
+                        this.charEl.innerHTML = Mustache.render(template, data);
 
                         // show character panel (animation settings)
-                        initCharacterAnimation(this.characterElement.find('.' + config.characterImageWrapperClass));
+                        initCharacterAnimation(this.charEl.querySelector(`.${config.characterImageWrapperClass}`));
                     }else{
                         // character data not available -> remove panel
-                        removeCharacterPanel(this.characterElement);
+                        removeCharacterPanel(this.charEl);
                     }
                 }).fail(function(jqXHR, status, error){
-                    let characterElement = this.characterElement;
-                    characterElement.hideLoadingAnimation();
+                    $(this.charEl).hideLoadingAnimation();
 
                     // character data not available -> remove panel
-                    removeCharacterPanel(this.characterElement);
+                    removeCharacterPanel(this.charEl);
                 });
             });
         });
@@ -847,7 +813,7 @@ define([
 
         // draw header logo
         document.querySelector(`.logo-ploygon-top-right`).addEventListener('animationend', () => {
-            HeaderLogin.init(document.getElementById(config.headerContainerId));
+            HeaderLogin.init();
         });
     });
 });

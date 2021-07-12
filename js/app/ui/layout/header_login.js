@@ -179,12 +179,18 @@ define([
             this.resizeWindow();
             this._mouse = this._config.startCoordinates(this._canvas);
 
-            this._ctx = this._canvas.getContext('2d', {alpha: true, desynchronized: true});
+            this._ctx = this._canvas.getContext('2d', {
+                alpha: true,
+                desynchronized: false,
+                preserveDrawingBuffer: true
+            });
             this.initHandlers();
 
             // must be bind to this instance -> https://stackoverflow.com/a/46014225/4329969
             this.onPointerDown = this.onPointerDown.bind(this);
+            this.onPointerOver = this.onPointerOver.bind(this);
             this.onPointerEnter = this.onPointerEnter.bind(this);
+            this.onPointerOut = this.onPointerOut.bind(this);
             this.onPointerLeave = this.onPointerLeave.bind(this);
             this.onPointerMove = this.onPointerMove.bind(this);
 
@@ -202,6 +208,10 @@ define([
 
         isPaused(){
             return (typeof this._config.isPaused === 'function') ? this._config.isPaused(this) : this._config.isPaused;
+        }
+
+        eventContainer(){
+            return this._config.container ? this._config.container : this._canvas;
         }
 
         findSiblings(){
@@ -335,8 +345,14 @@ define([
         }
 
         initHandlers(){
-            this._canvas.addEventListener('pointerover', e => this.onPointerEnter(e), {passive: true});
-            this._canvas.addEventListener('pointermove', e => this.onPointerMove(e), {passive: true});
+            let passive = true;
+            this.eventContainer().addEventListener('pointerover', e => this.onPointerOver(e), {passive: passive});
+            this.eventContainer().addEventListener('pointerenter', e => this.onPointerEnter(e), {passive: passive});
+
+            this.eventContainer().addEventListener('pointermove', e => this.onPointerMove(e), {passive: passive});
+
+            this.eventContainer().addEventListener('pointerout', e => this.onPointerOut(e), {passive: passive});
+            this.eventContainer().addEventListener('pointerleave', e => this.onPointerLeave(e), {passive: passive});
         }
 
         initPointerLock(){
@@ -345,18 +361,17 @@ define([
             }
 
             let lockChange = (e) => {
-                /*
                 if(document.pointerLockElement === this._canvas){
-                    this._canvas.addEventListener('pointermove', this.onPointerMove, {passive: true});
+                    this.eventContainer().classList.add(this._config.pointerLockedClass);
+                    //this.eventContainer().addEventListener('pointermove', this.onPointerMove, {passive: true});
                 }else{
-                    this._canvas.removeEventListener('pointermove', this.onPointerMove, {passive: true});
-                }*/
+                    this.eventContainer().classList.remove(this._config.pointerLockedClass);
+                    //this.eventContainer().removeEventListener('pointermove', this.onPointerMove, {passive: true});
+                }
             };
 
             //this._canvas.requestPointerLock()
             this._canvas.addEventListener('pointerdown', this.onPointerDown, false);
-            //this._canvas.addEventListener('mouseenter', this.onPointerEnter, false);
-            //this._canvas.addEventListener('mouseleave', this.onPointerLeave, false);
 
             document.addEventListener('pointerlockchange', lockChange, false);
         }
@@ -379,6 +394,7 @@ define([
         }
 
         onPointerMove(e){
+            e.preventDefault();
             let x = this._mouse.x + Math.floor(e.movementX);
             let y = this._mouse.y + Math.floor(e.movementY);
 
@@ -403,12 +419,18 @@ define([
             }
         }
 
-        onPointerEnter(e){
+        onPointerOver(e){
+            e.preventDefault();
             this._mouse.x = e.clientX;
             this._mouse.y = e.clientY;
         }
 
+        onPointerEnter(e){}
+
+        onPointerOut(e){}
+
         onPointerLeave(e){
+            e.preventDefault();
             document.exitPointerLock();
         }
 
@@ -445,6 +467,7 @@ define([
 
 
     StarCanvas.defaultConfig = {
+        pointerLockedClass: 'pointer-locked',
         // limit render interval to max fps
         // lower fps == less CPU
         fps: 80,
@@ -477,6 +500,9 @@ define([
         }),
         // callback/boolean to pause canvas updated (e.g. while page scroll). Better scroll performance
         isPaused: false,
+        // wrapper container for pointer events (e.g. document)
+        container: false,
+        // enables Pointer Lock API - https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API
         pointerLock: true
     };
 
@@ -492,7 +518,8 @@ define([
             x: canvas.width / 2 + 500,
             y: canvas.height / 2 + 50
         }),
-        isPaused: () => document.body.classList.contains('on-scroll')
+        isPaused: () => document.body.classList.contains('on-scroll'),
+        container: document.getElementById(config.headerId)
     };
 
     if(navigator.userAgent.indexOf('Chrome') > -1){
@@ -532,34 +559,26 @@ define([
         });
     }
 
-    let init = headerEl => {
-        let previewEls = headerEl.getElementsByClassName(config.previewElementClass);
+    let init = () => {
 
-        $(previewEls).velocity('transition.bounceIn', {
-            duration: 600,
-            stagger: 60,
-            delay: 120,
-            complete: function(){
-                let canvas = document.getElementById(config.canvasId);
-                // not on mobile
-                if(canvas){
-                    let starCanvasInstance = new StarCanvas(canvas, defaultConfig);
-                    canvas.classList.add('in');
+        let canvas = document.getElementById(config.canvasId);
+        // not on mobile
+        if(canvas){
+            let starCanvasInstance = new StarCanvas(canvas, defaultConfig);
+            canvas.classList.add('in');
 
-                    // watch for resize
-                    Util.getResizeManager().observe(
-                        canvas.parentNode,
-                        (el, contentRect) => {
-                            // ignore "height" change (css transition) (no canvas repaint)
-                            if(canvas.width !== contentRect.width){
-                                starCanvasInstance.resizeWindow();
-                            }
-                        },
-                        {debounce: true, ms: 260}
-                    );
-                }
-            }
-        });
+            // watch for resize
+            Util.getResizeManager().observe(
+                canvas.parentNode,
+                (el, contentRect) => {
+                    // ignore "height" change (css transition) (no canvas repaint)
+                    if(canvas.width !== contentRect.width){
+                        starCanvasInstance.resizeWindow();
+                    }
+                },
+                {debounce: true, ms: 260}
+            );
+        }
     };
 
     return {

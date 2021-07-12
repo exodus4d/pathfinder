@@ -1,3 +1,36 @@
+<script>
+    // populate form with data from localStore
+    $(document).ready(function(){
+        if({{routeSettings.wormholes}} == 0){
+            $('#form_wormholes').prop('checked', false);
+        }
+        if({{routeSettings.wormholesReduced}} == 0){
+            $('#form_wormholes_reduced').prop('checked', false);
+        }
+        if({{routeSettings.wormholesCritical}} == 0){
+            $('#form_wormholes_critical').prop('checked', false);
+        }
+        if({{routeSettings.wormholesEOL}} == 0){
+            $('#form_wormholes_eol').prop('checked', false);
+        }
+        if({{routeSettings.stargates}} == 0){
+            $('#form_stargates').prop('checked', false);
+        }
+        if({{routeSettings.jumpbridges}} == 0){
+            $('#form_jumpbridges').prop('checked', false);
+        }
+        if({{routeSettings.wormholesThera}} == 0){
+            $('#form_connections_thera').prop('checked', false);
+        }
+        if({{routeSettings.endpointsBubble}} == 0){
+            $('#form_endpoints_bubble').prop('checked', false);
+        }
+        if('{{routeSettings.wormholesSizeMin}}' !== ''){
+            $('#pf-route-dialog-size-select').val('{{routeSettings.wormholesSizeMin}}').change();
+        }
+    })
+</script>
+
 <div id="{{id}}">
     <form  role="form" class="form-horizontal">
 
@@ -24,6 +57,104 @@
                     <small>Connections from <em><a target="_blank" href="//www.eve-scout.com" rel="noopener">eve-scout.com</a></em> API</small>
                 </blockquote>
             </div>
+        </div>
+
+        <h4 class="pf-dynamic-area"><i class="fas fa-filter"></i>&nbsp;&nbsp;Filter</h4>
+
+        {{! Filter ------------------------------------------------------------------- }}
+
+        <div class="row">
+
+            <div class="col-xs-12 col-sm-5">
+                <div class="form-group">
+                    <label class="col-xs-2 col-sm-3 control-label">Type</label>
+
+                    <div class="col-sm-offset-1 col-xs-3 col-sm-8 checkbox checkbox-primary">
+                        <input id="form_wormholes" name="wormholes" value="1" type="checkbox" checked>
+                        <label for="form_wormholes">Wormholes
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include wormhole connections"></i>
+                        </label>
+                    </div>
+
+                    <i class="fas fa-tree-child col-sm-offset-4 hidden-xs"></i>
+
+                    <div class="col-xs-4 checkbox checkbox-warning checkbox-circle">
+                        <input id="form_wormholes_reduced" name="wormholesReduced" value="1" type="checkbox" checked>
+                        <label for="form_wormholes_reduced">Stage 2 (reduced)
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include reduced connections"></i>
+                        </label>
+                    </div>
+
+                    <i class="fas fa-tree-child col-sm-offset-4 hidden-xs"></i>
+
+                    <div class="col-xs-3 checkbox checkbox-danger checkbox-circle">
+                        <input id="form_wormholes_critical" name="wormholesCritical" value="1" type="checkbox" checked>
+                        <label for="form_wormholes_critical">Stage 3 (critical)
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include critical connections"></i>
+                        </label>
+                    </div>
+
+                    <i class="fas fa-tree-child col-sm-offset-4 hidden-xs"></i>
+
+                    <div class="col-xs-offset-9 col-xs-3 checkbox checkbox-danger">
+                        <input id="form_wormholes_eol" name="wormholesEOL" value="1" type="checkbox" checked>
+                        <label for="form_wormholes_eol">End of life (EOL)
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include EOL connections"></i>
+                        </label>
+                    </div>
+
+                    <div class="col-xs-offset-2 col-sm-offset-4 col-xs-3 col-sm-8 checkbox checkbox-primary">
+                        <input id="form_stargates" name="stargates" value="1" type="checkbox" checked>
+                        <label for="form_stargates">Stargates
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include stargate connections"></i>
+                        </label>
+                    </div>
+
+                    <div class="col-sm-offset-4 col-xs-3 col-sm-8 checkbox checkbox-primary">
+                        <input id="form_jumpbridges" name="jumpbridges" value="1" type="checkbox" checked>
+                        <label for="form_jumpbridges">Jump Bridges
+                            <i class="fas fa-fw fa-question-circle pf-help-light" title="include jump bridge connections"></i>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-xs-6 col-sm-7">
+                <div class="form-group">
+                    <label for="{{routeDialogSizeSelectId}}" class="col-sm-2 control-label">Size min</label>
+                    <div class="col-sm-10">
+                        <select name="wormholesSizeMin" id="{{routeDialogSizeSelectId}}" class="form-control {{select2Class}}">
+                            {{#sizeOptions}}
+                            <option value="{{id}}">{{name}}</option>
+                            {{/sizeOptions}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-offset-3 col-xs-6 col-sm-4">
+                <div class="pf-dynamic-area">
+                    <div class="form-group">
+                        <div class="col-xs-offset-1 checkbox checkbox-default">
+                            <input id="form_connections_thera" name="wormholesThera" value="1" type="checkbox" checked>
+                            <label for="form_connections_thera">Thera
+                                <i class="fas fa-fw fa-question-circle pf-help-light" title="include known Thera connections"></i>
+                                &nbsp;&nbsp;<a target="_blank" href="//www.eve-scout.com" rel="noopener"><em>eve-scout.com</em></a>
+                            </label>
+                        </div>
+
+                        <div class="col-xs-offset-1 checkbox checkbox-default">
+                            <input id="form_endpoints_bubble" name="endpointsBubble" value="1" type="checkbox" checked>
+                            <label for="form_endpoints_bubble">Bubbled
+                                <i class="fas fa-fw fa-question-circle pf-help-light" title="include bubbled source/destination endpoints"></i>
+                                &nbsp;&nbsp;<span class="pf-endpoint-bubble"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </form>

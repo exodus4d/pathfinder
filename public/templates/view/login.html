@@ -62,22 +62,27 @@
 
     <canvas id="pf-header-canvas" class="hidden-xs fade" width="100%" height="480"></canvas>
 
+    <div id="pf-logo-container" class="flex-col">
+        <svg>
+            <use xlink:href="#pf-svg-logo"/>
+        </svg>
+    </div>
+
+    {* cookie characters *}
+    <check if="{{ @cookieCharacters }}">
+        <div class="container pf-character-selection">
+            <repeat group="{{ @cookieCharacters }}" key="{{ @cookieName }}" value="{{ @characterData }}">
+                <div class="pf-character-box new">
+                    <div class="pf-dynamic-area" data-cookie="{{ @cookieName }}" data-href="{{ @BASE }}{{ 'sso','action=login' | alias }}">
+                        {* character data is dynamically *}
+                    </div>
+                </div>
+            </repeat>
+        </div>
+    </check>
+
     {* Admin login panel *}
     <include href="templates/ui/admin_panel.html"/>
-
-    <div id="pf-header-container" class="container flex-row flex-between">
-        <div id="pf-logo-container" class="flex-col">
-            <svg>
-                <use xlink:href="#pf-svg-logo"/>
-            </svg>
-        </div>
-
-        <div id="pf-header-preview-container" class="flex-col hidden-xs hidden-sm">
-            <div id="pf-header-preview-signature" class="pf-header-preview-element pull-left" style="--bg-image: url('{{ @tplResource->getPath('image') }}/sso/signature.png');"></div>
-            <div id="pf-header-preview-data" class="pf-header-preview-element pull-left" style="--bg-image: url('{{ @tplResource->getPath('image') }}/sso/data.png');"></div>
-            <div id="pf-header-preview-gameplay" class="pf-header-preview-element pull-left" style="--bg-image: url('{{ @tplResource->getPath('image') }}/sso/gameplay.png');"></div>
-        </div>
-    </div>
 </header>
 
 {* login form *}
@@ -98,41 +103,22 @@
             </div>
         </check>
 
+        {* dynamic message container *}
+        <div class="container-fluid">
+            <div class="row ">
+                <div class="col-xs-12 col-md-8 col-md-offset-2 pf-dynamic-message-container">
+                    {* client side message e.g. ajax errors *}
+                </div>
+            </div>
+        </div>
+
         {* cookie characters *}
-        <check if="{{ @cookieCharacters }}">
-            <true>
-                <div class="row text-center">
-                    <div class="col-md-8 col-md-offset-2">
-                        <h2><span class="text-primary">Select</span> your character</h2>
-                    </div>
+        <check if="{{ !@cookieCharacters }}">
+            <div class="row text-center">
+                <div class="col-md-8 col-md-offset-2">
+                    <h2 style="margin-top: 0;"><span class="text-primary">Sign</span> up</h2>
                 </div>
-
-                {* dynamic message container *}
-                <div class="container-fluid">
-                    <div class="row ">
-                        <div class="col-xs-12 col-md-8 col-md-offset-2 pf-dynamic-message-container">
-                            {* client side message e.g. ajax errors *}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row text-center pf-character-selection">
-                    <repeat group="{{ @cookieCharacters }}" key="{{ @cookieName }}" value="{{ @characterData }}">
-                        <div class="col-sm-{{ @getCharacterGrid( @cookieCharacters ) }}">
-                            <div class="pf-dynamic-area" data-cookie="{{ @cookieName }}" data-href="{{ @BASE }}{{ 'sso','action=login' | alias }}">
-                                {* character data is dynamically *}
-                            </div>
-                        </div>
-                    </repeat>
-                </div>
-            </true>
-            <false>
-                <div class="row text-center">
-                    <div class="col-md-8 col-md-offset-2">
-                        <h2><span class="text-primary">Sign</span> up</h2>
-                    </div>
-                </div>
-            </false>
+            </div>
         </check>
 
         {* SSO login *}

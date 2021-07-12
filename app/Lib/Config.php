@@ -577,7 +577,7 @@ class Config extends \Prefab {
      */
     static function parseDSN(string $dsn, ?array &$conf = []) : bool {
         // reset reference
-        if($matches = (bool)preg_match('/^(\w+)\h*=\h*(.+)/', strtolower(trim($dsn)), $parts)){
+        if($matches = (bool)preg_match('/^(\w+)\h*=\h*(.+)/', trim($dsn), $parts)){
             $conf['type'] = $parts[1];
             if($conf['type'] == 'redis'){
                 [$conf['host'], $conf['port'], $conf['db'], $conf['auth']] = explode(':', $parts[2]) + [1 => 6379, 2 => null, 3 => null];

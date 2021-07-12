@@ -228,6 +228,12 @@ $mapBubbleWidth:        30px;
   }
 }
 
+.pf-map-region {
+  .pf-system-head-region {
+    display: block !important;
+  }
+}
+
 // class gets applied to body tag if system/connection gets dragged
 // to prevent cursor "flicker" we need to change the cursor for "neighbored" elements
 .jtk-drag-select{
@@ -318,10 +324,10 @@ $mapBubbleWidth:        30px;
     }
 
     .pf-system-head{
-      padding: 0 3px 0 3px;
+      padding: 0 3px 0 4px;
       cursor: pointer;
-      font-family: Arial, sans-serif; // fix for element width on custom font family
-      font-weight: bold;
+      font-family: Oxygen, Arial, sans-serif;
+      font-weight: bold; // fix for element width on custom font family
       white-space: nowrap;
       backface-visibility: hidden; // fixed blurry text on system scale() -> requires display: inline-block; transform: translateY(0); for child nodes
 
@@ -331,6 +337,7 @@ $mapBubbleWidth:        30px;
         min-width: 50px;
         color: $gray-lighter;
         margin-right: 2px;
+        letter-spacing: 0.03em;
         -webkit-font-smoothing: antialiased;
         transform: translateY(0); // fixed "blurry" text in scaled parent
       }
@@ -376,25 +383,56 @@ $mapBubbleWidth:        30px;
     // ================================================================================================================
     .pf-system-head-info{
       display: flex;
+      justify-content: space-between;
+      flex-wrap: nowrap;
       color: lighten($gray-light, 10%);
       font-size: 10px;
-      line-height: 10px;
-      padding-right: 1px; // bring right aligned text in line with wh "effect" icon
-      margin-bottom: 2px;
+      line-height: 14px; // 15 is "default", lower it a bit and set fix "height" for 1-2px bottom space
+      height: 15px;
+      padding-right: 2px; // bring right aligned text in line with wh "effect" icon
       transform: translateY(0); // fixed "blurry" text in scaled parent
+      min-width: 100%; // required for text "truncate" inside
+      max-width: 0; // required for text "truncate" inside
 
       [class^="pf-system-sec-"]{
         cursor: help;
       }
     }
 
-    .pf-system-head-info-left{
-      flex: 1;
+    .pf-system-head-info-left,
+    .pf-system-head-info-right, {
+      display: inline-flex;
+      flex: 1 1 auto;
+      min-width: 0; // required for text "truncate" inside
+
+      &:empty{
+        display: none;
+      }
+      > * {
+        line-height: inherit;
+        text-align: inherit;
+      }
+
+      .pf-system-head-region{
+        display: none; // triggered by map option
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
-    .pf-system-head-info-right{
-      flex: 1;
-      text-align: right;
+    .pf-system-head-info-left {
+      > *:not(:first-child){
+        margin-left: 5px;
+      }
+    }
+
+    .pf-system-head-info-right {
+      justify-content: flex-end;
+
+      > *:not(:last-child){
+        margin-right: 5px;
+      }
     }
 
     // ================================================================================================================
@@ -617,7 +655,8 @@ $mapBubbleWidth:        30px;
     @include transition(stroke 0.18s ease-out, opacity 0.18s ease-out);
     will-change: all;
 
-    path{
+    path {
+      shape-rendering: geometricPrecision;        // maybe better render quality ?!
       @include transition(stroke 0.18s ease-out);
     }
 
@@ -645,6 +684,7 @@ $mapBubbleWidth:        30px;
 
     path:nth-child(2){
       stroke: darken($pink-darker, 8%);
+      stroke-dasharray: 2px, 8px, 2px, 8px;
     }
 
     &.jtk-hover{
@@ -667,6 +707,7 @@ $mapBubbleWidth:        30px;
 
     path:nth-child(2){
       stroke: $teal-lighter;
+      stroke-dasharray: 15px, 10px, 5px, 10px, 5px, 10px;
     }
 
     &.jtk-hover{
@@ -720,11 +761,35 @@ $mapBubbleWidth:        30px;
     }
   }
 
-  .pf-map-connection-wh-size-s,
+  .pf-map-connection-wh-size-s {
+
+    path:first-child {
+      stroke-width: 7px;
+      stroke-dasharray: 3px, 10px;
+      stroke-linecap: square;
+    }
+
+    path:nth-child(2) {
+      stroke-width: 3px;
+    }
+  }
+
   .pf-map-connection-wh-size-m {
 
-    path:nth-child(2){
-      stroke-linecap: square !important; // smoother look for "inner" path
+    path:first-child {
+      stroke-dasharray: 20px, 4px;
+      stroke-linecap: butt;
+    }
+  }
+
+  .pf-map-connection-wh-size-xl {
+
+    path:first-child {
+      stroke-width: 9px;
+    }
+
+    path:nth-child(2) {
+      stroke-width: 5px;
     }
   }
 

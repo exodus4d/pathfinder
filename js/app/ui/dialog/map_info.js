@@ -357,6 +357,7 @@ define([
                         className: 'text-center',
                         searchable: false,
                         data: 'effect',
+                        defaultContent: '',
                         render: {
                             display: (cellData, type, rowData, meta) => {
                                 let value = '';
@@ -376,9 +377,11 @@ define([
                         render: {
                             _: (cellData, type, rowData, meta) => {
                                 let statics = [];
-                                for(let wormholeName of cellData){
-                                    let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
-                                    statics.push('<span class="' + wormholeData.class + '">' + wormholeData.security + '</span>');
+                                if(Array.isArray(cellData)) {
+                                    for (let wormholeName of cellData) {
+                                        let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                                        statics.push('<span class="' + wormholeData.class + '">' + wormholeData.security + '</span>');
+                                    }
                                 }
                                 return statics.join('&nbsp;&nbsp;');
                             }

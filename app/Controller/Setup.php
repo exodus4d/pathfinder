@@ -914,7 +914,7 @@ class Setup extends Controller {
             // -> the DSN format is not the same, convert URL format into DSN
             if(
                 strtolower(session_module_name()) == 'redis' &&
-                ($parts = parse_url(strtolower(session_save_path())))
+                ($parts = parse_url(session_save_path()))
             ){
                 // parse URL parameters
                 parse_str((string)$parts['query'], $params);

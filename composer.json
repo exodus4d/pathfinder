@@ -20,6 +20,7 @@
       "Exodus4D\\Pathfinder\\": "app/"
     }
   },
+  "readme": "README.md",
   "require": {
     "php-64bit": ">=7.2",
     "ext-pdo": "*",
@@ -30,7 +31,7 @@
     "ext-ctype": "*",
     "ext-gd": "*",
     "bcosca/fatfree-core": "3.7.*",
-    "ikkez/f3-cortex": "dev-master#0d7754a5897a639e563add6b8d6db53fc0fae677",
+    "ikkez/f3-cortex": "dev-master#af035616ae8d708776117e05603dac43835f3d9a",
     "ikkez/f3-sheet": "0.4.*",
     "xfra35/f3-cron": "1.2.*",
     "monolog/monolog": "2.*",
