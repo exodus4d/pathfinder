@@ -3,3 +3,85 @@
   height: 0;
   overflow: hidden;
 }
+
+$logo-stroke-width:       4px;
+$logo-animation-duration: 3.5s;
+$logo-animation-loop:     1; // infinite
+
+.logo-ploygon-top-right{
+  fill: $teal;
+  fill-rule: evenodd;
+  stroke: $teal;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+
+  stroke-dasharray: 821.3;
+  stroke-dashoffset: 821.3;
+  animation: logo-animation-paint $logo-animation-duration ease-in-out $logo-animation-loop;
+}
+
+.logo-ploygon-bottom-left{
+  fill: $green;
+  fill-rule: evenodd;
+  stroke: $green;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+
+  stroke-dasharray: 401;
+  stroke-dashoffset: 401;
+  animation: logo-animation-paint $logo-animation-duration linear $logo-animation-loop;
+}
+
+.logo-ploygon-bottom-right{
+  fill: $teal-dark;
+  fill-rule: evenodd;
+  stroke: $teal-dark;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+
+  stroke-dasharray: 461;
+  stroke-dashoffset: 461;
+  animation: logo-animation-paint $logo-animation-duration linear $logo-animation-loop;
+}
+
+.logo-ploygon-top-left{
+  fill: $gray-light;
+  fill-rule: evenodd;
+  stroke: $gray-light;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+
+  stroke-dasharray: 835;
+  stroke-dashoffset: 835;
+  animation: logo-animation-paint $logo-animation-duration linear $logo-animation-loop;
+}
+
+@keyframes logo-animation-paint {
+  0% {
+    fill-opacity: 0;
+    animation-timing-function: ease-in-out;
+  }
+  50% {
+    fill-opacity: 0;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    animation-timing-function: ease-in;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+  }
+}

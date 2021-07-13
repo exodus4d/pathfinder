@@ -34,6 +34,23 @@
     top:0px;
   }
 };
+
+// flexBox grow/shrink ============================================================================
+@keyframes flexGrow {
+  to {
+    flex: 1;
+    opacity: 1;
+  }
+}
+
+@keyframes flexShrink {
+  to {
+    flex: .01;
+    flex: .00001;
+    opacity: 0;
+  }
+}
+
 // svg path draw ==================================================================================
 .pf-animation-path-draw {
   stroke-dasharray: 500;

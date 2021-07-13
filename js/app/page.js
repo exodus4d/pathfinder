@@ -336,21 +336,21 @@ define([
             $(pageMenuRightEl).append(getMenu([
                 {
                     type: 'button',
-                    label: 'Information',
-                    icon: 'fa-street-view',
-                    action: 'ShowMapInfo',
-                    data: {tab: 'information'}
-                },{
-                    type: 'heading',
-                    label: 'Configuration'
-                },{
-                    type: 'button',
                     class: 'loading',
                     label: 'Settings',
                     icon: 'fa-cogs',
                     group: 'mapOptions',
                     action: 'ShowMapSettings',
                     data: {tab: 'settings'}
+                },{
+                    type: 'button',
+                    label: 'Information',
+                    icon: 'fa-street-view',
+                    action: 'ShowMapInfo',
+                    data: {tab: 'information'}
+                },{
+                    type: 'heading',
+                    label: 'Map'
                 },{
                     type: 'button',
                     id: Util.config.menuButtonGridId,
@@ -372,25 +372,41 @@ define([
                     target: 'map',
                     data: {option: 'mapMagnetizer', toggle: true}
                 },{
+                    type: 'heading',
+                    label: 'System'
+                },{
                     type: 'button',
-                    id: Util.config.menuButtonEndpointId,
+                    id: Util.config.menuButtonRegionId,
                     class: 'loading',
-                    label: 'Signatures',
-                    icon: 'fa-link',
+                    label: 'Region label',
+                    icon: 'fa-map-marked-alt',
                     group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
-                    data: {option: 'mapSignatureOverlays', toggle: true}
+                    data: {option: 'systemRegion', toggle: true}
                 },{
                     type: 'button',
                     id: Util.config.menuButtonCompactId,
                     class: 'loading',
-                    label: 'Compact',
+                    label: 'Compact view',
                     icon: 'fa-compress',
                     group: 'mapOptions',
                     action: 'MapOption',
                     target: 'map',
-                    data: {option: 'mapCompact', toggle: true}
+                    data: {option: 'systemCompact', toggle: true}
+                },{
+                    type: 'heading',
+                    label: 'Connection'
+                },{
+                    type: 'button',
+                    id: Util.config.menuButtonEndpointId,
+                    class: 'loading',
+                    label: 'Signature overlay',
+                    icon: 'fa-link',
+                    group: 'mapOptions',
+                    action: 'MapOption',
+                    target: 'map',
+                    data: {option: 'connectionSignatureOverlays', toggle: true}
                 },{
                     type: 'heading',
                     label: 'Help'
@@ -445,6 +461,7 @@ define([
         let executor = resolve => {
             let svgPaths = [
                 'svg/logo_inline.svg',
+                'svg/grid_layout.svg',
                 'svg/swords.svg'
             ].map(path => `text!${Util.imgRoot()}${path}!strip`);
 

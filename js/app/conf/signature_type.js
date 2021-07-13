@@ -6,7 +6,7 @@
  * proofed, signature names (copy & paste from scanning window)
  */
 
-define([], () => {
+ define([], () => {
     'use strict';
 
     // signature sources
@@ -380,7 +380,8 @@ define([], () => {
         7:  'B274 - H',
         8:  'A239 - L',
         9:  'E545 - 0.0',
-        10: 'F135 - C12 Thera'
+        10: 'F135 - C12 Thera',
+        11: 'F216 - T Pochven'
     };
 
     // all k-space exits are static or K162
@@ -394,7 +395,8 @@ define([], () => {
         7:  'D845 - H',
         8:  'U210 - L',
         9:  'K346 - 0.0',
-        10: 'F135 - C12 Thera'
+        10: 'F135 - C12 Thera',
+        11: 'F216 - T Pochven'
     };
 
     // no *wandering* w-space -> w-space
@@ -483,7 +485,8 @@ define([], () => {
         7: 'A641 - H',
         8: 'R051 - L',
         9: 'V283 - 0.0',
-        10: 'T458 - C12 Thera'
+        10: 'T458 - C12 Thera',
+        11: 'C729 - T Pochven'
     };
 
     let lsWH = {
@@ -496,7 +499,8 @@ define([], () => {
         7: 'B449 - H',
         8: 'N944 - L',
         9: 'S199 - 0.0',
-        10: 'M164 - C12 Thera'
+        10: 'M164 - C12 Thera',
+        11: 'C729 - T Pochven'
     };
 
     let nullWH = {
@@ -509,7 +513,14 @@ define([], () => {
         7: 'B449 - H',
         8: 'N944 - L',
         9: 'S199 - 0.0',
-        10: 'L031 - C12 Thera'
+        10: 'L031 - C12 Thera',
+        11: 'C729 - T Pochven',
+        12: 'U372 - T Pochven'
+    };
+
+    let pochWH = {
+        1: 'R081 - C4',
+        2: 'X450 - 0.0'
     };
 
     // ================================================================================================================
@@ -607,6 +618,9 @@ define([], () => {
             },
             32: {   // 0.0
                 5: nullWH
+            },
+            33: {   // Pochven
+                5: pochWH
             }
         }
     };

@@ -22,6 +22,7 @@ define([
         systemHeadInfoClass: 'pf-system-head-info',                                     // class for system info
         systemHeadInfoLeftClass: 'pf-system-head-info-left',                            // class for left system info
         systemHeadInfoRightClass: 'pf-system-head-info-right',                          // class for right system info
+        systemHeadRegionClass: 'pf-system-head-region',                                 // class for "region" in system info
 
         systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',                         // id prefix for system tooltip content
         systemTooltipInnerClass: 'pf-system-tooltip-inner',                             // class for system tooltip content
@@ -765,19 +766,32 @@ define([
      * get new dom element for systemData that shows "info" data (additional data)
      * -> this is show below the system base data on map
      * @param data
-     * @returns {*}
+     * @returns {HTMLDivElement|undefined}
      */
     let getHeadInfoElement = data => {
-        let headInfo = null;
+        let infoEl;
         let headInfoLeft = [];
         let headInfoRight = [];
 
         if(data.drifter){
-            headInfoLeft.push('<i class="fas fa-fw fa-wave-square ' + Util.getSecurityClassForSystem(data.security) + '" title="drifter"></i>');
+            headInfoLeft.push(Object.assign(document.createElement('i'), {
+                className: `fas fa-fw fa-wave-square ${Util.getSecurityClassForSystem(data.security)}`,
+                title: 'drifter'
+            }));
         }
 
         if(data.shattered){
-            headInfoLeft.push('<i class="fas fa-fw fa-chart-pie ' + Util.getSecurityClassForSystem('SH') + '" title="shattered"></i>');
+            headInfoLeft.push(Object.assign(document.createElement('i'), {
+                className: `fas fa-fw fa-chart-pie ${Util.getSecurityClassForSystem('SH')}`,
+                title: 'shattered'
+            }));
+        }
+
+        if(data.type.id === 2){
+            headInfoLeft.push(Object.assign(document.createElement('span'), {
+                className: config.systemHeadRegionClass,
+                textContent: data.region.name
+            }));
         }
 
         // check systemData if headInfo element is needed
@@ -785,31 +799,36 @@ define([
             // format wh statics
             for(let wormholeName of data.statics){
                 let staticData = Object.assign({}, Init.wormholes[wormholeName]);
-                headInfoRight.push(
-                    '<span class="' +
-                    Util.getSecurityClassForSystem(staticData.security) + ' ' +
-                    Util.config.popoverTriggerClass + '" data-name="' + staticData.name +
-                    '">' + staticData.security + '</span>'
-                );
+                let staticEl = Object.assign(document.createElement('span'), {
+                    className: [
+                        Util.getSecurityClassForSystem(staticData.security),
+                        Util.config.popoverTriggerClass
+                    ].join(' '),
+                    textContent: staticData.security
+                });
+                staticEl.dataset.name = staticData.name;
+                headInfoRight.push(staticEl);
             }
         }
 
         if(headInfoLeft.length || headInfoRight.length){
-            headInfo = $('<div>', {
-                class: config.systemHeadInfoClass
-            }).append(
-                $('<div>', {
-                    class: config.systemHeadInfoLeftClass,
-                    html: headInfoLeft.join('&nbsp;&nbsp;')
-                }),
-                $('<div>', {
-                    class: config.systemHeadInfoRightClass,
-                    html: headInfoRight.join('&nbsp;&nbsp;')
-                })
-            );
+            let leftEl = Object.assign(document.createElement('div'), {
+                className: config.systemHeadInfoLeftClass
+            });
+            leftEl.append(...headInfoLeft);
+
+            let rightEl = Object.assign(document.createElement('div'), {
+                className: config.systemHeadInfoRightClass
+            });
+            rightEl.append(...headInfoRight);
+
+            infoEl = Object.assign(document.createElement('div'), {
+                className: config.systemHeadInfoClass
+            });
+            infoEl.append(leftEl, rightEl);
         }
 
-        return headInfo;
+        return infoEl;
     };
 
     return {

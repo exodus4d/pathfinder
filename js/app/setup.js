@@ -24,6 +24,7 @@ define([
         hiddenByAttributeClass: 'pf-hidden-by-attr',                    // class for elements that are hidden/shown by [data-attr] value
         shownByAttributeClass: 'pf-shown-by-attr',                      // class for elements that are hidden/shown by [data-attr] value
 
+        webSocketSectionId: 'pf-setup-socket',                          // id for webSocket section
         webSocketStatsId: 'pf-setup-webSocket-stats',                   // id for webSocket "stats" panel
         webSocketRefreshStatsId: 'pf-setup-webSocket-stats-refresh',    // class for "reload stats" button
 
@@ -399,8 +400,8 @@ define([
 
         webSocketPanel.showLoadingAnimation();
 
-        let removeColorClasses = (el) => {
-            el.removeClass (function(index, css){
+        let removeColorClasses = el => {
+            el.removeClass(function(index, css){
                 return (css.match (/\btxt-color-\S+/g) || []).join(' ');
             });
         };
@@ -424,7 +425,7 @@ define([
                     statusIcon.toggleClass('fa-exclamation-triangle', false).toggleClass('fa-check', true).addClass('txt-color-success');
 
                     // update head badge. "Decrease" warning count, default for "URI" connection is "warn + 1"
-                    socketWarningCount--;
+                    socketWarningCount = Math.max(0, --socketWarningCount);
                 }
             }
 
@@ -436,8 +437,8 @@ define([
                 // update head badge
                 switch(data.status.type){
                     case 'success':
-                        socketWarningCount = '';
-                        socketDangerCount = '';
+                        socketWarningCount = 0;
+                        socketDangerCount = 0;
                         break;
                     case 'warning':
                         break;
@@ -447,8 +448,11 @@ define([
                 }
             }
 
-            badgeSocketWarning.text(socketWarningCount ? socketWarningCount : '');
-            badgeSocketDanger.text(socketDangerCount ? socketDangerCount : '');
+            badgeSocketWarning.text(socketWarningCount || '');
+            badgeSocketDanger.text(socketDangerCount || '');
+            // update section headline badges
+            document.querySelector(`#${config.webSocketSectionId} h4 .badge-warning`).textContent = socketWarningCount || '';
+            document.querySelector(`#${config.webSocketSectionId} h4 .badge-danger`).textContent = socketDangerCount || '';
         };
 
         // update initial

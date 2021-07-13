@@ -363,7 +363,8 @@ class Setup extends Controller\Controller {
             ':regionIdJove3' => 10000004,
             ':ns' => '0.0',
             ':ls' => 'L',
-            ':hs' => 'H'
+            ':hs' => 'H',
+            ':tr' => 'T'
         ];
 
         if($length){

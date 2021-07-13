@@ -5,6 +5,7 @@ define([
     'app/map/map',
     'app/map/util',
     'app/lib/eventHandler',
+    'app/lib/svg',
     'sortable',
     'module/base',
     'module/system_info',
@@ -23,6 +24,7 @@ define([
     Map,
     MapUtil,
     EventHandler,
+    Svg,
     Sortable,
     BaseModule,
     SystemInfoModule,
@@ -61,9 +63,13 @@ define([
         editableHeadlineClass: 'pf-editable-headline',
         editableToggleClass: 'pf-editable-toggle',
         editableToggleItemClass: 'pf-editable-toggle-item',
+        editableToggleSvgClass: 'pf-editable-toggle-svg',
+        editableToggleBtnClass: 'pf-editable-toggle-btn',
 
-        mapTabContentLayoutOptions: ['left', 'right'],
-        defaultMapTabContentLayout: 'right',
+        mapTabContentLayoutColumnOptions: ['grid-2', 'grid-3'],
+        mapTabContentLayoutOrientationOptions: ['left', 'right'],
+        defaultMapTabContentCols: 'grid-3',
+        defaultMapTabContentOrientation: 'right',
     };
 
     let mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
@@ -1533,7 +1539,12 @@ define([
         }
 
         let setMapTabLayout = (tabEl, layoutNew) => {
-            config.mapTabContentLayoutOptions.forEach(layout => tabEl.classList.toggle(layout, layout === layoutNew));
+            config.mapTabContentLayoutColumnOptions.forEach(columns => tabEl.classList.toggle(columns, columns === layoutNew.columns));
+            config.mapTabContentLayoutOrientationOptions.forEach(orientation => tabEl.classList.toggle(orientation, orientation === layoutNew.orientation));
+        };
+
+        let getLayoutSvgLink = (layoutCols = config.defaultMapTabContentCols, orientation = config.defaultMapTabContentOrientation) => {
+            return `#pf-svg-${layoutCols}-${orientation}`;
         };
 
         Promise.all([
@@ -1542,8 +1553,11 @@ define([
         ]).then(payload => {
             let modules = payload[0];
             let localDataMap = payload[1];
-            let layoutCurrent = Util.getObjVal(localDataMap, 'layout') || config.defaultMapTabContentLayout;
             let disabledValues = Util.getObjVal(localDataMap, 'modulesDisabled');
+            let layoutCurrent = Object.assign({}, {
+                columns: config.defaultMapTabContentCols,
+                orientation: config.defaultMapTabContentOrientation
+            }, Util.getObjVal(localDataMap, 'layout'));
 
             // update mapModule with current layout class
             setMapTabLayout(tabEl, layoutCurrent);
@@ -1601,40 +1615,98 @@ define([
                         // add "layout" toggle to popover -----------------------------------------------------------------
                         let anchorEl = editable.container.$form[0].querySelector(`.${config.editableSettingsClass}`);
 
-                        let gridEl = Object.assign(document.createElement('div'), {
-                            className: config.editableToggleClass
+                        let toggleGroupEl = Object.assign(document.createElement('div'), {
+                            className: [config.editableToggleClass].join(' ')
                         });
 
-                        let gridItemEls = config.mapTabContentLayoutOptions.map(layout => {
-                            let gridItemEl = Object.assign(document.createElement('div'), {
-                                className: config.editableToggleItemClass + (layout === layoutCurrent ? ' active' : '')
+                        let gridItemEls = config.mapTabContentLayoutColumnOptions.map((layoutCols, i) => {
+                            let isActive = layoutCols === layoutCurrent.columns;
+                            let orientation = isActive ? layoutCurrent.orientation : undefined;
+
+                            let svgEl = Svg.newSymbolSvg(getLayoutSvgLink(layoutCols, orientation));
+                            svgEl.classList.add('btn', 'btn-default', config.editableToggleSvgClass);
+                            svgEl.dataset.value = layoutCols;
+                            if(isActive){
+                                svgEl.classList.add('active');
+                            }
+
+                            // left/right layout button
+                            let btnEl = Object.assign(document.createElement('div'), {
+                                className: ['btn', 'btn-xs', 'btn-default', config.editableToggleBtnClass].join(' ')
                             });
-                            gridItemEl.style.setProperty('--bg-image', `url("${Util.imgRoot()}/icons/grid_${layout}.png")`);
-                            gridItemEl.dataset.value = layout;
-                            return gridItemEl;
+                            btnEl.append(Object.assign(document.createElement('i'), {
+                                className: ['fas', 'fa-rotate-90', 'fa-retweet'].join(' ')
+                            }));
+                            btnEl.dataset.value = 'left';
+                            if(!isActive){
+                                btnEl.classList.add('disabled');
+                            }
+                            if(orientation === btnEl.dataset.value){
+                                btnEl.classList.add('active');
+                            }
+
+                            // btn group
+                            let btnGroupEl = Object.assign(document.createElement('div'), {
+                                className: ['btn-group', config.editableToggleItemClass].join(' ')
+                            });
+                            btnGroupEl.append(...(i % 2) ? [svgEl, btnEl] : [btnEl, svgEl]);
+
+                            return btnGroupEl;
                         });
-                        gridItemEls.splice(1, 0, Object.assign(document.createElement('i'), {
-                            className: ['fas', 'fa-lg', 'fa-exchange-alt'].join(' ')
-                        }));
-                        gridEl.append(...gridItemEls);
-                        anchorEl.insertAdjacentElement('beforebegin', gridEl);
+
+                        toggleGroupEl.append(...gridItemEls);
+                        anchorEl.insertAdjacentElement('beforebegin', toggleGroupEl);
 
                         // click event for layout switch -> change layout -> store new layout setting
-                        EventHandler.addEventListener(gridEl, 'click.toggleSelect', e => {
-                            if(e.target.classList.contains(config.editableToggleItemClass)){
-                                let layoutNew = e.target.dataset.value;
-                                if(layoutNew !== layoutCurrent){
-                                    gridItemEls.forEach(gridItemEl => gridItemEl.classList.toggle('active'));
-                                    let activeMapId = Util.getObjVal(editable, 'options.pk');
-
-                                    Util.getLocalStore('map').setItem(`${activeMapId}.layout`, layoutNew).then(layoutNew => {
-                                        setMapTabLayout(tabEl, layoutNew);
-                                        // for next "toggle" detection
-                                        layoutCurrent = layoutNew;
-                                        editable.option('pfLayoutCurrent', layoutNew);
-                                    });
-                                }
+                        EventHandler.addEventListener(toggleGroupEl, 'click.toggleSelect', e => {
+                            e.stopPropagation();
+                            // check if "click" bubbles up to .btn and button is not disabled
+                            let btnEl = e.target.closest(`.btn`);
+                            if(!btnEl || btnEl.classList.contains('disabled')){
+                                return;
                             }
+
+                            [...e.currentTarget.getElementsByClassName(config.editableToggleItemClass)].forEach(btnGroupEl => {
+                                let svgEl = btnGroupEl.querySelector(`.${config.editableToggleSvgClass}`);
+                                let btnEl = btnGroupEl.querySelector(`.${config.editableToggleBtnClass}`);
+
+                                if(btnGroupEl === e.target.closest(`.${config.editableToggleItemClass}`)){
+                                    if(svgEl === e.target.closest(`.${config.editableToggleSvgClass}`)){
+                                        // click on SVG
+                                        svgEl.classList.toggle('active', true);
+                                        btnEl.classList.toggle('disabled', false);
+                                    }
+
+                                    if(btnEl === e.target.closest(`.${config.editableToggleBtnClass}`)){
+                                        // click on left/right btn
+                                        btnEl.classList.toggle('active');
+                                        // toggle SVG left/right
+                                        Svg.updateSymbolSvg(svgEl, getLayoutSvgLink(
+                                            svgEl.dataset.value,
+                                            btnEl.classList.contains('active') ? btnEl.dataset.value : undefined
+                                        ));
+                                    }
+
+                                    // store new values
+                                    if(svgEl.classList.contains('active')){
+                                        let activeMapId = Util.getObjVal(editable, 'options.pk');
+                                        Util.getLocalStore('map').setItem(`${activeMapId}.layout`, {
+                                            'columns': svgEl.dataset.value,
+                                            'orientation': btnEl.classList.contains('active') ? btnEl.dataset.value : config.defaultMapTabContentOrientation
+                                        }).then(layoutNew => {
+                                            setMapTabLayout(tabEl, layoutNew);
+                                            // for next "toggle" detection
+                                            layoutCurrent = layoutNew;
+                                            editable.option('pfLayoutCurrent', layoutNew);
+                                        });
+                                    }
+                                }else{
+                                    Svg.updateSymbolSvg(svgEl, getLayoutSvgLink(svgEl.dataset.value));
+                                    svgEl.classList.toggle('active', false);
+                                    btnEl.classList.toggle('active', false);
+                                    btnEl.classList.toggle('disabled', true);
+                                }
+                            });
                         }, {passive: false});
 
                         // add "headlines" to Modules checklist -------------------------------------------------------

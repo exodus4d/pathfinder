@@ -80,21 +80,22 @@ define([
      * get overlay parameters for connection overlay (type 'diamond' or 'arrow')
      * @param overlayType
      * @param direction
+     * @param prefix        for obj keys -> for parameterized Overlays
      * @returns {{length: number, foldback: number, direction: number}}
      */
-    let getConnectionArrowOverlayParams = (overlayType, direction = 1) => {
+    let getConnectionArrowOverlayParams = (overlayType, direction = 1, prefix = 'arrow') => {
         switch(overlayType){
             case 'arrow':
                 return {
-                    length: 15,
-                    direction: direction,
-                    foldback: 0.8
+                    [`${prefix}length`]: 15,
+                    [`${prefix}direction`]: direction,
+                    [`${prefix}foldback`]: 0.8
                 };
             default:    // diamond
                 return {
-                    length: 10,
-                    direction: 1,
-                    foldback: 2
+                    [`${prefix}length`]: 10,
+                    [`${prefix}direction`]: 1,
+                    [`${prefix}foldback`]: 2
                 };
         }
     };
@@ -109,6 +110,8 @@ define([
         connectionsData = Util.arrayToObject(connectionsData);
 
         map.setSuspendDrawing(true);
+        // ... redraw should be suspended (no repaint until function ends)
+        let doNotRepaint = map.isSuspendDrawing();
 
         map.getAllConnections().forEach(connection => {
             let connectionId    = connection.getParameter('connectionId');
@@ -121,6 +124,7 @@ define([
             let sizeLockedBySignature = false;
 
             if(connection.scope === 'wh'){
+                /* TODO check if we still need this, commented out after jsPlumb `v2.9.3` → `v2.13.1` upgrade
                 if(!connection.hasType(type)){
                     connection.addType(type);
                 }
@@ -128,10 +132,11 @@ define([
                 let overlayArrow = connection.getOverlay(MapOverlayUtil.config.connectionOverlayArrowId);
 
                 // Arrow overlay needs to be cleared() (removed) if 'info_signature' gets removed!
-                // jsPlumb does not handle overlay updates for Arrow overlays... so we need to re-apply the the overlay manually
+                // jsPlumb does not handle overlay updates for Arrow overlays... so we need to re-apply the overlay manually
                 if(overlayArrow.path && !overlayArrow.path.isConnected){
                     connection.canvas.appendChild(overlayArrow.path);
                 }
+                */
 
                 // since there "could" be multiple sig labels on each endpoint,
                 // there can only one "primary label picked up for wormhole jump mass detection!
@@ -187,7 +192,13 @@ define([
                     );
                 }
 
-                overlayArrow.updateFrom(getConnectionArrowOverlayParams(overlayType, arrowDirection));
+                let arrowParams = getConnectionArrowOverlayParams(overlayType, arrowDirection);
+
+                if(!connection.hasType(type)){
+                    connection.addType(type, arrowParams, doNotRepaint);
+                }else{
+                    connection.reapplyTypes(arrowParams, doNotRepaint);
+                }
 
                 // update/add endpoint overlays -------------------------------------------------------------------
                 updateEndpointOverlaySignatureLabel(sourceEndpoint, signatureTypeData.source);
@@ -213,7 +224,7 @@ define([
             }else{
                 // connection is not 'wh' scope
                 if(connection.hasType(type)){
-                    connection.removeType(type);
+                    connection.removeType(type, undefined, doNotRepaint);
                 }
             }
 
@@ -277,7 +288,7 @@ define([
         let connectionsData = Util.getObjVal(mapData, 'data.connections');
 
         if(connectionsData){
-            let overlayIcon = getOverlayIcon(mapElement, options.mapSignatureOverlays.class);
+            let overlayIcon = getOverlayIcon(mapElement, options.connectionSignatureOverlays.class);
             showLoading(overlayIcon);
             updateInfoSignatureOverlays(map, connectionsData);
             hideLoading(overlayIcon);
@@ -313,6 +324,17 @@ define([
     };
 
     /**
+     * callback after applying map option "systemRegion"
+     * -> system dimension changed -> redraw connections
+     * @param mapElement
+     */
+    let toggleInfoSystemRegion = mapElement => {
+        let mapId = mapElement.data('id');
+        let map = MapUtil.getMapInstance(mapId);
+        map.repaintEverything();
+    };
+
+    /**
      * Overlay options (all available map options shown in overlay)
      * "active":    (active || hover) indicated whether an icon/option
      *              is marked as "active".
@@ -325,32 +347,50 @@ define([
             trigger: 'active',
             class: 'pf-map-overlay-filter',
             iconClass: ['fas', 'fa-fw', 'fa-filter'],
-        onClick: function(e){
+            onClick: function(e){
                 // clear all filter
                 let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
                 let map = getMapObjectFromOverlayIcon(this);
 
-                MapUtil.storeLocalData('map', mapElement.data('id'), 'filterScopes', []);
+                Util.getLocalStore('map').setItem(`${mapElement.data('id')}.filterScopes`, []);
                 MapUtil.filterMapByScopes(map, []);
             }
         },
         mapSnapToGrid: {
-            title: 'active grid',
+            title: 'grid',
             trigger: 'active',
             class: 'pf-map-overlay-grid',
             iconClass: ['fas', 'fa-fw', 'fa-th']
         },
         mapMagnetizer: {
-            title: 'active magnetizer',
+            title: 'magnetizer',
             trigger: 'active',
             class: 'pf-map-overlay-magnetizer',
             iconClass: ['fas', 'fa-fw', 'fa-magnet']
         },
         systemRegion: {
-            title: 'show regions',
-            trigger: 'hover',
+            title: 'regions',
+            trigger: 'active',
             class: 'pf-map-overlay-region',
-            iconClass: ['fas', 'fa-fw', 'fa-tags'],
+            iconClass: ['fas', 'fa-fw', 'fa-map-marked-alt']
+        },
+        systemCompact: {
+            title: 'compact layout',
+            trigger: 'active',
+            class: 'pf-map-overlay-compact',
+            iconClass: ['fas', 'fa-fw', 'fa-compress']
+        },
+        connectionSignatureOverlays: {
+            title: 'signature overlays',
+            trigger: 'active',
+            class: 'pf-map-overlay-endpoint',
+            iconClass: ['fas', 'fa-fw', 'fa-link']
+        },
+        systemPopover: {
+            title: 'sovereignty',
+            trigger: 'hover',
+            class: 'pf-map-overlay-popover',
+            iconClass: ['fas', 'fa-fw', 'fa-landmark'],
             hoverIntent: {
                 over: function(e){
                     let mapElement = MapOverlayUtil.getMapElementFromOverlay(this);
@@ -360,17 +400,17 @@ define([
                         if(!systemHead.data('bs.popover')){
                             let system = systemHead.parent();
                             let systemData = system.data();
-                            systemHead.popover({
-                                placement: 'bottom',
-                                html: true,
-                                trigger: 'manual',
-                                container: mapElement,
-                                title: false,
-                                content: Util.getSystemRegionTable(
-                                    Util.getObjVal(systemData, 'region'),
-                                    Util.getObjVal(systemData, 'sovereignty')
-                                )
-                            });
+                            let sovereignty = Util.getObjVal(systemData, 'sovereignty');
+                            if(sovereignty){
+                                systemHead.popover({
+                                    placement: 'bottom',
+                                    html: true,
+                                    trigger: 'manual',
+                                    container: mapElement,
+                                    title: false,
+                                    content: Util.getSystemSovereigntyTable(sovereignty)
+                                });
+                            }
                         }
                         systemHead.setPopoverSmall();
                         systemHead.popover('show');
@@ -381,18 +421,6 @@ define([
                     mapElement.find('.' + MapOverlayUtil.config.systemHeadClass).popover('hide');
                 }
             }
-        },
-        mapSignatureOverlays: {
-            title: 'active signature overlays',
-            trigger: 'active',
-            class: 'pf-map-overlay-endpoint',
-            iconClass: ['fas', 'fa-fw', 'fa-link']
-        },
-        mapCompact: {
-            title: 'compact layout',
-            trigger: 'active',
-            class: 'pf-map-overlay-compact',
-            iconClass: ['fas', 'fa-fw', 'fa-compress']
         },
         connection: {
             title: 'WH data',
@@ -445,7 +473,7 @@ define([
             }
         },
         connectionEol: {
-            title: 'EOL timer',
+            title: 'EOL',
             trigger: 'hover',
             class: 'pf-map-overlay-connection-eol',
             iconClass: ['fas', 'fa-fw', 'fa-hourglass-end'],
@@ -861,9 +889,10 @@ define([
     };
 
     return {
-        showInfoSignatureOverlays: showInfoSignatureOverlays,
-        hideInfoSignatureOverlays: hideInfoSignatureOverlays,
-        updateZoomOverlay: updateZoomOverlay,
-        initMapDebugOverlays: initMapDebugOverlays
+        showInfoSignatureOverlays,
+        hideInfoSignatureOverlays,
+        toggleInfoSystemRegion,
+        updateZoomOverlay,
+        initMapDebugOverlays
     };
 });

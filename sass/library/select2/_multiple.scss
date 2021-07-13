@@ -10,7 +10,8 @@
   -webkit-user-select: none;
 
   .select2-selection__rendered {
-    display: inline-block;
+    //display: inline-block;
+    display: block;
     overflow: hidden;
     padding-left: 8px;
     text-overflow: ellipsis;

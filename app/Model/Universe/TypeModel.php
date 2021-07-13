@@ -148,11 +148,12 @@ class TypeModel extends AbstractUniverseModel {
 
     /**
      * @param bool $mapper
+     * @param bool $essentials
      * @return NULL|void
      */
-    public function reset($mapper = true){
+    public function reset($mapper = true, $essentials = true){
         $this->clearVirtual('dogmaAttributes');
-        parent::reset($mapper);
+        parent::reset($mapper, $essentials);
     }
 
     /**

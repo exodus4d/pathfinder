@@ -43,11 +43,43 @@ $mapModuleGridRowMinHeight: 38px;
     z-index: 100; // slightly over map tabs
   }
 
-  // global 'layout' class (left|right) affect child grid layout for .pf-map-tab-content elements
+  // global layout 'column' class (grid-2|grid-3) affect child grid layout for .pf-map-tab-content elements
+  // -> default: 'grid-3'
+  &.grid-3 {
+    .pf-map-tab-content {
+      @media screen and (min-width: $screen-lg){
+        grid-template:
+                "map   map   map   area2" minmax(0, max-content)
+                "area1 area1 area3 area2" minmax(0, max-content)
+                "area1 area1 area3 area2" minmax(0, 1fr) /
+            1fr 1fr minmax($colMinWidth, 1fr) minmax($colMinWidth, 1fr);
+      }
+    }
+  }
+
+  // global layout 'orientation' class (left|right) affect child grid layout for .pf-map-tab-content elements
   // -> default: 'right'
   &.left {
-    // swap grid tab element
-    @media screen and (min-width: $screen-lg){
+    .pf-map-tab-content {
+      @media screen and (min-width: $screen-sm){
+        grid-template-areas:
+                "map   map"
+                "area1 area1"
+                "area3 area2";
+      }
+
+      @media screen and (min-width: $screen-md){
+        grid-template-areas:
+                "map   map   map"
+                "area2 area1 area1"
+                "area3 area1 area1";
+        grid-template-columns: minmax($colMinWidth, 1fr) 1fr 1fr;
+      }
+    }
+  }
+
+  &.left.grid-3 {
+    @media screen and (min-width: $screen-lg){ // swap grid tab element
       grid-template-areas:
               ".       tabs1   tabs1   tabs1"
               "wrapper wrapper wrapper wrapper";
@@ -55,8 +87,7 @@ $mapModuleGridRowMinHeight: 38px;
     }
 
     .pf-map-tab-content {
-      // swap grid area columns
-      @media screen and (min-width: $screen-lg){
+      @media screen and (min-width: $screen-lg){ // swap grid area columns
         grid-template-areas:
                 "area2 map   map   map"
                 "area2 area1 area1 area3"
@@ -176,14 +207,8 @@ $mapModuleGridRowMinHeight: 38px;
             1fr 1fr minmax($colMinWidth, 1fr);
   }
 
-
-  @media screen and (min-width: $screen-lg){
-    grid-template:
-            "map   map   map   area2" minmax(0, max-content)
-            "area1 area1 area3 area2" minmax(0, max-content)
-            "area1 area1 area3 area2" minmax(0, 1fr) /
-            1fr 1fr minmax($colMinWidth, 1fr) minmax($colMinWidth, 1fr);
-  }
+  // $screen-lg has 3rd column and depends on .grid-3 contextual class
+  // @media screen and (min-width: $screen-lg){}
 
   &.active {
     display: grid; // overwrites default display: block; of .tab-content

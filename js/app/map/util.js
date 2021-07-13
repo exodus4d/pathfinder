@@ -19,7 +19,8 @@ define([
         zoomMin: 0.5,
 
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
-        mapCompactClass: 'pf-compact',                                  // class for map compact system UI
+        systemRegionClass: 'pf-map-region',                             // class for systems regions on map
+        systemCompactClass: 'pf-map-compact',                           // class for compact systems on map
 
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
@@ -1293,8 +1294,10 @@ define([
 
         connection._jsPlumb.instance.setSuspendDrawing(true);
 
-        removeConnectionTypes(connection, types.diff(type));
-        addConnectionTypes(connection, type);
+        // ... redraw should be suspended (no repaint until function ends)
+        let doNotRepaint = connection._jsPlumb.instance.isSuspendDrawing();
+        removeConnectionTypes(connection, types.diff(type), [], doNotRepaint);
+        addConnectionTypes(connection, type, [], doNotRepaint);
 
         connection._jsPlumb.instance.setSuspendDrawing(false, true);
     };
@@ -1443,9 +1446,9 @@ define([
                 payload: mapConfig
             });
 
-            // init compact system layout ---------------------------------------------------------------------
+            // init grid snap ---------------------------------------------------------------------------------
             Util.triggerMenuAction(mapElement, 'MapOption', {
-                option: 'mapCompact',
+                option: 'mapSnapToGrid',
                 toggle: false
             });
 
@@ -1455,15 +1458,21 @@ define([
                 toggle: false
             });
 
-            // init grid snap ---------------------------------------------------------------------------------
+            // init compact system layout ---------------------------------------------------------------------
             Util.triggerMenuAction(mapElement, 'MapOption', {
-                option: 'mapSnapToGrid',
+                option: 'systemRegion',
+                toggle: false
+            });
+
+            // init compact system layout ---------------------------------------------------------------------
+            Util.triggerMenuAction(mapElement, 'MapOption', {
+                option: 'systemCompact',
                 toggle: false
             });
 
             // init endpoint overlay --------------------------------------------------------------------------
             Util.triggerMenuAction(mapElement, 'MapOption', {
-                option: 'mapSignatureOverlays',
+                option: 'connectionSignatureOverlays',
                 toggle: false,
                 skipOnEnable: true,     // skip callback -> Otherwise it would run 2 times on map create
                 skipOnDisable: true     // skip callback -> Otherwise it would run 2 times on map create
