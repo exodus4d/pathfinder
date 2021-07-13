@@ -35,7 +35,7 @@ class GitHub extends Controller\Controller {
         $return->version->delta = null;
         $return->version->dev = false;
 
-        $releases = $f3->gitHubClient()->send('getProjectReleases', 'exodus4d/pathfinder', $releaseCount);
+        $releases = $f3->gitHubClient()->send('getProjectReleases', 'goryn-clade/pathfinder', $releaseCount);
 
         foreach($releases as $key => &$release){
             // check version ------------------------------------------------------------------------------------------
