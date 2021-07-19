@@ -128,7 +128,7 @@ define([
          */
         render(mapId, systemData){
             this._systemData = systemData;
-            let showStationTable = ['H', 'L', '0.0', 'C12'].includes(Util.getObjVal(this._systemData, 'security'));
+            let showStationTable = ['H', 'L', '0.0', 'T', 'C12'].includes(Util.getObjVal(this._systemData, 'security'));
 
             this._bodyEl = Object.assign(document.createElement('div'), {
                 className: this._config.bodyClassName
