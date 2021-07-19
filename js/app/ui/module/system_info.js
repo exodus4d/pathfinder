@@ -244,7 +244,7 @@ define([
                     trueSecClass: Util.getTrueSecClassForSystem(this._systemData.trueSec),
                     systemEffectName: MapUtil.getEffectInfoForSystem(this._systemData.effect, 'name'),
                     systemEffectClass: MapUtil.getEffectInfoForSystem(this._systemData.effect, 'class'),
-                    systemPlanetCount: this._systemData.planets ? this._systemData.planets.length : 0,
+                    // systemPlanetCount: this._systemData.planets ? this._systemData.planets.length : 0,
                     systemStaticData: (Util.getObjVal(this._systemData, 'statics') || []).reduce((acc, wormholeName) => {
                         acc.push(Object.assign({}, Init.wormholes[wormholeName]));
                         return acc;
@@ -413,11 +413,11 @@ define([
                     placement: 'left'
                 });
 
-            // init planets popover
-            $(parentEl).find('.' + this._config.systemInfoPlanetsClass).addSystemPlanetsTooltip(
-                this._systemData.planets, {
-                placement: 'left'
-            });
+            // // init planets popover
+            // $(parentEl).find('.' + this._config.systemInfoPlanetsClass).addSystemPlanetsTooltip(
+            //     this._systemData.planets, {
+            //     placement: 'left'
+            // });
 
             // init static wormhole popover
             MapUtil.initWormholeInfoTooltip($(parentEl), '[data-name]', {

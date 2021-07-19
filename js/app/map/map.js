@@ -3163,7 +3163,7 @@ define([
                 rallyUpdated: data.rallyUpdated || 0,
                 rallyPoke: data.rallyPoke ? 1 : 0,
                 currentUser: data.currentUser, // if user is currently in this system
-                planets: data.planets,
+                // planets: data.planets, removes planet to limit size of post-data to avoid xhr errors
                 shattered: data.shattered ? 1 : 0,
                 drifter: data.drifter ? 1 : 0,
                 statics: data.statics,
