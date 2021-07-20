@@ -908,7 +908,7 @@ class Map extends Controller\AccessController {
                         $targetSystem &&
                         !$targetExists
                     ){
-                        $targetSystem->tag = SystemTag::generateFor($targetSystem, $soureSystem, $map);
+                        $targetSystem->tag = SystemTag::generateFor($targetSystem, $sourceSystem, $map);
                         $targetSystem = $map->saveSystem($targetSystem, $character, $systemPosX, $systemPosY);
                         // get updated maps object
                         if($targetSystem){
