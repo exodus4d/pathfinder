@@ -10,6 +10,7 @@ namespace Exodus4D\Pathfinder\Model\Pathfinder;
 
 use DB\CortexCollection;
 use DB\SQL\Schema;
+use Exodus4D\Pathfinder\Lib\SystemTag;
 use Exodus4D\Pathfinder\Data\File\FileHandler;
 use Exodus4D\Pathfinder\Lib\Config;
 use Exodus4D\Pathfinder\Lib\Logging;
@@ -507,6 +508,7 @@ class MapModel extends AbstractMapTrackingModel {
             $system->systemId = $systemId;
             $system->mapId = $this;
             $system->setType();
+            $system->tag = SystemTag::generateFor($system, $system, $this);
         }
 
         $system->setActive(true);
