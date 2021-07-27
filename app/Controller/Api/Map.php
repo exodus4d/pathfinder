@@ -467,7 +467,17 @@ class Map extends Controller\AccessController {
 
         $activeCharacter = $this->getCharacter();
         $characterData = $activeCharacter->getData(true);
-        $maps = $activeCharacter->getMaps();
+        $sessionCharacterIds = array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID');
+        $maps = [];
+        $mapIds = [];
+        foreach($activeCharacter->getAll($sessionCharacterIds) as $character){         
+            foreach($character->getMaps() as $map){                                
+                if(!in_array($map->_id, $mapIds)){
+                    array_push($maps, $map);
+                    array_push($mapIds, $map->_id);
+                }
+            } 
+        }
 
         // some character data is not required (in WebSocket) -> unset() and keep return small
         if(isset($characterData->corporation->rights)){
@@ -521,7 +531,17 @@ class Map extends Controller\AccessController {
         $return->mapData = [];
 
         $mapIdsChanged = [];
-        $maps = $character->getMaps();
+        $sessionCharacterIds = array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID');
+        $maps = [];
+        $mapIds = [];
+        foreach($character->getAll($sessionCharacterIds) as $char){         
+            foreach($char->getMaps() as $map){                                
+                if(!in_array($map->_id, $mapIds)){
+                    array_push($maps, $map);
+                    array_push($mapIds, $map->_id);
+                }
+            } 
+        }
 
         if(!empty($mapsData) && !empty($maps)){
             // loop all $mapsData that should be saved
