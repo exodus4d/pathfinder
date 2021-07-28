@@ -1292,30 +1292,49 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return MapModel[]
      */
     public function getMaps() : array {
-        $maps = [];
-
-        if($alliance = $this->getAlliance()){
-            $maps = array_merge($maps, $alliance->getMaps());
-        }
-
-        if($corporation = $this->getCorporation()){
-            $maps = array_merge($maps,  $corporation->getMaps());
-        }
-
-        if(is_object($this->characterMaps)){
-            $mapCountPrivate = 0;
-            foreach($this->characterMaps as $characterMap){
-                if(
-                    $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
-                    $characterMap->mapId->isActive()
-                ){
-                    $maps[] = $characterMap->mapId;
-                    $mapCountPrivate++;
+        $maps = ["maps" => [], "characters" => [], "mapIds" => []];
+        
+        foreach($this->getAll(array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID')) as $character){
+            $charId = $character->_id;
+            if(in_array($character->_id, $maps["characters"])){
+                continue;
+            }
+            if($alliance = $character->getAlliance()){
+                foreach($alliance->getMaps() as $map){
+                    if(!in_array($map->_id, $maps["mapIds"])){
+                        array_push($maps["maps"], $map);
+                        array_push($maps["mapIds"], $map->id);
+                    }
                 }
             }
+
+            if($corporation = $character->getCorporation()){
+                foreach($corporation->getMaps() as $map){
+                    if(!in_array($map->_id, $maps["mapIds"])){
+                        array_push($maps["maps"], $map);
+                        array_push($maps["mapIds"], $map->id);
+                    }
+                }
+            }
+
+            if(is_object($character->characterMaps)){
+                $mapCountPrivate = 0;
+                foreach($character->characterMaps as $characterMap){
+                    if(
+                        $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
+                        $characterMap->mapId->isActive() &&
+                        !in_array($map->_id, $maps["mapIds"])  
+                    ){
+                        array_push($maps["maps"], $characterMap->mapId);
+                        array_push($maps["mapIds"], $map->id);
+                        $mapCountPrivate++;
+                    }
+                }
+            }
+            array_push($maps["characters"], $character->_id);            
         }
 
-        return $maps;
+        return $maps["maps"];
     }
 
     /**
