@@ -1292,13 +1292,47 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return MapModel[]
      */
     public function getMaps() : array {
-        $maps = ["maps" => [], "characters" => [], "mapIds" => []];
-        
-        foreach($this->getAll(array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID')) as $character){
-            $charId = $character->_id;
-            if(in_array($character->_id, $maps["characters"])){
-                continue;
+        if(Config::getPathfinderData('experiments.session_sharing') === 1){
+            $maps = $this->getSessionCharacterMaps();
+        }else{
+            $maps = [];
+
+            if($alliance = $this->getAlliance()){
+                $maps = array_merge($maps, $alliance->getMaps());
             }
+
+            if($corporation = $this->getCorporation()){
+                $maps = array_merge($maps,  $corporation->getMaps());
+            }
+
+            if(is_object($this->characterMaps)){
+                $mapCountPrivate = 0;
+                foreach($this->characterMaps as $characterMap){
+                    if(
+                        $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
+                        $characterMap->mapId->isActive()
+                    ){
+                        $maps[] = $characterMap->mapId;
+                        $mapCountPrivate++;
+                    }
+                }
+            }
+        }
+
+        return $maps;
+    }
+
+    /** 
+     * get all accessible map models for all characters in session
+     * using mapIds and characters index arrays to track what has already been processed
+     * @return MapModel[]
+     */
+    public function getSessionCharacterMaps() : array {
+        $maps = ["maps" => [], "mapIds" => []];
+        
+        // get all characters in session and iterate over them
+        foreach($this->getAll(array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID')) as $character){
+
             if($alliance = $character->getAlliance()){
                 foreach($alliance->getMaps() as $map){
                     if(!in_array($map->_id, $maps["mapIds"])){
@@ -1331,7 +1365,6 @@ class CharacterModel extends AbstractPathfinderModel {
                     }
                 }
             }
-            array_push($maps["characters"], $character->_id);            
         }
 
         return $maps["maps"];
@@ -1443,4 +1476,4 @@ class CharacterModel extends AbstractPathfinderModel {
 
         return (new self())->find($query);
     }
-} 
+}
