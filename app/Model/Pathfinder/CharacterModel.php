@@ -1331,8 +1331,7 @@ class CharacterModel extends AbstractPathfinderModel {
         $maps = ["maps" => [], "mapIds" => []];
         
         // get all characters in session and iterate over them
-        foreach($this->getAll(array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID')) as $character){
-
+        foreach($this->getAll(array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID')) as $character){            
             if($alliance = $character->getAlliance()){
                 foreach($alliance->getMaps() as $map){
                     if(!in_array($map->_id, $maps["mapIds"])){
@@ -1356,11 +1355,9 @@ class CharacterModel extends AbstractPathfinderModel {
                 foreach($character->characterMaps as $characterMap){
                     if(
                         $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
-                        $characterMap->mapId->isActive() &&
-                        !in_array($map->_id, $maps["mapIds"])  
+                        $characterMap->mapId->isActive()
                     ){
                         array_push($maps["maps"], $characterMap->mapId);
-                        array_push($maps["mapIds"], $map->id);
                         $mapCountPrivate++;
                     }
                 }
