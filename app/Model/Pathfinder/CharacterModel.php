@@ -1292,7 +1292,7 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return MapModel[]
      */
     public function getMaps() : array {
-        if(Config::getPathfinderData('experiments.session_sharing') === 1){
+        if(Config::getPathfinderData('login.session_sharing') === 1){
             $maps = $this->getSessionCharacterMaps();
         }else{
             $maps = [];
