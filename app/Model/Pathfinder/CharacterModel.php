@@ -656,6 +656,7 @@ class CharacterModel extends AbstractPathfinderModel {
                     // no corp/ally restrictions set -> any character is allowed to login
                     $authStatus = 'OK';
                 }elseif(
+                    // check if session_sharing is enabled and if a character is saved in session
                     Config::getPathfinderData('login.session_sharing') === 1 &&
                     is_array($this->getF3()->get(User::SESSION_KEY_CHARACTERS))
                 ){
