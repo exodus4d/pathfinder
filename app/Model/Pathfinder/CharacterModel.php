@@ -655,6 +655,12 @@ class CharacterModel extends AbstractPathfinderModel {
                 ){
                     // no corp/ally restrictions set -> any character is allowed to login
                     $authStatus = 'OK';
+                }elseif(
+                    Config::getPathfinderData('login.session_sharing') === 1 &&
+                    is_array($this->getF3()->get(User::SESSION_KEY_CHARACTERS))
+                ){
+                    // authorized character is already logged in -> any subsequent character is allowed to login
+                    $authStatus = 'OK';
                 }else{
                     // check if character is set in whitelist
                     if(
