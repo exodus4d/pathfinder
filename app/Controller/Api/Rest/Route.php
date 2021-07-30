@@ -632,6 +632,8 @@ class Route extends AbstractRestController {
             // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
 
+            // pre-populate connections array with new connected_pairs from TrailBlazer expansion because 
+            // they have not been added to ESI routes. Can be removed when ESI is updated
             $connections = [
                 [30001721,30001957], // Saminer => F7-ICZ
                 [30001957,30001721], // F7-ICZ => Saminer

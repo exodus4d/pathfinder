@@ -6,7 +6,7 @@
  * proofed, signature names (copy & paste from scanning window)
  */
 
-define([], () => {
+ define([], () => {
     'use strict';
 
     // signature sources

@@ -252,9 +252,9 @@
                                             </label>
                                             <div class="col-sm-9 col-md-8">
                                                 <div class="input-group" {{^discordRallyEnabled}}title="Globally disabled for this map type"{{/discordRallyEnabled}}>
-                                                <input name="discordWebHookURLRally" type="url" class="form-control" id="{{discordWebHookURLRallyId}}" value="{{discordWebHookURLRally}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://(\w+\.)?discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordRallyEnabled}}disabled{{/discordRallyEnabled}}>
+                                                <input name="discordWebHookURLRally" type="url" class="form-control" id="{{discordWebHookURLRallyId}}" value="{{discordWebHookURLRally}}" placeholder="https://discord.com/api/webhooks/YYYY/ZZZZ" data-type-error="No valid URL" pattern="^https:\/\/(\w+\.)?discord(app)?.com\/api\/webhooks\/.+\/.+" data-pattern-error="Wrong URL. https://discord.com/api/webhooks/YYYY/ZZZZ" {{^discordRallyEnabled}}disabled{{/discordRallyEnabled}}>
                                                 <div class="input-group-btn">
-                                                    <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener">
+                                                    <a class="btn btn-default" href="//support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener">
                                                         add… <i class="fas fa-fw fa-external-link-alt"></i>
                                                     </a>
                                                 </div>
@@ -286,9 +286,9 @@
                                         </label>
                                         <div class="col-sm-9 col-md-8">
                                             <div class="input-group" {{^discordHistoryEnabled}}title="Globally disabled for this map type"{{/discordHistoryEnabled}}>
-                                            <input name="discordWebHookURLHistory" type="url" class="form-control" id="{{discordWebHookURLHistoryId}}" value="{{discordWebHookURLHistory}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordHistoryEnabled}}disabled{{/discordHistoryEnabled}}>
+                                            <input name="discordWebHookURLHistory" type="url" class="form-control" id="{{discordWebHookURLHistoryId}}" value="{{discordWebHookURLHistory}}" placeholder="https://discord.com/api/webhooks/YYYY/ZZZZ" data-type-error="No valid URL" pattern="^https:\/\/(\w+\.)?discord(app)?.com\/api\/webhooks\/.+\/.+" data-pattern-error="Wrong URL. https://discord.com/api/webhooks/YYYY/ZZZZ" {{^discordHistoryEnabled}}disabled{{/discordHistoryEnabled}}>
                                             <div class="input-group-btn">
-                                                <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener">
+                                                <a class="btn btn-default" href="//support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener">
                                                     add… <i class="fas fa-fw fa-external-link-alt"></i>
                                                 </a>
                                             </div>

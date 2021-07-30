@@ -46,7 +46,7 @@ define([
             ]);
             iconKbEl.setAttribute('title', 'zkillboard.com');
             iconKbEl.onclick = e => this.openKillboardUrl(e);
-
+            
             let iconRegKbEl = this.newIconElement([
                 'fa-map-marked-alt', 'fa-fw',
                 this._config.moduleHeadlineIconClass
