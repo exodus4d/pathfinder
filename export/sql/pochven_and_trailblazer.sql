@@ -15,10 +15,10 @@ INSERT INTO `race` (`id`, `created`, `updated`, `name`, `description`, `factionI
 
 -- Add new corporation definitions
 INSERT INTO `corporation` (`id`, `created`, `updated`, `name`, `ticker`, `dateFounded`, `memberCount`, `isNPC`, `factionId`, `allianceId`) VALUES
-(1000292, 2020-10-29 20:44:32', '2020-10-29 20:44:32', 'Veles Clade', 'CLVEL', NULL, 1, 1, NULL, NULL),
-(1000293, 2020-10-29 20:44:32', '2020-10-29 20:44:32', 'Perun Clade', 'CLPER', NULL, 1, 1, NULL, NULL),
-(1000294, 2020-10-29 20:44:32', '2020-10-29 20:44:32', 'Svarog Clade', 'CLSVA', NULL, 1, 1, NULL, NULL),
-(1000298, 2020-10-29 20:44:32', '2020-10-29 20:44:32', 'The Convocation of Triglav', 'CTPSV', NULL, 1, 1, NULL, NULL);
+(1000292, '2020-10-29 20:44:32', '2020-10-29 20:44:32', 'Veles Clade', 'CLVEL', NULL, 1, 1, NULL, NULL),
+(1000293, '2020-10-29 20:44:32', '2020-10-29 20:44:32', 'Perun Clade', 'CLPER', NULL, 1, 1, NULL, NULL),
+(1000294, '2020-10-29 20:44:32', '2020-10-29 20:44:32', 'Svarog Clade', 'CLSVA', NULL, 1, 1, NULL, NULL),
+(1000298, '2020-10-29 20:44:32', '2020-10-29 20:44:32', 'The Convocation of Triglav', 'CTPSV', NULL, 1, 1, NULL, NULL);
 
 -- Add the new faction defintions
 INSERT INTO `faction` (`id`, `created`, `updated`, `name`, `description`, `sizeFactor`, `stationCount`, `stationSystemCount`) VALUES

@@ -655,6 +655,13 @@ class CharacterModel extends AbstractPathfinderModel {
                 ){
                     // no corp/ally restrictions set -> any character is allowed to login
                     $authStatus = 'OK';
+                }elseif(
+                    // check if session_sharing is enabled and if a character is saved in session
+                    Config::getPathfinderData('login.session_sharing') === 1 &&
+                    is_array($this->getF3()->get(User::SESSION_KEY_CHARACTERS))
+                ){
+                    // authorized character is already logged in -> any subsequent character is allowed to login
+                    $authStatus = 'OK';
                 }else{
                     // check if character is set in whitelist
                     if(
@@ -1292,30 +1299,79 @@ class CharacterModel extends AbstractPathfinderModel {
      * @return MapModel[]
      */
     public function getMaps() : array {
-        $maps = [];
+        if(Config::getPathfinderData('login.session_sharing') === 1){
+            $maps = $this->getSessionCharacterMaps();
+        }else{
+            $maps = [];
 
-        if($alliance = $this->getAlliance()){
-            $maps = array_merge($maps, $alliance->getMaps());
-        }
+            if($alliance = $this->getAlliance()){
+                $maps = array_merge($maps, $alliance->getMaps());
+            }
 
-        if($corporation = $this->getCorporation()){
-            $maps = array_merge($maps,  $corporation->getMaps());
-        }
+            if($corporation = $this->getCorporation()){
+                $maps = array_merge($maps,  $corporation->getMaps());
+            }
 
-        if(is_object($this->characterMaps)){
-            $mapCountPrivate = 0;
-            foreach($this->characterMaps as $characterMap){
-                if(
-                    $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
-                    $characterMap->mapId->isActive()
-                ){
-                    $maps[] = $characterMap->mapId;
-                    $mapCountPrivate++;
+            if(is_object($this->characterMaps)){
+                $mapCountPrivate = 0;
+                foreach($this->characterMaps as $characterMap){
+                    if(
+                        $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
+                        $characterMap->mapId->isActive()
+                    ){
+                        $maps[] = $characterMap->mapId;
+                        $mapCountPrivate++;
+                    }
                 }
             }
         }
 
         return $maps;
+    }
+
+    /** 
+     * get all accessible map models for all characters in session
+     * using mapIds and characters index arrays to track what has already been processed
+     * @return MapModel[]
+     */
+    public function getSessionCharacterMaps() : array {
+        $maps = ["maps" => [], "mapIds" => []];
+        
+        // get all characters in session and iterate over them
+        foreach($this->getAll(array_column($this->getF3()->get(User::SESSION_KEY_CHARACTERS), 'ID')) as $character){            
+            if($alliance = $character->getAlliance()){
+                foreach($alliance->getMaps() as $map){
+                    if(!in_array($map->_id, $maps["mapIds"])){
+                        array_push($maps["maps"], $map);
+                        array_push($maps["mapIds"], $map->id);
+                    }
+                }
+            }
+
+            if($corporation = $character->getCorporation()){
+                foreach($corporation->getMaps() as $map){
+                    if(!in_array($map->_id, $maps["mapIds"])){
+                        array_push($maps["maps"], $map);
+                        array_push($maps["mapIds"], $map->id);
+                    }
+                }
+            }
+
+            if(is_object($character->characterMaps)){
+                $mapCountPrivate = 0;
+                foreach($character->characterMaps as $characterMap){
+                    if(
+                        $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
+                        $characterMap->mapId->isActive()
+                    ){
+                        array_push($maps["maps"], $characterMap->mapId);
+                        $mapCountPrivate++;
+                    }
+                }
+            }
+        }
+
+        return $maps["maps"];
     }
 
     /**
@@ -1424,4 +1480,4 @@ class CharacterModel extends AbstractPathfinderModel {
 
         return (new self())->find($query);
     }
-} 
+}
