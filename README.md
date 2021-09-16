@@ -1,7 +1,5 @@
 # ![Pathfinder logo](favicon/favicon-32x32.png "Logo") *PATHFINDER*
 
-[![Docker Image Master Branch](https://github.com/goryn-clade/pathfinder/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/goryn-clade/pathfinder/actions/workflows/docker-image.yml)
-
 #### Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
 This Pathfinder Fork is an attempt to make a community supported fork in the absence of [Exodus4d](https://github.com/exodus4d) that will include bug fixes and be upgraded for any changes to the Eve Online universe.
