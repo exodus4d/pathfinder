@@ -34,7 +34,7 @@
     "jshint": "^2.11.0",
     "jshint-stylish": "^2.x.x",
     "lodash.padend": "4.6.x",
-    "node-notifier": "^6.0.0",
+    "node-notifier": ">=8.0.1",
     "node-sass": "^6.0.1",
     "pretty-bytes": "^5.3.0",
     "promised-del": "1.0.x",
