@@ -19,10 +19,8 @@ use DB\SQL;
 
 class TableModifier extends SQL\TableModifier {
 
-    /**
-     * invalid constraint error
-     */
-    const ERROR_CONSTRAINT_NOT_VALID = 'Constraint `%s` is not valid';
+    const TEXT_ConstraintNotValid = 'Constraint `%s` is not valid';
+
 
     /**
      * return table foreign key constraints as assoc array
@@ -86,7 +84,7 @@ class TableModifier extends SQL\TableModifier {
             $this->queries[] = "ALTER TABLE " . $this->db->quotekey($this->name) . "
                                 DROP FOREIGN KEY " . $this->db->quotekey($constraint->getConstraintName()) . ";";
         }else{
-            trigger_error(sprintf(self::ERROR_CONSTRAINT_NOT_VALID, 'table: ' . $this->name . ' constraintName: ' . $constraint->getConstraintName()));
+            trigger_error(sprintf(self::TEXT_ConstraintNotValid, 'table: ' . $this->name . ' constraintName: ' . $constraint->getConstraintName()));
         }
     }
 
@@ -105,7 +103,7 @@ class TableModifier extends SQL\TableModifier {
                   ON DELETE " . $constraint->getOnDelete() . "
                   ON UPDATE " . $constraint->getOnUpdate() . ";";
         }else{
-            trigger_error(sprintf(self::ERROR_CONSTRAINT_NOT_VALID, 'table: ' . $this->name . ' constraintName: ' . $constraint->getConstraintName()));
+            trigger_error(sprintf(self::TEXT_ConstraintNotValid, 'table: ' . $this->name . ' constraintName: ' . $constraint->getConstraintName()));
         }
     }
 }

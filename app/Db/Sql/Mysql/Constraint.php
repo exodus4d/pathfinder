@@ -1,12 +1,11 @@
 <?php
 
-
 namespace Exodus4D\Pathfinder\Db\Sql\Mysql;
-
 
 use DB\SQL;
 
-class Constraint {
+class Constraint
+{
 
     // available actions
     const ACTIONS_DELETE = ['RESTRICT', 'CASCADE', 'SET NULL', 'NO ACTION'];
@@ -16,7 +15,7 @@ class Constraint {
     const ACTION_DELETE = 'RESTRICT';
     const ACTION_UPDATE = 'RESTRICT';
 
-    const ERROR_ACTION_NOT_SUPPORTED = 'Constraint action `%s` is not supported.';
+    const TEXT_ActionNotSupported = 'Constraint action `%s` is not supported.';
 
     protected $table;
     protected $keys = [];
@@ -32,7 +31,8 @@ class Constraint {
      * @param string $referencedTable
      * @param array $referencedCols
      */
-    public function __construct(SQL\TableBuilder $table, $keys = [], $referencedTable = '', $referencedCols = ['id']){
+    public function __construct(SQL\TableBuilder $table, $keys = [], $referencedTable = '', $referencedCols = ['id'])
+    {
         $this->table = &$table;
         $this->setKeys($keys);
         $this->setReferencedTable($referencedTable);
@@ -42,78 +42,88 @@ class Constraint {
     /**
      * @param mixed $keys
      */
-    public function setKeys($keys){
+    public function setKeys($keys)
+    {
         $this->keys = (array)$keys;
     }
 
     /**
      * @param mixed $referencedTable
      */
-    public function setReferencedTable($referencedTable){
+    public function setReferencedTable($referencedTable)
+    {
         $this->referencedTable = $referencedTable;
     }
 
     /**
      * @param mixed $referencedCols
      */
-    public function setReferencedCols($referencedCols){
+    public function setReferencedCols($referencedCols)
+    {
         $this->referencedCols = (array)$referencedCols;
     }
 
     /**
      * @param string $onDelete
      */
-    public function setOnDelete($onDelete){
-        if( in_array($onDelete, self::ACTIONS_DELETE) ){
+    public function setOnDelete($onDelete)
+    {
+        if (in_array($onDelete, self::ACTIONS_DELETE)) {
             $this->onDelete = $onDelete;
-        }else{
-            trigger_error(sprintf(self::ERROR_ACTION_NOT_SUPPORTED, $onDelete));
+        } else {
+            trigger_error(sprintf(self::TEXT_ActionNotSupported, $onDelete));
         }
     }
 
     /**
      * @param string $onUpdate
      */
-    public function setOnUpdate($onUpdate){
-        if( in_array($onUpdate, self::ACTIONS_UPDATE) ){
+    public function setOnUpdate($onUpdate)
+    {
+        if (in_array($onUpdate, self::ACTIONS_UPDATE)) {
             $this->onUpdate = $onUpdate;
-        }else{
-            trigger_error(sprintf(self::ERROR_ACTION_NOT_SUPPORTED, $onUpdate));
+        } else {
+            trigger_error(sprintf(self::TEXT_ActionNotSupported, $onUpdate));
         }
     }
 
     /**
      * @return array
      */
-    public function getKeys(){
+    public function getKeys()
+    {
         return $this->keys;
     }
 
     /**
      * @return string
      */
-    public function getReferencedTable(){
+    public function getReferencedTable()
+    {
         return $this->referencedTable;
     }
 
     /**
      * @return array
      */
-    public function getReferencedCols(){
+    public function getReferencedCols()
+    {
         return $this->referencedCols;
     }
 
     /**
      * @return string
      */
-    public function getOnDelete(){
+    public function getOnDelete()
+    {
         return $this->onDelete;
     }
 
     /**
      * @return string
      */
-    public function getOnUpdate(){
+    public function getOnUpdate()
+    {
         return $this->onUpdate;
     }
 
@@ -125,14 +135,15 @@ class Constraint {
      * -> To get a certain constraint or generate a unique constraint, ALL params are required!
      * @return string
      */
-    public function getConstraintName(){
+    public function getConstraintName()
+    {
         $constraintName = 'fk_' . $this->table->name;
 
-        if(!empty($this->getKeys())){
+        if (!empty($this->getKeys())) {
             $constraintName .= '___' . implode('__', $this->getKeys());
-            if(!empty($this->getReferencedTable())){
+            if (!empty($this->getReferencedTable())) {
                 $constraintName .= '___' . $this->getReferencedTable();
-                if(!empty($this->getReferencedCols())){
+                if (!empty($this->getReferencedCols())) {
                     $constraintName .= '___' . implode('__', $this->getReferencedCols());
                 }
             }
@@ -146,17 +157,20 @@ class Constraint {
      * -> all required members must be set!
      * @return bool
      */
-    public function isValid(){
+    public function isValid()
+    {
         $valid = false;
 
-        if(
+        if (
             !empty($this->getKeys()) &&
             !empty($this->getReferencedTable()) &&
             !empty($this->getReferencedCols())
-        ){
+        ) {
             $valid = true;
         }
 
         return $valid;
     }
+
+
 }
