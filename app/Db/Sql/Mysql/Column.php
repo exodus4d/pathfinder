@@ -1,22 +1,24 @@
 <?php
 
-
 namespace Exodus4D\Pathfinder\Db\Sql\Mysql;
 
 use DB\SQL;
 
-class Column extends SQL\Column {
+/**
+ * Class Column
+ * @package DB\SQL\MySQL
+ */
+class Column extends SQL\Column
+{
 
-    /**
-     * missing table name error
-     */
-    const ERROR_TABLE_NAME_MISSING = 'Table name missing for FOREIGN KEY in `%s`';
+    const TEXT_TableNameMissing = 'Table name missing for FOREIGN KEY in `%s`';
 
     /**
      * drop constraint from this column
      * @param Constraint $constraint
      */
-    public function dropConstraint(Constraint $constraint){
+    public function dropConstraint(Constraint $constraint)
+    {
         $this->table->dropConstraint($constraint);
     }
 
@@ -24,7 +26,8 @@ class Column extends SQL\Column {
      * add constraint to this column
      * @param Constraint $constraint
      */
-    public function addConstraint(Constraint $constraint){
+    public function addConstraint(Constraint $constraint)
+    {
         $this->table->addConstraint($constraint);
     }
 
@@ -32,7 +35,8 @@ class Column extends SQL\Column {
      * @param Constraint $constraint
      * @return mixed
      */
-    public function constraintExists(Constraint $constraint){
+    public function constraintExists(Constraint $constraint)
+    {
         return $this->table->constraintExists($constraint);
     }
 
@@ -46,29 +50,30 @@ class Column extends SQL\Column {
      * @param array $constraintData
      * @return Constraint
      */
-    public function newConstraint($constraintData){
+    public function newConstraint($constraintData)
+    {
 
         $constraint = null;
 
-        if(isset($constraintData['table'])){
-            if(isset($constraintData['column'])){
+        if (isset($constraintData['table'])) {
+            if (isset($constraintData['column'])) {
                 $constraintData['column'] = (array)$constraintData['column'];
-            }else{
+            } else {
                 $constraintData['column'] = ['id'];
             }
 
             $constraint = new Constraint($this->table, $this->name, $constraintData['table'], $constraintData['column']);
 
-            if(isset($constraintData['on-delete'])){
+            if (isset($constraintData['on-delete'])) {
                 $constraint->setOnDelete($constraintData['on-delete']);
             }
 
-            if(isset($constraintData['on-update'])){
+            if (isset($constraintData['on-update'])) {
                 $constraint->setOnUpdate($constraintData['on-update']);
             }
 
-        }else{
-            trigger_error(sprintf(self::ERROR_TABLE_NAME_MISSING, $this->table->name . '->' . $this->name));
+        } else {
+            trigger_error(sprintf(self::TEXT_TableNameMissing, $this->table->name . '->' . $this->name));
         }
 
         return $constraint;

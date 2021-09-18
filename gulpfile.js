@@ -16,7 +16,7 @@ let gzip                = require('gulp-gzip');
 let brotli              = require('gulp-brotli');
 let uglifyjs            = require('uglify-es');
 let composer            = require('gulp-uglify/composer');
-let sass                = require('gulp-sass');
+let sass                = require('gulp-sass')(require('sass'));
 let autoprefixer        = require('gulp-autoprefixer');
 let cleanCSS            = require('gulp-clean-css');
 let imageResize         = require('gulp-image-resize');
@@ -32,7 +32,6 @@ let flatten             = require('flat');
 let padEnd              = require('lodash.padend');
 let merge               = require('lodash.merge');
 let minimist            = require('minimist');
-let slash               = require('slash');
 let fileExtension       = require('file-extension');
 let log                 = require('fancy-log');
 let colors              = require('ansi-colors');
@@ -640,11 +639,11 @@ gulp.task('task:concatJS', () => {
 
 /**
  * build standalone JS files
- */
+ */ 
 gulp.task('task:diffJS', () => {
     return gulp.src(PATH.JS.SRC, {base: 'js', since: gulp.lastRun('task:diffJS')})
         .pipe(filter(file => {
-            return combinedJsFiles.indexOf(slash(file.path)) < 0;
+            return combinedJsFiles.indexOf(file.path) < 0;
         }))
         .pipe(debug({title: 'Copy JS src: ', showFiles: false}))
         .pipe(bytediff.start())
