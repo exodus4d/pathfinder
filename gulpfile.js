@@ -32,6 +32,7 @@ let flatten             = require('flat');
 let padEnd              = require('lodash.padend');
 let merge               = require('lodash.merge');
 let minimist            = require('minimist');
+let slash               = require('slash');
 let fileExtension       = require('file-extension');
 let log                 = require('fancy-log');
 let colors              = require('ansi-colors');
@@ -643,7 +644,7 @@ gulp.task('task:concatJS', () => {
 gulp.task('task:diffJS', () => {
     return gulp.src(PATH.JS.SRC, {base: 'js', since: gulp.lastRun('task:diffJS')})
         .pipe(filter(file => {
-            return combinedJsFiles.indexOf(file.path) < 0;
+            return combinedJsFiles.indexOf(slash(file.path)) < 0;
         }))
         .pipe(debug({title: 'Copy JS src: ', showFiles: false}))
         .pipe(bytediff.start())
