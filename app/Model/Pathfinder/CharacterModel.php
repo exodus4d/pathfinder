@@ -100,7 +100,7 @@ class CharacterModel extends AbstractPathfinderModel {
             'default' => ''
         ],
         'esiAccessToken' => [
-            'type' => Schema::DT_VARCHAR256
+            'type' => Schema::DT_TEXT
         ],
         'esiAccessTokenExpires' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -1186,13 +1186,13 @@ class CharacterModel extends AbstractPathfinderModel {
             $ssoController = new Sso();
             if(
                 !empty( $verificationCharacterData = $ssoController->verifyCharacterData($accessToken) ) &&
-                $verificationCharacterData['characterId'] === $this->_id
+                $verificationCharacterData->characterId === $this->_id
             ){
                 // get character data from API
                 $characterData = $ssoController->getCharacterData($this->_id);
                 if( !empty($characterData->character) ){
-                    $characterData->character['ownerHash'] = $verificationCharacterData['characterOwnerHash'];
-                    $characterData->character['esiScopes'] = $verificationCharacterData['scopes'];
+                    $characterData->character['ownerHash'] = $verificationCharacterData->owner;
+                    $characterData->character['esiScopes'] = $verificationCharacterData->scp;
 
                     $this->copyfrom($characterData->character, ['ownerHash', 'esiScopes', 'securityStatus']);
                     $this->corporationId = $characterData->corporation;

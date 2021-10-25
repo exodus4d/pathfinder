@@ -17,6 +17,8 @@ use Exodus4D\Pathfinder\Controller;
 use Exodus4D\Pathfinder\Controller\Api as Api;
 use Exodus4D\Pathfinder\Model\Pathfinder;
 use Exodus4D\Pathfinder\Lib;
+use Firebase\JWT\JWT;
+use Firebase\JWT\JWK;
 
 class Sso extends Api\User{
 
@@ -42,6 +44,8 @@ class Sso extends Api\User{
     const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in. Reason: %s';
     const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
     const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed (data not found). Please retry by CCP SSO';
+    const ERROR_CCP_JWK_CLAIM                       = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_SSO_JWK_CLAIM" url. %s';
+    const ERROR_TOKEN_VERIFICATION                  = 'Could not validate the authenticity of the Access Token';
 
     /**
      * redirect user to CCP SSO page and request authorization
@@ -187,6 +191,7 @@ class Sso extends Api\User{
 
                 if(isset($accessData->accessToken, $accessData->esiAccessTokenExpires, $accessData->refreshToken)){
                     // login succeeded -> get basic character data for current login
+
                     $verificationCharacterData = $this->verifyCharacterData($accessData->accessToken);
 
                     if( !empty($verificationCharacterData) ){
@@ -196,15 +201,15 @@ class Sso extends Api\User{
                         // verification available data. Data is needed for "ownerHash" check
 
                         // get character data from ESI
-                        $characterData = $this->getCharacterData((int)$verificationCharacterData['characterId']);
+                        $characterData = $this->getCharacterData((int)$verificationCharacterData->characterId);
 
                         if( isset($characterData->character) ){
                             // add "ownerHash" and SSO tokens
-                            $characterData->character['ownerHash']              = $verificationCharacterData['characterOwnerHash'];
+                            $characterData->character['ownerHash']              = $verificationCharacterData->owner;
                             $characterData->character['esiAccessToken']         = $accessData->accessToken;
                             $characterData->character['esiAccessTokenExpires']  = $accessData->esiAccessTokenExpires;
                             $characterData->character['esiRefreshToken']        = $accessData->refreshToken;
-                            $characterData->character['esiScopes']              = $verificationCharacterData['scopes'];
+                            $characterData->character['esiScopes']              = $verificationCharacterData->scp;
 
                             // add/update static character data
                             $characterModel = $this->updateCharacter($characterData);
@@ -422,23 +427,62 @@ class Sso extends Api\User{
     }
 
     /**
-     * verify character data by "access_token"
-     * -> get some basic information (like character id)
-     * -> if more character information is required, use ESI "characters" endpoints request instead
+     * verify character data by decloding JWT "access_token"
+     * -> verify against CCP JWK
+     * -> get some basic information (like character id)     
      * @param string $accessToken
-     * @return array
+     * @return object
      */
-    public function verifyCharacterData(string $accessToken) : array {
-        $characterData = $this->getF3()->ssoClient()->send('getVerifyCharacter', $accessToken);
+    public function verifyCharacterData(string $accessToken) : object {
+        $characterData = $this->verifyJwtAccessToken($accessToken);
 
         if( !empty($characterData) ){
-            // convert string with scopes to array
-            $characterData['scopes'] = Lib\Util::convertScopesString($characterData['scopes']);
+            $characterData->characterId = (int)explode(':',$characterData->sub)[2];
         }else{
             self::getSSOLogger()->write(sprintf(self::ERROR_VERIFY_CHARACTER, __METHOD__));
         }
 
         return $characterData;
+    }
+
+    /** 
+     * verify JWT by comparing to CCP public JWK
+     * -> get Ccp JWKs
+     * -> decode accessToken using JWKs
+     * -> Verify token claim is correct
+     * @param string $accessToken
+     * @return object
+    */
+    public function verifyJwtAccessToken(string $accessToken) : object {
+        $ccpJwks = $this->getCcpJwkData();
+        // set $leeway in seconds to 10, since sometimes there can be verification errors due server clock skew resulting
+        // in tokens that look like they were issued 1 second in the future.
+        JWT::$leeway = 10;
+        // map list of algs from CCP JWK 
+        $supportedAlgs = array_column($ccpJwks['keys'], 'alg');
+        // get decoded JWT using ccp supplied JWK
+        $decodedJwt = JWT::decode($accessToken, JWK::parseKeySet($ccpJwks), $supportedAlgs);
+        // check if issuer matches correct ccp supplied claim values
+        if (strpos($decodedJwt->iss, $this->getSsoJwkClaim()) !== true) {            
+            self::getSSOLogger()->write(sprintf(self::ERROR_TOKEN_VERIFICATION, __METHOD__));
+        }
+        return $decodedJwt;
+    }
+
+    /**
+     * get JWK from CCP and return decoded json object
+     * @return array     
+    */
+    protected function getCcpJwkData() : array {
+        $jwkJson = $this->getF3()->ssoClient()->send('getJWKS');
+
+        if( !empty($jwkJson) ){
+            // ensure items in 'keys' are arrays and not objects
+            array_walk($jwkJson['keys'], function(&$item){$item = (array) $item;});
+            return $jwkJson;
+        }else{
+            self::getSSOLogger()->write(sprintf(self::ERROR_LOGIN_FAILED, __METHOD__));
+        }
     }
 
     /**
@@ -544,6 +588,23 @@ class Sso extends Api\User{
         }
 
         return $url;
+    }
+
+    /**
+     * get CCP SSO JWK CLAIM from configuration file
+     * -> throw error if string is missing
+     * @return string
+     */
+    static function getSsoJwkClaim() : string {
+        $str = self::getEnvironmentData('CCP_SSO_JWK_CLAIM');
+        
+        if( empty($str)){
+            $error = sprintf(self::ERROR_CCP_JWK_CLAIM, __METHOD__);
+            self::getSSOLogger()->write($error);
+            \Base::instance()->error(502, $error);
+        }
+
+        return $str;
     }
 
     /**
