@@ -116,13 +116,7 @@ define([
                     // get kills within the last 24h
                     let timeFrameInSeconds = 60 * 60 * 24;
 
-                    // if system is w-space system -> add link modifier
-                    let wSpaceLinkModifier = '';
-                    if(this._systemData.type.id === 1){
-                        wSpaceLinkModifier = 'w-space/';
-                    }
-
-                    let url = `${Init.url.zKillboard}/no-items/${wSpaceLinkModifier}no-attackers/npc/0/solarSystemID/${this._systemData.systemId}/pastSeconds/${timeFrameInSeconds}/`;
+                    let url = `${Init.url.zKillboard}/npc/0/solarSystemID/${this._systemData.systemId}/pastSeconds/${timeFrameInSeconds}/`;
 
                     this.request(url).then(result => {
                         if(result.error){
