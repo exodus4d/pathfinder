@@ -338,7 +338,7 @@ class Setup extends Controller\Controller {
                           `system` `sys_inner` ON
                             `sys_inner`.`id` = `stargate`.`destinationSystemId`
                         WHERE
-                          `stargate`.`systemId` = `system`.`id`  
+                          `stargate`.`systemId` = `system`.`id`
                       ) `jumpNodes`
                     FROM
                       `system` INNER JOIN
@@ -350,10 +350,11 @@ class Setup extends Controller\Controller {
                       `constellation`.`regionId` != :regionIdJove3 AND
                       (
                           `system`.`security` = :ns OR
-                          `system`.`security` = :ls OR 
-                          `system`.`security` = :hs
+                          `system`.`security` = :ls OR
+                          `system`.`security` = :hs OR
+                          `system`.`security` = :ts
                       )
-                    HAVING 
+                    HAVING
                         `jumpNodes` IS NOT NULL
                     ";
 
@@ -364,7 +365,7 @@ class Setup extends Controller\Controller {
             ':ns' => '0.0',
             ':ls' => 'L',
             ':hs' => 'H',
-            ':tr' => 'T'
+            ':ts' => 'T'
         ];
 
         if($length){
