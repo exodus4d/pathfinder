@@ -771,7 +771,7 @@ define([
                             if(data){
                                 value = data.name;
                                 if(type === 'display'){
-                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis100Class + '">' + data.name + '</div>';
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis100Class + '">' + Util.unicodeToString(data.name) + '</div>';
                                 }
                             }
 
