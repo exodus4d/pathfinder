@@ -411,7 +411,7 @@ define([
             });
 
             let localTable = table.DataTable({
-                pageLength: 3, // default page length, smaller then max page length (4) if map is vertical resized to min. 
+                pageLength: 3, // default page length, smaller then max page length (4) if map is vertical resized to min.
                 paging: true,
                 pagingType: 'simple',
                 lengthChange: false,
@@ -484,7 +484,7 @@ define([
                             _: (data, type, row, meta) => {
                                 let value = data.name;
                                 if(type === 'display'){
-                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + Util.unicodeToString(data.name) + '</div>';
                                 }
                                 return value;
                             },
