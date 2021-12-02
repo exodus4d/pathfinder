@@ -95,7 +95,7 @@ abstract class AbstractRallyWebhookHandler extends AbstractWebhookHandler {
 
                         if(!empty($objectData['objTrueSec'])){
                             // System trueSec
-                            $attachment['fields'][] = $this->generateAttachmentField('TrueSec', $objectData['objTrueSec']);
+                            $attachment['fields'][] = $this->generateAttachmentField('TrueSec', strval($objectData['objTrueSec']));
                         }
 
                         if(!empty($objectData['objCountPlanets'])){

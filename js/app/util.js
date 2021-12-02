@@ -2611,7 +2611,7 @@ define([
                 row += userName;
                 row += '</td>';
                 row += '<td>';
-                row += shipName;
+                row += unicodeToString(shipName);
                 row += '</td>';
                 row += '<td class="text-right txt-color txt-color-orangeLight">';
                 row += shipTypeName;
