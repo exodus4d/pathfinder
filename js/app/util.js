@@ -951,10 +951,10 @@ define([
      * @param text
      * @returns {String}
      */
-     const unicodeToString = (text) => {
+    const unicodeToString = (text) => {
         const result = text.replace(/\\u[\dA-F]{4}/gi, (match) => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)))
         return result.substring(0, 2) == "u'" ? result.substring(2, result.length - 1) : result;
-      }
+    }
 
     /**
      * polyfill for "passive" events
