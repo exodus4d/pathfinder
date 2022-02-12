@@ -379,6 +379,10 @@ class CorporationModel extends AbstractPathfinderModel {
     public function saveStructure(StructureModel $structure){
         if( !$structure->dry() ){
             $corporationStructure = $this->rel('corporationStructures');
+            
+            // reset in case of potential "contiue" from parent loop
+            $corporationStructure->reset();
+
             $corporationStructure->corporationId = $this;
             $corporationStructure->structureId = $structure;
             $corporationStructure->save();

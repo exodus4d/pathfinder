@@ -479,7 +479,7 @@ define([], () => {
         },
         wormholeSizes: {
             wh_jump_mass_xl: {
-                jumpMassMin: 1350000000,
+                jumpMassMin: 1000000000,
                 type: 'wh_jump_mass_xl',
                 class: 'pf-jump-mass-xl',
                 label: 'XL',
