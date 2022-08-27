@@ -299,14 +299,16 @@ class Universe extends Controller\Controller {
      * search universeName data by search term
      * @param array $categories
      * @param string $search
+     * @param int $characterId
+     * @param string $accessToken
      * @param bool $strict
      * @return array
      */
-    public static function searchUniverseNameData(array $categories, string $search, bool $strict = false) : array {
+    public static function searchUniverseNameData(array $categories, string $search, int $characterId, string $accessToken, bool $strict = false) : array {
         $f3 = \Base::instance();
         $universeNameData = [];
         if( !empty($categories) && !empty($search)){
-            $universeIds = $f3->ccpClient()->send('search', $categories, $search, $strict);
+            $universeIds = $f3->ccpClient()->send('search', $categories, $search, $characterId, $accessToken, $strict);
             if(isset($universeIds['error'])){
                 // ESI error
                 $universeNameData = $universeIds;
