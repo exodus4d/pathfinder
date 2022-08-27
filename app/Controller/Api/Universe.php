@@ -25,13 +25,14 @@ class Universe extends Controller\AccessController {
         $postData = (array)$f3->get('POST');
         $categories = (array)$postData['categories'];
         $universeNameData = [];
+        $activeCharacter = $this->getCharacter();
 
         if(
             array_key_exists('arg1', $params) &&
             !empty($search = strtolower($params['arg1'])) &&
             !empty($categories)
         ){
-            $universeNameData = Ccp\Universe::searchUniverseNameData($categories, $search);
+            $universeNameData = Ccp\Universe::searchUniverseNameData($categories, $search, $activeCharacter->_id, $activeCharacter->getAccessToken());
         }
 
         echo json_encode($universeNameData);
