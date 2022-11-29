@@ -170,7 +170,7 @@ define([
                     deleteEolConnections: true,
                     persistentAliases: true,
                     persistentSignatures: true,
-                    trackAbyssalJumps: true,
+                    trackAbyssalJumps: false,
                     logActivity: true,
                     logHistory: true,
 
