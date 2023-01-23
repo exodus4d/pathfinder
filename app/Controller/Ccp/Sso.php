@@ -504,7 +504,10 @@ class Sso extends Api\User{
 
                 $characterData->corporation = null;
                 $characterData->alliance = null;
-
+                /**
+                 * TODO: Move to -> @var $corporation Pathfinder\CorporationModel
+                 * REF: https://github.com/goryn-clade/pathfinder/pull/157/files
+                 */
                 $characterAffiliation = $this->getF3()->ccpClient()->send('getCharacterAffiliation', [$characterId]);
                 if(count($characterAffiliation) === 1) {
                     $characterCorporationId = $characterAffiliation[0]['corporation']['id'];
