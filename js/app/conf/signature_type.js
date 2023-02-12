@@ -227,6 +227,38 @@
         2: 'Unsecured Core Emergence' //*
     };
 
+    // Ghost sites ======================================================================================================
+
+    let hsGh = {
+        1: 'Lesser Serpentis Covert Research Facility',
+        2: 'Lesser Sansha Covert Research Facility',
+        3: 'Lesser Guristas Covert Research Facility',
+        4: 'Lesser Blood Raiders Covert Research Facility'
+    };
+
+    let lsGh = {
+        1: 'Standard Serpentis Covert Research Facility',
+        2: 'Standard Sansha Covert Research Facility',
+        3: 'Standard Guristas Covert Research Facility',
+        4: 'Standard Blood Raiders Covert Research Facility'
+    };
+
+    let nsGh = {
+        1: 'Improved Serpentis Covert Research Facility',
+        2: 'Improved Sansha Covert Research Facility',
+        3: 'Improved Guristas Covert Research Facility',
+        4: 'Improved Blood Raiders Covert Research Facility'
+    };
+
+    let whGh = {
+        1: 'Superior Serpentis Covert Research Facility',
+        2: 'Superior Sansha Covert Research Facility',
+        3: 'Superior Guristas Covert Research Facility',
+        4: 'Superior Blood Raiders Covert Research Facility'
+    };
+
+
+
     // Gas sites ======================================================================================================
 
     let c1Gas = {
@@ -540,7 +572,7 @@
                 4: c1Gas,
                 5: c1WH,
                 6: c1Ore,
-                7: {}    // Ghost
+                7: whGh
             },
             2: {    // C2
                 1: c2Combat,
@@ -549,7 +581,7 @@
                 4: c2Gas,
                 5: c2WH,
                 6: c2Ore,
-                7: {}    // Ghost
+                7: whGh
             },
             3: {    // C3
                 1: c3Combat,
@@ -558,7 +590,7 @@
                 4: c3Gas,
                 5: c3WH,
                 6: c3Ore,
-                7: {}    // Ghost
+                7: whGh
             },
             4: {    // C4
                 1: c4Combat,
@@ -567,7 +599,7 @@
                 4: c4Gas,
                 5: c4WH,
                 6: c4Ore,
-                7: {}    // Ghost
+                7: whGh
             },
             5: {    // C5
                 1: c5Combat,
@@ -576,7 +608,7 @@
                 4: c5Gas,
                 5: c5WH,
                 6: c5Ore,
-                7: {}    // Ghost
+                7: whGh
             },
             6: {    // C6
                 1: c6Combat,
@@ -585,16 +617,15 @@
                 4: c6Gas,
                 5: c6WH,
                 6: c6Ore,
-                7: {    // Ghost
-                    1: 'Superior Blood Raider Covert Research Facility' //*
-                }
+                7: whGh
             },
             12: {   // Thera WH
                 1: c12Combat
             },
             13: {   // Shattered WH
                 5: c13WH,
-                6: c13Ore
+                6: c13Ore,
+                7: whGh
             },
             14: {   // Drifter Sentinel WH
                 1: c14Combat
@@ -614,13 +645,16 @@
         }, // system type (k-space)
         2: {
             30: {   // High Sec
-                5: hsWH
+                5: hsWH,
+                7: hsGh
             },
             31: {   // Low Sec
-                5: lsWH
+                5: lsWH,
+                7: lsGh
             },
             32: {   // 0.0
-                5: nullWH
+                5: nullWH,
+                7: nsGh
             },
             33: {   // Pochven
                 5: pochWH
