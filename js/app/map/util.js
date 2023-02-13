@@ -283,6 +283,7 @@ define([
             'ns': '0.0',
             'ls': 'L',
             'hs': 'H',
+            'tr': 'T'
         }
         return securityMapping.hasOwnProperty(sec) ? securityMapping[sec] : sec.toUpperCase();
     }
