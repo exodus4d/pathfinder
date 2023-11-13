@@ -330,7 +330,10 @@ define([
                         data: 'planets',
                         render: {
                             _: (cellData, type, rowData, meta) => {
-                                return cellData.length;
+                                if(cellData) {
+                                    return cellData.length;
+                                }
+                                return 0;
                             }
                         }
                     },{
