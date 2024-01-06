@@ -2525,6 +2525,7 @@ define([
      * @returns {string}
      */
     let getSystemPlanetsTable = planets => {
+        if(!planets) return '<table></table>'
         let table = '';
         if(planets.length > 0){
             let regex = /\(([^)]+)\)/;
