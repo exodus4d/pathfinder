@@ -30,7 +30,7 @@ define([
             round === 'd' &&
             days >= 1
         ){
-            parts.push('<span class="' + config.counterDigitLargeClass + '">' + '&gt;&nbsp;1d' + '</span>');
+            parts.push('<span class="' + config.counterDigitLargeClass + '">' + days + 'd' + '</span>');
         }else{
             if(
                 days > 0 ||
