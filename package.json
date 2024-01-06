@@ -31,7 +31,7 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify": "^3.0.2",
     "imagemin-webp": "^6.0.0",
-    "jshint": "^2.11.0",
+    "jshint": "^2.13.6",
     "jshint-stylish": "^2.x.x",
     "lodash.padend": "4.6.x",
     "node-notifier": ">=8.0.1",
